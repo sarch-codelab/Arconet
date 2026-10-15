@@ -1,0 +1,1 @@
+Before making code changes, read and follow the root `AGENTS.md`. It contains the shared project requirements, including how to keep and verify homepage animations across browsers and motion preferences.
