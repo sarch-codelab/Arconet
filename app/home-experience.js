@@ -82,6 +82,7 @@ export default function HomeExperience() {
   const [activeSection, setActiveSection] = useState("inicio");
   const [activeSlide, setActiveSlide] = useState(0);
   const [scrollReady, setScrollReady] = useState(false);
+  const [scrolledPastHero, setScrolledPastHero] = useState(false);
   const trackRef = useRef(null);
   const stageRef = useRef(null);
 
@@ -93,6 +94,8 @@ export default function HomeExperience() {
     const updateScrollEffects = () => {
       frame = 0;
       const y = window.scrollY;
+
+      setScrolledPastHero(y > 360);
 
       if (hero) {
         const range = Math.max(hero.offsetHeight * 0.9, 1);
@@ -184,7 +187,13 @@ export default function HomeExperience() {
 
   return (
     <main className={styles.experience}>
-      <header className={styles.topbar}>
+      {/* Sticky Topbar when scrolling down past hero */}
+      <header
+        className={`${styles.topbar} ${
+          scrolledPastHero ? styles.topbarVisible : styles.topbarHidden
+        }`}
+        aria-hidden={!scrolledPastHero}
+      >
         <a className={styles.brand} href="#inicio" aria-label="Arconet, inicio">
           <Image src="/arconet.png" alt="Arconet" width={2172} height={362} priority />
         </a>
@@ -205,47 +214,86 @@ export default function HomeExperience() {
         </a>
       </header>
 
-      <section id="inicio" className={styles.newHero}>
-        <div className={styles.heroCopy}>
-          <p className={styles.eyebrow}><span className={styles.eyebrowMark} /> Tecnología que conecta</p>
-          <h1>Infraestructura<br />para estar <em>más cerca.</em></h1>
-          <p className={styles.heroDescription}>
-            Soluciones en telecomunicaciones, fibra óptica y CATV para conectar negocios y comunidades en Honduras.
-          </p>
-          <div className={styles.heroActions}>
-            <a className={styles.primaryAction} href="#soluciones">Explorar soluciones <ArrowRight size={16} /></a>
-            <a className={styles.textAction} href="#empresa">Conoce Arconet <ArrowUpRight size={16} /></a>
-          </div>
-          <div className={styles.heroCoordinates}>
-            <span>15°30&apos; N</span><i /><span>San Pedro Sula, Honduras</span>
-          </div>
-        </div>
+      {/* Hero Showcase Frame matching Reference Mockup */}
+      <div className={styles.heroFrame}>
+        <section id="inicio" className={styles.heroCard}>
+          <div className={styles.heroStage}>
+            {/* Background company image replacing the sofa */}
+            <div className={styles.heroBgMedia}>
+              <Image
+                src="/empresa.webp"
+                alt="Instalaciones Arconet S.A. en San Pedro Sula"
+                fill
+                priority
+                quality={90}
+                className={styles.heroBgImg}
+                sizes="(max-width: 1440px) 100vw, 1400px"
+              />
+              <div className={styles.heroOverlay} />
+            </div>
 
-        <div className={styles.heroVisual} aria-label="Infraestructura tecnológica">
-          <div className={styles.heroPhoto}>
-            <Image
-              src="/catalogo/infraestructura.jpg"
-              alt="Cableado de fibra e infraestructura en un centro de datos"
-              fill
-              priority
-              sizes="(max-width: 760px) 100vw, 58vw"
-            />
-          </div>
-          <div className={styles.heroGrid} aria-hidden="true" />
-          <div className={styles.heroSignal} aria-hidden="true"><span /><span /><span /></div>
-          <div className={styles.heroRack}>
-            <Image src="/gabinete-rack-de-piso.png" alt="" width={472} height={910} priority sizes="(max-width: 760px) 48vw, 28vw" />
-          </div>
-          <div className={styles.heroProduct}>
-            <Image src="/splitters-opticos.png" alt="" width={455} height={829} priority sizes="(max-width: 760px) 24vw, 12vw" />
-            <span>Fibra óptica<br /><strong>Conexiones precisas</strong></span>
-          </div>
-          <div className={styles.heroStamp}><Network size={17} /><span>Redes<br />que conectan</span></div>
-          <span className={styles.heroSerial}>AR / 01 — 2026</span>
-        </div>
+            {/* Header integrated in the card with white cutout logo tab */}
+            <div className={styles.cardHeader}>
+              <div className={styles.cardLogoCutout}>
+                <a className={styles.cardBrand} href="#inicio" aria-label="Arconet, inicio">
+                  <Image src="/arconet.png" alt="Arconet" width={150} height={25} priority />
+                </a>
+              </div>
 
-        <a className={styles.scrollCue} href="#soluciones"><span>Desliza para descubrir</span><ArrowDown size={15} /></a>
-      </section>
+              <nav className={styles.cardNav} aria-label="Navegación del hero">
+                {NAVIGATION.map((item) => (
+                  <a
+                    key={item.id}
+                    className={activeSection === item.id ? styles.cardNavActive : ""}
+                    href={`#${item.id}`}
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </nav>
+
+              <a className={styles.cardTopPill} href="#contacto">
+                <span>Hablemos</span>
+                <span className={styles.cardTopPillIcon}>
+                  <ArrowUpRight size={14} />
+                </span>
+              </a>
+            </div>
+
+            {/* Centered Main Hero Copy & Reference Pill Button */}
+            <div className={styles.heroCenterContent}>
+              <h1 className={styles.heroCenterTitle}>
+                Infraestructura para<br />
+                estar <em>más cerca.</em>
+              </h1>
+              <p className={styles.heroCenterDescription}>
+                Soluciones en telecomunicaciones, fibra óptica y CATV para conectar negocios y comunidades en Honduras.
+              </p>
+              <div className={styles.heroCenterActions}>
+                <a className={styles.refPillBtn} href="#soluciones">
+                  <span>Explorar soluciones</span>
+                  <span className={styles.refPillIcon}>
+                    <ArrowUpRight size={16} />
+                  </span>
+                </a>
+              </div>
+            </div>
+
+            {/* Bottom Bar inside Card */}
+            <div className={styles.cardBottomBar}>
+              <div className={styles.cardCoordinates}>
+                <span>15°30&apos; N</span>
+                <i />
+                <span>San Pedro Sula, Honduras</span>
+              </div>
+              <a className={styles.cardScrollCue} href="#soluciones">
+                <span>Desliza para descubrir</span>
+                <ArrowDown size={14} />
+              </a>
+            </div>
+          </div>
+        </section>
+      </div>
 
       <section className={styles.capabilityBar} aria-label="Áreas de especialidad">
         <p>Conectividad<br />con propósito</p>
