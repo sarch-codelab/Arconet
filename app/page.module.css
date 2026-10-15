@@ -555,8 +555,10 @@
 }
 
 .topbar {
-  position: sticky;
+  position: fixed;
   top: 0;
+  right: 0;
+  left: 0;
   z-index: 40;
   height: 78px;
   display: grid;
@@ -666,7 +668,7 @@
   width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
-  padding: 12px 14px;
+  padding: 8px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -677,8 +679,8 @@
   position: relative;
   flex: 1;
   width: 100%;
-  min-height: calc(100vh - 24px);
-  min-height: calc(100dvh - 24px);
+  min-height: calc(100vh - 16px);
+  min-height: calc(100dvh - 16px);
   border-radius: 28px;
   overflow: hidden;
   display: flex;
@@ -706,23 +708,53 @@
 .heroOverlay {
   position: absolute;
   inset: 0;
+  z-index: 1;
   background: 
     linear-gradient(180deg, rgba(8, 14, 26, 0.82) 0%, rgba(12, 20, 38, 0.55) 35%, rgba(9, 15, 28, 0.7) 65%, rgba(7, 12, 22, 0.92) 100%),
     radial-gradient(circle at 50% 50%, rgba(21, 68, 181, 0.2) 0%, transparent 70%);
 }
 
-/* Header inside the card, positioned right near the top */
+/* Header with Left Logo Cutout & Right Action Cutout */
 .cardHeader {
   position: relative;
   z-index: 10;
+  width: 100%;
+  height: 64px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 22px 36px 12px;
+  justify-content: center;
+}
+
+/* Left Cutout Tab for Logo */
+.cardLogoTab {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  height: 64px;
+  padding: 0 28px 0 24px;
+  background: var(--paper);
+  border-bottom-right-radius: 28px;
+  display: flex;
+  align-items: center;
+}
+
+.cardLogoTab::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -28px;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border-top-left-radius: 28px;
+  box-shadow: -10px -10px 0 10px var(--paper);
+  pointer-events: none;
 }
 
 .cardBrand {
-  display: block;
+  display: flex;
+  align-items: center;
   transition: opacity 180ms ease, transform 180ms ease;
 }
 
@@ -732,20 +764,104 @@
 }
 
 .heroLogoImg {
-  filter: brightness(0) invert(1);
-  width: 144px;
+  width: 140px;
   height: auto;
   display: block;
 }
 
-/* Center nav links */
-.cardNav {
+/* Right Cutout Tab for Action Button */
+.cardActionTab {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
+  height: 64px;
+  padding: 0 22px;
+  background: var(--paper);
+  border-bottom-left-radius: 28px;
+  display: flex;
+  align-items: center;
+}
+
+.cardActionTab::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -28px;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border-top-right-radius: 28px;
+  box-shadow: 10px -10px 0 10px var(--paper);
+  pointer-events: none;
+}
+
+/* Top right pill button inside right cutout */
+.cardTopPill {
+  background: #171a22;
+  border-radius: 9999px;
+  padding: 5px 6px 5px 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: #ffffff !important;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 200ms ease, transform 200ms ease, box-shadow 200ms ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+}
+
+.cardTopPill > span:first-child {
+  color: #ffffff !important;
+}
+
+.cardTopPill:hover {
+  background: var(--blue);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(21, 68, 181, 0.35);
+}
+
+.cardTopPillIcon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #252a36;
+  color: #ffffff !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 200ms ease, background 200ms ease;
+}
+
+.cardTopPillIcon svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+.cardTopPill:hover .cardTopPillIcon {
+  background: #ffffff;
+  color: var(--blue) !important;
+  transform: translate(1px, -1px);
+}
+
+.cardTopPill:hover .cardTopPillIcon svg {
+  color: var(--blue) !important;
+  stroke: var(--blue) !important;
+}
+
+/* Center nav links on dark image */
+.cardCenterNav {
+  position: relative;
+  z-index: 1;
+  height: 64px;
   display: flex;
   align-items: center;
   gap: clamp(16px, 2.5vw, 36px);
+  margin: 0 auto;
 }
 
-.cardNav a {
+.cardCenterNav a {
   position: relative;
   color: rgba(255, 255, 255, 0.85) !important;
   font-size: 13px;
@@ -757,12 +873,12 @@
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
-.cardNav a:hover,
-.cardNav .cardNavActive {
+.cardCenterNav a:hover,
+.cardCenterNav .cardNavActive {
   color: #ffffff !important;
 }
 
-.cardNav a::after {
+.cardCenterNav a::after {
   content: "";
   position: absolute;
   bottom: 0;
@@ -776,60 +892,9 @@
   border-radius: 1px;
 }
 
-.cardNav a:hover::after,
-.cardNav .cardNavActive::after {
+.cardCenterNav a:hover::after,
+.cardCenterNav .cardNavActive::after {
   transform: scaleX(1);
-}
-
-/* Top right pill button: "Connect with us" -> "Hablemos" */
-.cardTopPill {
-  background: rgba(20, 26, 40, 0.82);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-radius: 9999px;
-  padding: 5px 6px 5px 18px;
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  color: #ffffff !important;
-  font-size: 13px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: background 200ms ease, border-color 200ms ease, transform 200ms ease;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-}
-
-.cardTopPill > span:first-child {
-  color: #ffffff !important;
-}
-
-.cardTopPill:hover {
-  background: var(--blue);
-  border-color: var(--blue);
-  transform: translateY(-1px);
-}
-
-.cardTopPillIcon {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: #ffffff;
-  color: var(--blue) !important;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 200ms ease, color 200ms ease;
-}
-
-.cardTopPillIcon svg {
-  color: var(--blue) !important;
-  stroke: var(--blue) !important;
-}
-
-.cardTopPill:hover .cardTopPillIcon {
-  color: var(--blue) !important;
-  transform: translate(1px, -1px);
 }
 
 /* Center Content */
@@ -1752,10 +1817,9 @@
 @media (max-width: 1040px) {
   .topbar { grid-template-columns: auto 1fr auto; gap: 18px; padding-right: 30px; padding-left: 30px; }
   .navigation { justify-self: center; gap: 19px; }
-  .heroFrame { padding: 10px 12px; }
-  .heroCard { border-radius: 22px; }
-  .cardHeader { padding: 18px 24px 10px; }
-  .cardNav { gap: 18px; }
+  .heroFrame { padding: 8px; }
+  .heroCard { border-radius: 24px; }
+  .cardCenterNav { gap: 18px; }
   .heroCenterTitle { font-size: clamp(30px, 4.8vw, 46px); }
   .solutionsHeading, .stageFooter { padding-right: 30px; padding-left: 30px; }
   .solutionPanel { padding-right: 30px; padding-left: 30px; }
@@ -1771,13 +1835,17 @@
   .topAction { min-height: 34px; gap: 5px; padding: 0 8px; font-size: 9px; }
   .topAction svg { width: 13px; }
   
-  .heroFrame { padding: 8px; min-height: 100vh; min-height: 100dvh; }
-  .heroCard { border-radius: 18px; min-height: calc(100vh - 16px); min-height: calc(100dvh - 16px); }
-  .cardHeader { padding: 14px 16px 8px; }
-  .heroLogoImg { width: 110px; }
-  .cardNav { display: none; }
-  .cardTopPill { padding: 4px 5px 4px 12px; font-size: 11px; gap: 8px; }
-  .cardTopPillIcon { width: 24px; height: 24px; }
+  .heroFrame { padding: 6px; min-height: 100vh; min-height: 100dvh; }
+  .heroCard { border-radius: 20px; min-height: calc(100vh - 12px); min-height: calc(100dvh - 12px); }
+  .cardHeader { height: 52px; }
+  .cardLogoTab { height: 52px; padding: 0 16px 0 14px; border-bottom-right-radius: 18px; }
+  .cardLogoTab::after { right: -18px; width: 18px; height: 18px; border-top-left-radius: 18px; box-shadow: -6px -6px 0 6px var(--paper); }
+  .heroLogoImg { width: 105px; }
+  .cardCenterNav { display: none; }
+  .cardActionTab { height: 52px; padding: 0 12px; border-bottom-left-radius: 18px; }
+  .cardActionTab::before { left: -18px; width: 18px; height: 18px; border-top-right-radius: 18px; box-shadow: 6px -6px 0 6px var(--paper); }
+  .cardTopPill { padding: 4px 5px 4px 10px; font-size: 11px; gap: 6px; }
+  .cardTopPillIcon { width: 22px; height: 22px; }
   .cardTopPillIcon svg { width: 12px; height: 12px; }
   .heroCenterContent { padding: 24px 14px; }
   .heroCenterTitle { font-size: clamp(26px, 7.5vw, 36px); }

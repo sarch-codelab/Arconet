@@ -231,20 +231,22 @@ export default function HomeExperience() {
             <div className={styles.heroOverlay} />
           </div>
 
-          {/* Header integrated at the top */}
-          <div className={styles.cardHeader}>
-            <a className={styles.cardBrand} href="#inicio" aria-label="Arconet, inicio">
-              <Image
-                src="/arconet.png"
-                alt="Arconet"
-                width={150}
-                height={25}
-                className={styles.heroLogoImg}
-                priority
-              />
-            </a>
+          {/* Header with left logo cutout tab, center dark nav, and right action cutout tab */}
+          <header className={styles.cardHeader}>
+            <div className={styles.cardLogoTab}>
+              <a className={styles.cardBrand} href="#inicio" aria-label="Arconet, inicio">
+                <Image
+                  src="/arconet.png"
+                  alt="Arconet"
+                  width={142}
+                  height={24}
+                  className={styles.heroLogoImg}
+                  priority
+                />
+              </a>
+            </div>
 
-            <nav className={styles.cardNav} aria-label="Navegación del hero">
+            <nav className={styles.cardCenterNav} aria-label="Navegación del hero">
               {NAVIGATION.map((item) => (
                 <a
                   key={item.id}
@@ -256,13 +258,15 @@ export default function HomeExperience() {
               ))}
             </nav>
 
-            <a className={styles.cardTopPill} href="#contacto">
-              <span>Hablemos</span>
-              <span className={styles.cardTopPillIcon}>
-                <ArrowUpRight size={14} />
-              </span>
-            </a>
-          </div>
+            <div className={styles.cardActionTab}>
+              <a className={styles.cardTopPill} href="#contacto">
+                <span>Hablemos</span>
+                <span className={styles.cardTopPillIcon}>
+                  <ArrowUpRight size={14} />
+                </span>
+              </a>
+            </div>
+          </header>
 
           {/* Centered Main Hero Copy & Reference Pill Button */}
           <div className={styles.heroCenterContent}>
