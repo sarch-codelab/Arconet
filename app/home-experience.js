@@ -214,83 +214,86 @@ export default function HomeExperience() {
         </a>
       </header>
 
-      {/* Hero Showcase Frame matching Reference Mockup */}
+      {/* Full screen rounded hero */}
       <div className={styles.heroFrame}>
         <section id="inicio" className={styles.heroCard}>
-          <div className={styles.heroStage}>
-            {/* Background company image replacing the sofa */}
-            <div className={styles.heroBgMedia}>
+          {/* Background company image replacing the sofa */}
+          <div className={styles.heroBgMedia}>
+            <Image
+              src="/empresa.webp"
+              alt="Instalaciones Arconet S.A. en San Pedro Sula"
+              fill
+              priority
+              quality={90}
+              className={styles.heroBgImg}
+              sizes="100vw"
+            />
+            <div className={styles.heroOverlay} />
+          </div>
+
+          {/* Header integrated at the top */}
+          <div className={styles.cardHeader}>
+            <a className={styles.cardBrand} href="#inicio" aria-label="Arconet, inicio">
               <Image
-                src="/empresa.webp"
-                alt="Instalaciones Arconet S.A. en San Pedro Sula"
-                fill
+                src="/arconet.png"
+                alt="Arconet"
+                width={150}
+                height={25}
+                className={styles.heroLogoImg}
                 priority
-                quality={90}
-                className={styles.heroBgImg}
-                sizes="(max-width: 1440px) 100vw, 1400px"
               />
-              <div className={styles.heroOverlay} />
-            </div>
+            </a>
 
-            {/* Header integrated in the card with white cutout logo tab */}
-            <div className={styles.cardHeader}>
-              <div className={styles.cardLogoCutout}>
-                <a className={styles.cardBrand} href="#inicio" aria-label="Arconet, inicio">
-                  <Image src="/arconet.png" alt="Arconet" width={150} height={25} priority />
+            <nav className={styles.cardNav} aria-label="Navegación del hero">
+              {NAVIGATION.map((item) => (
+                <a
+                  key={item.id}
+                  className={activeSection === item.id ? styles.cardNavActive : ""}
+                  href={`#${item.id}`}
+                >
+                  {item.label}
                 </a>
-              </div>
+              ))}
+            </nav>
 
-              <nav className={styles.cardNav} aria-label="Navegación del hero">
-                {NAVIGATION.map((item) => (
-                  <a
-                    key={item.id}
-                    className={activeSection === item.id ? styles.cardNavActive : ""}
-                    href={`#${item.id}`}
-                  >
-                    {item.label}
-                  </a>
-                ))}
-              </nav>
+            <a className={styles.cardTopPill} href="#contacto">
+              <span>Hablemos</span>
+              <span className={styles.cardTopPillIcon}>
+                <ArrowUpRight size={14} />
+              </span>
+            </a>
+          </div>
 
-              <a className={styles.cardTopPill} href="#contacto">
-                <span>Hablemos</span>
-                <span className={styles.cardTopPillIcon}>
-                  <ArrowUpRight size={14} />
+          {/* Centered Main Hero Copy & Reference Pill Button */}
+          <div className={styles.heroCenterContent}>
+            <h1 className={styles.heroCenterTitle}>
+              Infraestructura para<br />
+              estar <em>más cerca.</em>
+            </h1>
+            <p className={styles.heroCenterDescription}>
+              Soluciones en telecomunicaciones, fibra óptica y CATV para conectar negocios y comunidades en Honduras.
+            </p>
+            <div className={styles.heroCenterActions}>
+              <a className={styles.refPillBtn} href="#soluciones">
+                <span>Explorar soluciones</span>
+                <span className={styles.refPillIcon}>
+                  <ArrowUpRight size={16} />
                 </span>
               </a>
             </div>
+          </div>
 
-            {/* Centered Main Hero Copy & Reference Pill Button */}
-            <div className={styles.heroCenterContent}>
-              <h1 className={styles.heroCenterTitle}>
-                Infraestructura para<br />
-                estar <em>más cerca.</em>
-              </h1>
-              <p className={styles.heroCenterDescription}>
-                Soluciones en telecomunicaciones, fibra óptica y CATV para conectar negocios y comunidades en Honduras.
-              </p>
-              <div className={styles.heroCenterActions}>
-                <a className={styles.refPillBtn} href="#soluciones">
-                  <span>Explorar soluciones</span>
-                  <span className={styles.refPillIcon}>
-                    <ArrowUpRight size={16} />
-                  </span>
-                </a>
-              </div>
+          {/* Bottom Bar inside Card */}
+          <div className={styles.cardBottomBar}>
+            <div className={styles.cardCoordinates}>
+              <span>15°30&apos; N</span>
+              <i />
+              <span>San Pedro Sula, Honduras</span>
             </div>
-
-            {/* Bottom Bar inside Card */}
-            <div className={styles.cardBottomBar}>
-              <div className={styles.cardCoordinates}>
-                <span>15°30&apos; N</span>
-                <i />
-                <span>San Pedro Sula, Honduras</span>
-              </div>
-              <a className={styles.cardScrollCue} href="#soluciones">
-                <span>Desliza para descubrir</span>
-                <ArrowDown size={14} />
-              </a>
-            </div>
+            <a className={styles.cardScrollCue} href="#soluciones">
+              <span>Desliza para descubrir</span>
+              <ArrowDown size={14} />
+            </a>
           </div>
         </section>
       </div>

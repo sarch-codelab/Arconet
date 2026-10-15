@@ -664,30 +664,28 @@
 .heroFrame {
   position: relative;
   width: 100%;
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 16px 24px 36px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 12px 14px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
   animation: heroFrameIn 900ms cubic-bezier(0.2, 0.72, 0.24, 1) both;
 }
 
 .heroCard {
   position: relative;
-  background: #ffffff;
-  padding: 14px;
-  border-radius: 40px;
-  box-shadow: 0 24px 60px rgba(12, 24, 52, 0.08), 0 2px 12px rgba(12, 24, 52, 0.04);
-  overflow: hidden;
-}
-
-.heroStage {
-  position: relative;
+  flex: 1;
+  width: 100%;
+  min-height: calc(100vh - 24px);
+  min-height: calc(100dvh - 24px);
   border-radius: 28px;
   overflow: hidden;
-  min-height: clamp(540px, 82vh, 740px);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   background: #0d1422;
+  box-shadow: 0 16px 44px rgba(12, 24, 52, 0.12);
 }
 
 /* Background company image replacing the sofa */
@@ -709,50 +707,33 @@
   position: absolute;
   inset: 0;
   background: 
-    linear-gradient(180deg, rgba(8, 14, 26, 0.85) 0%, rgba(12, 20, 38, 0.6) 35%, rgba(9, 15, 28, 0.72) 65%, rgba(7, 12, 22, 0.94) 100%),
+    linear-gradient(180deg, rgba(8, 14, 26, 0.82) 0%, rgba(12, 20, 38, 0.55) 35%, rgba(9, 15, 28, 0.7) 65%, rgba(7, 12, 22, 0.92) 100%),
     radial-gradient(circle at 50% 50%, rgba(21, 68, 181, 0.2) 0%, transparent 70%);
 }
 
-/* Header inside the card */
+/* Header inside the card, positioned right near the top */
 .cardHeader {
   position: relative;
   z-index: 10;
   display: flex;
   align-items: center;
   justify-content: space-between;
-}
-
-/* White logo cutout tab with inverted fillet curve */
-.cardLogoCutout {
-  position: relative;
-  background: #ffffff;
-  padding: 14px 28px 14px 24px;
-  border-top-left-radius: 28px;
-  border-bottom-right-radius: 24px;
-  display: flex;
-  align-items: center;
-}
-
-.cardLogoCutout::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: -24px;
-  width: 24px;
-  height: 24px;
-  background: transparent;
-  border-top-left-radius: 24px;
-  box-shadow: -8px -8px 0 8px #ffffff;
-  pointer-events: none;
+  padding: 22px 36px 12px;
 }
 
 .cardBrand {
   display: block;
-  width: 146px;
+  transition: opacity 180ms ease, transform 180ms ease;
 }
 
-.cardBrand img {
-  width: 100%;
+.cardBrand:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.heroLogoImg {
+  filter: brightness(0) invert(1);
+  width: 144px;
   height: auto;
   display: block;
 }
@@ -773,7 +754,7 @@
   padding: 6px 0;
   text-decoration: none;
   transition: color 180ms ease;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
 .cardNav a:hover,
@@ -802,8 +783,7 @@
 
 /* Top right pill button: "Connect with us" -> "Hablemos" */
 .cardTopPill {
-  margin-right: 20px;
-  background: rgba(20, 26, 40, 0.85);
+  background: rgba(20, 26, 40, 0.82);
   border: 1px solid rgba(255, 255, 255, 0.22);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -1772,9 +1752,11 @@
 @media (max-width: 1040px) {
   .topbar { grid-template-columns: auto 1fr auto; gap: 18px; padding-right: 30px; padding-left: 30px; }
   .navigation { justify-self: center; gap: 19px; }
-  .heroFrame { padding: 14px 16px 28px; }
+  .heroFrame { padding: 10px 12px; }
+  .heroCard { border-radius: 22px; }
+  .cardHeader { padding: 18px 24px 10px; }
   .cardNav { gap: 18px; }
-  .heroCenterTitle { font-size: clamp(32px, 5vw, 48px); }
+  .heroCenterTitle { font-size: clamp(30px, 4.8vw, 46px); }
   .solutionsHeading, .stageFooter { padding-right: 30px; padding-left: 30px; }
   .solutionPanel { padding-right: 30px; padding-left: 30px; }
   .companySection { padding-right: 8vw; padding-left: 8vw; }
@@ -1789,23 +1771,21 @@
   .topAction { min-height: 34px; gap: 5px; padding: 0 8px; font-size: 9px; }
   .topAction svg { width: 13px; }
   
-  .heroFrame { padding: 10px 10px 24px; }
-  .heroCard { padding: 8px; border-radius: 28px; }
-  .heroStage { border-radius: 20px; min-height: 520px; }
-  .cardLogoCutout { padding: 10px 18px 10px 16px; border-bottom-right-radius: 18px; }
-  .cardLogoCutout::after { right: -18px; width: 18px; height: 18px; border-top-left-radius: 18px; box-shadow: -6px -6px 0 6px #ffffff; }
-  .cardBrand { width: 110px; }
+  .heroFrame { padding: 8px; min-height: 100vh; min-height: 100dvh; }
+  .heroCard { border-radius: 18px; min-height: calc(100vh - 16px); min-height: calc(100dvh - 16px); }
+  .cardHeader { padding: 14px 16px 8px; }
+  .heroLogoImg { width: 110px; }
   .cardNav { display: none; }
-  .cardTopPill { margin-right: 8px; padding: 4px 5px 4px 12px; font-size: 11px; gap: 8px; }
+  .cardTopPill { padding: 4px 5px 4px 12px; font-size: 11px; gap: 8px; }
   .cardTopPillIcon { width: 24px; height: 24px; }
   .cardTopPillIcon svg { width: 12px; height: 12px; }
-  .heroCenterContent { padding: 30px 14px; }
-  .heroCenterTitle { font-size: clamp(26px, 7.5vw, 38px); }
-  .heroCenterDescription { font-size: 13px; margin: 14px auto 24px; }
-  .refPillBtn { padding: 6px 7px 6px 18px; font-size: 12px; gap: 10px; }
-  .refPillIcon { width: 30px; height: 30px; }
+  .heroCenterContent { padding: 24px 14px; }
+  .heroCenterTitle { font-size: clamp(26px, 7.5vw, 36px); }
+  .heroCenterDescription { font-size: 13px; margin: 12px auto 20px; }
+  .refPillBtn { padding: 7px 8px 7px 20px; font-size: 13px; gap: 10px; }
+  .refPillIcon { width: 32px; height: 32px; }
   .refPillIcon svg { width: 14px; height: 14px; }
-  .cardBottomBar { padding: 12px 16px 16px; flex-direction: column; gap: 10px; text-align: center; }
+  .cardBottomBar { padding: 10px 16px 16px; flex-direction: column; gap: 8px; text-align: center; }
 
   .capabilityBar { grid-template-columns: repeat(2, 1fr); gap: 17px 12px; padding: 21px 20px; }
   .capabilityBar > p { grid-column: 1 / -1; font-size: 17px; }
