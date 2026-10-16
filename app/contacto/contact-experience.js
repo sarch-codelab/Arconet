@@ -15,6 +15,7 @@ import {
   Satellite,
 } from "lucide-react";
 import styles from "./contact-experience.module.css";
+import Footer from "../footer";
 
 const NAVIGATION = [
   { href: "/", label: "Inicio" },
@@ -287,11 +288,7 @@ export default function ContactExperience() {
         <a href="/catalogo">Explorar el catálogo <ArrowRight size={16} /></a>
       </section>
 
-      <footer className={styles.footer}>
-        <a className={styles.footerLogo} href="/" aria-label="Arconet, inicio"><Image src="/arconet.png" alt="Arconet" width={2172} height={362} /></a>
-        <span>© 2026 Arconet, S.A.</span>
-        <a href="#contacto-inicio">Volver arriba <ArrowUpRight size={15} /></a>
-      </footer>
+      <Footer />
     </main>
   );
 }

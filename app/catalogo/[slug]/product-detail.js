@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import {
-  ArrowLeft,
   ArrowRight,
   ArrowUpRight,
   Check,
@@ -19,6 +18,7 @@ import {
 } from "lucide-react";
 import { FAMILIES, findFamily } from "../catalogo-data";
 import styles from "./product-detail.module.css";
+import Footer from "../../footer";
 
 const NAVIGATION = [
   { href: "/catalogo#familias", label: "Soluciones" },
@@ -362,16 +362,7 @@ export default function ProductDetail({ slug }) {
         <span className={styles.contactLocation}>San Pedro Sula · Honduras</span>
       </section>
 
-      <footer className={styles.footer}>
-        <Link className={styles.footerBrand} href="/" aria-label="Arconet, inicio">
-          <Image src="/arconet.png" alt="Arconet" width={2172} height={362} />
-        </Link>
-        <p>Conectividad que acerca.</p>
-        <Link className={styles.backToCatalog} href="/catalogo">
-          <ArrowLeft size={14} /> Volver al catálogo
-        </Link>
-        <span className={styles.footerCopyright}>© 2026 Arconet, S.A. · Honduras</span>
-      </footer>
+      <Footer />
     </main>
   );
 }

@@ -24,12 +24,36 @@ import {
 } from "lucide-react";
 import styles from "./catalogo-experience.module.css";
 import { CATEGORIES, FAMILIES } from "./catalogo-data";
+import Footer from "../footer";
 
 const NAVIGATION = [
-  { href: "#familias", label: "Soluciones", id: "familias" },
-  { href: "#catalogo-items", label: "Catálogo", id: "catalogo-items" },
-  { href: "#acompanamiento", label: "Acompañamiento", id: "acompanamiento" },
-  { href: "/#contacto", label: "Contacto", id: "" },
+  { id: "inicio", label: "Inicio", mega: false, href: "/" },
+  { id: "soluciones", label: "Soluciones", mega: true, megaGroups: [
+    { title: "Conectividad", links: [
+      { label: "Fibra Óptica", href: "#fibra" },
+      { label: "SD-WAN", href: "#sdwan" },
+      { label: "Redes Inalámbricas", href: "#wireless" }
+    ]},
+    { title: "Infraestructura", links: [
+      { label: "Centros de Datos", href: "#datacenter" },
+      { label: "Redes de Núcleo", href: "#core" }
+    ]},
+    { title: "Acompañamiento", links: [
+      { label: "Asesoría Técnica", href: "#asesoria" },
+      { label: "Soporte Continuo", href: "#soporte" }
+    ]}
+  ]},
+  { id: "empresa", label: "La empresa", mega: true, megaGroups: [
+    { title: "Nuestra Historia", links: [
+      { label: "Trayectoria", href: "#historia" },
+      { label: "Valores", href: "#valores" }
+    ]},
+    { title: "Equipo", links: [
+      { label: "Liderazgo", href: "#liderazgo" },
+      { label: "Contacto", href: "#contacto" }
+    ]}
+  ]},
+  { id: "contacto", label: "Contacto", mega: false, href: "/#contacto" },
 ];
 
 const TRUST = [
@@ -68,6 +92,10 @@ export default function CatalogoExperience() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeSection, setActiveSection] = useState("");
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  useEffect(() => {
+    setMobileMenuOpen(window.innerWidth <= 760);
+  }, []);
 
   useEffect(() => {
     const update = ({ scroll = window.scrollY } = {}) => {
@@ -146,6 +174,25 @@ export default function CatalogoExperience() {
 
   const hasFilters = activeCategory !== "Todas" || searchTerm.trim().length > 0;
 
+  const megaItems = NAVIGATION.filter((item) => item.mega);
+  const megaMenu = megaItems.length > 0 ? (
+    <div className={styles.megaMenu}>
+      {megaItems.map((item) => (
+        <div key={item.id} className={styles.megaColumn}>
+          <strong>{item.label}</strong>
+          {item.megaGroups.map((group) => (
+            <div key={group.title} className={styles.megaGroup}>
+              <span className={styles.megaGroupTitle}>{group.title}</span>
+              {group.links.map((link) => (
+                <a key={link.label} href={link.href}>{link.label}</a>
+              ))}
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  ) : null;
+
   return (
     <main className={styles.catalog}>
       <header className={`${styles.topbar} ${scrolledPastHero ? styles.topbarVisible : styles.topbarHidden}`} aria-hidden={!scrolledPastHero}>
@@ -153,18 +200,66 @@ export default function CatalogoExperience() {
           <Image src="/arconet.png" alt="Arconet" width={2172} height={362} />
         </a>
         <nav className={styles.topbarNav} aria-label="Navegación del catálogo">
-          {NAVIGATION.map((item) => (
-            <a
-              key={item.label}
-              href={item.href}
-              className={item.id && activeSection === item.id ? styles.topbarNavActive : ""}
-              aria-current={item.id && activeSection === item.id ? "location" : undefined}
-              tabIndex={scrolledPastHero ? 0 : -1}
-            >
-              {item.label}
-            </a>
-          ))}
+          {/* Enlaces normales (desktop) */}
+          {NAVIGATION
+            .filter((item) => !item.mega)
+            .map((item) => (
+              <a
+                key={item.label}
+                href={item.href}
+                className={item.id && activeSection === item.id ? styles.topbarNavActive : ""}
+                aria-current={item.id && activeSection === item.id ? "location" : undefined}
+                tabIndex={scrolledPastHero ? 0 : -1}
+              >
+                {item.label}
+              </a>
+            ))}
+          {/* Botón hamburger para móvil */}
+          <button
+            className={styles.menuToggleCatalogo}
+            aria-label={mobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            <span className="bar" />
+            <span className="bar" />
+            <span className="bar" />
+          </button>
         </nav>
+        {NAVIGATION.filter((item) => item.mega).length > 0 && (
+          <div className={styles.megaMenuCatalogo} aria-label="Menú desplegable">
+            {NAVIGATION.filter((item) => item.mega).map((item) => (
+              <div key={item.id} className={styles.megaMenuCategoryCatalogo}>
+                <h4>{item.label}</h4>
+                <ul>
+                  {item.megaGroups.map((group) => (
+                    <li key={group.title}>
+                      <strong>{group.title}</strong>
+                      <ul>
+                        {group.links.map((link) => (
+                          <li key={link.label}>
+                            <a href={link.href}>{link.label}</a>
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+        {NAVIGATION.filter((item) => item.mega).length > 0 && (
+          <button
+            className={styles.topbarNavToggle}
+            aria-label="Abrir menú mega"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            <span className="toggle-bar" />
+            <span className="toggle-bar" />
+            <span className="toggle-bar" />
+          </button>
+        )}
+
         <a className={styles.topbarAction} href="/#contacto" tabIndex={scrolledPastHero ? 0 : -1}>
           Hablemos <ArrowUpRight size={15} />
         </a>
@@ -191,11 +286,29 @@ export default function CatalogoExperience() {
               <Image src="/arconet.png" alt="Arconet" width={2172} height={362} priority />
             </a>
             <nav className={styles.navigation} aria-label="Navegación principal">
-              {NAVIGATION.map((item) => (
-                <a className={item.id && activeSection === item.id ? styles.navigationActive : ""} href={item.href} key={item.label}>
-                  {item.label}
-                </a>
-              ))}
+              {/* Enlaces mega */}
+              {NAVIGATION
+                .filter((item) => item.mega)
+                .map((item) => (
+                  <button
+                    className={styles.navigationToggle}
+                    aria-label={item.label}
+                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  >
+                    {item.label}
+                    <span className="nav-toggle-bar" />
+                    <span className="nav-toggle-bar" />
+                    <span className="nav-toggle-bar" />
+                  </button>
+                ))}
+              {/* Enlaces normales */}
+              {NAVIGATION
+                .filter((item) => !item.mega)
+                .map((item) => (
+                  <a className={item.id && activeSection === item.id ? styles.navigationActive : ""} href={item.href} key={item.label}>
+                    {item.label}
+                  </a>
+                ))}
             </nav>
             <div className={styles.heroActionTab}>
               <a className={styles.contactButton} href="/#contacto">
@@ -410,16 +523,7 @@ export default function CatalogoExperience() {
         <span className={styles.contactLocation}>San Pedro Sula · Honduras</span>
       </section>
 
-      <footer className={styles.footer}>
-        <a className={styles.footerBrand} href="/" aria-label="Arconet, inicio">
-          <Image src="/arconet.png" alt="Arconet" width={2172} height={362} />
-        </a>
-        <p>Conectividad que acerca.</p>
-        <nav className={styles.footerNav} aria-label="Navegación del pie de página">
-          {NAVIGATION.map((item) => <a key={item.label} href={item.href}>{item.label}</a>)}
-        </nav>
-        <span className={styles.footerCopyright}>© 2026 Arconet, S.A. · Honduras</span>
-      </footer>
+      <Footer />
     </main>
   );
 }

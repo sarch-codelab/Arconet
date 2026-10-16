@@ -12,12 +12,36 @@ import {
   Satellite,
 } from "lucide-react";
 import styles from "./page.module.css";
+import Footer from "./footer";
 
 const NAVIGATION = [
-  { id: "inicio", label: "Inicio" },
-  { id: "soluciones", label: "Soluciones" },
-  { id: "empresa", label: "La empresa" },
-  { id: "contacto", label: "Contacto" },
+  { id: "inicio", label: "Inicio", mega: false },
+  { id: "soluciones", label: "Soluciones", mega: true, megaGroups: [
+    { title: "Conectividad", links: [
+      { label: "Fibra Óptica", href: "#fibra" },
+      { label: "SD-WAN", href: "#sdwan" },
+      { label: "Redes Inalámbricas", href: "#wireless" }
+    ]},
+    { title: "Infraestructura", links: [
+      { label: "Centros de Datos", href: "#datacenter" },
+      { label: "Redes de Núcleo", href: "#core" }
+    ]},
+    { title: "Acompañamiento", links: [
+      { label: "Asesoría Técnica", href: "#asesoria" },
+      { label: "Soporte Continuo", href: "#soporte" }
+    ]}
+  ]},
+  { id: "empresa", label: "La empresa", mega: true, megaGroups: [
+    { title: "Nuestra Historia", links: [
+      { label: "Trayectoria", href: "#historia" },
+      { label: "Valores", href: "#valores" }
+    ]},
+    { title: "Equipo", links: [
+      { label: "Liderazgo", href: "#liderazgo" },
+      { label: "Contacto", href: "#contacto" }
+    ]}
+  ]},
+  { id: "contacto", label: "Contacto", mega: false },
 ];
 
 const SOLUTIONS = [
@@ -83,6 +107,14 @@ export default function HomeExperience() {
   const [activeSlide, setActiveSlide] = useState(0);
   const [scrollReady, setScrollReady] = useState(false);
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 760) setMenuOpen(false);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   const trackRef = useRef(null);
   const stageRef = useRef(null);
 
@@ -131,6 +163,7 @@ export default function HomeExperience() {
       window.removeEventListener("resize", onScroll);
     };
   }, []);
+
 
   useEffect(() => {
     const targets = document.querySelectorAll("[data-reveal]");
@@ -201,14 +234,70 @@ export default function HomeExperience() {
           {NAVIGATION.map((item) => (
             <a
               key={item.id}
-              className={activeSection === item.id ? styles.navigationActive : ""}
+              className={`${activeSection === item.id ? styles.navigationActive : ""}${item.mega ? ` ${styles.megaTrigger}` : ""}`}
               href={`#${item.id}`}
               aria-current={activeSection === item.id ? "location" : undefined}
             >
               {item.label}
             </a>
           ))}
+          <button
+            type="button"
+            className={`${styles.menuToggle}${menuOpen ? ` ${styles.menuToggleActive}` : ""}`}
+            aria-expanded={menuOpen}
+            aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            <span className={styles.menuBar} />
+            <span className={styles.menuBar} />
+            <span className={styles.menuBar} />
+          </button>
         </nav>
+        {NAVIGATION.filter((item) => item.mega).length > 0 && (
+          <div className={styles.megaMenu} aria-label="Menú desplegable">
+            {NAVIGATION.filter((item) => item.mega).map((item) => (
+              <div key={item.id} className={styles.megaMenuCategory}>
+                <h4>{item.label}</h4>
+                <ul>
+                  {item.megaGroups.map((group) => (
+                    <li key={group.title}>
+                      <strong>{group.title}</strong>
+                      <ul>
+                        {group.links.map((link) => (
+                          <li key={link.label}>
+                            <a href={link.href}>{link.label}</a>
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+        {menuOpen && (
+          <div className={styles.mobileMenu}>
+            {NAVIGATION.map((item) =>
+              item.mega ? (
+                <div key={item.id}>
+                  <a href={`#${item.id}`} onClick={() => setMenuOpen(false)}>{item.label}</a>
+                  {item.megaGroups.map((group) => (
+                    <div key={group.title}>
+                      <strong>{group.title}</strong>
+                      {group.links.map((link) => (
+                        <a key={link.label} href={link.href} onClick={() => setMenuOpen(false)}>{link.label}</a>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <a key={item.id} href={`#${item.id}`} onClick={() => setMenuOpen(false)}>{item.label}</a>
+              )
+            )}
+          </div>
+        )}
+
         <a className={styles.topAction} href="#contacto">
           Hablemos <ArrowUpRight size={16} />
         </a>
@@ -407,12 +496,7 @@ export default function HomeExperience() {
         <span className={styles.contactLocation}>San Pedro Sula · Honduras</span>
       </section>
 
-      <footer className={styles.footer}>
-        <a href="#inicio" className={styles.footerBrand}><Image src="/arconet.png" alt="Arconet" width={2172} height={362} /></a>
-        <p>Conectividad que acerca.</p>
-        <a href="#inicio" className={styles.backToTop}>Volver al inicio <ArrowUpRight size={15} /></a>
-        <span className={styles.footerCopyright}>© 2026 Arconet, S.A. · Honduras</span>
-      </footer>
+      <Footer />
     </main>
   );
 }

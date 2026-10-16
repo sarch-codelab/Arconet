@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ArrowDown, ArrowRight, ArrowUpRight, FileText } from "lucide-react";
 import styles from "./terminos-experience.module.css";
+import Footer from "../footer";
 
 const SECTIONS = [
   {
@@ -259,13 +260,7 @@ export default function TerminosExperience() {
         </article>
       </div>
 
-      <footer className={styles.footer}>
-        <Link className={styles.footerLogo} href="/" aria-label="Arconet, inicio">
-          <Image src="/arconet.png" alt="Arconet" width={2172} height={362} />
-        </Link>
-        <p>Borrador pendiente de aprobación.</p>
-        <Link href="#inicio">Volver arriba <ArrowUpRight size={15} /></Link>
-      </footer>
+      <Footer />
     </main>
   );
 }

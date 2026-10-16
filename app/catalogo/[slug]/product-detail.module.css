@@ -2,14 +2,9 @@
   --blue: #1544b5;
   --blue-deep: #0c2874;
   --blue-soft: #558eff;
-  --ink: #17191d;
-  --muted: #696d74;
-  --paper: #faf9f6;
-  --line: #e7e5e0;
   min-height: 100vh;
   color: var(--ink);
   background: var(--paper);
-  font-family: "Aptos", "Segoe UI", sans-serif;
   overflow: clip;
 }
 
@@ -46,8 +41,7 @@
   display: block;
 }
 
-.brand img,
-.footerBrand img {
+.brand img {
   display: block;
   width: 100%;
   height: auto;
@@ -936,43 +930,6 @@
   text-transform: uppercase;
 }
 
-.footer {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  align-items: center;
-  gap: 18px 28px;
-  padding: 28px clamp(20px, 6vw, 96px) 22px;
-  background: var(--paper);
-}
-
-.footerBrand {
-  width: 132px;
-}
-
-.footer > p {
-  color: #777b83;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 14px;
-  font-style: italic;
-}
-
-.backToCatalog {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--blue) !important;
-  font-size: 11.5px;
-  font-weight: 700;
-}
-
-.footerCopyright {
-  grid-column: 1 / -1;
-  padding-top: 16px;
-  border-top: 1px solid var(--line);
-  color: #858890;
-  font-size: 11px;
-}
-
 /* ==========================================================================
    NO ENCONTRADO
    ========================================================================== */
@@ -1048,7 +1005,6 @@
   .relatedHeading { align-items: flex-start; flex-direction: column; gap: 12px; padding: 32px 0 20px; }
   .relatedGrid { grid-template-columns: 1fr; gap: 14px; }
   .contactContent { width: 100%; padding: 70px 20px 88px; }
-  .footer { grid-template-columns: 1fr; gap: 12px; padding: 24px 20px 20px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1059,4 +1015,98 @@
   .saveButton {
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ==========================================================================
+   MODO OSCURO (automático según la hora)
+   ========================================================================== */
+
+:global(html[data-theme="dark"]) .header {
+  border-bottom-color: var(--line);
+  background: var(--topbar);
+}
+
+:global(html[data-theme="dark"]) .nav a {
+  color: var(--muted);
+}
+
+:global(html[data-theme="dark"]) .breadcrumb,
+:global(html[data-theme="dark"]) .breadcrumb a {
+  color: var(--muted);
+}
+
+:global(html[data-theme="dark"]) .thumbs button {
+  background: var(--surface-2);
+}
+
+:global(html[data-theme="dark"]) .stage {
+  background-color: var(--surface-2);
+  background-image: linear-gradient(#ffffff08 1px, transparent 1px),
+    linear-gradient(90deg, #ffffff08 1px, transparent 1px);
+}
+
+:global(html[data-theme="dark"]) .stage figcaption,
+:global(html[data-theme="dark"]) .tabNote {
+  color: var(--muted);
+}
+
+:global(html[data-theme="dark"]) .badge {
+  background: var(--surface-2);
+  color: var(--muted);
+}
+
+:global(html[data-theme="dark"]) .featureList li,
+:global(html[data-theme="dark"]) .panelList li {
+  color: var(--ink);
+}
+
+:global(html[data-theme="dark"]) .configBox,
+:global(html[data-theme="dark"]) .stepper,
+:global(html[data-theme="dark"]) .ghostDarkButton,
+:global(html[data-theme="dark"]) .saveButton {
+  background: var(--surface);
+}
+
+:global(html[data-theme="dark"]) .ghostDarkButton {
+  color: var(--ink) !important;
+}
+
+:global(html[data-theme="dark"]) .saveButton {
+  color: var(--muted);
+}
+
+:global(html[data-theme="dark"]) .chips button {
+  background: var(--surface);
+  color: var(--muted);
+}
+
+:global(html[data-theme="dark"]) .tabs button {
+  color: var(--muted);
+}
+
+:global(html[data-theme="dark"]) .sectionEyebrow,
+:global(html[data-theme="dark"]) .textLink,
+:global(html[data-theme="dark"]) .relatedCopy p,
+:global(html[data-theme="dark"]) .relatedCopy em,
+:global(html[data-theme="dark"]) .eyebrow,
+:global(html[data-theme="dark"]) .metaLine svg,
+:global(html[data-theme="dark"]) .featureList svg,
+:global(html[data-theme="dark"]) .panelList svg,
+:global(html[data-theme="dark"]) .trustRow svg,
+:global(html[data-theme="dark"]) .supportList svg {
+  color: var(--accent-ink) !important;
+}
+
+:global(html[data-theme="dark"]) .relatedCard {
+  background: var(--surface);
+}
+
+:global(html[data-theme="dark"]) .relatedCard:hover {
+  border-color: #3a4350;
+}
+
+:global(html[data-theme="dark"]) .relatedVisual {
+  background-color: var(--surface-2);
+  background-image: linear-gradient(#ffffff08 1px, transparent 1px),
+    linear-gradient(90deg, #ffffff08 1px, transparent 1px);
 }

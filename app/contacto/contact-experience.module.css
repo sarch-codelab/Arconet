@@ -1,15 +1,10 @@
 .contactPage {
   --blue: #1544b5;
   --blue-deep: #0c2a79;
-  --ink: #191c22;
-  --paper: #faf9f6;
-  --muted: #6d727a;
-  --line: #e4e5e8;
   --page-progress: 0;
   overflow: clip;
   background: var(--paper);
   color: var(--ink);
-  font-family: "Aptos", "Segoe UI", sans-serif;
 }
 
 .contactPage a {
@@ -786,42 +781,6 @@
   transform: translateX(3px);
 }
 
-.footer {
-  min-height: 98px;
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  align-items: center;
-  gap: 20px;
-  padding: 20px clamp(28px, 6vw, 92px);
-  background: #f1f1ef;
-}
-
-.footerLogo {
-  width: 128px;
-}
-
-.footerLogo img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-.footer > span {
-  justify-self: center;
-  color: #777d86;
-  font-size: 9px;
-}
-
-.footer > a:last-child {
-  justify-self: end;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  color: var(--blue);
-  font-size: 9px;
-  font-weight: 700;
-}
-
 .revealed {
   animation: revealFlow 780ms cubic-bezier(0.2, 0.72, 0.24, 1) both;
 }
@@ -905,10 +864,6 @@
   .formSubmitRow button { align-self: flex-start; }
   .formNotice { flex-wrap: wrap; }
   .lastWord { align-items: flex-start; flex-direction: column; gap: 12px; padding: 20px 22px; }
-  .footer { grid-template-columns: 1fr auto; gap: 13px; padding: 19px 22px; }
-  .footerLogo { width: 112px; }
-  .footer > span { grid-column: 1; grid-row: 2; justify-self: start; font-size: 8px; }
-  .footer > a:last-child { grid-column: 2; grid-row: 1 / 3; }
 }
 
 @media (max-width: 390px) {
@@ -932,4 +887,85 @@
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ==========================================================================
+   MODO OSCURO (automático según la hora)
+   ========================================================================== */
+
+:global(html[data-theme="dark"]) .sectionLabel,
+:global(html[data-theme="dark"]) .areasHeading h2 em,
+:global(html[data-theme="dark"]) .storyCopy h2 em,
+:global(html[data-theme="dark"]) .formIntro h2 em,
+:global(html[data-theme="dark"]) .areaIcon,
+:global(html[data-theme="dark"]) .step > span,
+:global(html[data-theme="dark"]) .locationNote,
+:global(html[data-theme="dark"]) .lastWord a {
+  color: var(--accent-ink) !important;
+}
+
+:global(html[data-theme="dark"]) .areaRow {
+  color: var(--muted) !important;
+}
+
+:global(html[data-theme="dark"]) .areaRow:hover,
+:global(html[data-theme="dark"]) .areaActive {
+  color: var(--accent-ink) !important;
+}
+
+:global(html[data-theme="dark"]) .areaIcon {
+  border-color: var(--line);
+}
+
+:global(html[data-theme="dark"]) .areaProgress {
+  background: var(--line);
+}
+
+:global(html[data-theme="dark"]) .contactStory {
+  background: var(--surface-2);
+}
+
+:global(html[data-theme="dark"]) .storyVisual {
+  background-color: var(--surface-2);
+  background-image: linear-gradient(#ffffff08 1px, transparent 1px),
+    linear-gradient(90deg, #ffffff08 1px, transparent 1px);
+}
+
+:global(html[data-theme="dark"]) .storyVisual > span {
+  color: var(--muted);
+}
+
+:global(html[data-theme="dark"]) .step {
+  border-top-color: var(--line);
+}
+
+:global(html[data-theme="dark"]) .formTopline,
+:global(html[data-theme="dark"]) .formGrid label > span,
+:global(html[data-theme="dark"]) .formSubmitRow > p,
+:global(html[data-theme="dark"]) .lastWord {
+  color: var(--muted);
+}
+
+:global(html[data-theme="dark"]) .formGrid label {
+  color: var(--ink);
+}
+
+:global(html[data-theme="dark"]) .formGrid input,
+:global(html[data-theme="dark"]) .formGrid select,
+:global(html[data-theme="dark"]) .formGrid textarea {
+  border-bottom-color: var(--line);
+}
+
+:global(html[data-theme="dark"]) .formGrid input::placeholder,
+:global(html[data-theme="dark"]) .formGrid textarea::placeholder {
+  color: var(--muted);
+}
+
+:global(html[data-theme="dark"]) .formNotice {
+  background: var(--surface-2);
+  color: var(--accent-ink);
+}
+
+:global(html[data-theme="dark"]) .formNotice button {
+  color: var(--accent-ink);
 }
