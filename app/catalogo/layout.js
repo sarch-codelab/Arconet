@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "NovaTrend | Catálogo",
-  description: "Descubre moda, tecnología, hogar y más en NovaTrend.",
+  title: "Arconet | Catálogo",
+  description: "Equipos y soluciones de fibra óptica, CATV y telecomunicaciones de Arconet Honduras.",
 };
 
 export default function CatalogoLayout({ children }) {

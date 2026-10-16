@@ -1,3 +1,5 @@
+@import "locomotive-scroll/dist/locomotive-scroll.css";
+
 :root {
   --bg: #faf9f6;
   --bg-soft: #f2f1ec;
