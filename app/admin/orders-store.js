@@ -103,6 +103,37 @@ export function newOrderId() {
   return `o-${nanoid(8)}`;
 }
 
+async function api(path, options) {
+  const response = await fetch(path, {
+    headers: { "Content-Type": "application/json" },
+    ...options,
+  });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    throw new Error(payload.error || `Error ${response.status}`);
+  }
+  return response.json();
+}
+
+export async function fetchOrders() {
+  return api("/api/ordenes");
+}
+
+export async function createOrder(order) {
+  return api("/api/ordenes", { method: "POST", body: JSON.stringify(order) });
+}
+
+export async function updateOrder(id, order) {
+  return api(`/api/ordenes/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify(order),
+  });
+}
+
+export async function deleteOrder(id) {
+  return api(`/api/ordenes/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
+
 export function orderStatusLabel(statusId) {
   const status = ORDER_STATUSES.find((item) => item.id === statusId);
   return status ? status.label : statusId;

@@ -42,6 +42,9 @@ import {
   authenticate,
   branchLabel,
   clearSession,
+  createWorker,
+  deleteWorker,
+  fetchWorkers,
   formatDate,
   initials,
   loadSession,
@@ -51,6 +54,7 @@ import {
   saveSession,
   saveWorkers,
   statusLabel,
+  updateWorker,
 } from "./workers-store";
 import {
   PRODUCT_CATEGORIES,
@@ -69,15 +73,23 @@ import {
   updateProduct,
 } from "./products-store";
 import {
+  createSucursal,
+  deleteSucursal,
+  fetchSucursales,
   loadSucursales,
   saveSucursales,
   newSucursalId,
   initialsSucursal,
+  updateSucursal,
 } from "./sucursales-store";
 import {
+  createOrder,
+  deleteOrder,
+  fetchOrders,
   loadOrders,
   saveOrders,
   newOrderId,
+  updateOrder,
   ORDER_STATUSES,
   ORDER_TYPES,
   orderStatusLabel,
@@ -85,9 +97,13 @@ import {
   formatOrderDate,
 } from "./orders-store";
 import {
+  createCliente,
+  deleteCliente,
+  fetchClientes,
   loadClientes,
   saveClientes,
   newClienteId,
+  updateCliente,
   CLIENT_STATUSES,
   clientStatusLabel,
   initialsCliente,
@@ -234,6 +250,12 @@ function AdminShell({ session, onLogout }) {
       setNavOpen(false);
     }
     setWorkers(loadWorkers());
+    fetchWorkers()
+      .then((remote) => {
+        setWorkers(remote);
+        saveWorkers(remote);
+      })
+      .catch(() => {});
     setProducts(loadProducts());
     fetchProducts()
       .then((remote) => {
@@ -242,8 +264,26 @@ function AdminShell({ session, onLogout }) {
       })
       .catch(() => {});
     setSucursales(loadSucursales());
+    fetchSucursales()
+      .then((remote) => {
+        setSucursales(remote);
+        saveSucursales(remote);
+      })
+      .catch(() => {});
     setOrders(loadOrders());
+    fetchOrders()
+      .then((remote) => {
+        setOrders(remote);
+        saveOrders(remote);
+      })
+      .catch(() => {});
     setClientes(loadClientes());
+    fetchClientes()
+      .then((remote) => {
+        setClientes(remote);
+        saveClientes(remote);
+      })
+      .catch(() => {});
 
     const handlePopState = () => {
       const sp = new URLSearchParams(window.location.search);
@@ -770,33 +810,42 @@ function WorkersSection({ workers, setWorkers, onOpenNav }) {
     event.target.value = "";
   }
 
-  function submitWorker(event) {
+  async function submitWorker(event) {
     event.preventDefault();
     if (!draft.nombre.trim() || !draft.correo.trim()) {
       setFormError("El nombre y el correo son obligatorios.");
       return;
     }
-    let next;
-    if (editingId) {
-      next = workers.map((worker) =>
-        worker.id === editingId ? { ...draft, nombre: draft.nombre.trim() } : worker
-      );
-      show("Trabajador actualizado.");
-    } else {
-      next = [{ ...draft, nombre: draft.nombre.trim() }, ...workers];
-      show("Trabajador agregado.");
+    const payload = { ...draft, nombre: draft.nombre.trim() };
+    let saved;
+    try {
+      if (editingId) {
+        saved = await updateWorker(editingId, payload);
+        setWorkers((current) =>
+          current.map((worker) => (worker.id === editingId ? saved : worker)),
+        );
+        show("Trabajador actualizado.");
+      } else {
+        saved = await createWorker(payload);
+        setWorkers((current) => [saved, ...current]);
+        show("Trabajador agregado.");
+      }
+    } catch (error) {
+      setFormError(error.message || "No se pudo guardar el trabajador.");
+      return;
     }
-    setWorkers(next);
-    saveWorkers(next);
     closeModal();
   }
 
-  function confirmDelete() {
+  async function confirmDelete() {
     if (!confirmWorker) return;
-    const next = workers.filter((worker) => worker.id !== confirmWorker.id);
-    setWorkers(next);
-    saveWorkers(next);
-    show("Trabajador eliminado.");
+    try {
+      await deleteWorker(confirmWorker.id);
+      setWorkers((current) => current.filter((worker) => worker.id !== confirmWorker.id));
+      show("Trabajador eliminado.");
+    } catch (error) {
+      show(error.message || "No se pudo eliminar el trabajador.");
+    }
     setConfirmWorker(null);
   }
 
@@ -1110,12 +1159,17 @@ function WorkersSection({ workers, setWorkers, onOpenNav }) {
             </>
           }
           onCancel={() => setConfirmWorker(null)}
-          onConfirm={() => {
-            const next = workers.filter((worker) => worker.id !== confirmWorker.id);
-            setWorkers(next);
-            saveWorkers(next);
+          onConfirm={async () => {
+            try {
+              await deleteWorker(confirmWorker.id);
+              setWorkers((current) =>
+                current.filter((worker) => worker.id !== confirmWorker.id),
+              );
+              show("Trabajador eliminado.");
+            } catch (error) {
+              show(error.message || "No se pudo eliminar el trabajador.");
+            }
             setConfirmWorker(null);
-            show("Trabajador eliminado.");
           }}
         />
       )}
@@ -1685,24 +1739,30 @@ function SucursalesSection({ sucursales, setSucursales, onOpenNav }) {
     setDraft((prev) => ({ ...prev, [field]: value }));
   }
 
-  function submitSucursal(event) {
+  async function submitSucursal(event) {
     event.preventDefault();
     if (!draft.nombre.trim() || !draft.codigo.trim()) {
       setFormError("El nombre y el código son obligatorios.");
       return;
     }
-    let next;
-    if (editingId) {
-      next = sucursales.map((sucursal) =>
-        sucursal.id === editingId ? { ...draft, nombre: draft.nombre.trim() } : sucursal
-      );
-      show("Sucursal actualizada.");
-    } else {
-      next = [{ ...draft, nombre: draft.nombre.trim() }, ...sucursales];
-      show("Sucursal agregada.");
+    const payload = { ...draft, nombre: draft.nombre.trim() };
+    let saved;
+    try {
+      if (editingId) {
+        saved = await updateSucursal(editingId, payload);
+        setSucursales((current) =>
+          current.map((sucursal) => (sucursal.id === editingId ? saved : sucursal)),
+        );
+        show("Sucursal actualizada.");
+      } else {
+        saved = await createSucursal(payload);
+        setSucursales((current) => [saved, ...current]);
+        show("Sucursal agregada.");
+      }
+    } catch (error) {
+      setFormError(error.message || "No se pudo guardar la sucursal.");
+      return;
     }
-    setSucursales(next);
-    saveSucursales(next);
     closeModal();
   }
 
@@ -1957,12 +2017,17 @@ function SucursalesSection({ sucursales, setSucursales, onOpenNav }) {
             </>
           }
           onCancel={() => setConfirmSucursal(null)}
-          onConfirm={() => {
-            const next = sucursales.filter((sucursal) => sucursal.id !== confirmSucursal.id);
-            setSucursales(next);
-            saveSucursales(next);
+          onConfirm={async () => {
+            try {
+              await deleteSucursal(confirmSucursal.id);
+              setSucursales((current) =>
+                current.filter((sucursal) => sucursal.id !== confirmSucursal.id),
+              );
+              show("Sucursal eliminada.");
+            } catch (error) {
+              show(error.message || "No se pudo eliminar la sucursal.");
+            }
             setConfirmSucursal(null);
-            show("Sucursal eliminada.");
           }}
         />
       )}
@@ -2060,24 +2125,30 @@ function ClientesSection({ clientes, setClientes, onOpenNav }) {
     setDraft((prev) => ({ ...prev, [field]: value }));
   }
 
-  function submitCliente(event) {
+  async function submitCliente(event) {
     event.preventDefault();
     if (!draft.nombre.trim() || !draft.correo.trim()) {
       setFormError("El nombre y el correo son obligatorios.");
       return;
     }
-    let next;
-    if (editingId) {
-      next = clientes.map((cliente) =>
-        cliente.id === editingId ? { ...draft, nombre: draft.nombre.trim() } : cliente
-      );
-      show("Cliente actualizado.");
-    } else {
-      next = [{ ...draft, nombre: draft.nombre.trim() }, ...clientes];
-      show("Cliente agregado.");
+    const payload = { ...draft, nombre: draft.nombre.trim() };
+    let saved;
+    try {
+      if (editingId) {
+        saved = await updateCliente(editingId, payload);
+        setClientes((current) =>
+          current.map((cliente) => (cliente.id === editingId ? saved : cliente)),
+        );
+        show("Cliente actualizado.");
+      } else {
+        saved = await createCliente(payload);
+        setClientes((current) => [saved, ...current]);
+        show("Cliente agregado.");
+      }
+    } catch (error) {
+      setFormError(error.message || "No se pudo guardar el cliente.");
+      return;
     }
-    setClientes(next);
-    saveClientes(next);
     closeModal();
   }
 
@@ -2356,12 +2427,17 @@ function ClientesSection({ clientes, setClientes, onOpenNav }) {
             </>
           }
           onCancel={() => setConfirmCliente(null)}
-          onConfirm={() => {
-            const next = clientes.filter((cliente) => cliente.id !== confirmCliente.id);
-            setClientes(next);
-            saveClientes(next);
+          onConfirm={async () => {
+            try {
+              await deleteCliente(confirmCliente.id);
+              setClientes((current) =>
+                current.filter((cliente) => cliente.id !== confirmCliente.id),
+              );
+              show("Cliente eliminado.");
+            } catch (error) {
+              show(error.message || "No se pudo eliminar el cliente.");
+            }
             setConfirmCliente(null);
-            show("Cliente eliminado.");
           }}
         />
       )}
@@ -2483,7 +2559,7 @@ function CotizacionesSection({ orders, setOrders, clientes, products, onOpenNav 
     setDraft((prev) => ({ ...prev, [field]: value }));
   }
 
-  function submitOrder(event) {
+  async function submitOrder(event) {
     event.preventDefault();
     if (!draft.clienteId || !draft.cliente.trim()) {
       setFormError("El cliente es obligatorio.");
@@ -2494,16 +2570,23 @@ function CotizacionesSection({ orders, setOrders, clientes, products, onOpenNav 
       cliente: draft.cliente.trim(),
       monto: Number(draft.monto) || 0,
     };
-    let next;
-    if (editingId) {
-      next = orders.map((order) => (order.id === editingId ? payload : order));
-      show("Orden actualizada.");
-    } else {
-      next = [payload, ...orders];
-      show("Orden creada.");
+    let saved;
+    try {
+      if (editingId) {
+        saved = await updateOrder(editingId, payload);
+        setOrders((current) =>
+          current.map((order) => (order.id === editingId ? saved : order)),
+        );
+        show("Orden actualizada.");
+      } else {
+        saved = await createOrder(payload);
+        setOrders((current) => [saved, ...current]);
+        show("Orden creada.");
+      }
+    } catch (error) {
+      setFormError(error.message || "No se pudo guardar la orden.");
+      return;
     }
-    setOrders(next);
-    saveOrders(next);
     closeModal();
   }
 
@@ -2770,12 +2853,17 @@ function CotizacionesSection({ orders, setOrders, clientes, products, onOpenNav 
             </>
           }
           onCancel={() => setConfirmOrder(null)}
-          onConfirm={() => {
-            const next = orders.filter((order) => order.id !== confirmOrder.id);
-            setOrders(next);
-            saveOrders(next);
+          onConfirm={async () => {
+            try {
+              await deleteOrder(confirmOrder.id);
+              setOrders((current) =>
+                current.filter((order) => order.id !== confirmOrder.id),
+              );
+              show("Cotización eliminada.");
+            } catch (error) {
+              show(error.message || "No se pudo eliminar la cotización.");
+            }
             setConfirmOrder(null);
-            show("Cotización eliminada.");
           }}
         />
       )}
@@ -3119,9 +3207,9 @@ function LoginView({ onLogin }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  function submit(event) {
+  async function submit(event) {
     event.preventDefault();
-    const user = authenticate(email, password);
+    const user = await authenticate(email, password);
     if (!user) {
       setError("Correo o contraseña incorrectos.");
       return;

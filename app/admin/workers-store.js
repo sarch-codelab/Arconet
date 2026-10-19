@@ -134,6 +134,37 @@ export function newWorkerId() {
   return `w-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
+async function api(path, options) {
+  const response = await fetch(path, {
+    headers: { "Content-Type": "application/json" },
+    ...options,
+  });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    throw new Error(payload.error || `Error ${response.status}`);
+  }
+  return response.json();
+}
+
+export async function fetchWorkers() {
+  return api("/api/trabajadores");
+}
+
+export async function createWorker(worker) {
+  return api("/api/trabajadores", { method: "POST", body: JSON.stringify(worker) });
+}
+
+export async function updateWorker(id, worker) {
+  return api(`/api/trabajadores/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify(worker),
+  });
+}
+
+export async function deleteWorker(id) {
+  return api(`/api/trabajadores/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
+
 export function loadWorkers() {
   if (!canUseStorage()) return SEED.map((worker) => ({ ...worker }));
   try {
@@ -196,13 +227,23 @@ export function clearSession() {
   } catch {}
 }
 
-export function authenticate(email, password) {
+export async function authenticate(email, password) {
   if (!email || !password) return null;
   const normalized = email.trim().toLowerCase();
-  if (
-    normalized === ADMIN_CREDENTIALS.email &&
-    password === ADMIN_CREDENTIALS.password
-  ) {
+  try {
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: normalized, password }),
+    });
+    if (response.ok) {
+      return await response.json();
+    }
+    if (response.status === 401) {
+      return null;
+    }
+  } catch {}
+  if (normalized === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
     return {
       nombre: "Sofía Aguilar",
       correo: ADMIN_CREDENTIALS.email,
