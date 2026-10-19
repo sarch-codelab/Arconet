@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Sucursal {
+  id          String   @id
+  nombre      String
+  codigo      String   @unique
+  ciudad      String
+  direccion   String?
+  telefono    String?
+  email       String?
+  responsable String?
+  estado      String   @default("activo")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  trabajadores Trabajador[]
+  usuarios     Usuario[]
+}
+
+model Trabajador {
+  id         String    @id
+  nombre     String
+  puesto     String?
+  correo     String    @unique
+  telefono   String?
+  sucursalId String?
+  rol        String
+  estado     String    @default("activo")
+  ingreso    DateTime?
+  foto       String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  sucursal Sucursal? @relation(fields: [sucursalId], references: [id], onDelete: SetNull)
+}
+
+model Usuario {
+  id           String   @id
+  nombre       String
+  correo       String   @unique
+  passwordHash String
+  rol          String   @default("administrador")
+  sucursalId   String?
+  activo       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sucursal Sucursal? @relation(fields: [sucursalId], references: [id], onDelete: SetNull)
+}
+
+model Producto {
+  id        String   @id
+  nombre    String
+  sku       String   @unique
+  categoria String
+  marca     String?
+  unidad    String   @default("Unidad")
+  precio    Decimal  @db.Decimal(12, 2)
+  stock     Int      @default(0)
+  estado    String   @default("activo")
+  foto      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items OrdenItem[]
+}
+
+model Cliente {
+  id            String   @id
+  nombre        String
+  rtn           String?
+  contacto      String?
+  correo        String?
+  telefono      String?
+  direccion     String?
+  ciudad        String?
+  estado        String   @default("activo")
+  fechaRegistro DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  ordenes Orden[]
+}
+
+model Orden {
+  id        String   @id
+  tipo      String
+  clienteId String
+  fecha     DateTime @default(now())
+  monto     Decimal  @db.Decimal(12, 2)
+  estado    String   @default("pendiente")
+  notas     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cliente Cliente     @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  items   OrdenItem[]
+}
+
+model OrdenItem {
+  id         String  @id @default(cuid())
+  ordenId    String
+  productoId String?
+  nombre     String
+  cantidad   Decimal @db.Decimal(12, 3)
+  precio     Decimal @db.Decimal(12, 2)
+
+  orden    Orden     @relation(fields: [ordenId], references: [id], onDelete: Cascade)
+  producto Producto? @relation(fields: [productoId], references: [id], onDelete: SetNull)
+}

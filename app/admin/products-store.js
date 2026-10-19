@@ -230,6 +230,40 @@ export function newProductId() {
   return `p-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
+async function api(path, options) {
+  const response = await fetch(path, {
+    headers: { "Content-Type": "application/json" },
+    ...options,
+  });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    throw new Error(payload.error || `Error ${response.status}`);
+  }
+  return response.json();
+}
+
+export async function fetchProducts() {
+  return api("/api/productos");
+}
+
+export async function createProduct(product) {
+  return api("/api/productos", {
+    method: "POST",
+    body: JSON.stringify(product),
+  });
+}
+
+export async function updateProduct(id, product) {
+  return api(`/api/productos/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify(product),
+  });
+}
+
+export async function deleteProduct(id) {
+  return api(`/api/productos/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
+
 export function loadProducts() {
   if (!canUseStorage()) return SEED.map((product) => ({ ...product }));
   try {

@@ -56,6 +56,9 @@ import {
   PRODUCT_CATEGORIES,
   PRODUCT_STATUSES,
   PRODUCT_UNITS,
+  createProduct,
+  deleteProduct,
+  fetchProducts,
   formatPrice,
   formatStock,
   loadProducts,
@@ -63,6 +66,7 @@ import {
   productInitials,
   saveProducts,
   unitLabel,
+  updateProduct,
 } from "./products-store";
 import {
   loadSucursales,
@@ -231,6 +235,12 @@ function AdminShell({ session, onLogout }) {
     }
     setWorkers(loadWorkers());
     setProducts(loadProducts());
+    fetchProducts()
+      .then((remote) => {
+        setProducts(remote);
+        saveProducts(remote);
+      })
+      .catch(() => {});
     setSucursales(loadSucursales());
     setOrders(loadOrders());
     setClientes(loadClientes());
@@ -1230,7 +1240,7 @@ function ProductsSection({ products, setProducts, onOpenNav }) {
     event.target.value = "";
   }
 
-  function submitProduct(event) {
+  async function submitProduct(event) {
     event.preventDefault();
     if (!draft.nombre.trim()) {
       setFormError("El nombre del producto es obligatorio.");
@@ -1244,16 +1254,23 @@ function ProductsSection({ products, setProducts, onOpenNav }) {
       precio: Number(draft.precio) || 0,
       stock: Math.max(0, Math.floor(Number(draft.stock) || 0)),
     };
-    let next;
-    if (editingId) {
-      next = products.map((product) => (product.id === editingId ? payload : product));
-      show("Producto actualizado.");
-    } else {
-      next = [payload, ...products];
-      show("Producto agregado.");
+    let saved;
+    try {
+      if (editingId) {
+        saved = await updateProduct(editingId, payload);
+        setProducts((current) =>
+          current.map((product) => (product.id === editingId ? saved : product)),
+        );
+        show("Producto actualizado.");
+      } else {
+        saved = await createProduct(payload);
+        setProducts((current) => [saved, ...current]);
+        show("Producto agregado.");
+      }
+    } catch (error) {
+      setFormError(error.message || "No se pudo guardar el producto.");
+      return;
     }
-    setProducts(next);
-    saveProducts(next);
     closeModal();
   }
 
@@ -1572,12 +1589,17 @@ function ProductsSection({ products, setProducts, onOpenNav }) {
             </>
           }
           onCancel={() => setConfirmProduct(null)}
-          onConfirm={() => {
-            const next = products.filter((product) => product.id !== confirmProduct.id);
-            setProducts(next);
-            saveProducts(next);
+          onConfirm={async () => {
+            try {
+              await deleteProduct(confirmProduct.id);
+              setProducts((current) =>
+                current.filter((product) => product.id !== confirmProduct.id),
+              );
+              show("Producto eliminado.");
+            } catch (error) {
+              show(error.message || "No se pudo eliminar el producto.");
+            }
             setConfirmProduct(null);
-            show("Producto eliminado.");
           }}
         />
       )}
