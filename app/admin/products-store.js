@@ -8,6 +8,15 @@ export const PRODUCT_CATEGORIES = [
 
 export const PRODUCT_UNITS = ["Unidad", "Pieza", "Par", "Metro", "Rollo", "Caja"];
 
+const UNIT_PLURALS = {
+  Unidad: "Unidades",
+  Pieza: "Piezas",
+  Par: "Pares",
+  Metro: "Metros",
+  Rollo: "Rollos",
+  Caja: "Cajas",
+};
+
 export const PRODUCT_STATUSES = [
   { id: "activo", label: "Activo" },
   { id: "borrador", label: "Borrador" },
@@ -253,6 +262,17 @@ export function formatPrice(value) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
+}
+
+export function unitLabel(unit, quantity = 0) {
+  const singular = String(unit || "Unidad").trim() || "Unidad";
+  const plural = UNIT_PLURALS[singular] || `${singular}s`;
+  return (Number(quantity) === 1 ? singular : plural).toLowerCase();
+}
+
+export function formatStock(quantity, unit) {
+  const amount = Number(quantity) || 0;
+  return `${amount} ${unitLabel(unit, amount)}`;
 }
 
 export function productInitials(name) {

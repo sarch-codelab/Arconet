@@ -57,10 +57,12 @@ import {
   PRODUCT_STATUSES,
   PRODUCT_UNITS,
   formatPrice,
+  formatStock,
   loadProducts,
   newProductId,
   productInitials,
   saveProducts,
+  unitLabel,
 } from "./products-store";
 import {
   loadSucursales,
@@ -1365,7 +1367,7 @@ function ProductsSection({ products, setProducts, onOpenNav }) {
                     <td className={styles.priceCell}>{formatPrice(product.precio)}</td>
                     <td>
                       <span className={Number(product.stock) === 0 ? styles.stockOut : styles.stockOk}>
-                        {Number(product.stock) === 0 ? "Agotado" : `${product.stock} ${String(product.unidad || "").toLowerCase()}`}
+                        {Number(product.stock) === 0 ? "Agotado" : formatStock(product.stock, product.unidad)}
                       </span>
                     </td>
                     <td>
@@ -1498,6 +1500,7 @@ function ProductsSection({ products, setProducts, onOpenNav }) {
                       <option key={item} value={item}>{item}</option>
                     ))}
                   </select>
+                  <small className={styles.fieldHint}>Solo etiqueta el stock; no convierte cantidades.</small>
                 </label>
                 <label className={styles.field}>
                   Precio (L)
@@ -1511,7 +1514,7 @@ function ProductsSection({ products, setProducts, onOpenNav }) {
                   />
                 </label>
                 <label className={styles.field}>
-                  Stock
+                  {`Stock (${unitLabel(draft.unidad, 2)})`}
                   <input
                     type="number"
                     min="0"
@@ -2864,7 +2867,7 @@ function ResumenSection({ workers, products, sucursales, orders, onOpenNav }) {
                   {lowStockProducts.map((product) => (
                     <div key={product.id} className={styles.listItem}>
                       <strong>{product.nombre}</strong>
-                      <span className={styles.stockLow}>{product.stock} {product.unidad}</span>
+                      <span className={styles.stockLow}>{formatStock(product.stock, product.unidad)}</span>
                     </div>
                   ))}
                 </div>
