@@ -176,7 +176,7 @@ export default function TerminosExperience() {
         <section id="inicio" ref={heroRef} className={styles.heroCard}>
           <div className={styles.heroBackground}>
             <Image
-              src="/catalogo/infraestructura.jpg"
+              src="/escudo-digital.webp"
               alt=""
               fill
               priority

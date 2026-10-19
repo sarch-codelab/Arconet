@@ -95,12 +95,15 @@
   border-radius: 999px;
   background: #171a22;
   color: #fff !important;
+  font-family: inherit;
   font-size: 12px;
   font-weight: 700;
+  cursor: pointer;
   transition: background 180ms ease, border-color 180ms ease;
 }
 
 .headerAction span {
+  position: relative;
   width: 30px;
   height: 30px;
   display: grid;
@@ -304,7 +307,7 @@
 .price {
   margin-top: 22px;
   color: var(--ink);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-heading), system-ui, sans-serif;
   font-size: 30px;
 }
 
@@ -450,11 +453,14 @@
   align-items: center;
   gap: 14px;
   padding: 5px 6px 5px 22px;
+  border: 0;
   border-radius: 999px;
   background: var(--blue);
   color: #fff !important;
+  font-family: inherit;
   font-size: 13px;
   font-weight: 700;
+  cursor: pointer;
   box-shadow: 0 10px 26px rgba(21, 68, 181, 0.35);
   transition: background 180ms ease, transform 180ms ease, box-shadow 180ms ease;
 }
@@ -754,7 +760,7 @@
 .relatedHeading h2 {
   margin-top: 12px;
   color: var(--ink);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-heading), system-ui, sans-serif;
   font-size: clamp(28px, 3vw, 38px);
   font-weight: 400;
 }
@@ -834,7 +840,7 @@
 .relatedCopy h3 {
   margin-top: 8px;
   color: var(--ink);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-heading), system-ui, sans-serif;
   font-size: 21px;
   font-weight: 400;
 }
@@ -883,7 +889,7 @@
 .contactContent h2 {
   margin-top: 20px;
   color: #fff;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-heading), system-ui, sans-serif;
   font-size: clamp(40px, 5.4vw, 74px);
   font-weight: 400;
   line-height: 1;
@@ -954,7 +960,7 @@
 
 .missing h1 {
   color: var(--ink);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-heading), system-ui, sans-serif;
   font-size: clamp(34px, 4vw, 54px);
   font-weight: 400;
 }
@@ -1024,6 +1030,10 @@
 :global(html[data-theme="dark"]) .header {
   border-bottom-color: var(--line);
   background: var(--topbar);
+}
+
+:global(html[data-theme="dark"]) .brand img {
+  filter: brightness(0) invert(1);
 }
 
 :global(html[data-theme="dark"]) .nav a {
@@ -1109,4 +1119,51 @@
   background-color: var(--surface-2);
   background-image: linear-gradient(#ffffff08 1px, transparent 1px),
     linear-gradient(90deg, #ffffff08 1px, transparent 1px);
+}
+
+/* ==========================================================================
+   SCROLL SUAVE Y APARICIÓN (mismo efecto que /contacto)
+   ========================================================================== */
+
+.readingProgress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  width: 100%;
+  height: 2px;
+  pointer-events: none;
+}
+
+.readingProgress::after {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--blue);
+  content: "";
+  transform: scaleX(var(--page-progress, 0));
+  transform-origin: left center;
+}
+
+.revealed {
+  animation: detailReveal 720ms cubic-bezier(0.2, 0.72, 0.24, 1) both;
+}
+
+@keyframes detailReveal {
+  from {
+    opacity: 0.35;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .revealed {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
 }

@@ -76,7 +76,7 @@
 .heroHeader {
   position: relative;
   z-index: 3;
-  height: 64px;
+  height: 72px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -87,22 +87,22 @@
   top: 0;
   left: 0;
   z-index: 3;
-  height: 64px;
+  height: 72px;
   display: flex;
   align-items: center;
-  padding: 0 28px 0 24px;
-  border-bottom-right-radius: 28px;
+  padding: 0 30px 0 26px;
+  border-bottom-right-radius: 30px;
   background: var(--paper);
 }
 
 .logoTab::after {
   position: absolute;
   top: 0;
-  right: -28px;
-  width: 28px;
-  height: 28px;
+  right: -30px;
+  width: 30px;
+  height: 30px;
   background: transparent;
-  border-top-left-radius: 28px;
+  border-top-left-radius: 30px;
   box-shadow: -10px -10px 0 10px var(--paper);
   content: "";
   pointer-events: none;
@@ -117,7 +117,7 @@
 .logoTab img {
   position: relative;
   z-index: 1;
-  width: 140px;
+  width: 174px;
 }
 
 .headerActionTab {
@@ -125,22 +125,22 @@
   top: 0;
   right: 0;
   z-index: 3;
-  height: 64px;
+  height: 72px;
   display: flex;
   align-items: center;
-  padding: 0 22px;
-  border-bottom-left-radius: 28px;
+  padding: 0 24px;
+  border-bottom-left-radius: 30px;
   background: var(--paper);
 }
 
 .headerActionTab::before {
   position: absolute;
   top: 0;
-  left: -28px;
-  width: 28px;
-  height: 28px;
+  left: -30px;
+  width: 30px;
+  height: 30px;
   background: transparent;
-  border-top-right-radius: 28px;
+  border-top-right-radius: 30px;
   box-shadow: 10px -10px 0 10px var(--paper);
   content: "";
   pointer-events: none;
@@ -260,10 +260,10 @@
 .heroCopy {
   position: relative;
   z-index: 1;
-  width: min(940px, calc(100% - 48px));
-  margin: auto;
+  width: min(900px, calc(100% - 96px));
+  margin: auto auto auto clamp(24px, 6vw, 96px);
   padding: 56px 0 75px;
-  text-align: center;
+  text-align: left;
   animation: heroArrive 820ms cubic-bezier(0.2, 0.72, 0.24, 1) both;
 }
 
@@ -280,7 +280,7 @@
 }
 
 .eyebrow {
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .eyebrow i,
@@ -294,10 +294,11 @@
 .heroCopy h1 {
   margin-top: 19px;
   color: #fff;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 74px;
-  font-weight: 400;
-  line-height: 0.99;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: clamp(32px, 4.6vw, 87px);
+  font-weight: 700;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
 }
 
 .heroCopy h1 em {
@@ -307,7 +308,7 @@
 
 .heroCopy > p:not(.eyebrow) {
   max-width: 600px;
-  margin: 21px auto 26px;
+  margin: 21px 0 26px;
   color: #ffffffd9;
   font-size: 14px;
   line-height: 1.75;
@@ -341,7 +342,7 @@
 }
 
 .draftNotice {
-  max-width: 1100px;
+  max-width: clamp(1100px, 84vw, 1520px);
   display: grid;
   grid-template-columns: 34px 1fr;
   align-items: center;
@@ -371,7 +372,7 @@
 }
 
 .documentLayout {
-  max-width: 1160px;
+  max-width: clamp(1160px, 86vw, 1600px);
   display: grid;
   grid-template-columns: 230px minmax(0, 1fr);
   align-items: start;
@@ -477,7 +478,7 @@
 .termNumber {
   padding-top: 5px;
   color: var(--blue);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-heading), system-ui, sans-serif;
   font-size: 19px;
 }
 
@@ -496,7 +497,7 @@
 .termContent h2 {
   margin-top: 12px;
   color: var(--ink);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-heading), system-ui, sans-serif;
   font-size: 32px;
   font-weight: 400;
   line-height: 1.13;
@@ -546,45 +547,55 @@
 
 @media (max-width: 1000px) {
   .documentLayout { grid-template-columns: 180px minmax(0, 1fr); gap: 42px; }
-  .contentsNav a { font-size: 9px; }
+  .contentsNav a {
+  font-size: 9px; }
 }
 
 @media (max-width: 760px) {
   .heroFrame { min-height: 100svh; padding: 8px; }
   .heroCard { min-height: calc(100svh - 16px); border-radius: 18px; }
   .heroHeader { height: 52px; padding: 0; }
-  .logoTab { height: 52px; padding: 0 16px 0 14px; border-bottom-right-radius: 18px; }
-  .logoTab::after { right: -18px; width: 18px; height: 18px; border-top-left-radius: 18px; box-shadow: -6px -6px 0 6px var(--paper); }
-  .logoTab img { width: 106px; }
+  .logoTab { height: 56px; padding: 0 18px 0 15px; border-bottom-right-radius: 20px; }
+  .logoTab::after { right: -20px; width: 20px; height: 20px; border-top-left-radius: 20px; box-shadow: -7px -7px 0 7px var(--paper); }
+  .logoTab img { width: 128px; }
   .navigation { display: none; }
-  .headerActionTab { height: 52px; padding: 0 12px; border-bottom-left-radius: 18px; }
-  .headerActionTab::before { left: -18px; width: 18px; height: 18px; border-top-right-radius: 18px; box-shadow: 6px -6px 0 6px var(--paper); }
-  .heroHeader .headerAction { gap: 7px; padding: 4px 5px 4px 12px; font-size: 11px; }
+  .headerActionTab { height: 56px; padding: 0 14px; border-bottom-left-radius: 20px; }
+  .headerActionTab::before { left: -20px; width: 20px; height: 20px; border-top-right-radius: 20px; box-shadow: 7px -7px 0 7px var(--paper); }
+  .heroHeader .headerAction { gap: 7px; padding: 4px 5px 4px 12px;
+  font-size: 11px; }
   .heroHeader .headerAction span { width: 24px; height: 24px; }
-  .heroCopy { width: calc(100% - 32px); padding: 44px 0 55px; }
-  .heroCopy h1 { margin-top: 17px; font-size: 46px; }
-  .heroCopy > p:not(.eyebrow) { margin: 17px auto 21px; font-size: 12px; }
-  .heroFooter { gap: 10px; align-items: flex-end; flex-direction: column; padding: 0 16px 18px; font-size: 7px; }
+  .heroCopy { width: calc(100% - 32px); margin-left: 16px; padding: 44px 0 55px; }
+  .heroCopy h1 { margin-top: 17px;
+  font-size: clamp(28px, 8.4vw, 56px); }
+  .heroCopy > p:not(.eyebrow) { margin: 17px 0 21px;
+  font-size: 12px; }
+  .heroFooter { gap: 10px; align-items: flex-end; flex-direction: column; padding: 0 16px 18px;
+  font-size: 7px; }
   .draftNotice { grid-template-columns: 30px 1fr; gap: 11px; padding: 23px 19px; }
-  .draftNotice p { font-size: 10px; }
+  .draftNotice p {
+  font-size: 10px; }
   .documentLayout { grid-template-columns: 1fr; gap: 35px; padding: 50px 20px 82px; }
   .contentsAside { position: relative; top: auto; }
   .contentsLabel { margin-bottom: 12px; }
   .contentsNav { display: flex; gap: 18px; overflow-x: auto; padding: 0 0 11px; border-left: 0; border-bottom: 1px solid var(--line); scrollbar-width: none; }
   .contentsNav::-webkit-scrollbar { display: none; }
-  .contentsNav a { min-height: 32px; flex: 0 0 auto; font-size: 9px; }
+  .contentsNav a { min-height: 32px; flex: 0 0 auto;
+  font-size: 9px; }
   .contentsNav a::before { top: auto; right: 0; bottom: -12px; left: 0; width: auto; height: 2px; transform: scaleX(0); }
   .contentsNav .contentsActive::before { transform: scaleX(1); }
   .asideNote { display: none; }
   .termSection { grid-template-columns: 35px 1fr; gap: 8px; padding: 33px 0 37px; scroll-margin-top: 15px; }
-  .termNumber { font-size: 16px; }
-  .termContent h2 { margin-top: 10px; font-size: 27px; }
-  .termParagraph { font-size: 11px; line-height: 1.8; }
-  .documentMeta { font-size: 7px; }
+  .termNumber {
+  font-size: 16px; }
+  .termContent h2 { margin-top: 10px;
+  font-size: 27px; }
+  .termParagraph {
+  font-size: 11px; line-height: 1.8; }
+  .documentMeta {
+  font-size: 7px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .heroImage { transform: none !important; }
   .heroCopy,
   .heroFooter,
   .contentsNav a,
@@ -599,6 +610,10 @@
 /* ==========================================================================
    MODO OSCURO (automático según la hora)
    ========================================================================== */
+
+:global(html[data-theme="dark"]) .logoTab img {
+  filter: brightness(0) invert(1);
+}
 
 :global(html[data-theme="dark"]) .noticeIcon,
 :global(html[data-theme="dark"]) .draftNotice strong,

@@ -82,7 +82,7 @@
 .heroHeader {
   position: relative;
   z-index: 3;
-  height: 64px;
+  height: 72px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -93,22 +93,22 @@
   top: 0;
   left: 0;
   z-index: 3;
-  height: 64px;
+  height: 72px;
   display: flex;
   align-items: center;
-  padding: 0 28px 0 24px;
-  border-bottom-right-radius: 28px;
+  padding: 0 30px 0 26px;
+  border-bottom-right-radius: 30px;
   background: var(--paper);
 }
 
 .logoTab::after {
   position: absolute;
   top: 0;
-  right: -28px;
-  width: 28px;
-  height: 28px;
+  right: -30px;
+  width: 30px;
+  height: 30px;
   background: transparent;
-  border-top-left-radius: 28px;
+  border-top-left-radius: 30px;
   box-shadow: -10px -10px 0 10px var(--paper);
   content: "";
   pointer-events: none;
@@ -123,7 +123,7 @@
 .logoTab img {
   position: relative;
   z-index: 1;
-  width: 140px;
+  width: 174px;
 }
 
 .headerActionTab {
@@ -131,22 +131,22 @@
   top: 0;
   right: 0;
   z-index: 3;
-  height: 64px;
+  height: 72px;
   display: flex;
   align-items: center;
-  padding: 0 22px;
-  border-bottom-left-radius: 28px;
+  padding: 0 24px;
+  border-bottom-left-radius: 30px;
   background: var(--paper);
 }
 
 .headerActionTab::before {
   position: absolute;
   top: 0;
-  left: -28px;
-  width: 28px;
-  height: 28px;
+  left: -30px;
+  width: 30px;
+  height: 30px;
   background: transparent;
-  border-top-right-radius: 28px;
+  border-top-right-radius: 30px;
   box-shadow: 10px -10px 0 10px var(--paper);
   content: "";
   pointer-events: none;
@@ -267,7 +267,7 @@
 .heroCopy {
   position: relative;
   z-index: 1;
-  width: min(900px, calc(100% - 48px));
+  width: min(1240px, calc(100% - 48px));
   margin: auto;
   padding: 54px 0 72px;
   text-align: center;
@@ -301,7 +301,7 @@
 .heroCopy h1 {
   margin-top: 20px;
   color: #fff;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-heading), system-ui, sans-serif;
   font-size: 74px;
   font-weight: 400;
   line-height: 0.99;
@@ -378,7 +378,7 @@
 .formIntro h2 {
   margin-top: 22px;
   color: var(--ink);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-heading), system-ui, sans-serif;
   font-size: 60px;
   font-weight: 400;
   line-height: 1.02;
@@ -814,52 +814,66 @@
   .formSection { padding-right: 7vw; padding-left: 7vw; }
   .areasSection { gap: 45px; }
   .areasHeading h2,
-  .formIntro h2 { font-size: 52px; }
-  .storyCopy h2 { font-size: 48px; }
+  .formIntro h2 {
+  font-size: 52px; }
+  .storyCopy h2 {
+  font-size: 48px; }
 }
 
 @media (max-width: 760px) {
   .heroFrame { min-height: 100svh; padding: 8px; }
   .heroCard { min-height: calc(100svh - 16px); border-radius: 18px; }
   .heroHeader { height: 52px; padding: 0; }
-  .logoTab { height: 52px; padding: 0 16px 0 14px; border-bottom-right-radius: 18px; }
-  .logoTab::after { right: -18px; width: 18px; height: 18px; border-top-left-radius: 18px; box-shadow: -6px -6px 0 6px var(--paper); }
-  .logoTab img { width: 106px; }
+  .logoTab { height: 56px; padding: 0 18px 0 15px; border-bottom-right-radius: 20px; }
+  .logoTab::after { right: -20px; width: 20px; height: 20px; border-top-left-radius: 20px; box-shadow: -7px -7px 0 7px var(--paper); }
+  .logoTab img { width: 128px; }
   .navigation { display: none; }
-  .headerActionTab { height: 52px; padding: 0 12px; border-bottom-left-radius: 18px; }
-  .headerActionTab::before { left: -18px; width: 18px; height: 18px; border-top-right-radius: 18px; box-shadow: 6px -6px 0 6px var(--paper); }
-  .heroHeader .headerAction { gap: 7px; padding: 4px 5px 4px 12px; font-size: 11px; }
+  .headerActionTab { height: 56px; padding: 0 14px; border-bottom-left-radius: 20px; }
+  .headerActionTab::before { left: -20px; width: 20px; height: 20px; border-top-right-radius: 20px; box-shadow: 7px -7px 0 7px var(--paper); }
+  .heroHeader .headerAction { gap: 7px; padding: 4px 5px 4px 12px;
+  font-size: 11px; }
   .heroHeader .headerAction span { width: 24px; height: 24px; }
   .heroCopy { width: calc(100% - 32px); padding: 44px 0 55px; }
-  .heroCopy h1 { margin-top: 17px; font-size: 46px; }
-  .heroCopy > p:not(.eyebrow) { margin: 17px auto 21px; font-size: 12px; }
-  .heroFooter { align-items: flex-end; gap: 12px; padding: 0 16px 18px; font-size: 6px; }
+  .heroCopy h1 { margin-top: 17px;
+  font-size: 46px; }
+  .heroCopy > p:not(.eyebrow) { margin: 17px auto 21px;
+  font-size: 12px; }
+  .heroFooter { align-items: flex-end; gap: 12px; padding: 0 16px 18px;
+  font-size: 6px; }
   .heroFooter a { gap: 5px; }
   .areasSection { grid-template-columns: 1fr; gap: 30px; padding: 76px 22px 88px; }
   .areasHeading h2,
-  .formIntro h2 { margin-top: 17px; font-size: 47px; }
-  .areasIntro { margin-top: 17px; font-size: 12px; }
+  .formIntro h2 { margin-top: 17px;
+  font-size: 47px; }
+  .areasIntro { margin-top: 17px;
+  font-size: 12px; }
   .areaList { padding-left: 15px; }
   .areaRow { min-height: 75px; grid-template-columns: 24px 34px 1fr 17px; gap: 8px; }
   .areaIcon { width: 30px; height: 30px; }
-  .areaCopy strong { font-size: 11px; }
-  .areaCopy small { font-size: 9px; line-height: 1.45; }
+  .areaCopy strong {
+  font-size: 11px; }
+  .areaCopy small {
+  font-size: 9px; line-height: 1.45; }
   .contactStory { grid-template-columns: 1fr; gap: 40px; padding: 64px 22px 75px; }
   .storyVisual { min-height: min(95vw, 380px); order: 2; }
   .storyVisual img { width: 55%; max-height: 330px; object-fit: contain; }
   .storyCopy { order: 1; }
-  .storyCopy h2 { margin-top: 17px; font-size: 46px; }
+  .storyCopy h2 { margin-top: 17px;
+  font-size: 46px; }
   .stepList { margin-top: 22px; }
   .step { padding: 14px 0; }
   .formSection { grid-template-columns: 1fr; gap: 35px; padding: 78px 22px 86px; }
   .formIntro { position: relative; top: auto; }
-  .formIntro > p:not(.sectionLabel) { margin-top: 17px; font-size: 12px; }
+  .formIntro > p:not(.sectionLabel) { margin-top: 17px;
+  font-size: 12px; }
   .locationNote { margin-top: 24px; }
   .formGrid { gap: 20px 13px; padding-top: 20px; }
-  .formGrid label { font-size: 9px; }
+  .formGrid label {
+  font-size: 9px; }
   .formGrid input,
   .formGrid select,
-  .formGrid textarea { font-size: 11px; }
+  .formGrid textarea {
+  font-size: 11px; }
   .formSubmitRow { align-items: stretch; flex-direction: column; gap: 14px; }
   .formSubmitRow button { align-self: flex-start; }
   .formNotice { flex-wrap: wrap; }
@@ -867,7 +881,8 @@
 }
 
 @media (max-width: 390px) {
-  .heroCopy h1 { font-size: 40px; }
+  .heroCopy h1 {
+  font-size: 40px; }
   .heroFooter { letter-spacing: 0.04em; }
   .areaCopy small { max-width: 250px; }
   .formGrid { grid-template-columns: 1fr; }
@@ -892,6 +907,10 @@
 /* ==========================================================================
    MODO OSCURO (automático según la hora)
    ========================================================================== */
+
+:global(html[data-theme="dark"]) .logoTab img {
+  filter: brightness(0) invert(1);
+}
 
 :global(html[data-theme="dark"]) .sectionLabel,
 :global(html[data-theme="dark"]) .areasHeading h2 em,

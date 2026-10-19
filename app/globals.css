@@ -48,3 +48,108 @@ body {
   text-rendering: optimizeLegibility;
   transition: background-color 0.35s ease, color 0.35s ease;
 }
+
+h1 {
+  font-family: var(--font-display), system-ui, sans-serif;
+}
+
+h2,
+h3 {
+  font-family: var(--font-heading), system-ui, sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+.themeToggle {
+  position: fixed;
+  right: 20px;
+  bottom: 60px;
+  z-index: 900;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow: 0 12px 30px -16px rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: transform 180ms ease, border-color 180ms ease, color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.themeToggle:hover {
+  border-color: var(--accent-ink);
+  color: var(--accent-ink);
+  transform: translateY(-2px);
+  box-shadow: 0 16px 34px -16px rgba(21, 68, 181, 0.5);
+}
+
+.themeToggle:active {
+  transform: translateY(0);
+}
+
+.themeToggle:focus-visible {
+  outline: 2px solid var(--accent-ink);
+  outline-offset: 3px;
+}
+
+.themeToggleBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-ink);
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+@media (max-width: 520px) {
+  .themeToggle {
+    right: 14px;
+    bottom: max(56px, calc(env(safe-area-inset-bottom) + 44px));
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .themeToggle,
+  .themeToggle:hover,
+  .themeToggle:active {
+    transform: none;
+    transition: border-color 180ms ease, color 180ms ease;
+  }
+}
+
+/* Contador del carrito de cotización (usado en cabeceras del catálogo) */
+
+.cartBadge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--accent-ink);
+  color: #fff;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 0 0 2px var(--paper);
+  pointer-events: none;
+}

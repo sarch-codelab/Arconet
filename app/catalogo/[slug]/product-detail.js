@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import LocomotiveScroll from "locomotive-scroll";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -14,17 +15,20 @@ import {
   PackageCheck,
   Plus,
   ShieldCheck,
+  ShoppingCart,
   Truck,
 } from "lucide-react";
 import { FAMILIES, findFamily } from "../catalogo-data";
+import { useCart } from "../../cart-context";
 import styles from "./product-detail.module.css";
 import Footer from "../../footer";
 
 const NAVIGATION = [
   { href: "/catalogo#familias", label: "Soluciones" },
   { href: "/catalogo#catalogo-items", label: "Catálogo" },
-  { href: "/catalogo#acompanamiento", label: "Acompañamiento" },
-  { href: "/#contacto", label: "Contacto" },
+  { href: "/#empresa", label: "La empresa" },
+  { href: "/contacto", label: "Contacto" },
+  { href: "/terminos", label: "Términos" },
 ];
 
 const PRESENTATIONS = ["Unidad", "Caja", "Proyecto completo"];
@@ -43,7 +47,7 @@ const SUPPORT_ITEMS = [
   { icon: ShieldCheck, title: "Soporte después de la compra", text: "Seguimos disponibles durante la instalación." },
 ];
 
-function ProductVisual({ item, className }) {
+function ProductVisual({ item, className, priority = false }) {
   if (!item.src) {
     return (
       <div className={`${styles.graphic} ${className || ""}`} aria-hidden="true">
@@ -58,6 +62,7 @@ function ProductVisual({ item, className }) {
       src={item.src}
       alt={item.alt}
       fill
+      priority={priority}
       sizes="(max-width: 900px) 92vw, 46vw"
       className={`${styles.galleryImage} ${item.fit === "contain" ? styles.fitContain : styles.fitCover} ${className || ""}`}
     />
@@ -66,11 +71,73 @@ function ProductVisual({ item, className }) {
 
 export default function ProductDetail({ slug }) {
   const family = findFamily(slug);
+  const pageRef = useRef(null);
   const [activeTab, setActiveTab] = useState("detalles");
   const [activeImage, setActiveImage] = useState(0);
   const [saved, setSaved] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [presentation, setPresentation] = useState(PRESENTATIONS[0]);
+  const { addItem, open: openCart, count: cartCount } = useCart();
+
+  useEffect(() => {
+    const page = pageRef.current;
+    if (!page) return undefined;
+
+    const updateScroll = ({ scroll = window.scrollY, limit, progress } = {}) => {
+      const scrollable = Math.max(limit ?? document.documentElement.scrollHeight - window.innerHeight, 1);
+      const pageProgress = typeof progress === "number" ? progress : Math.min(1, Math.max(0, scroll / scrollable));
+      page.style.setProperty("--page-progress", pageProgress.toFixed(4));
+    };
+
+    const locomotive = new LocomotiveScroll({
+      lenisOptions: {
+        anchors: true,
+        lerp: 0.085,
+        respectReducedMotion: true,
+        smoothTouch: false,
+        smoothWheel: true,
+      },
+      scrollCallback: updateScroll,
+    });
+
+    updateScroll({ scroll: window.scrollY });
+    return () => locomotive.destroy();
+  }, []);
+
+  useEffect(() => {
+    const targets = document.querySelectorAll("[data-reveal]");
+    if (!targets.length || typeof IntersectionObserver === "undefined") return undefined;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add(styles.revealed);
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -6% 0px" }
+    );
+
+    targets.forEach((target) => observer.observe(target));
+    return () => observer.disconnect();
+  }, []);
+
+  const handleAddToCart = () => {
+    if (!family) return;
+    addItem(
+      {
+        slug: family.slug,
+        title: family.title,
+        category: family.category,
+        index: family.index,
+        image: family.image,
+        presentation,
+      },
+      quantity
+    );
+  };
 
   if (!family) {
     return (
@@ -92,7 +159,8 @@ export default function ProductDetail({ slug }) {
   const Icon = family.icon;
 
   return (
-    <main className={styles.detail}>
+    <main className={styles.detail} ref={pageRef}>
+      <div className={styles.readingProgress} aria-hidden="true" />
       <header className={styles.header}>
         <Link className={styles.brand} href="/" aria-label="Arconet, inicio">
           <Image src="/arconet.png" alt="Arconet" width={2172} height={362} priority />
@@ -100,9 +168,18 @@ export default function ProductDetail({ slug }) {
         <nav className={styles.nav} aria-label="Navegación principal">
           {NAVIGATION.map((item) => <a key={item.label} href={item.href}>{item.label}</a>)}
         </nav>
-        <Link className={styles.headerAction} href="/#contacto">
-          Hablemos <span><ArrowUpRight size={15} /></span>
-        </Link>
+        <button
+          type="button"
+          className={styles.headerAction}
+          onClick={openCart}
+          aria-label={`Carrito de cotización, ${cartCount} ${cartCount === 1 ? "unidad" : "unidades"}`}
+        >
+          Cotización
+          <span>
+            <ShoppingCart size={15} aria-hidden="true" />
+            {cartCount > 0 && <i className="cartBadge" aria-hidden="true">{cartCount > 99 ? "99+" : cartCount}</i>}
+          </span>
+        </button>
       </header>
 
       <div className={styles.breadcrumb}>
@@ -117,7 +194,7 @@ export default function ProductDetail({ slug }) {
         <span>{family.title}</span>
       </div>
 
-      <section className={styles.product}>
+      <section className={styles.product} data-reveal>
         <div className={styles.gallery}>
           <div className={styles.thumbs} role="group" aria-label="Imágenes del producto">
             {gallery.map((item, index) => (
@@ -145,7 +222,7 @@ export default function ProductDetail({ slug }) {
           </div>
 
           <figure className={styles.stage}>
-            <ProductVisual item={current} />
+            <ProductVisual item={current} priority={activeImage === 0} />
             <figcaption>
               <span>{current.caption}</span>
               <span>{family.index} / {String(gallery.length).padStart(2, "0")}</span>
@@ -204,9 +281,9 @@ export default function ProductDetail({ slug }) {
           </div>
 
           <div className={styles.actions}>
-            <Link className={styles.primaryButton} href="/#contacto">
-              Solicitar cotización <span><ArrowUpRight size={16} /></span>
-            </Link>
+            <button type="button" className={styles.primaryButton} onClick={handleAddToCart}>
+              Agregar a cotización <span><ShoppingCart size={16} aria-hidden="true" /></span>
+            </button>
             <button
               type="button"
               className={`${styles.saveButton} ${saved ? styles.saveButtonActive : ""}`}
@@ -229,7 +306,7 @@ export default function ProductDetail({ slug }) {
         </div>
       </section>
 
-      <section className={styles.tabSection}>
+      <section className={styles.tabSection} data-reveal>
         <div className={styles.tabs} role="tablist" aria-label="Información del producto">
           {TABS.map((tab) => (
             <button
@@ -307,7 +384,7 @@ export default function ProductDetail({ slug }) {
         </div>
       </section>
 
-      <section className={styles.relatedSection}>
+      <section className={styles.relatedSection} data-reveal>
         <div className={styles.relatedHeading}>
           <div>
             <p className={styles.sectionEyebrow}><i /> También podrías necesitar</p>
@@ -350,7 +427,7 @@ export default function ProductDetail({ slug }) {
         </div>
       </section>
 
-      <section className={styles.contactSection}>
+      <section className={styles.contactSection} data-reveal>
         <div className={styles.contactContent}>
           <p className={styles.contactEyebrow}>¿Te falta una pieza o no sabes cuál elegir?</p>
           <h2>Hagamos que<br /><em>todo conecte.</em></h2>

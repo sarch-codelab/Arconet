@@ -2,46 +2,60 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import LocomotiveScroll from "locomotive-scroll";
 import {
   ArrowDown,
   ArrowRight,
   ArrowUpRight,
   Cable,
   Network,
+  Award,
+  Cctv,
+  Factory,
+  Globe2,
+  GraduationCap,
+  Handshake,
+  Headset,
+  HeartHandshake,
+  Landmark,
+  Lightbulb,
+  PackageCheck,
   Radio,
   Satellite,
+  ShieldCheck,
+  Sparkles,
+  Target,
+  TrendingUp,
+  Truck,
+  Eye,
+  Wifi,
+  Wrench,
 } from "lucide-react";
 import styles from "./page.module.css";
 import Footer from "./footer";
 
 const NAVIGATION = [
-  { id: "inicio", label: "Inicio", mega: false },
-  { id: "soluciones", label: "Soluciones", mega: true, megaGroups: [
+  { id: "inicio", label: "Inicio", href: "#inicio", mega: false },
+  { id: "soluciones", label: "Soluciones", href: "#soluciones", mega: true, megaGroups: [
     { title: "Conectividad", links: [
-      { label: "Fibra Óptica", href: "#fibra" },
-      { label: "SD-WAN", href: "#sdwan" },
-      { label: "Redes Inalámbricas", href: "#wireless" }
+      { label: "Fibra óptica", href: "/catalogo/fibra-optica" },
+      { label: "CATV y satélite", href: "/catalogo/catv-satelite" },
+      { label: "Medición y señal", href: "/catalogo/medicion-y-senal" }
     ]},
     { title: "Infraestructura", links: [
-      { label: "Centros de Datos", href: "#datacenter" },
-      { label: "Redes de Núcleo", href: "#core" }
+      { label: "Infraestructura de red", href: "/catalogo/infraestructura-de-red" },
+      { label: "Accesorios técnicos", href: "/catalogo/accesorios-tecnicos" }
     ]},
-    { title: "Acompañamiento", links: [
-      { label: "Asesoría Técnica", href: "#asesoria" },
-      { label: "Soporte Continuo", href: "#soporte" }
+    { title: "Más de Arconet", links: [
+      { label: "La empresa", href: "/#empresa" },
+      { label: "Misión y visión", href: "/#mision" },
+      { label: "Términos de uso", href: "/terminos" }
     ]}
   ]},
-  { id: "empresa", label: "La empresa", mega: true, megaGroups: [
-    { title: "Nuestra Historia", links: [
-      { label: "Trayectoria", href: "#historia" },
-      { label: "Valores", href: "#valores" }
-    ]},
-    { title: "Equipo", links: [
-      { label: "Liderazgo", href: "#liderazgo" },
-      { label: "Contacto", href: "#contacto" }
-    ]}
-  ]},
-  { id: "contacto", label: "Contacto", mega: false },
+  { label: "Catálogo", href: "/catalogo", mega: false },
+  { id: "empresa", label: "La empresa", href: "#empresa", mega: false },
+  { id: "compania", label: "Nosotros", href: "#compania", mega: false },
+  { label: "Contacto", href: "/contacto", mega: false },
 ];
 
 const SOLUTIONS = [
@@ -99,6 +113,137 @@ const PRODUCT_LINES = [
   "Equipos CATV y satelitales",
 ];
 
+const STATS = [
+  { value: "+10", label: "Años conectando Honduras" },
+  { value: "5", label: "Líneas de producto especializadas" },
+  { value: "18", label: "Departamentos con cobertura" },
+  { value: "2", label: "Sedes: San Pedro Sula y Tegucigalpa" },
+  { value: "100%", label: "Calidad y garantía respaldada" },
+];
+
+const STORY_FACTS = [
+  {
+    icon: Landmark,
+    label: "Sede principal",
+    value: "4 Calle 11 Avenida, Barrio Guamilito, San Pedro Sula, Cortés.",
+  },
+  { value: "2552-0085", label: "Atención al cliente" },
+  { value: "Lun–Vie 8:00–17:00 · Sáb 8:00–12:00", label: "Horario de atención" },
+  { value: "San Pedro Sula y Tegucigalpa", label: "Sedes y puntos de atención" },
+  { value: "Todo Honduras", label: "Cobertura de entrega" },
+  { value: "Distribución de equipos para telecomunicaciones", label: "Especialidad" },
+];
+
+const MISSION = {
+  mission:
+    "Acercar la tecnología de telecomunicaciones a cada rincón de Honduras, entregando equipos de la mejor calidad y una asesoría honesta que ayude a nuestros clientes a construir redes confiables, modernas y hechas para durar.",
+  vision:
+    "Ser el aliado de telecomunicaciones más confiable del país: la primera opción de instaladores, operadores e integradores que buscan calidad, respaldo técnico y un servicio cercano que los impulse a ir más lejos.",
+};
+
+const VALUES = [
+  {
+    icon: ShieldCheck,
+    title: "Calidad y garantía",
+    text: "Seleccionamos cada producto pensando en el campo. Lo que sale de nuestra bodega está respaldado.",
+  },
+  {
+    icon: Headset,
+    title: "Asesoría de principio a fin",
+    text: "Revisamos tu proyecto contigo y te acompañamos antes, durante y después de la compra.",
+  },
+  {
+    icon: HeartHandshake,
+    title: "Cercanía hondureña",
+    text: "Somos de aquí, conocemos el terreno y respondemos cuando de verdad lo necesitas.",
+  },
+  {
+    icon: Lightbulb,
+    title: "Innovación constante",
+    text: "Incorporamos nuevas tecnologías para que tu red nunca se quede atrás.",
+  },
+  {
+    icon: Handshake,
+    title: "Integridad y transparencia",
+    text: "Precios claros, información real y el compromiso de cumplir lo que prometemos.",
+  },
+  {
+    icon: TrendingUp,
+    title: "Crecimiento compartido",
+    text: "Tu proyecto crece y nosotros crecemos contigo: ganamos cuando tú avanzas.",
+  },
+];
+
+const SECTORS = [
+  {
+    icon: Wifi,
+    title: "Operadores de fibra óptica",
+    text: "Equipos y accesorios para redes FTTH, PON y enlaces de alta capacidad.",
+  },
+  {
+    icon: Satellite,
+    title: "TV por cable y satélite",
+    text: "Moduladores, amplificadores y coaxial para entregar señal limpia a cada usuario.",
+  },
+  {
+    icon: Wrench,
+    title: "Integradores y contratistas",
+    text: "Componentes listos para cada etapa de la instalación, sin frenar tu trabajo.",
+  },
+  {
+    icon: Cctv,
+    title: "Videovigilancia y CCTV",
+    text: "Conectividad estable para sistemas de seguridad y monitoreo continuo.",
+  },
+  {
+    icon: Factory,
+    title: "Empresas e industria",
+    text: "Infraestructura de red para operaciones que no pueden detenerse.",
+  },
+  {
+    icon: Landmark,
+    title: "Gobierno y educación",
+    text: "Soluciones para instituciones y proyectos que conectan comunidades.",
+  },
+];
+
+const COVERAGE = [
+  "San Pedro Sula",
+  "Tegucigalpa",
+  "La Ceiba",
+  "Choloma",
+  "El Progreso",
+  "Puerto Cortés",
+  "Tela",
+  "Comayagua",
+  "Siguatepeque",
+  "Santa Rosa de Copán",
+  "Choluteca",
+  "Danlí",
+  "Juticalpa",
+  "Tocoa",
+  "Yoro",
+  "Gracias a Dios",
+];
+
+const COMMITMENTS = [
+  {
+    icon: PackageCheck,
+    title: "Importación directa",
+    text: "Traemos el equipo sin intermediarios de más, con mejor precio y disponibilidad constante.",
+  },
+  {
+    icon: Award,
+    title: "Garantía real",
+    text: "Cada producto que sale de nuestra bodega está respaldado por nuestro compromiso.",
+  },
+  {
+    icon: Truck,
+    title: "Entrega nacional",
+    text: "Coordinamos la entrega donde esté tu proyecto, en cualquier departamento del país.",
+  },
+];
+
 const clamp = (value, min = 0, max = 1) =>
   Math.min(max, Math.max(min, value));
 
@@ -117,17 +262,29 @@ export default function HomeExperience() {
   }, []);
   const trackRef = useRef(null);
   const stageRef = useRef(null);
+  const locomotiveRef = useRef(null);
+  const navRef = useRef(null);
+  const topbarRef = useRef(null);
 
   useEffect(() => {
     let frame = 0;
     const hero = document.getElementById("inicio");
     const stage = stageRef.current;
+    const topbar = topbarRef.current;
 
     const updateScrollEffects = () => {
       frame = 0;
       const y = window.scrollY;
 
       setScrolledPastHero(y > 360);
+
+      if (topbar) {
+        const scrollable = Math.max(
+          document.documentElement.scrollHeight - window.innerHeight,
+          1
+        );
+        topbar.style.setProperty("--scroll-progress", clamp(y / scrollable).toFixed(4));
+      }
 
       if (hero) {
         const range = Math.max(hero.offsetHeight * 0.9, 1);
@@ -154,6 +311,19 @@ export default function HomeExperience() {
 
     updateScrollEffects();
     setScrollReady(true);
+
+    const locomotive = new LocomotiveScroll({
+      lenisOptions: {
+        anchors: true,
+        lerp: 0.085,
+        respectReducedMotion: true,
+        smoothTouch: false,
+        smoothWheel: true,
+      },
+      scrollCallback: onScroll,
+    });
+    locomotiveRef.current = locomotive;
+
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
 
@@ -161,9 +331,41 @@ export default function HomeExperience() {
       if (frame) window.cancelAnimationFrame(frame);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
+      locomotiveRef.current = null;
+      locomotive.destroy();
     };
   }, []);
 
+  // Indicador deslizante del dock: sigue al enlace de la sección activa.
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return undefined;
+
+    const syncIndicator = () => {
+      const active = nav.querySelector('[data-active="true"]');
+      if (!active || !active.offsetWidth) {
+        nav.style.setProperty("--nav-indicator-opacity", "0");
+        return;
+      }
+      nav.style.setProperty("--nav-indicator-x", `${active.offsetLeft}px`);
+      nav.style.setProperty("--nav-indicator-w", `${active.offsetWidth}px`);
+      nav.style.setProperty("--nav-indicator-opacity", "1");
+    };
+
+    syncIndicator();
+    window.addEventListener("resize", syncIndicator);
+
+    let observer;
+    if (typeof ResizeObserver !== "undefined") {
+      observer = new ResizeObserver(syncIndicator);
+      observer.observe(nav);
+    }
+
+    return () => {
+      window.removeEventListener("resize", syncIndicator);
+      observer?.disconnect();
+    };
+  }, [activeSection, menuOpen, scrollReady]);
 
   useEffect(() => {
     const targets = document.querySelectorAll("[data-reveal]");
@@ -191,6 +393,11 @@ export default function HomeExperience() {
   }, []);
 
   const goTo = (id) => {
+    const locomotive = locomotiveRef.current;
+    if (locomotive) {
+      locomotive.scrollTo(`#${id}`);
+      return;
+    }
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -207,7 +414,13 @@ export default function HomeExperience() {
 
     const distance = stage.offsetHeight - window.innerHeight;
     const progress = index / (SOLUTIONS.length - 1);
-    window.scrollTo({ top: stage.offsetTop + distance * progress, behavior: "smooth" });
+    const top = stage.offsetTop + distance * progress;
+    const locomotive = locomotiveRef.current;
+    if (locomotive) {
+      locomotive.scrollTo(top);
+      return;
+    }
+    window.scrollTo({ top, behavior: "smooth" });
   };
 
   const onTrackScroll = () => {
@@ -220,87 +433,112 @@ export default function HomeExperience() {
 
   return (
     <main className={styles.experience}>
-      {/* Sticky Topbar when scrolling down past hero */}
+      {/* Dock de navegación secundaria: aparece al superar el hero */}
       <header
+        ref={topbarRef}
         className={`${styles.topbar} ${
           scrolledPastHero ? styles.topbarVisible : styles.topbarHidden
         }`}
         aria-hidden={!scrolledPastHero}
       >
-        <a className={styles.brand} href="#inicio" aria-label="Arconet, inicio">
-          <Image src="/arconet.png" alt="Arconet" width={2172} height={362} priority />
-        </a>
-        <nav className={styles.navigation} aria-label="Navegación principal">
-          {NAVIGATION.map((item) => (
-            <a
-              key={item.id}
-              className={`${activeSection === item.id ? styles.navigationActive : ""}${item.mega ? ` ${styles.megaTrigger}` : ""}`}
-              href={`#${item.id}`}
-              aria-current={activeSection === item.id ? "location" : undefined}
-            >
-              {item.label}
-            </a>
-          ))}
-          <button
-            type="button"
-            className={`${styles.menuToggle}${menuOpen ? ` ${styles.menuToggleActive}` : ""}`}
-            aria-expanded={menuOpen}
-            aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
-            <span className={styles.menuBar} />
-            <span className={styles.menuBar} />
-            <span className={styles.menuBar} />
-          </button>
-        </nav>
-        {NAVIGATION.filter((item) => item.mega).length > 0 && (
-          <div className={styles.megaMenu} aria-label="Menú desplegable">
-            {NAVIGATION.filter((item) => item.mega).map((item) => (
-              <div key={item.id} className={styles.megaMenuCategory}>
-                <h4>{item.label}</h4>
-                <ul>
-                  {item.megaGroups.map((group) => (
-                    <li key={group.title}>
-                      <strong>{group.title}</strong>
-                      <ul>
-                        {group.links.map((link) => (
-                          <li key={link.label}>
-                            <a href={link.href}>{link.label}</a>
-                          </li>
-                        ))}
-                      </ul>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        )}
-        {menuOpen && (
-          <div className={styles.mobileMenu}>
-            {NAVIGATION.map((item) =>
-              item.mega ? (
-                <div key={item.id}>
-                  <a href={`#${item.id}`} onClick={() => setMenuOpen(false)}>{item.label}</a>
-                  {item.megaGroups.map((group) => (
-                    <div key={group.title}>
-                      <strong>{group.title}</strong>
-                      {group.links.map((link) => (
-                        <a key={link.label} href={link.href} onClick={() => setMenuOpen(false)}>{link.label}</a>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <a key={item.id} href={`#${item.id}`} onClick={() => setMenuOpen(false)}>{item.label}</a>
-              )
-            )}
-          </div>
-        )}
+        <span className={styles.scrollProgress} aria-hidden="true">
+          <i />
+        </span>
 
-        <a className={styles.topAction} href="#contacto">
-          Hablemos <ArrowUpRight size={16} />
-        </a>
+        <div className={styles.topbarShell}>
+          <a className={styles.brand} href="#inicio" aria-label="Arconet, inicio">
+            <Image src="/arconet.png" alt="Arconet" width={2172} height={362} priority />
+          </a>
+
+          <nav className={styles.navigation} aria-label="Navegación principal" ref={navRef}>
+            <span className={styles.navIndicator} aria-hidden="true" />
+            {NAVIGATION.map((item) => {
+              const isActive = Boolean(item.id) && activeSection === item.id;
+              return (
+                <a
+                  key={item.id ?? item.label}
+                  data-active={isActive ? "true" : "false"}
+                  className={`${isActive ? styles.navigationActive : ""}${item.mega ? ` ${styles.megaTrigger}` : ""}`}
+                  href={item.href}
+                  aria-current={isActive ? "location" : undefined}
+                >
+                  {item.label}
+                </a>
+              );
+            })}
+            <button
+              type="button"
+              className={`${styles.menuToggle}${menuOpen ? ` ${styles.menuToggleActive}` : ""}`}
+              aria-expanded={menuOpen}
+              aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
+              onClick={() => setMenuOpen(!menuOpen)}
+            >
+              <span className={styles.menuBar} />
+              <span className={styles.menuBar} />
+              <span className={styles.menuBar} />
+            </button>
+          </nav>
+
+          <a className={styles.topAction} href="#contacto">
+            <span>Hablemos</span>
+            <span className={styles.topActionIcon}>
+              <ArrowUpRight size={15} />
+            </span>
+          </a>
+
+          {NAVIGATION.some((item) => item.mega) && (
+            <div className={styles.megaMenu} aria-label="Menú desplegable">
+              {NAVIGATION.filter((item) => item.mega).map((item) => (
+                <div key={item.id} className={styles.megaMenuCategory}>
+                  <h4>{item.label}</h4>
+                  <ul>
+                    {item.megaGroups.map((group) => (
+                      <li key={group.title}>
+                        <strong>{group.title}</strong>
+                        <ul>
+                          {group.links.map((link) => (
+                            <li key={link.label}>
+                              <a href={link.href}>{link.label}</a>
+                            </li>
+                          ))}
+                        </ul>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+              <div className={styles.megaMenuFooter}>
+                <span>Inventario técnico listo para cotizar en Honduras</span>
+                <a href="/catalogo">
+                  Ver catálogo completo
+                  <ArrowRight size={14} aria-hidden="true" />
+                </a>
+              </div>
+            </div>
+          )}
+
+          {menuOpen && (
+            <div className={styles.mobileMenu}>
+              {NAVIGATION.map((item) =>
+                item.mega ? (
+                  <div key={item.id ?? item.label}>
+                    <a href={item.href} onClick={() => setMenuOpen(false)}>{item.label}</a>
+                    {item.megaGroups.map((group) => (
+                      <div key={group.title}>
+                        <strong>{group.title}</strong>
+                        {group.links.map((link) => (
+                          <a key={link.label} href={link.href} onClick={() => setMenuOpen(false)}>{link.label}</a>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <a key={item.id ?? item.label} href={item.href} onClick={() => setMenuOpen(false)}>{item.label}</a>
+                )
+              )}
+            </div>
+          )}
+        </div>
       </header>
 
       {/* Full screen rounded hero */}
@@ -327,8 +565,8 @@ export default function HomeExperience() {
                 <Image
                   src="/arconet.png"
                   alt="Arconet"
-                  width={142}
-                  height={24}
+                  width={362}
+                  height={60}
                   className={styles.heroLogoImg}
                   priority
                 />
@@ -338,9 +576,9 @@ export default function HomeExperience() {
             <nav className={styles.cardCenterNav} aria-label="Navegación del hero">
               {NAVIGATION.map((item) => (
                 <a
-                  key={item.id}
+                  key={item.id ?? item.label}
                   className={activeSection === item.id ? styles.cardNavActive : ""}
-                  href={`#${item.id}`}
+                  href={item.href}
                 >
                   {item.label}
                 </a>
@@ -484,16 +722,178 @@ export default function HomeExperience() {
         </div>
       </section>
 
+      <section className={styles.statsBand} aria-label="Arconet en números">
+        {STATS.map((stat) => (
+          <div key={stat.label} className={styles.statItem} data-reveal>
+            <strong>{stat.value}</strong>
+            <span>{stat.label}</span>
+          </div>
+        ))}
+      </section>
+
+      <section id="compania" className={styles.storySection}>
+        <div className={styles.storyCopy} data-reveal>
+          <p className={styles.eyebrow}><span className={styles.eyebrowMark} /> Quiénes somos</p>
+          <h2>Más que una distribuidora.<br /><em>Un aliado para tu red.</em></h2>
+          <p className={styles.storyLead}>
+            Arconet, de la mano de <strong>Arcolab, S.A.</strong>, es la casa de soluciones de
+            telecomunicaciones que acompaña a instaladores, operadores e integradores en todo Honduras.
+          </p>
+          <p className={styles.storyText}>
+            Importamos, distribuimos y damos soporte a equipos y accesorios para fibra óptica,
+            televisión por cable, sistemas satelitales, videovigilancia y redes de datos. Desde
+            nuestra sede en San Pedro Sula coordinamos entregas en los 18 departamentos del país,
+            con la asesoría técnica que marca la diferencia entre una instalación que funciona y
+            una que perdura.
+          </p>
+          <p className={styles.storyText}>
+            Creemos que detrás de cada conexión hay un proyecto, una familia o un negocio que
+            necesita avanzar. Por eso trabajamos con estándares de calidad, precios honestos y un
+            equipo que responde cuando de verdad se le necesita.
+          </p>
+          <div className={styles.storyActions}>
+            <a className={styles.storyActionPrimary} href="/catalogo">Ver catálogo <ArrowUpRight size={16} /></a>
+            <a className={styles.storyActionGhost} href="#contacto">Hablar con un asesor <ArrowRight size={16} /></a>
+          </div>
+        </div>
+        <aside className={styles.storyFacts} data-reveal>
+          <p className={styles.storyFactsTitle}>La empresa en datos</p>
+          <ul className={styles.factList}>
+            {STORY_FACTS.map((fact) => {
+              const Icon = fact.icon || Sparkles;
+              return (
+                <li key={fact.label}>
+                  <span className={styles.factIcon}><Icon size={18} /></span>
+                  <div><span className={styles.factLabel}>{fact.label}</span><strong>{fact.value}</strong></div>
+                </li>
+              );
+            })}
+          </ul>
+        </aside>
+      </section>
+
+      <section id="mision" className={styles.missionSection}>
+        <div className={styles.sectionHead} data-reveal>
+          <p className={styles.eyebrow}><span className={styles.eyebrowMark} /> Lo que nos mueve</p>
+          <h2>Un propósito claro.<br /><em>Una meta compartida.</em></h2>
+        </div>
+        <div className={styles.missionGrid}>
+          <article className={`${styles.missionCard} ${styles.missionCardMission}`} data-reveal>
+            <span className={styles.missionIcon}><Target size={26} /></span>
+            <p className={styles.missionKicker}>Misión</p>
+            <h3>Conectar a Honduras con tecnología confiable.</h3>
+            <p>{MISSION.mission}</p>
+          </article>
+          <article className={`${styles.missionCard} ${styles.missionCardVision}`} data-reveal>
+            <span className={styles.missionIcon}><Eye size={26} /></span>
+            <p className={styles.missionKicker}>Visión</p>
+            <h3>Ser el aliado de telecomunicaciones más confiable del país.</h3>
+            <p>{MISSION.vision}</p>
+          </article>
+        </div>
+        <div className={styles.valuesBlock}>
+          <div className={styles.valuesHead} data-reveal>
+            <p className={styles.eyebrow}><span className={styles.eyebrowMark} /> Nuestros valores</p>
+            <h3>Lo que guía cada decisión.</h3>
+          </div>
+          <div className={styles.valuesGrid}>
+            {VALUES.map((value, index) => {
+              const Icon = value.icon;
+              return (
+                <article className={styles.valueCard} key={value.title} data-reveal>
+                  <span className={styles.valueIndex}>{`0${index + 1}`}</span>
+                  <span className={styles.valueIcon}><Icon size={20} /></span>
+                  <h3>{value.title}</h3>
+                  <p>{value.text}</p>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section id="sectores" className={styles.sectorsSection}>
+        <div className={styles.sectionHead} data-reveal>
+          <p className={styles.eyebrow}><span className={styles.eyebrowMark} /> A quién servimos</p>
+          <h2>Sectores que<br /><em>confían en Arconet.</em></h2>
+          <p className={styles.sectionLead}>
+            Desde el instalador que atiende una casa hasta el operador que despliega fibra en todo
+            un departamento, acompañamos proyectos de todos los tamaños.
+          </p>
+        </div>
+        <div className={styles.sectorsGrid}>
+          {SECTORS.map((sector) => {
+            const Icon = sector.icon;
+            return (
+              <article className={styles.sectorCard} key={sector.title} data-reveal>
+                <span className={styles.sectorIcon}><Icon size={22} /></span>
+                <h3>{sector.title}</h3>
+                <p>{sector.text}</p>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section id="cobertura" className={styles.coverageSection}>
+        <div className={styles.coverageCopy} data-reveal>
+          <p className={styles.eyebrow}><span className={styles.eyebrowMark} /> Cobertura nacional</p>
+          <h2>De San Pedro Sula<br /><em>para todo Honduras.</em></h2>
+          <p className={styles.sectionLead}>
+            Con sede en Barrio Guamilito, San Pedro Sula, y presencia en Tegucigalpa, llevamos
+            nuestros productos a cada departamento del país.
+          </p>
+          <div className={styles.coverageHighlights}>
+            <div><Globe2 size={20} /><span>Cobertura en los 18 departamentos</span></div>
+            <div><Truck size={20} /><span>Despacho y coordinación de entregas</span></div>
+            <div><Award size={20} /><span>Respaldo y garantía en cada pedido</span></div>
+          </div>
+        </div>
+        <div className={styles.coveragePanel} data-reveal>
+          <p className={styles.coveragePanelTitle}>Dónde llegamos</p>
+          <ul className={styles.coverageList}>
+            {COVERAGE.map((place) => (
+              <li key={place}>{place}</li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <section id="compromiso" className={styles.commitSection}>
+        <div className={styles.sectionHead} data-reveal>
+          <p className={styles.eyebrow}><span className={styles.eyebrowMark} /> Nuestro compromiso</p>
+          <h2>Calidad y garantía<br /><em>en la que puedes confiar.</em></h2>
+        </div>
+        <div className={styles.commitGrid}>
+          {COMMITMENTS.map((item) => {
+            const Icon = item.icon;
+            return (
+              <article className={styles.commitCard} key={item.title} data-reveal>
+                <span className={styles.commitIcon}><Icon size={22} /></span>
+                <h3>{item.title}</h3>
+                <p>{item.text}</p>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className={styles.quoteBand}>
+        <blockquote className={styles.quoteInner} data-reveal>
+          <Sparkles className={styles.quoteSpark} size={22} aria-hidden="true" />
+          <p>No vendemos solo equipo: ayudamos a que cada conexión funcione.</p>
+          <cite>Equipo Arconet · San Pedro Sula, Honduras</cite>
+        </blockquote>
+      </section>
+
       <section id="contacto" className={styles.contactSection}>
-        <div className={styles.contactGrid} aria-hidden="true" />
         <div className={styles.contactContent} data-reveal>
           <p className={styles.contactEyebrow}>Tu próximo proyecto empieza aquí</p>
           <h2>Hagamos que<br /><em>todo conecte.</em></h2>
           <p>Cuéntanos qué necesita tu red. Nuestro equipo puede ayudarte a encontrar el equipo y la solución correctos.</p>
           <a href="/catalogo" className={styles.contactAction}>Ver productos y soluciones <ArrowUpRight size={17} /></a>
         </div>
-        <div className={styles.contactMark} aria-hidden="true"><Image src="/linea-1.png" alt="" width={329} height={1920} /></div>
-        <span className={styles.contactLocation}>San Pedro Sula · Honduras</span>
+        <span className={styles.contactLocation}>San Pedro Sula — Honduras</span>
       </section>
 
       <Footer />

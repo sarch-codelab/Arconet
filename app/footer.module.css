@@ -30,10 +30,14 @@
   height: auto;
 }
 
+:global(html[data-theme="dark"]) .brand img {
+  filter: brightness(0) invert(1);
+}
+
 .tagline {
   margin-top: 16px;
   color: var(--muted);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-heading), system-ui, sans-serif;
   font-size: 15px;
   font-style: italic;
 }
