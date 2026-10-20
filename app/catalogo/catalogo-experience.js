@@ -295,6 +295,16 @@ export default function CatalogoExperience() {
     });
   }, [activeCategory, searchTerm]);
 
+  // Filter products by category for display
+  const filteredProducts = useMemo(() => {
+    if (activeCategory === "Todas") {
+      // When "Todas" is selected, return all products
+      return Object.values(byCategory).flat();
+    }
+    // Otherwise, return products from the selected category
+    return byCategory[activeCategory] || [];
+  }, [activeCategory, byCategory]);
+
   const resetFilters = () => {
     setActiveCategory("Todas");
     setSearchTerm("");
@@ -703,23 +713,17 @@ export default function CatalogoExperience() {
                     </ul>
 
                     {(() => {
-                      // Obtener productos de esta categoría desde BD;
-                      // si no hay productos de esta categoría exacta,
-                      // mostramos los primeros productos disponibles del catálogo
+                      // Obtener productos de esta categoría desde BD
                       const categoryProducts = byCategory[family.category] || [];
-                      const allCategoryKeys = Object.keys(byCategory);
-                      const fallbackCategory = allCategoryKeys.length > 0 ? allCategoryKeys[0] : null;
-                      const fallbackProducts = fallbackCategory ? (byCategory[fallbackCategory] || []) : [];
 
-                      // Mostrar productos de esta categoría si hay, sino los primeros del catálogo
-                      const products = categoryProducts.length > 0 ? categoryProducts : fallbackProducts;
-                      if (!products.length) return null;
-                      const shown = products.slice(0, 4);
-                      const rest = products.length - shown.length;
+                      // Solo mostrar productos si hay en esta categoría
+                      if (!categoryProducts.length) return null;
+                      const shown = categoryProducts.slice(0, 4);
+                      const rest = categoryProducts.length - shown.length;
                       return (
                         <div className={styles.familyProducts}>
                           <span className={styles.familyProductsLabel}>
-                            {products.length} producto{products.length === 1 ? "" : "s"} en existencia
+                            {categoryProducts.length} producto{categoryProducts.length === 1 ? "" : "s"} en existencia
                           </span>
                           <ul>
                             {shown.map((product) => (

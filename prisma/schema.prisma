@@ -8,18 +8,17 @@ datasource db {
 }
 
 model Sucursal {
-  id          String   @id
-  nombre      String
-  codigo      String   @unique
-  ciudad      String
-  direccion   String?
-  telefono    String?
-  email       String?
-  responsable String?
-  estado      String   @default("activo")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
+  id           String       @id
+  nombre       String
+  codigo       String       @unique
+  ciudad       String
+  direccion    String?
+  telefono     String?
+  email        String?
+  responsable  String?
+  estado       String       @default("activo")
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
   trabajadores Trabajador[]
   usuarios     Usuario[]
 }
@@ -37,39 +36,36 @@ model Trabajador {
   foto       String?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
-
-  sucursal Sucursal? @relation(fields: [sucursalId], references: [id], onDelete: SetNull)
+  sucursal   Sucursal? @relation(fields: [sucursalId], references: [id])
 }
 
 model Usuario {
-  id           String   @id
+  id           String    @id
   nombre       String
-  correo       String   @unique
+  correo       String    @unique
   passwordHash String
-  rol          String   @default("administrador")
+  rol          String    @default("administrador")
   sucursalId   String?
-  activo       Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  sucursal Sucursal? @relation(fields: [sucursalId], references: [id], onDelete: SetNull)
+  activo       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  sucursal     Sucursal? @relation(fields: [sucursalId], references: [id])
 }
 
 model Producto {
-  id        String   @id
+  id        String      @id
   nombre    String
-  sku       String   @unique
+  sku       String      @unique
   categoria String
   marca     String?
-  unidad    String   @default("Unidad")
-  precio    Decimal  @db.Decimal(12, 2)
-  stock     Int      @default(0)
-  estado    String   @default("activo")
+  unidad    String      @default("Unidad")
+  precio    Decimal     @db.Decimal(12, 2)
+  stock     Int         @default(0)
+  estado    String      @default("activo")
   foto      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  items OrdenItem[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  items     OrdenItem[]
 }
 
 model Cliente {
@@ -82,39 +78,36 @@ model Cliente {
   direccion     String?
   ciudad        String?
   estado        String   @default("activo")
-  foto          String?
   fechaRegistro DateTime @default(now())
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-
-  ordenes Orden[]
+  foto          String?
+  ordenes       Orden[]
 }
 
 model Orden {
-  id        String   @id
+  id        String      @id
   tipo      String
   clienteId String
-  fecha     DateTime @default(now())
-  monto     Decimal  @db.Decimal(12, 2)
-  estado    String   @default("pendiente")
+  fecha     DateTime    @default(now())
+  monto     Decimal     @db.Decimal(12, 2)
+  estado    String      @default("pendiente")
   notas     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  cliente Cliente     @relation(fields: [clienteId], references: [id], onDelete: Restrict)
-  items   OrdenItem[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  cliente   Cliente     @relation(fields: [clienteId], references: [id])
+  items     OrdenItem[]
 }
 
 model OrdenItem {
-  id         String  @id @default(cuid())
+  id         String    @id @default(cuid())
   ordenId    String
   productoId String?
   nombre     String
-  cantidad   Decimal @db.Decimal(12, 3)
-  precio     Decimal @db.Decimal(12, 2)
-
-  orden    Orden     @relation(fields: [ordenId], references: [id], onDelete: Cascade)
-  producto Producto? @relation(fields: [productoId], references: [id], onDelete: SetNull)
+  cantidad   Decimal   @db.Decimal(12, 3)
+  precio     Decimal   @db.Decimal(12, 2)
+  orden      Orden     @relation(fields: [ordenId], references: [id], onDelete: Cascade)
+  producto   Producto? @relation(fields: [productoId], references: [id])
 }
 
 model Log {
