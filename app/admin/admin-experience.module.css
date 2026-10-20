@@ -2180,6 +2180,78 @@
   }
 }
 
+/* ---------------- Monitoreo ---------------- */
+
+.monitorBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.monitorHint {
+  color: var(--text-muted);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.alertList {
+  display: grid;
+  gap: 0;
+}
+
+.meterRow {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.meterRow:last-child {
+  margin-bottom: 0;
+}
+
+.meterHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.meterHead strong {
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+.meterTrack {
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--border-subtle);
+  overflow: hidden;
+}
+
+.meterFill {
+  display: block;
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+.meterOk {
+  background: #10b981;
+}
+
+.meterWarn {
+  background: #f59e0b;
+}
+
+.meterDanger {
+  background: #ef4444;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .overlay,
   .modal,
@@ -2194,6 +2266,10 @@
   .navItem,
   .rowActions button,
   .sidebar {
+    transition: none;
+  }
+
+  .meterFill {
     transition: none;
   }
 
