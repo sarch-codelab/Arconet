@@ -6,14 +6,24 @@ export async function generateMetadata({ params }) {
   const family = findFamily(slug);
 
   if (!family) {
-    return { title: "Arconet | Catálogo", description: "Equipos y soluciones de fibra óptica, CATV y telecomunicaciones de Arconet Honduras." };
+    return {
+      title: "Catálogo",
+      description:
+        "Equipos y soluciones de fibra óptica, CATV y telecomunicaciones de Arconet Honduras.",
+      robots: { index: false, follow: true },
+    };
   }
 
   return {
-    title: `Arconet | ${family.title}`,
+    title: family.title,
     description: family.summary,
-  };
-}
+    alternates: { canonical: `/catalogo/${slug}` },
+    openGraph: {
+      title: `${family.title} | Arconet`,
+      description: family.summary,
+      url: `/catalogo/${slug}`,
+    },
+  };}
 
 export default async function CatalogoProductoPage({ params }) {
   const { slug } = await params;

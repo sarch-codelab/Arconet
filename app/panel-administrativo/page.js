@@ -3,9 +3,10 @@ import { getSession } from "../../lib/session";
 import { AdminPanel } from "../admin/admin-experience";
 
 export const metadata = {
-  title: "Panel de administración | Arconet",
+  title: "Panel de administración",
   description:
     "Panel interno de Arconet para administrar el personal, productos, clientes y sucursales.",
+  robots: { index: false, follow: false },
 };
 
 export const dynamic = "force-dynamic";
