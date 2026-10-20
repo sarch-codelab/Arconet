@@ -19,9 +19,11 @@ export async function generateMetadata({ params }) {
     description: family.summary,
     alternates: { canonical: `/catalogo/${slug}` },
     openGraph: {
+      type: "website",
       title: `${family.title} | Arconet`,
       description: family.summary,
       url: `/catalogo/${slug}`,
+      images: [{ url: "/arconet.png", width: 2172, height: 362, alt: "Arconet" }],
     },
   };}
 
