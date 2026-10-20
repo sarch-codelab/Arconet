@@ -117,6 +117,9 @@ export const EMPTY_WORKER = {
   estado: "activo",
   ingreso: "",
   foto: "",
+  accesoPanel: false,
+  accesoActivo: false,
+  password: "",
 };
 
 const EMPTY_PRODUCT = {
@@ -1084,6 +1087,36 @@ function WorkersSection({ workers, setWorkers, onOpenNav }) {
                     onChange={(event) => changeField("ingreso", event.target.value)}
                   />
                 </label>
+              </div>
+
+              <div className={styles.accessBox}>
+                <label className={styles.checkbox}>
+                  <input
+                    type="checkbox"
+                    checked={Boolean(draft.accesoPanel)}
+                    onChange={(event) => changeField("accesoPanel", event.target.checked)}
+                  />
+                  <span>
+                    <Check size={11} strokeWidth={3} />
+                  </span>
+                  Permitir acceso al panel (crear cuenta de login)
+                </label>
+                <p className={styles.fieldHint}>
+                  Se crea una cuenta con este correo. La contraseña no se puede ver después.
+                  {editingId && draft.accesoPanel ? " Dejala en blanco para conservar la actual." : ""}
+                </p>
+                {draft.accesoPanel && (
+                  <label className={styles.field}>
+                    Contraseña
+                    <input
+                      type="password"
+                      value={draft.password || ""}
+                      onChange={(event) => changeField("password", event.target.value)}
+                      placeholder={editingId ? "Dejar en blanco para no cambiarla" : "Mínimo 6 caracteres"}
+                      autoComplete="new-password"
+                    />
+                  </label>
+                )}
               </div>
 
               {formError && (
