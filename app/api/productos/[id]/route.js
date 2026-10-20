@@ -1,11 +1,14 @@
 import { prisma } from "../../../../lib/prisma";
 import { parseProducto } from "../../../../lib/productos";
 import { toProducto } from "../../../../lib/serialize";
+import { requireSession } from "../../../../lib/dal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(_request, { params }) {
+  const guard = await requireSession();
+  if (guard.response) return guard.response;
   const { id } = await params;
   const producto = await prisma.producto.findUnique({ where: { id } });
   if (!producto) {
@@ -15,6 +18,8 @@ export async function GET(_request, { params }) {
 }
 
 export async function PATCH(request, { params }) {
+  const guard = await requireSession();
+  if (guard.response) return guard.response;
   const { id } = await params;
 
   let body;
@@ -45,6 +50,8 @@ export async function PATCH(request, { params }) {
 }
 
 export async function DELETE(_request, { params }) {
+  const guard = await requireSession();
+  if (guard.response) return guard.response;
   const { id } = await params;
 
   try {

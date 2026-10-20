@@ -1,11 +1,14 @@
 import { prisma } from "../../../lib/prisma";
 import { newClienteId, parseCliente } from "../../../lib/clientes";
 import { toCliente } from "../../../lib/serialize";
+import { requireSession } from "../../../lib/dal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request) {
+  const guard = await requireSession();
+  if (guard.response) return guard.response;
   const { searchParams } = new URL(request.url);
   const estado = searchParams.get("estado");
   const q = searchParams.get("q");
@@ -28,6 +31,8 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
+  const guard = await requireSession();
+  if (guard.response) return guard.response;
   let body;
   try {
     body = await request.json();

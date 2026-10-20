@@ -1,11 +1,14 @@
 import { prisma } from "../../../lib/prisma";
 import { newWorkerId, parseTrabajador } from "../../../lib/trabajadores";
 import { toTrabajador } from "../../../lib/serialize";
+import { requireSession } from "../../../lib/dal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request) {
+  const guard = await requireSession();
+  if (guard.response) return guard.response;
   const { searchParams } = new URL(request.url);
   const sucursal = searchParams.get("sucursal");
   const rol = searchParams.get("rol");
@@ -24,6 +27,8 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
+  const guard = await requireSession();
+  if (guard.response) return guard.response;
   let body;
   try {
     body = await request.json();

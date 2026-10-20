@@ -17,11 +17,6 @@ export const STATUSES = [
   { id: "inactivo", label: "Inactivo" },
 ];
 
-export const ADMIN_CREDENTIALS = {
-  email: "admin@arconet.com",
-  password: "arconet2026",
-};
-
 const WORKERS_KEY = "arconet-workers";
 const SEED_KEY = "arconet-workers-seed";
 const SESSION_KEY = "arconet-admin-session";
@@ -239,18 +234,7 @@ export async function authenticate(email, password) {
     if (response.ok) {
       return await response.json();
     }
-    if (response.status === 401) {
-      return null;
-    }
   } catch {}
-  if (normalized === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
-    return {
-      nombre: "Sofía Aguilar",
-      correo: ADMIN_CREDENTIALS.email,
-      rol: "administrador",
-      sucursal: "sps",
-    };
-  }
   return null;
 }
 

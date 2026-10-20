@@ -1,11 +1,19 @@
-import AdminExperience from "./admin-experience";
+import { redirect } from "next/navigation";
+import { getSession } from "../../lib/session";
+import { AdminLogin } from "./admin-experience";
 
 export const metadata = {
-  title: "Panel de administración | Arconet",
-  description:
-    "Panel interno de Arconet para administrar el personal, roles y sucursales.",
+  title: "Acceso administrativo | Arconet",
+  description: "Inicio de sesión para el panel interno de Arconet.",
 };
 
-export default function AdminPage() {
-  return <AdminExperience />;
+export const dynamic = "force-dynamic";
+
+export default async function AdminPage() {
+  const session = await getSession();
+  if (session) {
+    redirect("/panel-administrativo");
+  }
+
+  return <AdminLogin />;
 }

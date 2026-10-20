@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Suspense, createContext, lazy, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
@@ -35,7 +36,6 @@ import {
 } from "lucide-react";
 import styles from "./admin-experience.module.css";
 import {
-  ADMIN_CREDENTIALS,
   BRANCHES,
   ROLES,
   STATUSES,
@@ -47,11 +47,9 @@ import {
   fetchWorkers,
   formatDate,
   initials,
-  loadSession,
   loadWorkers,
   newWorkerId,
   roleLabel,
-  saveSession,
   saveWorkers,
   statusLabel,
   updateWorker,
@@ -156,32 +154,20 @@ const NAV = [
   { id: "ajustes", label: "Ajustes", icon: Settings, soon: false },
 ];
 
-export default function AdminExperience() {
-  const [ready, setReady] = useState(false);
-  const [session, setSession] = useState(null);
+export function AdminLogin() {
+  return <LoginView />;
+}
 
-  useEffect(() => {
-    setSession(loadSession());
-    setReady(true);
-  }, []);
+export function AdminPanel({ session }) {
+  const router = useRouter();
 
-  const handleLogin = (user, remember) => {
-    saveSession(user, remember);
-    setSession(user);
-  };
-
-  const handleLogout = () => {
+  const handleLogout = async () => {
     clearSession();
-    setSession(null);
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {}
+    router.replace("/admin");
   };
-
-  if (!ready) {
-    return <main className={styles.adminPage} aria-busy="true" />;
-  }
-
-  if (!session) {
-    return <LoginView onLogin={handleLogin} />;
-  }
 
   return <AdminShell session={session} onLogout={handleLogout} />;
 }
@@ -3200,28 +3186,31 @@ function ConfirmDialog({ title, message, onCancel, onConfirm }) {
   );
 }
 
-function LoginView({ onLogin }) {
+function LoginView() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   async function submit(event) {
     event.preventDefault();
+    setSubmitting(true);
     const user = await authenticate(email, password);
     if (!user) {
       setError("Correo o contraseña incorrectos.");
+      setSubmitting(false);
       return;
     }
     setError("");
-    onLogin(user, remember);
-  }
-
-  function fillDemo() {
-    setEmail(ADMIN_CREDENTIALS.email);
-    setPassword(ADMIN_CREDENTIALS.password);
-    setError("");
+    const params =
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search)
+        : null;
+    const next = params?.get("next");
+    router.replace(next && next.startsWith("/panel-administrativo") ? next : "/panel-administrativo");
   }
 
   return (
@@ -3334,21 +3323,10 @@ function LoginView({ onLogin }) {
                 </p>
               )}
 
-              <button type="submit" className={styles.submit}>
+              <button type="submit" className={styles.submit} disabled={submitting}>
                 Entrar al panel <span><ArrowRight size={15} /></span>
               </button>
             </form>
-
-            <div className={styles.demoBox}>
-              <p><ShieldCheck size={15} /> Credenciales de demostración</p>
-              <div className={styles.demoCodes}>
-                <code>{ADMIN_CREDENTIALS.email}</code>
-                <code>{ADMIN_CREDENTIALS.password}</code>
-              </div>
-              <button type="button" className={styles.ghostBtn} onClick={fillDemo}>
-                Usar credenciales demo
-              </button>
-            </div>
 
             <p className={styles.loginFooter}>
               <a href="/"><ArrowLeft size={14} /> Volver al inicio</a>

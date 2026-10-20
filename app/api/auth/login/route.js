@@ -1,5 +1,6 @@
 import { prisma } from "../../../../lib/prisma";
 import { verifyPassword } from "../../../../lib/auth";
+import { createSession } from "../../../../lib/session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,6 +23,14 @@ export async function POST(request) {
   if (!usuario || !usuario.activo || !verifyPassword(password, usuario.passwordHash)) {
     return Response.json({ error: "Credenciales inválidas." }, { status: 401 });
   }
+
+  await createSession({
+    id: usuario.id,
+    nombre: usuario.nombre,
+    correo: usuario.correo,
+    rol: usuario.rol,
+    sucursal: usuario.sucursalId ?? "",
+  });
 
   return Response.json({
     nombre: usuario.nombre,

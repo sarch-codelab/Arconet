@@ -1,11 +1,14 @@
 import { prisma } from "../../../lib/prisma";
 import { newOrderId, parseOrden } from "../../../lib/ordenes";
 import { toOrden } from "../../../lib/serialize";
+import { requireSession } from "../../../lib/dal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request) {
+  const guard = await requireSession();
+  if (guard.response) return guard.response;
   const { searchParams } = new URL(request.url);
   const tipo = searchParams.get("tipo");
   const estado = searchParams.get("estado");
@@ -25,6 +28,8 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
+  const guard = await requireSession();
+  if (guard.response) return guard.response;
   let body;
   try {
     body = await request.json();

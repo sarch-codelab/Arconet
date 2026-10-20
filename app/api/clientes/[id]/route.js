@@ -1,11 +1,14 @@
 import { prisma } from "../../../../lib/prisma";
 import { parseCliente } from "../../../../lib/clientes";
 import { toCliente } from "../../../../lib/serialize";
+import { requireSession } from "../../../../lib/dal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(_request, { params }) {
+  const guard = await requireSession();
+  if (guard.response) return guard.response;
   const { id } = await params;
   const cliente = await prisma.cliente.findUnique({ where: { id } });
   if (!cliente) return Response.json({ error: "Cliente no encontrado." }, { status: 404 });
@@ -13,6 +16,8 @@ export async function GET(_request, { params }) {
 }
 
 export async function PATCH(request, { params }) {
+  const guard = await requireSession();
+  if (guard.response) return guard.response;
   const { id } = await params;
   let body;
   try {
@@ -37,6 +42,8 @@ export async function PATCH(request, { params }) {
 }
 
 export async function DELETE(_request, { params }) {
+  const guard = await requireSession();
+  if (guard.response) return guard.response;
   const { id } = await params;
   try {
     await prisma.cliente.delete({ where: { id } });

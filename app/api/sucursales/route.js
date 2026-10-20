@@ -1,16 +1,21 @@
 import { prisma } from "../../../lib/prisma";
 import { newSucursalId, parseSucursal } from "../../../lib/sucursales";
 import { toSucursal } from "../../../lib/serialize";
+import { requireSession } from "../../../lib/dal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  const guard = await requireSession();
+  if (guard.response) return guard.response;
   const sucursales = await prisma.sucursal.findMany({ orderBy: { codigo: "asc" } });
   return Response.json(sucursales.map(toSucursal));
 }
 
 export async function POST(request) {
+  const guard = await requireSession();
+  if (guard.response) return guard.response;
   let body;
   try {
     body = await request.json();

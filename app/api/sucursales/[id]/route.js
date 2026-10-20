@@ -1,11 +1,14 @@
 import { prisma } from "../../../../lib/prisma";
 import { parseSucursal } from "../../../../lib/sucursales";
 import { toSucursal } from "../../../../lib/serialize";
+import { requireSession } from "../../../../lib/dal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(_request, { params }) {
+  const guard = await requireSession();
+  if (guard.response) return guard.response;
   const { id } = await params;
   const sucursal = await prisma.sucursal.findUnique({ where: { id } });
   if (!sucursal) return Response.json({ error: "Sucursal no encontrada." }, { status: 404 });
@@ -13,6 +16,8 @@ export async function GET(_request, { params }) {
 }
 
 export async function PATCH(request, { params }) {
+  const guard = await requireSession();
+  if (guard.response) return guard.response;
   const { id } = await params;
   let body;
   try {
@@ -40,6 +45,8 @@ export async function PATCH(request, { params }) {
 }
 
 export async function DELETE(_request, { params }) {
+  const guard = await requireSession();
+  if (guard.response) return guard.response;
   const { id } = await params;
   try {
     await prisma.sucursal.delete({ where: { id } });
