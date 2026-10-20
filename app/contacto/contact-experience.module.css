@@ -726,33 +726,6 @@
   transform: translateY(-2px);
 }
 
-.formNotice {
-  display: flex;
-  align-items: flex-start;
-  gap: 9px;
-  margin-top: 15px;
-  padding: 12px;
-  background: #eef3ff;
-  color: var(--blue);
-  font-size: 10px;
-  line-height: 1.5;
-}
-
-.formNotice > svg {
-  flex: 0 0 auto;
-}
-
-.formNotice button {
-  margin-left: auto;
-  border: 0;
-  background: none;
-  color: var(--blue);
-  cursor: pointer;
-  font-size: 9px;
-  font-weight: 750;
-  white-space: nowrap;
-}
-
 .lastWord {
   min-height: 82px;
   display: flex;
@@ -876,7 +849,6 @@
   font-size: 11px; }
   .formSubmitRow { align-items: stretch; flex-direction: column; gap: 14px; }
   .formSubmitRow button { align-self: flex-start; }
-  .formNotice { flex-wrap: wrap; }
   .lastWord { align-items: flex-start; flex-direction: column; gap: 12px; padding: 20px 22px; }
 }
 
@@ -978,13 +950,4 @@
 :global(html[data-theme="dark"]) .formGrid input::placeholder,
 :global(html[data-theme="dark"]) .formGrid textarea::placeholder {
   color: var(--muted);
-}
-
-:global(html[data-theme="dark"]) .formNotice {
-  background: var(--surface-2);
-  color: var(--accent-ink);
-}
-
-:global(html[data-theme="dark"]) .formNotice button {
-  color: var(--accent-ink);
 }

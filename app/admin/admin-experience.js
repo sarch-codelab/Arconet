@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Suspense, createContext, lazy, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, createContext, lazy, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import styles from "./admin-experience.module.css";
 import { compressImage } from "./image-utils";
+import { sileo } from "../toaster";
 import {
   BRANCHES,
   ROLES,
@@ -181,19 +182,15 @@ function Avatar({ src, name, className, shape }) {
 }
 
 export function useToast() {
-  const [toast, setToast] = useState("");
-  const timer = useRef(null);
-  const show = (message) => {
-    setToast(message);
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => setToast(""), 2600);
-  };
-  useEffect(() => {
-    return () => {
-      if (timer.current) clearTimeout(timer.current);
-    };
+  const show = useCallback((message, type = "success") => {
+    if (!message) return;
+    sileo.show({ type, title: String(message) });
   }, []);
-  return { toast, show };
+  return { show };
+}
+
+function notifyError(message) {
+  if (message) sileo.error({ title: String(message) });
 }
 
 function useEscape(active, handler) {
@@ -513,15 +510,13 @@ function Topbar({
 
   const [internalTab, setInternalTab] = useState("all");
   const [searchVal, setSearchVal] = useState("");
-  const [toastMsg, setToastMsg] = useState("");
 
   const sectionConfig = SECTION_NAV_CONFIG[activeSection] || SECTION_NAV_CONFIG.trabajadores;
   const tabs = customTabs || sectionConfig.tabs;
   const currentTabId = controlledTab !== undefined ? controlledTab : internalTab;
 
   const showToast = (msg) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(""), 2600);
+    if (msg) sileo.info({ title: String(msg) });
   };
 
   const handleSelectTab = (tabId) => {
@@ -660,12 +655,6 @@ function Topbar({
             />
           </div>
         </div>
-
-        {toastMsg && (
-          <div className={styles.headerToast} role="status">
-            <span>{toastMsg}</span>
-          </div>
-        )}
       </div>
 
       {/* ==============================================================
@@ -691,9 +680,8 @@ function WorkersSection({ workers, setWorkers, onOpenNav }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState(EMPTY_WORKER);
-  const [formError, setFormError] = useState("");
   const [confirmWorker, setConfirmWorker] = useState(null);
-  const { toast, show } = useToast();
+  const { show } = useToast();
 
   useEscape(modalOpen, () => closeModal());
 
@@ -760,21 +748,18 @@ function WorkersSection({ workers, setWorkers, onOpenNav }) {
   function openCreate() {
     setDraft({ ...EMPTY_WORKER, id: newWorkerId() });
     setEditingId(null);
-    setFormError("");
     setModalOpen(true);
   }
 
   function openEdit(worker) {
     setDraft({ ...worker });
     setEditingId(worker.id);
-    setFormError("");
     setModalOpen(true);
   }
 
   function closeModal() {
     setModalOpen(false);
     setEditingId(null);
-    setFormError("");
   }
 
   function changeField(field, value) {
@@ -785,14 +770,14 @@ function WorkersSection({ workers, setWorkers, onOpenNav }) {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      setFormError("El archivo debe ser una imagen.");
+      notifyError("El archivo debe ser una imagen.");
       return;
     }
     try {
       const compressed = await compressImage(file);
       changeField("foto", compressed);
     } catch (error) {
-      setFormError(error.message || "No se pudo procesar la imagen.");
+      notifyError(error.message || "No se pudo procesar la imagen.");
     }
     event.target.value = "";
   }
@@ -800,7 +785,7 @@ function WorkersSection({ workers, setWorkers, onOpenNav }) {
   async function submitWorker(event) {
     event.preventDefault();
     if (!draft.nombre.trim() || !draft.correo.trim()) {
-      setFormError("El nombre y el correo son obligatorios.");
+      notifyError("El nombre y el correo son obligatorios.");
       return;
     }
     const payload = { ...draft, nombre: draft.nombre.trim() };
@@ -818,7 +803,7 @@ function WorkersSection({ workers, setWorkers, onOpenNav }) {
         show("Trabajador agregado.");
       }
     } catch (error) {
-      setFormError(error.message || "No se pudo guardar el trabajador.");
+      notifyError(error.message || "No se pudo guardar el trabajador.");
       return;
     }
     closeModal();
@@ -831,7 +816,7 @@ function WorkersSection({ workers, setWorkers, onOpenNav }) {
       setWorkers((current) => current.filter((worker) => worker.id !== confirmWorker.id));
       show("Trabajador eliminado.");
     } catch (error) {
-      show(error.message || "No se pudo eliminar el trabajador.");
+      show(error.message || "No se pudo eliminar el trabajador.", "error");
     }
     setConfirmWorker(null);
   }
@@ -1147,11 +1132,6 @@ function WorkersSection({ workers, setWorkers, onOpenNav }) {
                 )}
               </div>
 
-              {formError && (
-                <p className={styles.error} role="alert">
-                  <AlertTriangle size={14} /> {formError}
-                </p>
-              )}
 
               <footer className={styles.modalActions}>
                 <button type="button" className={styles.ghostBtn} onClick={closeModal}>
@@ -1184,18 +1164,13 @@ function WorkersSection({ workers, setWorkers, onOpenNav }) {
               );
               show("Trabajador eliminado.");
             } catch (error) {
-              show(error.message || "No se pudo eliminar el trabajador.");
+              show(error.message || "No se pudo eliminar el trabajador.", "error");
             }
             setConfirmWorker(null);
           }}
         />
       )}
 
-      {toast && (
-        <div className={styles.toast} role="status">
-          <Check size={16} /> {toast}
-        </div>
-      )}
     </>
   );
 }
@@ -1209,9 +1184,8 @@ function ProductsSection({ products, setProducts, onOpenNav }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState(EMPTY_PRODUCT);
-  const [formError, setFormError] = useState("");
   const [confirmProduct, setConfirmProduct] = useState(null);
-  const { toast, show } = useToast();
+  const { show } = useToast();
 
   useEscape(modalOpen, () => closeModal());
 
@@ -1277,21 +1251,18 @@ function ProductsSection({ products, setProducts, onOpenNav }) {
   function openCreate() {
     setDraft({ ...EMPTY_PRODUCT, id: newProductId() });
     setEditingId(null);
-    setFormError("");
     setModalOpen(true);
   }
 
   function openEdit(product) {
     setDraft({ ...product });
     setEditingId(product.id);
-    setFormError("");
     setModalOpen(true);
   }
 
   function closeModal() {
     setModalOpen(false);
     setEditingId(null);
-    setFormError("");
   }
 
   function changeField(field, value) {
@@ -1302,14 +1273,14 @@ function ProductsSection({ products, setProducts, onOpenNav }) {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      setFormError("El archivo debe ser una imagen.");
+      notifyError("El archivo debe ser una imagen.");
       return;
     }
     try {
       const compressed = await compressImage(file);
       changeField("foto", compressed);
     } catch (error) {
-      setFormError(error.message || "No se pudo procesar la imagen.");
+      notifyError(error.message || "No se pudo procesar la imagen.");
     }
     event.target.value = "";
   }
@@ -1317,7 +1288,7 @@ function ProductsSection({ products, setProducts, onOpenNav }) {
   async function submitProduct(event) {
     event.preventDefault();
     if (!draft.nombre.trim()) {
-      setFormError("El nombre del producto es obligatorio.");
+      notifyError("El nombre del producto es obligatorio.");
       return;
     }
     const payload = {
@@ -1342,7 +1313,7 @@ function ProductsSection({ products, setProducts, onOpenNav }) {
         show("Producto agregado.");
       }
     } catch (error) {
-      setFormError(error.message || "No se pudo guardar el producto.");
+      notifyError(error.message || "No se pudo guardar el producto.");
       return;
     }
     closeModal();
@@ -1634,11 +1605,6 @@ function ProductsSection({ products, setProducts, onOpenNav }) {
                 </label>
               </div>
 
-              {formError && (
-                <p className={styles.error} role="alert">
-                  <AlertTriangle size={14} /> {formError}
-                </p>
-              )}
 
               <footer className={styles.modalActions}>
                 <button type="button" className={styles.ghostBtn} onClick={closeModal}>
@@ -1671,18 +1637,13 @@ function ProductsSection({ products, setProducts, onOpenNav }) {
               );
               show("Producto eliminado.");
             } catch (error) {
-              show(error.message || "No se pudo eliminar el producto.");
+              show(error.message || "No se pudo eliminar el producto.", "error");
             }
             setConfirmProduct(null);
           }}
         />
       )}
 
-      {toast && (
-        <div className={styles.toast} role="status">
-          <Check size={16} /> {toast}
-        </div>
-      )}
     </>
   );
 }
@@ -1702,9 +1663,8 @@ function SucursalesSection({ sucursales, setSucursales, workers = [], onOpenNav 
     responsable: "",
     estado: "activo",
   });
-  const [formError, setFormError] = useState("");
   const [confirmSucursal, setConfirmSucursal] = useState(null);
-  const { toast, show } = useToast();
+  const { show } = useToast();
 
   useEscape(modalOpen, () => closeModal());
 
@@ -1738,21 +1698,18 @@ function SucursalesSection({ sucursales, setSucursales, workers = [], onOpenNav 
       estado: "activo",
     });
     setEditingId(null);
-    setFormError("");
     setModalOpen(true);
   }
 
   function openEdit(sucursal) {
     setDraft({ ...sucursal });
     setEditingId(sucursal.id);
-    setFormError("");
     setModalOpen(true);
   }
 
   function closeModal() {
     setModalOpen(false);
     setEditingId(null);
-    setFormError("");
   }
 
   function changeField(field, value) {
@@ -1762,7 +1719,7 @@ function SucursalesSection({ sucursales, setSucursales, workers = [], onOpenNav 
   async function submitSucursal(event) {
     event.preventDefault();
     if (!draft.nombre.trim() || !draft.codigo.trim()) {
-      setFormError("El nombre y el código son obligatorios.");
+      notifyError("El nombre y el código son obligatorios.");
       return;
     }
     const payload = { ...draft, nombre: draft.nombre.trim() };
@@ -1780,7 +1737,7 @@ function SucursalesSection({ sucursales, setSucursales, workers = [], onOpenNav 
         show("Sucursal agregada.");
       }
     } catch (error) {
-      setFormError(error.message || "No se pudo guardar la sucursal.");
+      notifyError(error.message || "No se pudo guardar la sucursal.");
       return;
     }
     closeModal();
@@ -2013,11 +1970,6 @@ function SucursalesSection({ sucursales, setSucursales, workers = [], onOpenNav 
                 </label>
               </div>
 
-              {formError && (
-                <p className={styles.error} role="alert">
-                  <AlertTriangle size={14} /> {formError}
-                </p>
-              )}
 
               <footer className={styles.modalActions}>
                 <button type="button" className={styles.ghostBtn} onClick={closeModal}>
@@ -2050,18 +2002,13 @@ function SucursalesSection({ sucursales, setSucursales, workers = [], onOpenNav 
               );
               show("Sucursal eliminada.");
             } catch (error) {
-              show(error.message || "No se pudo eliminar la sucursal.");
+              show(error.message || "No se pudo eliminar la sucursal.", "error");
             }
             setConfirmSucursal(null);
           }}
         />
       )}
 
-      {toast && (
-        <div className={styles.toast} role="status">
-          <Check size={16} /> {toast}
-        </div>
-      )}
     </>
   );
 }
@@ -2084,9 +2031,8 @@ function ClientesSection({ clientes, setClientes, onOpenNav }) {
     foto: "",
     fechaRegistro: new Date().toISOString().split("T")[0],
   });
-  const [formError, setFormError] = useState("");
   const [confirmCliente, setConfirmCliente] = useState(null);
-  const { toast, show } = useToast();
+  const { show } = useToast();
 
   useEscape(modalOpen, () => closeModal());
 
@@ -2131,21 +2077,18 @@ function ClientesSection({ clientes, setClientes, onOpenNav }) {
       fechaRegistro: new Date().toISOString().split("T")[0],
     });
     setEditingId(null);
-    setFormError("");
     setModalOpen(true);
   }
 
   function openEdit(cliente) {
     setDraft({ ...cliente });
     setEditingId(cliente.id);
-    setFormError("");
     setModalOpen(true);
   }
 
   function closeModal() {
     setModalOpen(false);
     setEditingId(null);
-    setFormError("");
   }
 
   function changeField(field, value) {
@@ -2156,14 +2099,14 @@ function ClientesSection({ clientes, setClientes, onOpenNav }) {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      setFormError("El archivo debe ser una imagen.");
+      notifyError("El archivo debe ser una imagen.");
       return;
     }
     try {
       const compressed = await compressImage(file);
       changeField("foto", compressed);
     } catch (error) {
-      setFormError(error.message || "No se pudo procesar la imagen.");
+      notifyError(error.message || "No se pudo procesar la imagen.");
     }
     event.target.value = "";
   }
@@ -2171,7 +2114,7 @@ function ClientesSection({ clientes, setClientes, onOpenNav }) {
   async function submitCliente(event) {
     event.preventDefault();
     if (!draft.nombre.trim() || !draft.correo.trim()) {
-      setFormError("El nombre y el correo son obligatorios.");
+      notifyError("El nombre y el correo son obligatorios.");
       return;
     }
     const payload = { ...draft, nombre: draft.nombre.trim() };
@@ -2189,7 +2132,7 @@ function ClientesSection({ clientes, setClientes, onOpenNav }) {
         show("Cliente agregado.");
       }
     } catch (error) {
-      setFormError(error.message || "No se pudo guardar el cliente.");
+      notifyError(error.message || "No se pudo guardar el cliente.");
       return;
     }
     closeModal();
@@ -2461,11 +2404,6 @@ function ClientesSection({ clientes, setClientes, onOpenNav }) {
                 </label>
               </div>
 
-              {formError && (
-                <p className={styles.error} role="alert">
-                  <AlertTriangle size={14} /> {formError}
-                </p>
-              )}
 
               <footer className={styles.modalActions}>
                 <button type="button" className={styles.ghostBtn} onClick={closeModal}>
@@ -2498,18 +2436,13 @@ function ClientesSection({ clientes, setClientes, onOpenNav }) {
               );
               show("Cliente eliminado.");
             } catch (error) {
-              show(error.message || "No se pudo eliminar el cliente.");
+              show(error.message || "No se pudo eliminar el cliente.", "error");
             }
             setConfirmCliente(null);
           }}
         />
       )}
 
-      {toast && (
-        <div className={styles.toast} role="status">
-          <Check size={16} /> {toast}
-        </div>
-      )}
     </>
   );
 }
@@ -2532,9 +2465,8 @@ function CotizacionesSection({ orders, setOrders, clientes, products, onOpenNav 
     items: [],
     notas: "",
   });
-  const [formError, setFormError] = useState("");
   const [confirmOrder, setConfirmOrder] = useState(null);
-  const { toast, show } = useToast();
+  const { show } = useToast();
 
   useEscape(modalOpen, () => closeModal());
 
@@ -2601,21 +2533,18 @@ function CotizacionesSection({ orders, setOrders, clientes, products, onOpenNav 
       notas: "",
     });
     setEditingId(null);
-    setFormError("");
     setModalOpen(true);
   }
 
   function openEdit(order) {
     setDraft({ ...order });
     setEditingId(order.id);
-    setFormError("");
     setModalOpen(true);
   }
 
   function closeModal() {
     setModalOpen(false);
     setEditingId(null);
-    setFormError("");
   }
 
   function changeField(field, value) {
@@ -2625,7 +2554,7 @@ function CotizacionesSection({ orders, setOrders, clientes, products, onOpenNav 
   async function submitOrder(event) {
     event.preventDefault();
     if (!draft.clienteId || !draft.cliente.trim()) {
-      setFormError("El cliente es obligatorio.");
+      notifyError("El cliente es obligatorio.");
       return;
     }
     const payload = {
@@ -2647,7 +2576,7 @@ function CotizacionesSection({ orders, setOrders, clientes, products, onOpenNav 
         show("Orden creada.");
       }
     } catch (error) {
-      setFormError(error.message || "No se pudo guardar la orden.");
+      notifyError(error.message || "No se pudo guardar la orden.");
       return;
     }
     closeModal();
@@ -2887,11 +2816,6 @@ function CotizacionesSection({ orders, setOrders, clientes, products, onOpenNav 
                 </label>
               </div>
 
-              {formError && (
-                <p className={styles.error} role="alert">
-                  <AlertTriangle size={14} /> {formError}
-                </p>
-              )}
 
               <footer className={styles.modalActions}>
                 <button type="button" className={styles.ghostBtn} onClick={closeModal}>
@@ -2924,18 +2848,13 @@ function CotizacionesSection({ orders, setOrders, clientes, products, onOpenNav 
               );
               show("Cotización eliminada.");
             } catch (error) {
-              show(error.message || "No se pudo eliminar la cotización.");
+              show(error.message || "No se pudo eliminar la cotización.", "error");
             }
             setConfirmOrder(null);
           }}
         />
       )}
 
-      {toast && (
-        <div className={styles.toast} role="status">
-          <Check size={16} /> {toast}
-        </div>
-      )}
     </>
   );
 }
@@ -3111,7 +3030,7 @@ function AjustesSection({ onOpenNav }) {
     theme: "light",
   });
   const [saveStatus, setSaveStatus] = useState("");
-  const { toast, show } = useToast();
+  const { show } = useToast();
 
   function handleSave(event) {
     event.preventDefault();
@@ -3228,11 +3147,6 @@ function AjustesSection({ onOpenNav }) {
         </section>
       </div>
 
-      {toast && (
-        <div className={styles.toast} role="status">
-          <Check size={16} /> {toast}
-        </div>
-      )}
     </>
   );
 }
@@ -3269,7 +3183,6 @@ function LoginView() {
   const [remember, setRemember] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   async function submit(event) {
@@ -3277,11 +3190,10 @@ function LoginView() {
     setSubmitting(true);
     const user = await authenticate(email, password);
     if (!user) {
-      setError("Correo o contraseña incorrectos.");
+      notifyError("Correo o contraseña incorrectos.");
       setSubmitting(false);
       return;
     }
-    setError("");
     const params =
       typeof window !== "undefined"
         ? new URLSearchParams(window.location.search)
@@ -3393,12 +3305,6 @@ function LoginView() {
                   Recordarme
                 </label>
               </div>
-
-              {error && (
-                <p className={styles.error} role="alert">
-                  <AlertTriangle size={14} /> {error}
-                </p>
-              )}
 
               <button type="submit" className={styles.submit} disabled={submitting}>
                 Entrar al panel <span><ArrowRight size={15} /></span>

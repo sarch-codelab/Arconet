@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { ArrowLeft, ArrowRight, Check, Eye, EyeOff } from "lucide-react";
 import styles from "./login-experience.module.css";
+import { sileo } from "../toaster";
 
 const CLIENT_SESSION_KEY = "arconet-client-session";
 
@@ -49,7 +50,6 @@ export default function LoginExperience() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(true);
-  const [error, setError] = useState("");
 
   function submit(event) {
     event.preventDefault();
@@ -57,10 +57,9 @@ export default function LoginExperience() {
       (c) => c.correo === email && c.password === password
     );
     if (!client) {
-      setError("Correo o contraseña incorrectos.");
+      sileo.error({ title: "Correo o contraseña incorrectos." });
       return;
     }
-    setError("");
     saveClientSession(client);
     router.push("/cliente");
   }
@@ -68,7 +67,6 @@ export default function LoginExperience() {
   function fillDemo() {
     setEmail(DEMO_CLIENTS[0].correo);
     setPassword(DEMO_CLIENTS[0].password);
-    setError("");
   }
 
   return (
@@ -186,12 +184,6 @@ export default function LoginExperience() {
                   ¿Olvidaste tu contraseña?
                 </Link>
               </div>
-
-              {error && (
-                <p className={styles.error} role="alert">
-                  {error}
-                </p>
-              )}
 
               <button type="submit" className={styles.submit}>
                 Ingresar a mi cuenta <span><ArrowRight size={15} /></span>
@@ -238,7 +230,6 @@ function ClientLoginView({ onLogin }) {
   const [remember, setRemember] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
 
   function submit(event) {
     event.preventDefault();
@@ -246,17 +237,15 @@ function ClientLoginView({ onLogin }) {
       (c) => c.correo === email && c.password === password
     );
     if (!client) {
-      setError("Correo o contraseña incorrectos.");
+      sileo.error({ title: "Correo o contraseña incorrectos." });
       return;
     }
-    setError("");
     onLogin(client);
   }
 
   function fillDemo() {
     setEmail(DEMO_CLIENTS[0].correo);
     setPassword(DEMO_CLIENTS[0].password);
-    setError("");
   }
 
   return (
@@ -374,12 +363,6 @@ function ClientLoginView({ onLogin }) {
                   ¿Olvidaste tu contraseña?
                 </Link>
               </div>
-
-              {error && (
-                <p className={styles.error} role="alert">
-                  {error}
-                </p>
-              )}
 
               <button type="submit" className={styles.submit}>
                 Ingresar a mi cuenta <span><ArrowRight size={15} /></span>

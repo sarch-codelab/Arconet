@@ -6,29 +6,27 @@ import { useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Eye, EyeOff } from "lucide-react";
 import styles from "../login/login-experience.module.css";
 import scroll from "./registro-experience.module.css";
+import { sileo } from "../toaster";
 
 export default function RegistroExperience() {
   const [showPassword, setShowPassword] = useState(false);
   const [accepted, setAccepted] = useState(false);
-  const [status, setStatus] = useState("");
-  const [error, setError] = useState("");
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    setError("");
     const form = new FormData(event.currentTarget);
     const password = String(form.get("password") || "");
     const confirm = String(form.get("confirm") || "");
     if (!form.get("name") || !form.get("email") || !password) return;
     if (password !== confirm) {
-      setError("Las contraseñas no coinciden.");
+      sileo.error({ title: "Las contraseñas no coinciden." });
       return;
     }
     if (!accepted) {
-      setError("Acepta los términos para crear tu cuenta.");
+      sileo.error({ title: "Acepta los términos para crear tu cuenta." });
       return;
     }
-    setStatus("Datos listos. Conecta el servicio de registro para habilitar la cuenta.");
+    sileo.info({ title: "Datos listos. Conecta el servicio de registro para habilitar la cuenta." });
   };
 
   return (
@@ -176,18 +174,6 @@ export default function RegistroExperience() {
               <button type="submit" className={styles.submit}>
                 Crear mi cuenta <span><ArrowRight size={15} /></span>
               </button>
-
-              {error && (
-                <p className={scroll.error} role="alert">
-                  {error}
-                </p>
-              )}
-
-              {status && (
-                <p className={styles.notice} role="status">
-                  <Check size={14} /> {status}
-                </p>
-              )}
             </form>
 
             <div className={styles.divider}>

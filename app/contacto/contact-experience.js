@@ -8,7 +8,6 @@ import {
   ArrowRight,
   ArrowUpRight,
   Cable,
-  Check,
   MapPin,
   Network,
   Radio,
@@ -16,6 +15,7 @@ import {
 } from "lucide-react";
 import styles from "./contact-experience.module.css";
 import Footer from "../footer";
+import { sileo } from "../toaster";
 
 const NAVIGATION = [
   { href: "/", label: "Inicio" },
@@ -42,8 +42,6 @@ const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 export default function ContactExperience() {
   const pageRef = useRef(null);
   const [activeArea, setActiveArea] = useState(0);
-  const [draftReady, setDraftReady] = useState(false);
-  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const page = pageRef.current;
@@ -125,7 +123,20 @@ export default function ContactExperience() {
     ].join("\n");
     const recipient = process.env.NEXT_PUBLIC_CONTACT_EMAIL || "";
     window.location.href = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    setDraftReady(true);
+    const hasRecipient = Boolean(process.env.NEXT_PUBLIC_CONTACT_EMAIL);
+    sileo.show({
+      type: "info",
+      title: hasRecipient
+        ? "Borrador preparado para el equipo Arconet."
+        : "Borrador abierto.",
+      description: hasRecipient
+        ? undefined
+        : "Añade el correo oficial de Arconet como destinatario antes de enviarlo.",
+      duration: hasRecipient ? undefined : null,
+      button: hasRecipient
+        ? undefined
+        : { title: "Copiar solicitud", onClick: copyDraft },
+    });
   };
 
   const copyDraft = async () => {
@@ -144,10 +155,9 @@ export default function ContactExperience() {
     ].join("\n");
     try {
       await navigator.clipboard.writeText(content);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1800);
+      sileo.success({ title: "Solicitud copiada al portapapeles." });
     } catch {
-      setCopied(false);
+      sileo.error({ title: "No se pudo copiar el borrador." });
     }
   };
 
@@ -273,13 +283,6 @@ export default function ContactExperience() {
             <p>Al continuar se abrirá un borrador en tu aplicación de correo. No almacenamos tus datos en esta página.</p>
             <button type="submit">Preparar correo <ArrowUpRight size={16} /></button>
           </div>
-          {draftReady && (
-            <div className={styles.formNotice} role="status">
-              <Check size={16} />
-              <span>{process.env.NEXT_PUBLIC_CONTACT_EMAIL ? "Borrador preparado para el equipo Arconet." : "Borrador abierto. Añade el correo oficial de Arconet como destinatario antes de enviarlo."}</span>
-              {!process.env.NEXT_PUBLIC_CONTACT_EMAIL && <button type="button" onClick={copyDraft}>{copied ? "Copiado" : "Copiar solicitud"}</button>}
-            </div>
-          )}
         </form>
       </section>
 

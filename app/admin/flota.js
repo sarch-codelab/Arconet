@@ -32,6 +32,7 @@ import {
   UserCheck
 } from "lucide-react";
 import styles from "./flota.module.css";
+import { sileo } from "../toaster";
 
 const TRUCKS_DATA = [
   {
@@ -207,11 +208,9 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
   const [driverModalOpen, setDriverModalOpen] = useState(false);
   const [routeModalOpen, setRouteModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [toastMessage, setToastMessage] = useState("");
 
   const showToast = (msg) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(""), 2800);
+    if (msg) sileo.info({ title: String(msg) });
   };
 
   const currentTruck = useMemo(() => {
@@ -1209,14 +1208,6 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
               </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Floating Toast Notification */}
-      {toastMessage && (
-        <div className={styles.toast} role="status">
-          <Zap size={14} color="#f97316" />
-          <span>{toastMessage}</span>
         </div>
       )}
     </div>

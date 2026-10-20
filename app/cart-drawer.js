@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { buildCartMessage, useCart } from "./cart-context";
+import { sileo } from "./toaster";
 import styles from "./cart.module.css";
 
 const WHATSAPP_NUMBER = (process.env.NEXT_PUBLIC_WHATSAPP || "").replace(/\D/g, "");
@@ -67,6 +68,7 @@ export default function CartDrawer() {
       /* portapapeles no disponible */
     }
     setCopied(true);
+    sileo.success({ title: "Pedido copiado al portapapeles." });
   };
 
   return (

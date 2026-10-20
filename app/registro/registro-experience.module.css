@@ -4,19 +4,3 @@
   overflow-y: auto;
   overscroll-behavior: contain;
 }
-
-.error {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 12px;
-  background: rgba(180, 40, 40, 0.1);
-  color: #b42828;
-  font-size: 10px;
-  line-height: 1.5;
-}
-
-:global(html[data-theme="dark"]) .error {
-  background: rgba(238, 108, 108, 0.14);
-  color: #ff9a9a;
-}

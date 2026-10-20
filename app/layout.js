@@ -4,6 +4,7 @@ import ThemeToggle from "./theme-toggle";
 import { CartProvider } from "./cart-context";
 import CartDrawer from "./cart-drawer";
 import PageTransition from "./page-transition";
+import AppToaster from "./toaster";
 
 export const metadata = {
   title: "Arconet",
@@ -51,6 +52,7 @@ export default function RootLayout({ children }) {
           <ThemeToggle />
           <CartDrawer />
           <PageTransition />
+          <AppToaster />
         </CartProvider>
       </body>
     </html>
