@@ -18,7 +18,8 @@ import {
   ShoppingCart,
   Truck,
 } from "lucide-react";
-import { FAMILIES, findFamily } from "../catalogo-data";
+import { FAMILIES, findFamily, formatPrice } from "../catalogo-data";
+import { useCatalogProducts } from "../catalogo-products";
 import { useCart } from "../../cart-context";
 import styles from "./product-detail.module.css";
 import Footer from "../../footer";
@@ -78,6 +79,7 @@ export default function ProductDetail({ slug }) {
   const [quantity, setQuantity] = useState(1);
   const [presentation, setPresentation] = useState(PRESENTATIONS[0]);
   const { addItem, open: openCart, count: cartCount } = useCart();
+  const { byCategory, loading: productsLoading } = useCatalogProducts();
 
   useEffect(() => {
     const page = pageRef.current;
@@ -305,6 +307,56 @@ export default function ProductDetail({ slug }) {
           </div>
         </div>
       </section>
+
+      {(() => {
+        const products = byCategory[family.category] || [];
+        if (productsLoading || products.length === 0) return null;
+        return (
+          <section className={styles.productsSection} data-reveal aria-label="Productos disponibles">
+            <header className={styles.productsHeader}>
+              <h2>Productos disponibles</h2>
+              <p>
+                {products.length} referencia{products.length === 1 ? "" : "s"} de {family.category} con
+                precio y existencia actualizados.
+              </p>
+            </header>
+            <ul className={styles.productsGrid}>
+              {products.map((product) => (
+                <li key={product.id} className={styles.productCard}>
+                  <div className={styles.productCardMedia}>
+                    {product.foto ? (
+                      <Image
+                        src={product.foto}
+                        alt={product.nombre}
+                        fill
+                        sizes="(max-width: 700px) 90vw, 30vw"
+                        className={styles.productCardImage}
+                      />
+                    ) : (
+                      <div className={styles.productCardPlaceholder} aria-hidden="true">
+                        <span>{product.nombre.charAt(0)}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className={styles.productCardCopy}>
+                    {product.marca ? <p className={styles.productCardBrand}>{product.marca}</p> : null}
+                    <h3>{product.nombre}</h3>
+                    <p className={styles.productCardSku}>SKU {product.sku}</p>
+                    <div className={styles.productCardMeta}>
+                      <strong>{formatPrice(product.precio)}</strong>
+                      <span className={product.stock > 0 ? styles.productInStock : styles.productOutStock}>
+                        {product.stock > 0
+                          ? `${product.stock.toLocaleString("es-HN")} ${product.unidad.toLowerCase()}`
+                          : "Agotado"}
+                      </span>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        );
+      })()}
 
       <section className={styles.tabSection} data-reveal>
         <div className={styles.tabs} role="tablist" aria-label="Información del producto">

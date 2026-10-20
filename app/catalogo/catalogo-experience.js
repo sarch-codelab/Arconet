@@ -32,6 +32,7 @@ import {
   getStockState,
 } from "./catalogo-data";
 import { useCart } from "../cart-context";
+import { useCatalogProducts } from "./catalogo-products";
 import Footer from "../footer";
 
 const NAVIGATION = [
@@ -111,6 +112,7 @@ export default function CatalogoExperience() {
   const navRef = useRef(null);
   const topbarRef = useRef(null);
   const { count: cartCount, open: openCart, addItem } = useCart();
+  const { byCategory } = useCatalogProducts();
 
   const addFamilyToQuote = (family) => {
     addItem({
@@ -699,6 +701,33 @@ export default function CatalogoExperience() {
                         <li key={item}><Check size={13} aria-hidden="true" />{item}</li>
                       ))}
                     </ul>
+
+                    {(() => {
+                      const products = byCategory[family.category] || [];
+                      if (!products.length) return null;
+                      const shown = products.slice(0, 4);
+                      const rest = products.length - shown.length;
+                      return (
+                        <div className={styles.familyProducts}>
+                          <span className={styles.familyProductsLabel}>
+                            {products.length} producto{products.length === 1 ? "" : "s"} en existencia
+                          </span>
+                          <ul>
+                            {shown.map((product) => (
+                              <li key={product.id}>
+                                <span>{product.nombre}</span>
+                                <span className={styles.familyProductPrice}>{formatPrice(product.precio)}</span>
+                              </li>
+                            ))}
+                          </ul>
+                          {rest > 0 && (
+                            <Link className={styles.familyProductsMore} href={`/catalogo/${family.slug}`}>
+                              Ver {rest} más
+                            </Link>
+                          )}
+                        </div>
+                      );
+                    })()}
 
                     <div className={styles.familyMeta}>
                       <div className={styles.metaCell}>

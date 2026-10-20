@@ -1,6 +1,7 @@
 import { prisma } from "../../../../lib/prisma";
 import { verifyPassword } from "../../../../lib/auth";
 import { createSession } from "../../../../lib/session";
+import { writeLog } from "../../../../lib/logs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,6 +22,11 @@ export async function POST(request) {
 
   const usuario = await prisma.usuario.findUnique({ where: { correo: email } });
   if (!usuario || !usuario.activo || !verifyPassword(password, usuario.passwordHash)) {
+    await writeLog("auth", `Intento de inicio de sesión fallido: ${email}`, {
+      nivel: "warn",
+      actor: email,
+      ruta: "/api/auth/login",
+    });
     return Response.json({ error: "Credenciales inválidas." }, { status: 401 });
   }
 
@@ -30,6 +36,12 @@ export async function POST(request) {
     correo: usuario.correo,
     rol: usuario.rol,
     sucursal: usuario.sucursalId ?? "",
+  });
+
+  await writeLog("auth", `Inicio de sesión: ${usuario.correo}`, {
+    actor: usuario.correo,
+    ruta: "/api/auth/login",
+    detalle: { rol: usuario.rol },
   });
 
   return Response.json({

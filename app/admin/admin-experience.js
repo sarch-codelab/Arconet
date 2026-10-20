@@ -30,6 +30,7 @@ import {
   Plus,
   RefreshCw,
   Search,
+  ScrollText,
   Server,
   Settings,
   ShieldCheck,
@@ -496,6 +497,17 @@ const SECTION_NAV_CONFIG = {
       { id: "server", label: "Servidor", icon: Server, title: "Recursos del servidor" },
       { id: "backups", label: "Backups", icon: Database, title: "Copias de seguridad" },
       { id: "alerts", label: "Alertas", icon: AlertTriangle, title: "Alertas activas" },
+    ],
+  },
+  logs: {
+    brandName: "Logs",
+    tabs: [
+      { id: "all", label: "Todos", icon: ScrollText, title: "Registro de actividad" },
+      { id: "auth", label: "Autenticación", icon: User, title: "Accesos y sesiones" },
+      { id: "panel", label: "Panel", icon: LayoutDashboard, title: "Acciones del panel" },
+      { id: "api", label: "API", icon: Server, title: "Llamadas a la API" },
+      { id: "db", label: "Base de datos", icon: Database, title: "Eventos de base de datos" },
+      { id: "sistema", label: "Sistema", icon: Activity, title: "Eventos del sistema" },
     ],
   },
   ajustes: {
@@ -3301,6 +3313,104 @@ function MonitoreoSection({ onOpenNav }) {
         )}
       </div>
     </>
+  );
+}
+
+function LogsSection({ onOpenNav }) {
+  const [logs, setLogs] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [filterCategoria, setFilterCategoria] = useState("todas");
+  const [filterNivel, setFilterNivel] = useState("todos");
+
+  const loadLogs = useCallback(async (categoria = "todas", nivel = "todos") => {
+    try {
+      const url = new URL("/api/logs", window.location.origin);
+      if (categoria !== "todas") url.searchParams.set("categoria", categoria);
+      if (nivel !== "todos") url.searchParams.set("nivel", nivel);
+      const res = await fetch(url.toString(), { cache: "no-store" });
+      if (!res.ok) throw new Error("No se pudieron obtener los logs");
+      const data = await res.json();
+      setLogs(data);
+      setError("");
+    } catch (err) {
+      console.error("Error loading logs:", err);
+      setLogs([]);
+      setError("Error al cargar los logs");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadLogs(filterCategoria, filterNivel);
+    const timer = setInterval(() => loadLogs(filterCategoria, filterNivel), 30000);
+    return () => clearInterval(timer);
+}, [loadLogs, filterCategoria, filterNivel]);
+
+  const categoriasDisponibles = ["todas", "auth", "api", "db", "sistema", "panel"];
+  const nivelesDisponibles = ["todos", "info", "warn", "error"];
+
+  return (
+    <section className={styles.section} aria-label="Logs del sistema">
+      <header className={styles.sectionHeader}>
+        <h3><ScrollText size={18} /> Logs del sistema</h3>
+        <div className={styles.sectionControls}>
+          <select value={filterCategoria} onChange={(e) => setFilterCategoria(e.target.value)} className={styles.filterSelect}>
+            <option value="todas">Todas</option>
+            <option value="auth">Autenticación</option>
+            <option value="api">API</option>
+            <option value="db">Base de datos</option>
+            <option value="sistema">Sistema</option>
+            <option value="panel">Panel</option>
+          </select>
+          <select value={filterNivel} onChange={(e) => setFilterNivel(e.target.value)} className={styles.filterSelect}>
+            <option value="todos">Todos</option>
+            <option value="info">Info</option>
+            <option value="warn">Aviso</option>
+            <option value="error">Error</option>
+          </select>
+          <button onClick={() => loadLogs("todas", "todos")} className={styles.refreshBtn}>
+            Refrescar
+          </button>
+        </div>
+      </header>
+      <div className={styles.logsList}>
+        {loading ? (
+          <p>Cargando...</p>
+        ) : logs.length === 0 ? (
+          <p className={styles.emptyText}>No hay logs registrados</p>
+        ) : (
+          <ul>
+            {logs
+              .filter((l) => {
+                const catOk = filterCategoria === "todas" || l.categoria === filterCategoria;
+                const nivelOk = filterNivel === "todos" || l.nivel === filterNivel;
+                return catOk && nivelOk;
+              })
+              .map((log) => (
+                <li key={log.id} className={styles.logItem}>
+                  <div className={styles.logHeader}>
+                    <span className={styles.logLevel}>
+                      {log.nivel === "error" ? "⚠️" : log.nivel === "warn" ? "⚡" : "ℹ️"} {log.nivel}
+                    </span>
+                    <span className={styles.logCategory}>
+                      {log.categoria.charAt(0).toUpperCase() + log.categoria.slice(1)}
+                    </span>
+                    <span className={styles.logTime}>{formatTimestamp(log.createdAt)}</span>
+                  </div>
+                  <p className={styles.logMessage}>{log.mensaje}</p>
+                  {log.actor && (
+                    <small className={styles.logActor}>Por: {log.actor}</small>
+                  )}
+                  {log.ruta && (
+                    <small className={styles.logActor}>({log.ruta})</small>
+                  )}
+</li>
+              )
+            </ul>
+        )}
+      </div>
+    </section>
   );
 }
 

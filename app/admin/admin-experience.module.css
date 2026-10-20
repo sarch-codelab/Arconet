@@ -1,4 +1,4 @@
-.adminPage,
+﻿.adminPage,
 .loginPage {
   --blue: #2563eb;
   --blue-deep: #1d4ed8;
@@ -2277,3 +2277,22 @@
     transform: translateX(-50%);
   }
 }
+  .logsSection { padding: 12px 16px; }
+  .logsSection .section { }
+  .logsSection .sectionHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .logsSection h3 { margin: 0; font-size: 18px; }
+  .logsSection .sectionControls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .logsSection .filterSelect { padding: 6px 10px; font-size: 12px; }
+  .logsSection .refreshBtn { padding: 6px 12px; font-size: 12px; background: var(--accent-ink); color: white; border: none; border-radius: 4px; cursor: pointer; }
+  .logsSection .emptyText { color: var(--muted); font-size: 14px; }
+  .logsSection .logsList { max-height: 500px; overflow-y: auto; }
+  .logsSection .logItem { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .logsSection .logHeader { display: flex; gap: 12px; align-items: center; }
+  .logsSection .logLevel { padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+  .logsSection .logLevel.error { background: rgba(221, 44, 44, 0.15); color: #d14343; }
+  .logsSection .logLevel.warn { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+  .logsSection .logLevel.info { background: rgba(30, 144, 255, 0.1); color: #1e90ff; }
+  .logsSection .logCategory { color: var(--muted); font-size: 12px; }
+  .logsSection .logTime { color: var(--muted); font-size: 11px; white-space: nowrap; }
+  .logsSection .logMessage { flex: 1; font-size: 13px; line-height: 1.5; margin: 2px 0 0; }
+  .logsSection .logActor { color: var(--muted); font-size: 11px; }

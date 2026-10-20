@@ -2,6 +2,7 @@ import { prisma } from "../../../../lib/prisma";
 import { parseProducto } from "../../../../lib/productos";
 import { toProducto } from "../../../../lib/serialize";
 import { requireSession } from "../../../../lib/dal";
+import { writeLog } from "../../../../lib/logs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,6 +37,11 @@ export async function PATCH(request, { params }) {
 
   try {
     const producto = await prisma.producto.update({ where: { id }, data });
+    await writeLog("panel", `Producto actualizado: ${producto.nombre} (${producto.sku})`, {
+      actor: guard.session?.correo,
+      ruta: `/api/productos/${id}`,
+      detalle: { campos: Object.keys(data) },
+    });
     return Response.json(toProducto(producto));
   } catch (error) {
     if (error?.code === "P2025") {
@@ -45,6 +51,11 @@ export async function PATCH(request, { params }) {
       return Response.json({ error: "Ya existe un producto con ese SKU." }, { status: 409 });
     }
     console.error("PATCH /api/productos/[id]", error);
+    await writeLog("db", `Error al actualizar producto ${id}: ${error?.message}`, {
+      nivel: "error",
+      actor: guard.session?.correo,
+      ruta: `/api/productos/${id}`,
+    });
     return Response.json({ error: "No se pudo actualizar el producto." }, { status: 500 });
   }
 }
@@ -55,13 +66,23 @@ export async function DELETE(_request, { params }) {
   const { id } = await params;
 
   try {
-    await prisma.producto.delete({ where: { id } });
+    const producto = await prisma.producto.delete({ where: { id } });
+    await writeLog("panel", `Producto eliminado: ${producto.nombre} (${producto.sku})`, {
+      nivel: "warn",
+      actor: guard.session?.correo,
+      ruta: `/api/productos/${id}`,
+    });
     return Response.json({ ok: true });
   } catch (error) {
     if (error?.code === "P2025") {
       return Response.json({ error: "Producto no encontrado." }, { status: 404 });
     }
     console.error("DELETE /api/productos/[id]", error);
+    await writeLog("db", `Error al eliminar producto ${id}: ${error?.message}`, {
+      nivel: "error",
+      actor: guard.session?.correo,
+      ruta: `/api/productos/${id}`,
+    });
     return Response.json({ error: "No se pudo eliminar el producto." }, { status: 500 });
   }
 }

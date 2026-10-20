@@ -1687,6 +1687,63 @@
   background: var(--surface-2);
 }
 
+.familyProducts {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--line);
+}
+
+.familyProductsLabel {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.familyProducts ul {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+}
+
+.familyProducts li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.familyProducts li span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.familyProductPrice {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.familyProductsMore {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-ink);
+  text-decoration: none;
+}
+
+.familyProductsMore:hover {
+  text-decoration: underline;
+}
+
 .metaCell {
   flex: 1 1 132px;
   min-width: 0;

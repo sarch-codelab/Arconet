@@ -562,11 +562,127 @@
 }
 
 /* ==========================================================================
-   PESTAÑAS
+   PESTAÃ‘AS
    ========================================================================== */
 
 .tabSection {
   padding: 10px clamp(20px, 6vw, 92px) 80px;
+}
+
+.productsSection {
+  padding: 10px clamp(20px, 6vw, 92px) 70px;
+  border-top: 1px solid var(--line);
+}
+
+.productsHeader {
+  max-width: 640px;
+  margin-bottom: 30px;
+}
+
+.productsHeader h2 {
+  margin: 0 0 8px;
+  font-size: clamp(24px, 3vw, 34px);
+  letter-spacing: -0.02em;
+}
+
+.productsHeader p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.productsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 18px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.productCard {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--surface);
+  transition: transform 0.25s ease, border-color 0.25s ease;
+}
+
+.productCard:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent-ink);
+}
+
+.productCardMedia {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: var(--surface-2);
+}
+
+.productCardImage {
+  object-fit: cover;
+}
+
+.productCardPlaceholder {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--accent-ink);
+}
+
+.productCardCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px 18px;
+}
+
+.productCardBrand {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.productCardCopy h3 {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.productCardSku {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.productCardMeta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.productCardMeta strong {
+  font-size: 16px;
+}
+
+.productInStock {
+  font-size: 12px;
+  color: var(--accent-ink);
+}
+
+.productOutStock {
+  font-size: 12px;
+  color: var(--danger, #d14343);
 }
 
 .tabs {
@@ -1024,7 +1140,7 @@
 }
 
 /* ==========================================================================
-   MODO OSCURO (automático según la hora)
+   MODO OSCURO (automÃ¡tico segÃºn la hora)
    ========================================================================== */
 
 :global(html[data-theme="dark"]) .header {
@@ -1122,7 +1238,7 @@
 }
 
 /* ==========================================================================
-   SCROLL SUAVE Y APARICIÓN (mismo efecto que /contacto)
+   SCROLL SUAVE Y APARICIÃ“N (mismo efecto que /contacto)
    ========================================================================== */
 
 .readingProgress {

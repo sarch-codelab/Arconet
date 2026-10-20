@@ -116,3 +116,18 @@ model OrdenItem {
   orden    Orden     @relation(fields: [ordenId], references: [id], onDelete: Cascade)
   producto Producto? @relation(fields: [productoId], references: [id], onDelete: SetNull)
 }
+
+model Log {
+  id        String   @id @default(cuid())
+  nivel     String   @default("info")
+  categoria String
+  mensaje   String
+  detalle   String?
+  actor     String?
+  ruta      String?
+  createdAt DateTime @default(now())
+
+  @@index([categoria])
+  @@index([nivel])
+  @@index([createdAt])
+}

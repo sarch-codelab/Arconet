@@ -2,6 +2,7 @@ import { prisma } from "../../../lib/prisma";
 import { newProductoId, parseProducto } from "../../../lib/productos";
 import { toProducto } from "../../../lib/serialize";
 import { requireSession } from "../../../lib/dal";
+import { writeLog } from "../../../lib/logs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -52,12 +53,22 @@ export async function POST(request) {
     const producto = await prisma.producto.create({
       data: { id: newProductoId(), ...data },
     });
+    await writeLog("panel", `Producto creado: ${producto.nombre} (${producto.sku})`, {
+      actor: guard.session?.correo,
+      ruta: "/api/productos",
+      detalle: { id: producto.id, categoria: producto.categoria },
+    });
     return Response.json(toProducto(producto), { status: 201 });
   } catch (error) {
     if (error?.code === "P2002") {
       return Response.json({ error: "Ya existe un producto con ese SKU." }, { status: 409 });
     }
     console.error("POST /api/productos", error);
+    await writeLog("db", `Error al crear producto: ${error?.message}`, {
+      nivel: "error",
+      actor: guard.session?.correo,
+      ruta: "/api/productos",
+    });
     return Response.json({ error: "No se pudo crear el producto." }, { status: 500 });
   }
 }
