@@ -82,6 +82,7 @@ model Cliente {
   direccion     String?
   ciudad        String?
   estado        String   @default("activo")
+  foto          String?
   fechaRegistro DateTime @default(now())
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

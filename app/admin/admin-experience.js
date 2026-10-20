@@ -35,6 +35,7 @@ import {
   X,
 } from "lucide-react";
 import styles from "./admin-experience.module.css";
+import { compressImage } from "./image-utils";
 import {
   BRANCHES,
   ROLES,
@@ -217,7 +218,7 @@ function AdminShell({ session, onLogout }) {
     }
     return "trabajadores";
   });
-  const [navOpen, setNavOpen] = useState(true);
+  const [navOpen, setNavOpen] = useState(false);
   const [workers, setWorkers] = useState([]);
   const [products, setProducts] = useState([]);
   const [sucursales, setSucursales] = useState([]);
@@ -265,11 +266,34 @@ function AdminShell({ session, onLogout }) {
     }
   };
 
+  const goToWithTransition = (id) => {
+    if (id === section) {
+      if (typeof window !== "undefined" && window.innerWidth <= 980) {
+        setNavOpen(false);
+      }
+      return;
+    }
+    if (typeof window === "undefined") {
+      goTo(id);
+      return;
+    }
+    const label = NAV.find((item) => item.id === id)?.label || "";
+    window.dispatchEvent(
+      new CustomEvent("arconet:transition", {
+        detail: {
+          message: label,
+          hold: 260,
+          onCovered: () => goTo(id),
+        },
+      }),
+    );
+  };
+
   return (
     <AdminContext.Provider
       value={{
         section,
-        goTo,
+        goTo: goToWithTransition,
         onOpenNav: () => setNavOpen((value) => !value),
         navOpen,
         session,
@@ -346,6 +370,7 @@ function AdminShell({ session, onLogout }) {
             <SucursalesSection
               sucursales={sucursales}
               setSucursales={setSucursales}
+              workers={workers}
               onOpenNav={() => setNavOpen((value) => !value)}
             />
           ) : section === "clientes" ? (
@@ -483,7 +508,7 @@ function Topbar({
   const activeSection = adminCtx?.section || "trabajadores";
   const goTo = adminCtx?.goTo || (() => {});
   const handleOpenNav = onOpenNav || adminCtx?.onOpenNav;
-  const navOpen = adminCtx?.navOpen ?? true;
+  const navOpen = adminCtx?.navOpen ?? false;
   const session = adminCtx?.session;
 
   const [internalTab, setInternalTab] = useState("all");
@@ -535,7 +560,7 @@ function Topbar({
           )}
           <Link
             href="/"
-            className={`${styles.topbarBrand} ${navOpen ? styles.topbarBrandNavOpen : ""}`}
+            className={styles.topbarBrand}
             title="Arconet, inicio"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -756,16 +781,19 @@ function WorkersSection({ workers, setWorkers, onOpenNav }) {
     setDraft((prev) => ({ ...prev, [field]: value }));
   }
 
-  function handlePhoto(event) {
+  async function handlePhoto(event) {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
       setFormError("El archivo debe ser una imagen.");
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => changeField("foto", String(reader.result || ""));
-    reader.readAsDataURL(file);
+    try {
+      const compressed = await compressImage(file);
+      changeField("foto", compressed);
+    } catch (error) {
+      setFormError(error.message || "No se pudo procesar la imagen.");
+    }
     event.target.value = "";
   }
 
@@ -1012,7 +1040,7 @@ function WorkersSection({ workers, setWorkers, onOpenNav }) {
                       Quitar foto
                     </button>
                   )}
-                  <p>JPG o PNG. Se guarda solo en este navegador.</p>
+                  <p>JPG o PNG. Se guarda en el servidor.</p>
                 </div>
               </div>
 
@@ -1270,16 +1298,19 @@ function ProductsSection({ products, setProducts, onOpenNav }) {
     setDraft((prev) => ({ ...prev, [field]: value }));
   }
 
-  function handlePhoto(event) {
+  async function handlePhoto(event) {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
       setFormError("El archivo debe ser una imagen.");
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => changeField("foto", String(reader.result || ""));
-    reader.readAsDataURL(file);
+    try {
+      const compressed = await compressImage(file);
+      changeField("foto", compressed);
+    } catch (error) {
+      setFormError(error.message || "No se pudo procesar la imagen.");
+    }
     event.target.value = "";
   }
 
@@ -1512,7 +1543,7 @@ function ProductsSection({ products, setProducts, onOpenNav }) {
                       Quitar imagen
                     </button>
                   )}
-                  <p>JPG o PNG. Se guarda solo en este navegador.</p>
+                  <p>JPG o PNG. Se guarda en el servidor.</p>
                 </div>
               </div>
 
@@ -1656,7 +1687,7 @@ function ProductsSection({ products, setProducts, onOpenNav }) {
   );
 }
 
-function SucursalesSection({ sucursales, setSucursales, onOpenNav }) {
+function SucursalesSection({ sucursales, setSucursales, workers = [], onOpenNav }) {
   const [query, setQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -1968,12 +1999,17 @@ function SucursalesSection({ sucursales, setSucursales, onOpenNav }) {
                 </label>
                 <label className={styles.field}>
                   Responsable
-                  <input
-                    type="text"
+                  <select
                     value={draft.responsable}
                     onChange={(event) => changeField("responsable", event.target.value)}
-                    placeholder="Nombre del encargado"
-                  />
+                  >
+                    <option value="">Sin responsable</option>
+                    {workers.map((worker) => (
+                      <option key={worker.id} value={worker.nombre}>
+                        {worker.nombre}{worker.puesto ? ` — ${worker.puesto}` : ""}
+                      </option>
+                    ))}
+                  </select>
                 </label>
               </div>
 
@@ -2045,6 +2081,7 @@ function ClientesSection({ clientes, setClientes, onOpenNav }) {
     direccion: "",
     ciudad: "",
     estado: "activo",
+    foto: "",
     fechaRegistro: new Date().toISOString().split("T")[0],
   });
   const [formError, setFormError] = useState("");
@@ -2090,6 +2127,7 @@ function ClientesSection({ clientes, setClientes, onOpenNav }) {
       direccion: "",
       ciudad: "",
       estado: "activo",
+      foto: "",
       fechaRegistro: new Date().toISOString().split("T")[0],
     });
     setEditingId(null);
@@ -2112,6 +2150,22 @@ function ClientesSection({ clientes, setClientes, onOpenNav }) {
 
   function changeField(field, value) {
     setDraft((prev) => ({ ...prev, [field]: value }));
+  }
+
+  async function handlePhoto(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setFormError("El archivo debe ser una imagen.");
+      return;
+    }
+    try {
+      const compressed = await compressImage(file);
+      changeField("foto", compressed);
+    } catch (error) {
+      setFormError(error.message || "No se pudo procesar la imagen.");
+    }
+    event.target.value = "";
   }
 
   async function submitCliente(event) {
@@ -2221,7 +2275,7 @@ function ClientesSection({ clientes, setClientes, onOpenNav }) {
                   <tr key={cliente.id}>
                     <td>
                       <div className={styles.person}>
-                        <span className={styles.avatar}>{initialsCliente(cliente.nombre)}</span>
+                        <Avatar src={cliente.foto} name={cliente.nombre} />
                         <span className={styles.personMeta}>
                           <strong>{cliente.nombre}</strong>
                           <em>{cliente.contacto || "—"}</em>
@@ -2303,6 +2357,26 @@ function ClientesSection({ clientes, setClientes, onOpenNav }) {
             </header>
 
             <form className={styles.form} onSubmit={submitCliente}>
+              <div className={styles.photoRow}>
+                <Avatar src={draft.foto} name={draft.nombre} className={styles.photoPreview} />
+                <div className={styles.photoActions}>
+                  <input
+                    id="cliente-photo"
+                    type="file"
+                    accept="image/*"
+                    className={styles.fileInput}
+                    onChange={handlePhoto}
+                  />
+                  <label htmlFor="cliente-photo" className={styles.upload}>Subir foto</label>
+                  {draft.foto && (
+                    <button type="button" className={styles.ghostBtn} onClick={() => changeField("foto", "")}>
+                      Quitar foto
+                    </button>
+                  )}
+                  <p>JPG o PNG. Se guarda en el servidor.</p>
+                </div>
+              </div>
+
               <div className={styles.fieldGrid}>
                 <label className={`${styles.field} ${styles.spanFull}`}>
                   Nombre de la empresa / cliente
