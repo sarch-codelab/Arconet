@@ -703,7 +703,16 @@ export default function CatalogoExperience() {
                     </ul>
 
                     {(() => {
-                      const products = byCategory[family.category] || [];
+                      // Obtener productos de esta categoría desde BD;
+                      // si no hay productos de esta categoría exacta,
+                      // mostramos los primeros productos disponibles del catálogo
+                      const categoryProducts = byCategory[family.category] || [];
+                      const allCategoryKeys = Object.keys(byCategory);
+                      const fallbackCategory = allCategoryKeys.length > 0 ? allCategoryKeys[0] : null;
+                      const fallbackProducts = fallbackCategory ? (byCategory[fallbackCategory] || []) : [];
+
+                      // Mostrar productos de esta categoría si hay, sino los primeros del catálogo
+                      const products = categoryProducts.length > 0 ? categoryProducts : fallbackProducts;
                       if (!products.length) return null;
                       const shown = products.slice(0, 4);
                       const rest = products.length - shown.length;
