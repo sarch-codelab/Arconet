@@ -47,10 +47,8 @@ import {
   fetchWorkers,
   formatDate,
   initials,
-  loadWorkers,
   newWorkerId,
   roleLabel,
-  saveWorkers,
   statusLabel,
   updateWorker,
 } from "./workers-store";
@@ -63,10 +61,8 @@ import {
   fetchProducts,
   formatPrice,
   formatStock,
-  loadProducts,
   newProductId,
   productInitials,
-  saveProducts,
   unitLabel,
   updateProduct,
 } from "./products-store";
@@ -74,8 +70,6 @@ import {
   createSucursal,
   deleteSucursal,
   fetchSucursales,
-  loadSucursales,
-  saveSucursales,
   newSucursalId,
   initialsSucursal,
   updateSucursal,
@@ -84,8 +78,6 @@ import {
   createOrder,
   deleteOrder,
   fetchOrders,
-  loadOrders,
-  saveOrders,
   newOrderId,
   updateOrder,
   ORDER_STATUSES,
@@ -98,8 +90,6 @@ import {
   createCliente,
   deleteCliente,
   fetchClientes,
-  loadClientes,
-  saveClientes,
   newClienteId,
   updateCliente,
   CLIENT_STATUSES,
@@ -235,40 +225,20 @@ function AdminShell({ session, onLogout }) {
     if (typeof window !== "undefined" && window.innerWidth <= 980) {
       setNavOpen(false);
     }
-    setWorkers(loadWorkers());
     fetchWorkers()
-      .then((remote) => {
-        setWorkers(remote);
-        saveWorkers(remote);
-      })
+      .then((remote) => setWorkers(remote))
       .catch(() => {});
-    setProducts(loadProducts());
     fetchProducts()
-      .then((remote) => {
-        setProducts(remote);
-        saveProducts(remote);
-      })
+      .then((remote) => setProducts(remote))
       .catch(() => {});
-    setSucursales(loadSucursales());
     fetchSucursales()
-      .then((remote) => {
-        setSucursales(remote);
-        saveSucursales(remote);
-      })
+      .then((remote) => setSucursales(remote))
       .catch(() => {});
-    setOrders(loadOrders());
     fetchOrders()
-      .then((remote) => {
-        setOrders(remote);
-        saveOrders(remote);
-      })
+      .then((remote) => setOrders(remote))
       .catch(() => {});
-    setClientes(loadClientes());
     fetchClientes()
-      .then((remote) => {
-        setClientes(remote);
-        saveClientes(remote);
-      })
+      .then((remote) => setClientes(remote))
       .catch(() => {});
 
     const handlePopState = () => {
