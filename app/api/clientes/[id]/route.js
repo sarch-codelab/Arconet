@@ -1,13 +1,13 @@
 import { prisma } from "../../../../lib/prisma";
 import { parseCliente } from "../../../../lib/clientes";
 import { toCliente } from "../../../../lib/serialize";
-import { requireSession } from "../../../../lib/dal";
+import { requireSession, requireRole } from "../../../../lib/dal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(_request, { params }) {
-  const guard = await requireSession();
+  const guard = await requireRole(["administrador", "gerente", "ventas"]);
   if (guard.response) return guard.response;
   const { id } = await params;
   const cliente = await prisma.cliente.findUnique({ where: { id } });
@@ -16,7 +16,7 @@ export async function GET(_request, { params }) {
 }
 
 export async function PATCH(request, { params }) {
-  const guard = await requireSession();
+  const guard = await requireRole(["administrador", "gerente", "ventas"]);
   if (guard.response) return guard.response;
   const { id } = await params;
   let body;
@@ -42,7 +42,7 @@ export async function PATCH(request, { params }) {
 }
 
 export async function DELETE(_request, { params }) {
-  const guard = await requireSession();
+  const guard = await requireRole(["administrador", "gerente"]);
   if (guard.response) return guard.response;
   const { id } = await params;
   try {

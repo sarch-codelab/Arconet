@@ -504,14 +504,14 @@
   min-height: 510px;
   display: grid;
   place-items: center;
-  overflow: hidden;
   background-color: #e1e6ef;
   background-image: linear-gradient(#1544b50c 1px, transparent 1px), linear-gradient(90deg, #1544b50c 1px, transparent 1px);
   background-size: 35px 35px;
 }
 
 .storyVisual img {
-  width: 65%;
+  width: 120%;
+  max-width: none;
   height: auto;
   display: block;
   filter: drop-shadow(0 20px 25px #07122c28);

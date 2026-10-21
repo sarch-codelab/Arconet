@@ -1,0 +1,286 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import LocomotiveScroll from "locomotive-scroll";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Check,
+  ChevronRight,
+  PackageCheck,
+  ShoppingCart,
+  Truck,
+} from "lucide-react";
+import { findFamily, formatPrice } from "../../catalogo-data";
+import { useCatalogProducts } from "../../catalogo-products";
+import { useCart } from "../../../cart-context";
+import styles from "./category-products.module.css";
+import Footer from "../../../footer";
+
+const NAVIGATION = [
+  { href: "/catalogo#familias", label: "Soluciones" },
+  { href: "/catalogo#catalogo-items", label: "Catálogo" },
+  { href: "/#empresa", label: "La empresa" },
+  { href: "/contacto", label: "Contacto" },
+  { href: "/terminos", label: "Términos" },
+];
+
+const SUPPORT_ITEMS = [
+  { icon: PackageCheck, title: "Importación directa", text: "Traemos el equipo sin intermediarios de más." },
+  { icon: ArrowRight, title: "Asesoría antes de comprar", text: "Revisamos tu proyecto y te recomendamos lo que sí sirve." },
+  { icon: Truck, title: "Entrega en Honduras", text: "Coordinamos la entrega donde esté tu instalación." },
+];
+
+export default function CategoryProducts({ slug }) {
+  const family = findFamily(slug);
+  const pageRef = useRef(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const { addItem, open: openCart, count: cartCount } = useCart();
+  const { byCategory, loading: productsLoading } = useCatalogProducts();
+
+  useEffect(() => {
+    const page = pageRef.current;
+    if (!page) return undefined;
+
+    const updateScroll = ({ scroll = window.scrollY, limit, progress } = {}) => {
+      const scrollable = Math.max(limit ?? document.documentElement.scrollHeight - window.innerHeight, 1);
+      const pageProgress = typeof progress === "number" ? progress : Math.min(1, Math.max(0, scroll / scrollable));
+      page.style.setProperty("--page-progress", pageProgress.toFixed(4));
+    };
+
+    const locomotive = new LocomotiveScroll({
+      lenisOptions: {
+        anchors: true,
+        lerp: 0.085,
+        respectReducedMotion: true,
+        smoothTouch: false,
+        smoothWheel: true,
+      },
+      scrollCallback: updateScroll,
+    });
+
+    updateScroll({ scroll: window.scrollY });
+    return () => locomotive.destroy();
+  }, []);
+
+  useEffect(() => {
+    const targets = document.querySelectorAll(`.${styles.reveal}`);
+    if (!targets.length || typeof IntersectionObserver === "undefined") return undefined;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add(styles.revealVisible);
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -6% 0px" }
+    );
+
+    targets.forEach((target) => observer.observe(target));
+    return () => observer.disconnect();
+  }, []);
+
+  const handleAddToCart = (product) => {
+    addItem(
+      {
+        slug: product.sku,
+        title: product.nombre,
+        category: product.categoria,
+        index: "01",
+        image: product.foto,
+        presentation: product.unidad,
+      },
+      1
+    );
+  };
+
+  if (!family) {
+    return (
+      <main className={styles.missing}>
+        <p className={styles.eyebrow}>Catálogo Arconet</p>
+        <h1>No encontramos esa categoría.</h1>
+        <p>Puede que haya cambiado de nombre. Te ayudamos a encontrarla en un minuto.</p>
+        <div className={styles.missingActions}>
+          <Link className={styles.primaryButton} href="/catalogo">Volver al catálogo <ArrowRight size={16} /></Link>
+          <Link className={styles.ghostDarkButton} href="/#contacto">Escribir al equipo <ArrowUpRight size={16} /></Link>
+        </div>
+      </main>
+    );
+  }
+
+  const categoryProducts = byCategory[family.category] || [];
+  const filteredProducts = categoryProducts.filter((product) => {
+    const query = searchTerm.trim().toLocaleLowerCase("es");
+    const haystack = `${product.nombre} ${product.sku} ${product.marca || ""} ${product.categoria}`.toLocaleLowerCase("es");
+    return !query || haystack.includes(query);
+  });
+
+  return (
+    <main className={styles.category} ref={pageRef}>
+      <div className={styles.readingProgress} aria-hidden="true" />
+      <header className={styles.header}>
+        <Link className={styles.brand} href="/" aria-label="Arconet, inicio">
+          <Image src="/arconet.png" alt="Arconet" width={2172} height={362} priority />
+        </Link>
+        <nav className={styles.nav} aria-label="Navegación principal">
+          {NAVIGATION.map((item) => <a key={item.label} href={item.href}>{item.label}</a>)}
+        </nav>
+        <button
+          type="button"
+          className={styles.headerAction}
+          onClick={openCart}
+          aria-label={`Carrito de cotización, ${cartCount} ${cartCount === 1 ? "unidad" : "unidades"}`}
+        >
+          Cotización
+          <span>
+            <ShoppingCart size={15} aria-hidden="true" />
+            {cartCount > 0 && <i className="cartBadge" aria-hidden="true">{cartCount > 99 ? "99+" : cartCount}</i>}
+          </span>
+        </button>
+      </header>
+
+      <div className={styles.breadcrumb}>
+        <Link href="/catalogo">Catálogo</Link>
+        <ChevronRight size={13} aria-hidden="true" />
+        <span>{family.category}</span>
+      </div>
+
+      <section className={`${styles.hero} ${styles.reveal}`}>
+        <div className={styles.heroVisual}>
+          {family.image ? (
+            <Image
+              src={family.image}
+              alt={family.imageAlt}
+              fill
+              priority
+              sizes="(max-width: 900px) 92vw, 50vw"
+              className={styles.heroImage}
+            />
+          ) : (
+            <div className={styles.heroGraphic} aria-hidden="true">
+              <div className={styles.graphicOrbit}><i /><i /><i /></div>
+              <span>ARCONET</span>
+            </div>
+          )}
+        </div>
+        <div className={styles.heroContent}>
+          <span className={styles.badge}>{family.badge}</span>
+          <h1>{family.category}</h1>
+          <p className={styles.heroDescription}>{family.summary}</p>
+          <p className={styles.heroText}>{family.description}</p>
+          
+          <ul className={styles.featureList}>
+            {family.items.map((item) => (
+              <li key={item}><Check size={14} aria-hidden="true" />{item}</li>
+            ))}
+          </ul>
+
+          <Link className={styles.primaryButton} href={`/catalogo/${family.slug}`}>
+            Ver línea completa <ArrowUpRight size={16} />
+          </Link>
+        </div>
+      </section>
+
+      <section className={`${styles.productsSection} ${styles.reveal}`} aria-label="Productos disponibles">
+        <header className={styles.productsHeader}>
+          <div>
+            <h2>Productos disponibles</h2>
+            <p>
+              {filteredProducts.length} referencia{filteredProducts.length === 1 ? "" : "s"} de {family.category} con
+              precio y existencia actualizados.
+            </p>
+          </div>
+          <label className={styles.searchBox}>
+            <input
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Buscar productos..."
+              aria-label="Buscar en esta categoría"
+            />
+          </label>
+        </header>
+
+        {productsLoading ? (
+          <div className={styles.loadingState}>
+            <p>Cargando productos...</p>
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          <div className={styles.emptyState}>
+            <p>No hay productos disponibles en esta categoría.</p>
+            <Link className={styles.primaryButton} href="/catalogo">Ver todo el catálogo <ArrowRight size={16} /></Link>
+          </div>
+        ) : (
+          <ul className={styles.productsGrid}>
+            {filteredProducts.map((product) => (
+              <li key={product.id} className={styles.productCard}>
+                <div className={styles.productCardMedia}>
+                  {product.foto ? (
+                    <Image
+                      src={product.foto}
+                      alt={product.nombre}
+                      fill
+                      sizes="(max-width: 700px) 90vw, 30vw"
+                      className={styles.productCardImage}
+                    />
+                  ) : (
+                    <div className={styles.productCardPlaceholder} aria-hidden="true">
+                      <span>{product.nombre.charAt(0)}</span>
+                    </div>
+                  )}
+                </div>
+                <div className={styles.productCardCopy}>
+                  {product.marca ? <p className={styles.productCardBrand}>{product.marca}</p> : null}
+                  <h3>{product.nombre}</h3>
+                  <p className={styles.productCardSku}>SKU {product.sku}</p>
+                  <div className={styles.productCardMeta}>
+                    <strong>{formatPrice(product.precio)}</strong>
+                    <span className={product.stock > 0 ? styles.productInStock : styles.productOutStock}>
+                      {product.stock > 0
+                        ? `${product.stock.toLocaleString("es-HN")} ${product.unidad.toLowerCase()}`
+                        : "Agotado"}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.addToCartButton}
+                    onClick={() => handleAddToCart(product)}
+                    disabled={product.stock <= 0}
+                    aria-label={`Añadir ${product.nombre} a la cotización`}
+                  >
+                    <ShoppingCart size={15} aria-hidden="true" />
+                    Añadir a cotización
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className={`${styles.supportSection} ${styles.reveal}`}>
+        <div className={styles.supportHeading}>
+          <p className={styles.sectionEyebrow}>Soporte</p>
+          <h2>¿Necesitas ayuda con tu proyecto?</h2>
+        </div>
+        <ul className={styles.supportList}>
+          {SUPPORT_ITEMS.map(({ icon: ItemIcon, title, text }) => (
+            <li key={title}>
+              <ItemIcon size={18} strokeWidth={1.5} aria-hidden="true" />
+              <span><strong>{title}</strong><small>{text}</small></span>
+            </li>
+          ))}
+        </ul>
+        <Link className={styles.contactAction} href="/#contacto">
+          Escribir al equipo <ArrowUpRight size={17} />
+        </Link>
+      </section>
+
+      <Footer />
+    </main>
+  );
+}

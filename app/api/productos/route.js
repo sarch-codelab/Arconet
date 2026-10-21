@@ -1,7 +1,7 @@
 import { prisma } from "../../../lib/prisma";
 import { newProductoId, parseProducto } from "../../../lib/productos";
 import { toProducto } from "../../../lib/serialize";
-import { requireSession } from "../../../lib/dal";
+import { requireSession, requireRole } from "../../../lib/dal";
 import { writeLog } from "../../../lib/logs";
 
 export const runtime = "nodejs";
@@ -14,6 +14,8 @@ export async function GET(request) {
   const categoria = searchParams.get("categoria");
   const estado = searchParams.get("estado");
   const q = searchParams.get("q");
+  const take = Math.min(Math.max(Number(searchParams.get("take")) || 100, 1), 500);
+  const skip = Math.max(Number(searchParams.get("skip")) || 0, 0);
 
   const where = {};
   if (categoria) where.categoria = categoria;
@@ -26,16 +28,27 @@ export async function GET(request) {
     ];
   }
 
-  const productos = await prisma.producto.findMany({
-    where,
-    orderBy: { updatedAt: "desc" },
-  });
+  try {
+    const productos = await prisma.producto.findMany({
+      where,
+      orderBy: { updatedAt: "desc" },
+      take,
+      skip,
+      select: {
+        id: true, nombre: true, sku: true, categoria: true, marca: true,
+        unidad: true, precio: true, stock: true, estado: true, foto: true, updatedAt: true,
+      },
+    });
 
-  return Response.json(productos.map(toProducto));
+    return Response.json(productos.map(toProducto));
+  } catch (error) {
+    console.error("GET /api/productos", error?.message);
+    return Response.json({ error: "No se pudieron obtener los productos." }, { status: 500 });
+  }
 }
 
 export async function POST(request) {
-  const guard = await requireSession();
+  const guard = await requireRole(["administrador", "gerente"]);
   if (guard.response) return guard.response;
   let body;
   try {

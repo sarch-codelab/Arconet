@@ -1,11 +1,11 @@
 import { getSystemStatus } from "../../../lib/monitor";
-import { requireSession } from "../../../lib/dal";
+import { requireRole } from "../../../lib/dal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const guard = await requireSession();
+  const guard = await requireRole(["administrador"]);
   if (guard.response) return guard.response;
 
   try {

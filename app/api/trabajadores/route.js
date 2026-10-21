@@ -2,13 +2,13 @@ import { prisma } from "../../../lib/prisma";
 import { newWorkerId, parseTrabajador } from "../../../lib/trabajadores";
 import { toTrabajador } from "../../../lib/serialize";
 import { parseAcceso, syncUsuario } from "../../../lib/usuarios";
-import { requireSession } from "../../../lib/dal";
+import { requireSession, requireRole } from "../../../lib/dal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request) {
-  const guard = await requireSession();
+  const guard = await requireRole(["administrador", "gerente"]);
   if (guard.response) return guard.response;
   const { searchParams } = new URL(request.url);
   const sucursal = searchParams.get("sucursal");
@@ -20,20 +20,37 @@ export async function GET(request) {
   if (rol) where.rol = rol;
   if (estado) where.estado = estado;
 
-  const trabajadores = await prisma.trabajador.findMany({
-    where,
-    orderBy: { nombre: "asc" },
-  });
-  const correos = trabajadores.map((trabajador) => trabajador.correo);
-  const cuentas = await prisma.usuario.findMany({ where: { correo: { in: correos } } });
-  const cuentasPorCorreo = new Map(cuentas.map((cuenta) => [cuenta.correo, cuenta]));
-  return Response.json(
-    trabajadores.map((trabajador) => toTrabajador(trabajador, cuentasPorCorreo.get(trabajador.correo))),
-  );
+  const take = Math.min(Math.max(Number(new URL(request.url).searchParams.get("take")) || 100, 1), 500);
+  const skip = Math.max(Number(new URL(request.url).searchParams.get("skip")) || 0, 0);
+
+  try {
+    const trabajadores = await prisma.trabajador.findMany({
+      where,
+      orderBy: { nombre: "asc" },
+      take,
+      skip,
+      select: {
+        id: true, nombre: true, puesto: true, correo: true, telefono: true,
+        sucursalId: true, rol: true, estado: true, ingreso: true, foto: true,
+      },
+    });
+    const correos = trabajadores.map((trabajador) => trabajador.correo);
+    const cuentas = await prisma.usuario.findMany({
+      where: { correo: { in: correos } },
+      select: { correo: true, activo: true },
+    });
+    const cuentasPorCorreo = new Map(cuentas.map((cuenta) => [cuenta.correo, cuenta]));
+    return Response.json(
+      trabajadores.map((trabajador) => toTrabajador(trabajador, cuentasPorCorreo.get(trabajador.correo))),
+    );
+  } catch (error) {
+    console.error("GET /api/trabajadores", error?.message);
+    return Response.json({ error: "No se pudieron obtener los trabajadores." }, { status: 500 });
+  }
 }
 
 export async function POST(request) {
-  const guard = await requireSession();
+  const guard = await requireRole(["administrador"]);
   if (guard.response) return guard.response;
   let body;
   try {

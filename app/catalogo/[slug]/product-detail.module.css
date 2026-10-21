@@ -1140,7 +1140,7 @@
 }
 
 /* ==========================================================================
-   MODO OSCURO (automÃ¡tico segÃºn la hora)
+   MODO OSCURO (automático según la hora)
    ========================================================================== */
 
 :global(html[data-theme="dark"]) .header {

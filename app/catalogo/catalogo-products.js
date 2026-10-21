@@ -1,32 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 
 /**
- * Carga los productos activos de la BD y los expone agrupados por categoría.
- * Devuelve { byCategory, loading } donde byCategory es un mapa
- * categoría -> lista de productos.
+ * Carga los productos activos de la BD y los expone en dos formas:
+ * { products, byCategory, loading }. `products` es la lista completa y
+ * byCategory es un mapa categoría -> lista de productos.
  */
 export function useCatalogProducts() {
-  const [byCategory, setByCategory] = useState({});
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
     fetch("/api/catalogo")
       .then((response) => (response.ok ? response.json() : []))
-      .then((products) => {
-        if (!active || !Array.isArray(products)) return;
-        const grouped = {};
-        for (const product of products) {
-          const key = product.categoria || "Otros";
-          (grouped[key] ||= []).push(product);
-        }
-        setByCategory(grouped);
+      .then((data) => {
+        if (!active || !Array.isArray(data)) return;
+        setProducts(data);
       })
       .catch(() => {
-        if (active) setByCategory({});
+        if (active) setProducts([]);
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -36,7 +31,16 @@ export function useCatalogProducts() {
     };
   }, []);
 
-  return { byCategory, loading };
+  const byCategory = useMemo(() => {
+    const grouped = {};
+    for (const product of products) {
+      const key = product.categoria || "Otros";
+      (grouped[key] ||= []).push(product);
+    }
+    return grouped;
+  }, [products]);
+
+  return { products, byCategory, loading };
 }
 
 function formatPrice(value) {

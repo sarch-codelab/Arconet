@@ -2,15 +2,11 @@
 
 import { useState, useMemo } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import {
   Truck,
   FileText,
   Settings,
   Layers,
-  Search,
-  Bell,
-  Menu,
   Box,
   CheckCircle2,
   MapPin,
@@ -33,27 +29,29 @@ import {
 } from "lucide-react";
 import styles from "./flota.module.css";
 import { sileo } from "../toaster";
+import { Topbar } from "./topbar";
+import { useBodyScrollLock, useEscapeKey } from "./use-body-scroll-lock";
 
 const TRUCKS_DATA = [
   {
     id: "trk-1",
     plate: "#A-BB84964",
-    title: "Hospital Freight 860kg",
+    title: "Carga hospitalaria 860kg",
     containerId: "#YMLU 654383",
-    type: "TRK200924 Cargo",
-    status: "Active",
-    location: "Southgate Depot",
-    inTransit: "3 Days",
+    type: "TRK200924 Carga",
+    status: "Activo",
+    location: "Depósito Southgate",
+    inTransit: "3 días",
     driver: "Ethan Carter",
     truckId: "TRK-318",
-    dock: "Dock #3",
-    started: "10:30 AM",
+    dock: "Muelle #3",
+    started: "10:30",
     originCode: "NY",
     originCity: "New York",
     destCode: "AU",
     destCity: "Australia",
-    currentLoad: "8.5 tons",
-    maxCapacity: "12.4 tons",
+    currentLoad: "8.5 t",
+    maxCapacity: "12.4 t",
     weightPercent: 68,
     pallets: "18/24",
     freeSpace: "25%",
@@ -63,27 +61,27 @@ const TRUCKS_DATA = [
     rightSide: "48%",
     efficiency: "15%",
     avgDelay: "52%",
-    riskOfTilt: "Low"
+    riskOfTilt: "Bajo"
   },
   {
     id: "trk-2",
     plate: "#A-BB84963",
-    title: "Clinic Materials 760kg",
+    title: "Material clínico 760kg",
     containerId: "#YMLU 654383",
-    type: "TRK200924 Cargo",
-    status: "Active",
-    location: "Southgate Depot",
-    inTransit: "3 Days",
+    type: "TRK200924 Carga",
+    status: "Activo",
+    location: "Depósito Southgate",
+    inTransit: "3 días",
     driver: "Ethan Carter",
     truckId: "TRK-318",
-    dock: "Dock #3",
-    started: "10:30 AM",
+    dock: "Muelle #3",
+    started: "10:30",
     originCode: "NY",
     originCity: "New York",
     destCode: "AU",
     destCity: "Australia",
-    currentLoad: "8.5 tons",
-    maxCapacity: "12.4 tons",
+    currentLoad: "8.5 t",
+    maxCapacity: "12.4 t",
     weightPercent: 68,
     pallets: "18/24",
     freeSpace: "25%",
@@ -93,27 +91,27 @@ const TRUCKS_DATA = [
     rightSide: "48%",
     efficiency: "15%",
     avgDelay: "52%",
-    riskOfTilt: "Low"
+    riskOfTilt: "Bajo"
   },
   {
     id: "trk-3",
     plate: "#A-BB84965",
-    title: "Wellness Products 640kg",
+    title: "Productos de bienestar 640kg",
     containerId: "#WNL-492104",
-    type: "TRK200924 Express",
-    status: "Active",
-    location: "Central Depot",
-    inTransit: "2 Days",
+    type: "TRK200924 Exprés",
+    status: "Activo",
+    location: "Depósito central",
+    inTransit: "2 días",
     driver: "Camila Rojas",
     truckId: "TRK-210",
-    dock: "Dock #1",
-    started: "08:15 AM",
+    dock: "Muelle #1",
+    started: "08:15",
     originCode: "CHI",
     originCity: "Chicago",
     destCode: "MIA",
     destCity: "Miami",
-    currentLoad: "6.4 tons",
-    maxCapacity: "12.0 tons",
+    currentLoad: "6.4 t",
+    maxCapacity: "12.0 t",
     weightPercent: 54,
     pallets: "14/24",
     freeSpace: "42%",
@@ -123,27 +121,27 @@ const TRUCKS_DATA = [
     rightSide: "50%",
     efficiency: "19%",
     avgDelay: "38%",
-    riskOfTilt: "Minimal"
+    riskOfTilt: "Mínimo"
   },
   {
     id: "trk-4",
     plate: "#A-BB84962",
-    title: "Fitness Gear 580kg",
+    title: "Equipamiento deportivo 580kg",
     containerId: "#FTG-881230",
-    type: "TRK200924 Heavy",
-    status: "Active",
-    location: "Westside Hub",
-    inTransit: "4 Days",
+    type: "TRK200924 Reforzado",
+    status: "Activo",
+    location: "Centro Westside",
+    inTransit: "4 días",
     driver: "Marta Silva",
     truckId: "TRK-504",
-    dock: "Dock #5",
-    started: "06:45 AM",
+    dock: "Muelle #5",
+    started: "06:45",
     originCode: "LAX",
     originCity: "Los Angeles",
     destCode: "SEA",
     destCity: "Seattle",
-    currentLoad: "9.2 tons",
-    maxCapacity: "14.0 tons",
+    currentLoad: "9.2 t",
+    maxCapacity: "14.0 t",
     weightPercent: 65,
     pallets: "16/24",
     freeSpace: "33%",
@@ -153,11 +151,11 @@ const TRUCKS_DATA = [
     rightSide: "49%",
     efficiency: "17%",
     avgDelay: "45%",
-    riskOfTilt: "Low"
+    riskOfTilt: "Bajo"
   }
 ];
 
-// Helper: generate 24 ticks for the radial segmented arch gauge
+// Genera las 24 marcas del arco radial segmentado
 function renderRadialTicks(weightPercent) {
   const totalTicks = 24;
   const activeTicksCount = Math.round((weightPercent / 100) * totalTicks);
@@ -200,6 +198,14 @@ function renderRadialTicks(weightPercent) {
   return ticks;
 }
 
+const FLEET_TABS = [
+  { id: "dashboard", label: "Panel", icon: Layers, title: "Panel de flota" },
+  { id: "vehicles", label: "Vehículos", icon: Truck, title: "Lista de camiones" },
+  { id: "map", label: "Mapa", icon: MapPin, title: "Sucursales y geolocalización GPS" },
+  { id: "orders", label: "Documentos", icon: FileText, title: "Cotizaciones y manifiestos" },
+  { id: "analytics", label: "Estadísticas", icon: TrendingUp, title: "Resumen y estadísticas de flota" },
+];
+
 export default function FleetSection({ onOpenNav, onNavigate }) {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [selectedTruckId, setSelectedTruckId] = useState("trk-2");
@@ -209,8 +215,34 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
   const [routeModalOpen, setRouteModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Los modales de flota bloquean el fondo y se cierran con Escape.
+  const anyModalOpen = hotspotModalOpen || driverModalOpen || routeModalOpen;
+  useBodyScrollLock(anyModalOpen);
+  useEscapeKey(hotspotModalOpen, () => setHotspotModalOpen(false));
+  useEscapeKey(driverModalOpen, () => setDriverModalOpen(false));
+  useEscapeKey(routeModalOpen, () => setRouteModalOpen(false));
+
   const showToast = (msg) => {
     if (msg) sileo.info({ title: String(msg) });
+  };
+
+  const handleTabSelect = (tabId) => {
+    setActiveTab(tabId);
+    if (tabId === "map" && onNavigate) {
+      onNavigate("sucursales");
+      return;
+    }
+    if (tabId === "orders" && onNavigate) {
+      onNavigate("cotizaciones");
+      return;
+    }
+    if (tabId === "analytics" && onNavigate) {
+      onNavigate("resumen");
+      return;
+    }
+    if (tabId === "vehicles") {
+      showToast("Vista de vehículos seleccionada");
+    }
   };
 
   const currentTruck = useMemo(() => {
@@ -232,164 +264,38 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
   return (
     <div className={styles.fleetContainer}>
       {/* ==================================================================
-          1. TOP NAVIGATION BAR (Brand | Center Pill | Search & Profile)
+          1. BARRA GLOBAL (marca | pildoras | buscador y perfil)
           ================================================================== */}
-      <header className={styles.topBar}>
-        <div className={styles.brandArea}>
-          {onOpenNav && (
-            <button
-              type="button"
-              className={styles.navToggleBtn}
-              onClick={onOpenNav}
-              aria-label="Abrir menú"
-              title="Menú del panel"
-            >
-              <Menu size={18} />
-            </button>
-          )}
-          <Link
-            href="/"
-            className={styles.topbarBrand}
-            title="Arconet, inicio"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/arconet.png"
-              alt="Arconet"
-              className={styles.topbarBrandImg}
-            />
-          </Link>
-        </div>
+      <Topbar
+        title="Flota"
+        subtitle="Monitoreo en vivo de vehículos, carga y rutas."
+        onOpenNav={onOpenNav}
+        activeTab={activeTab}
+        customTabs={FLEET_TABS}
+        onTabSelect={handleTabSelect}
+      />
 
-        {/* Center Pill Nav Bar */}
-        <nav className={styles.centerPillNav} aria-label="Navegación de flota">
-          <button
-            type="button"
-            className={`${styles.pillItem} ${activeTab === "dashboard" ? styles.pillItemActive : ""}`}
-            onClick={() => setActiveTab("dashboard")}
-          >
-            <Layers size={15} />
-            <span>Dashboard</span>
-          </button>
-          <button
-            type="button"
-            className={`${styles.pillIconOnly} ${activeTab === "vehicles" ? styles.pillIconOnlyActive : ""}`}
-            onClick={() => {
-              setActiveTab("vehicles");
-              showToast("Vista de vehículos seleccionada");
-            }}
-            title="Lista de camiones"
-            aria-label="Vehículos"
-          >
-            <Truck size={16} />
-          </button>
-          <button
-            type="button"
-            className={`${styles.pillIconOnly} ${activeTab === "map" ? styles.pillIconOnlyActive : ""}`}
-            onClick={() => {
-              if (onNavigate) {
-                onNavigate("sucursales");
-              } else {
-                setActiveTab("map");
-                showToast("Rastreo GPS en vivo activo");
-              }
-            }}
-            title="Sucursales y Geolocalización GPS"
-            aria-label="Mapa"
-          >
-            <MapPin size={16} />
-          </button>
-          <button
-            type="button"
-            className={`${styles.pillIconOnly} ${activeTab === "orders" ? styles.pillIconOnlyActive : ""}`}
-            onClick={() => {
-              if (onNavigate) {
-                onNavigate("cotizaciones");
-              } else {
-                setActiveTab("orders");
-                showToast("Manifiestos y órdenes de despacho");
-              }
-            }}
-            title="Cotizaciones y Manifiestos"
-            aria-label="Documentos"
-          >
-            <FileText size={16} />
-          </button>
-          <button
-            type="button"
-            className={`${styles.pillIconOnly} ${activeTab === "analytics" ? styles.pillIconOnlyActive : ""}`}
-            onClick={() => {
-              if (onNavigate) {
-                onNavigate("resumen");
-              } else {
-                setActiveTab("analytics");
-                showToast("Reportes y analíticas de flota");
-              }
-            }}
-            title="Resumen y Estadísticas"
-            aria-label="Estadísticas"
-          >
-            <TrendingUp size={16} />
-          </button>
-        </nav>
-
-        {/* Right Search, Notification & Profile */}
-        <div className={styles.rightActions}>
-          <div className={styles.searchPill}>
-            <Search size={15} className={styles.searchIcon} />
-            <input
-              type="text"
-              placeholder="Search.."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={styles.searchInput}
-              aria-label="Search"
-            />
-          </div>
-          <button
-            type="button"
-            className={styles.notifBtn}
-            onClick={() => showToast("Tienes 3 notificaciones de telemetría")}
-            aria-label="Notificaciones"
-          >
-            <Bell size={17} />
-            <span className={styles.notifDot} />
-          </button>
-          <div
-            className={styles.profileAvatar}
-            onClick={() => showToast(`Conductor: ${currentTruck.driver}`)}
-            title={currentTruck.driver}
-          >
-            <Image
-              src="/fleet/driver-ethan.jpg"
-              alt="Ethan Carter"
-              width={40}
-              height={40}
-              priority
-            />
-          </div>
-        </div>
-      </header>
+      <div className={styles.fleetContent}>
 
       {/* ==================================================================
           2. TITLE ROW & 4 FLOATING KPI CARDS
           ================================================================== */}
       <section className={styles.overviewRow} aria-label="Resumen de indicadores">
         <div className={styles.overviewTitleBlock}>
-          <h1 className={styles.mainTitle}>Dashboard Overview</h1>
+          <h1 className={styles.mainTitle}>Resumen operativo</h1>
           <p className={styles.subtitle}>
-            Welcome back! Here&apos;s what&apos;s happening with your clients today.
+            Estado de la flota en tiempo real: veh&iacute;culos activos, carga en tr&aacute;nsito y eficiencia de la flota.
           </p>
         </div>
 
         <div className={styles.kpiCardsRow}>
-          {/* Card 1: Active Vehicles */}
+          {/* Card 1: Vehículos activos */}
           <div className={styles.kpiCard}>
             <div className={styles.kpiIconWrap}>
               <Truck size={17} />
             </div>
             <div className={styles.kpiContent}>
-              <span className={styles.kpiLabel}>Active Vehicles</span>
+              <span className={styles.kpiLabel}>Vehículos activos</span>
               <div className={styles.kpiValueRow}>
                 <span className={styles.kpiValue}>58</span>
                 <span className={styles.kpiBadgeGreen}>↑ +2.5%</span>
@@ -397,13 +303,13 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
             </div>
           </div>
 
-          {/* Card 2: Vehicles in Maintenance */}
+          {/* Card 2: Vehículos en mantenimiento */}
           <div className={styles.kpiCard}>
             <div className={styles.kpiIconWrap}>
               <FileText size={17} />
             </div>
             <div className={styles.kpiContent}>
-              <span className={styles.kpiLabel}>Vehicles in Maintenance</span>
+              <span className={styles.kpiLabel}>Vehículos en mantenimiento</span>
               <div className={styles.kpiValueRow}>
                 <span className={styles.kpiValue}>10</span>
                 <span className={styles.kpiBadgeGreen}>↑ +1.5%</span>
@@ -411,13 +317,13 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
             </div>
           </div>
 
-          {/* Card 3: Average Efficiency */}
+          {/* Card 3: Eficiencia media */}
           <div className={styles.kpiCard}>
             <div className={styles.kpiIconWrap}>
               <Settings size={17} />
             </div>
             <div className={styles.kpiContent}>
-              <span className={styles.kpiLabel}>Average Efficiency</span>
+              <span className={styles.kpiLabel}>Eficiencia media</span>
               <div className={styles.kpiValueRow}>
                 <span className={styles.kpiValue}>86%</span>
                 <span className={styles.kpiBadgeRed}>↓ -3.5%</span>
@@ -425,13 +331,13 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
             </div>
           </div>
 
-          {/* Card 4: Cargo in Transit */}
+          {/* Card 4: Carga en tránsito */}
           <div className={styles.kpiCard}>
             <div className={styles.kpiIconWrap}>
               <Layers size={17} />
             </div>
             <div className={styles.kpiContent}>
-              <span className={styles.kpiLabel}>Cargo in Transit</span>
+              <span className={styles.kpiLabel}>Carga en tránsito</span>
               <div className={styles.kpiValueRow}>
                 <span className={styles.kpiValue}>130</span>
                 <span className={styles.kpiBadgeGreen}>↑ +2.0%</span>
@@ -449,12 +355,12 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
         <div className={styles.leftColumn}>
           {/* Main Truck Showcase Viewport Card */}
           <div className={styles.truckShowcaseCard}>
-            {/* Floating Glassmorphism Container Details Card */}
+            {/* Tarjeta flotante con efecto cristal: detalles del contenedor */}
             <div className={styles.containerDetailsFloating}>
               <div className={styles.floatingHead}>
                 <div className={styles.floatingHeadLeft}>
                   <Box size={13} color="#f97316" />
-                  <span>Container Details</span>
+                  <span>Detalles del contenedor</span>
                 </div>
                 <button
                   type="button"
@@ -466,14 +372,14 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
                 </button>
               </div>
 
-              <div className={styles.containerIdLabel}>Container ID</div>
+              <div className={styles.containerIdLabel}>ID del contenedor</div>
               <div className={styles.containerIdValue}>{currentTruck.containerId}</div>
 
-              {/* 3D Container Thumbnail */}
+              {/* Miniatura 3D del contenedor */}
               <div className={styles.container3DThumb}>
                 <Image
                   src="/fleet/container-thumb.jpg"
-                  alt="3D Container"
+                  alt="Contenedor en 3D"
                   width={180}
                   height={62}
                   style={{ objectFit: "cover" }}
@@ -484,13 +390,13 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
               <div className={styles.floatingList}>
                 <div className={styles.floatingRow}>
                   <span className={styles.floatingRowLabel}>
-                    <Box size={11} /> Type
+                    <Box size={11} /> Tipo
                   </span>
                   <span className={styles.floatingRowVal}>{currentTruck.type}</span>
                 </div>
                 <div className={styles.floatingRow}>
                   <span className={styles.floatingRowLabel}>
-                    <CheckCircle2 size={11} /> Status
+                    <CheckCircle2 size={11} /> Estado
                   </span>
                   <span className={styles.activeDotPill}>
                     <span className={styles.activeDot} />
@@ -499,13 +405,13 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
                 </div>
                 <div className={styles.floatingRow}>
                   <span className={styles.floatingRowLabel}>
-                    <MapPin size={11} /> Location
+                    <MapPin size={11} /> Ubicaci&oacute;n
                   </span>
                   <span className={styles.floatingRowVal}>{currentTruck.location}</span>
                 </div>
                 <div className={styles.floatingRow}>
                   <span className={styles.floatingRowLabel}>
-                    <Clock size={11} /> In Transit
+                    <Clock size={11} /> En tr&aacute;nsito
                   </span>
                   <span className={styles.floatingRowVal}>{currentTruck.inTransit}</span>
                 </div>
@@ -525,7 +431,7 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
                 className={styles.truckImage}
               />
 
-              {/* Interactive Hotspot (+) on the Container body */}
+              {/* Punto interactivo sobre el contenedor */}
               <button
                 type="button"
                 className={styles.truckHotspot}
@@ -564,7 +470,7 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
                 onClick={() => setZoomScale(1)}
               >
                 <RotateCcw size={11} />
-                <span>Reset View</span>
+                <span>Restablecer vista</span>
               </button>
             </div>
 
@@ -591,7 +497,7 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
             </div>
           </div>
 
-          {/* Truck Selector Carousel Strip */}
+          {/* Carrusel de seleccion de camiones */}
           <div className={styles.carouselStrip} role="region" aria-label="Selector de camiones">
             <button
               type="button"
@@ -647,15 +553,15 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
             </button>
           </div>
 
-          {/* Bottom Row: 3 Informational Cards */}
+          {/* Fila inferior: 3 tarjetas de informacion */}
           <div className={styles.bottomRowGrid}>
-            {/* Card 1: 4-Quadrant Operational Stats */}
+            {/* Tarjeta 1: estadisticas operativas en 4 cuadrantes */}
             <div className={styles.bottomCard}>
               <div className={styles.quadrantGrid}>
                 {/* Quadrant 1 */}
                 <div className={styles.quadrantItem}>
                   <div className={styles.quadrantHead}>
-                    <span>Total Pallets loaded</span>
+                    <span>Total de pallets cargados</span>
                     <Box size={14} className={styles.quadrantIcon} />
                   </div>
                   <div className={styles.quadrantValue}>{currentTruck.pallets}</div>
@@ -664,7 +570,7 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
                 {/* Quadrant 2 */}
                 <div className={styles.quadrantItem}>
                   <div className={styles.quadrantHead}>
-                    <span>Free space remaining</span>
+                    <span>Espacio libre restante</span>
                     <Info size={14} className={styles.quadrantIcon} />
                   </div>
                   <div className={styles.quadrantValue}>{currentTruck.freeSpace}</div>
@@ -673,7 +579,7 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
                 {/* Quadrant 3 */}
                 <div className={styles.quadrantItem}>
                   <div className={styles.quadrantHead}>
-                    <span>Temperature status</span>
+                    <span>Estado de la temperatura</span>
                     <Thermometer size={14} className={styles.quadrantIcon} />
                   </div>
                   <div className={styles.quadrantValue}>{currentTruck.temperature}</div>
@@ -682,7 +588,7 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
                 {/* Quadrant 4 */}
                 <div className={styles.quadrantItem}>
                   <div className={styles.quadrantHead}>
-                    <span>Fuel needed</span>
+                    <span>Combustible necesario</span>
                     <Fuel size={14} className={styles.quadrantIcon} />
                   </div>
                   <div className={styles.quadrantValue}>{currentTruck.fuelNeeded}</div>
@@ -694,7 +600,7 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
             <div className={styles.bottomCard}>
               <div className={styles.efficiencyHead}>
                 <div className={styles.efficiencyBigNum}>{currentTruck.efficiency}</div>
-                <div className={styles.efficiencySublabel}>On-time probability</div>
+                <div className={styles.efficiencySublabel}>Probabilidad de llegar a tiempo</div>
               </div>
 
               {/* Custom SVG Curve with Area & Peak Annotation */}
@@ -777,23 +683,23 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
               </div>
 
               <div className={styles.efficiencyFooter}>
-                <span>Avg. delay (expected)</span>
+                <span>Retraso medio (previsto)</span>
                 <span className={styles.efficiencyFooterVal}>{currentTruck.avgDelay}</span>
               </div>
             </div>
 
-            {/* Card 3: Load Balance */}
+            {/* Tarjeta 3: balance de carga */}
             <div className={styles.bottomCard}>
-              <div className={styles.loadBalanceHead}>Load Balance</div>
+              <div className={styles.loadBalanceHead}>Balance de carga</div>
 
               <div className={styles.balanceStatsRow}>
                 <div className={styles.balanceSide}>
                   <span className={styles.balancePercent}>{currentTruck.leftSide}</span>
-                  <span className={styles.balanceLabel}>Left side</span>
+                  <span className={styles.balanceLabel}>Lado izquierdo</span>
                 </div>
                 <div className={styles.balanceSide} style={{ textAlign: "right" }}>
                   <span className={styles.balancePercent}>{currentTruck.rightSide}</span>
-                  <span className={styles.balanceLabel}>Right side</span>
+                  <span className={styles.balanceLabel}>Lado derecho</span>
                 </div>
               </div>
 
@@ -820,20 +726,20 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
               </div>
 
               <div className={styles.balanceFooter}>
-                <span>Risk of tilt:</span>
+                <span>Riesgo de vuelco:</span>
                 <span className={styles.balanceRiskBadge}>{currentTruck.riskOfTilt}</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* RIGHT COLUMN: 3 Cards (Truck Info | Capacity & Load | AI Route) */}
+        {/* Columna derecha: 3 tarjetas (camion | capacidad | ruta IA) */}
         <div className={styles.rightColumn}>
-          {/* Card 1: Truck Information */}
+          {/* Tarjeta 1: informacion del camion */}
           <div className={styles.rightCard}>
-            <div className={styles.rightCardTitle}>Truck Information</div>
+            <div className={styles.rightCardTitle}>Información del camión</div>
 
-            {/* Driver Profile Row */}
+            {/* Fila con el perfil del conductor */}
             <div className={styles.driverRow}>
               <div className={styles.driverInfoLeft}>
                 <div className={styles.driverAvatarCircle}>
@@ -845,7 +751,7 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
                   />
                 </div>
                 <div className={styles.driverMeta}>
-                  <span className={styles.driverLabel}>Driver</span>
+                  <span className={styles.driverLabel}>Conductor</span>
                   <span className={styles.driverName}>{currentTruck.driver}</span>
                 </div>
               </div>
@@ -875,20 +781,20 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
             {/* 3-Column Truck Specs */}
             <div className={styles.truckSpecsGrid}>
               <div className={styles.specCol}>
-                <span className={styles.specLabel}>Truck ID</span>
+                <span className={styles.specLabel}>ID del camión</span>
                 <span className={styles.specValue}>{currentTruck.truckId}</span>
               </div>
               <div className={styles.specCol}>
-                <span className={styles.specLabel}>Dock</span>
+                <span className={styles.specLabel}>Muelle</span>
                 <span className={styles.specValue}>{currentTruck.dock}</span>
               </div>
               <div className={styles.specCol}>
-                <span className={styles.specLabel}>Started</span>
+                <span className={styles.specLabel}>Salida</span>
                 <span className={styles.specValue}>{currentTruck.started}</span>
               </div>
             </div>
 
-            {/* Route Timeline Slider */}
+            {/* Linea de tiempo de la ruta */}
             <div className={styles.routeTimelineRow}>
               <div className={styles.routePoint}>
                 <span className={styles.routeCode}>{currentTruck.originCode}</span>
@@ -908,28 +814,28 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
               </div>
             </div>
 
-            {/* Action Buttons */}
+            {/* Botones de accion */}
             <div className={styles.driverActionBtnsRow}>
               <button
                 type="button"
                 className={styles.subtlePillBtn}
                 onClick={() => setDriverModalOpen(true)}
               >
-                Change Driver
+                Cambiar conductor
               </button>
               <button
                 type="button"
                 className={styles.subtlePillBtn}
                 onClick={() => setRouteModalOpen(true)}
               >
-                Edit Route
+                Editar ruta
               </button>
             </div>
           </div>
 
-          {/* Card 2: Capacity & Load */}
+          {/* Tarjeta 2: capacidad y carga */}
           <div className={styles.rightCard}>
-            <div className={styles.rightCardTitle}>Capacity &amp; load</div>
+              <div className={styles.rightCardTitle}>Capacidad y carga</div>
 
             <div className={styles.gaugeAndSpecsRow}>
               {/* Radial Arch Gauge */}
@@ -943,34 +849,34 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
                 </svg>
                 <div className={styles.gaugeCenterText}>
                   <span className={styles.gaugePercent}>{currentTruck.weightPercent}%</span>
-                  <span className={styles.gaugeSubtext}>Weight</span>
+                  <span className={styles.gaugeSubtext}>Peso</span>
                 </div>
               </div>
 
               {/* Load Specs */}
               <div className={styles.loadSpecsCol}>
                 <div className={styles.loadSpecItem}>
-                  <span className={styles.loadSpecLabel}>Current load</span>
+                  <span className={styles.loadSpecLabel}>Carga actual</span>
                   <span className={styles.loadSpecValue}>{currentTruck.currentLoad}</span>
                 </div>
                 <div className={styles.loadSpecItem}>
-                  <span className={styles.loadSpecLabel}>Max. Capacity</span>
+                  <span className={styles.loadSpecLabel}>Capacidad máxima</span>
                   <span className={styles.loadSpecValue}>{currentTruck.maxCapacity}</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Card 3: AI Route Optimization */}
+          {/* Tarjeta 3: optimizacion de ruta con IA */}
           <div className={`${styles.rightCard} ${styles.aiRouteCard}`}>
             <div className={styles.aiRouteTitleArea}>
-              <div className={styles.rightCardTitle}>AI Route Optimization</div>
+              <div className={styles.rightCardTitle}>Optimización de ruta con IA</div>
             </div>
 
             <div className={styles.aiRouteMapViewport}>
               <Image
                 src="/fleet/ai-route.jpg"
-                alt="AI Route 3D map"
+                alt="Mapa 3D de la ruta optimizada"
                 fill
                 className={styles.aiRouteMapImg}
               />
@@ -979,11 +885,11 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
               <div className={styles.aiBadgesOverlay}>
                 <span className={styles.aiPillBadge}>
                   <Zap size={12} color="#f97316" />
-                  <span>AI Optimized</span>
+                  <span>Optimizada con IA</span>
                 </span>
                 <span className={styles.aiPillBadge}>
                   <Fuel size={12} color="#10b981" />
-                  <span>24% Fuel Saved</span>
+                  <span>24% de combustible ahorrado</span>
                 </span>
               </div>
 
@@ -1015,10 +921,16 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
           MODALS & TOAST
           ================================================================== */}
 
-      {/* Hotspot Container Inspection Modal */}
+      {/* Modal de inspeccion del contenedor en un punto caliente */}
       {hotspotModalOpen && (
         <div className={styles.modalBackdrop} onClick={() => setHotspotModalOpen(false)}>
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+          <div
+              className={styles.modalContent}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Inspección de contenedor"
+              onClick={(e) => e.stopPropagation()}
+            >
             <div className={styles.modalHead}>
               <div className={styles.modalHeadTitle}>
                 Inspección de Contenedor {currentTruck.containerId}
@@ -1092,10 +1004,16 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
         </div>
       )}
 
-      {/* Change Driver Modal */}
+      {/* Modal para cambiar el conductor */}
       {driverModalOpen && (
         <div className={styles.modalBackdrop} onClick={() => setDriverModalOpen(false)}>
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+          <div
+              className={styles.modalContent}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Asignar conductor"
+              onClick={(e) => e.stopPropagation()}
+            >
             <div className={styles.modalHead}>
               <div className={styles.modalHeadTitle}>Asignar conductor</div>
               <button
@@ -1147,10 +1065,16 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
         </div>
       )}
 
-      {/* Edit Route Modal */}
+      {/* Modal de edicion de la ruta */}
       {routeModalOpen && (
         <div className={styles.modalBackdrop} onClick={() => setRouteModalOpen(false)}>
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+          <div
+              className={styles.modalContent}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Modificar ruta inteligente"
+              onClick={(e) => e.stopPropagation()}
+            >
             <div className={styles.modalHead}>
               <div className={styles.modalHeadTitle}>Modificar ruta inteligente</div>
               <button
@@ -1210,6 +1134,7 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

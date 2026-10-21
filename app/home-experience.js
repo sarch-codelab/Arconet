@@ -244,22 +244,46 @@ const COMMITMENTS = [
   },
 ];
 
-const clamp = (value, min = 0, max = 1) =>
-  Math.min(max, Math.max(min, value));
+const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
+
+const TIME_IMAGES = {
+  manana: "/neto-mañana.png",
+  tarde: "/neto-tarde.png",
+  noche: "/neto-noche.png",
+};
+
+function getTimeOfDay() {
+  if (typeof window === "undefined") return "manana";
+  const hour = new Date().getHours();
+  if (hour >= 6 && hour < 12) return "manana";
+  if (hour >= 12 && hour < 19) return "tarde";
+  return "noche";
+}
 
 export default function HomeExperience() {
+  const [timeOfDay, setTimeOfDay] = useState("manana");
+  const [mounted, setMounted] = useState(false);
   const [activeSection, setActiveSection] = useState("inicio");
   const [activeSlide, setActiveSlide] = useState(0);
   const [scrollReady, setScrollReady] = useState(false);
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  useEffect(() => {
+useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth > 760) setMenuOpen(false);
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  useEffect(() => {
+    setMounted(true);
+    const updateTimeOfDay = () => setTimeOfDay(getTimeOfDay());
+    updateTimeOfDay();
+    const interval = setInterval(updateTimeOfDay, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   const trackRef = useRef(null);
   const stageRef = useRef(null);
   const locomotiveRef = useRef(null);
@@ -597,21 +621,35 @@ export default function HomeExperience() {
 
           {/* Centered Main Hero Copy & Reference Pill Button */}
           <div className={styles.heroCenterContent}>
-            <h1 className={styles.heroCenterTitle}>
-              Infraestructura para<br />
-              estar <em>más cerca.</em>
-            </h1>
-            <p className={styles.heroCenterDescription}>
-              Soluciones en telecomunicaciones, fibra óptica y CATV para conectar negocios y comunidades en Honduras.
-            </p>
-            <div className={styles.heroCenterActions}>
-              <a className={styles.refPillBtn} href="#soluciones">
-                <span>Explorar soluciones</span>
-                <span className={styles.refPillIcon}>
-                  <ArrowUpRight size={16} />
-                </span>
-              </a>
+            <div className={styles.heroMain}>
+              <h1 className={styles.heroCenterTitle}>
+                Infraestructura para<br />
+                estar <em>más cerca.</em>
+              </h1>
+              <p className={styles.heroCenterDescription}>
+                Soluciones en telecomunicaciones, fibra óptica y CATV para conectar negocios y comunidades en Honduras.
+              </p>
+              <div className={styles.heroCenterActions}>
+                <a className={styles.refPillBtn} href="#soluciones">
+                  <span>Explorar soluciones</span>
+                  <span className={styles.refPillIcon}>
+                    <ArrowUpRight size={16} />
+                  </span>
+                </a>
+              </div>
             </div>
+            {mounted && (
+            <div className={styles.heroTimeVisual} aria-hidden="true">
+              <Image
+                src={TIME_IMAGES[timeOfDay]}
+                alt={`Neto ${timeOfDay}`}
+                width={520}
+                height={520}
+                className={styles.heroTimeImage}
+                priority
+              />
+            </div>
+          )}
           </div>
 
           {/* Bottom Bar inside Card */}
@@ -887,11 +925,22 @@ export default function HomeExperience() {
       </section>
 
       <section id="contacto" className={styles.contactSection}>
-        <div className={styles.contactContent} data-reveal>
-          <p className={styles.contactEyebrow}>Tu próximo proyecto empieza aquí</p>
-          <h2>Hagamos que<br /><em>todo conecte.</em></h2>
-          <p>Cuéntanos qué necesita tu red. Nuestro equipo puede ayudarte a encontrar el equipo y la solución correctos.</p>
-          <a href="/catalogo" className={styles.contactAction}>Ver productos y soluciones <ArrowUpRight size={17} /></a>
+        <div className={styles.contactInner}>
+          <div className={styles.contactContent} data-reveal>
+            <p className={styles.contactEyebrow}>Tu próximo proyecto empieza aquí</p>
+            <h2>Hagamos que<br /><em>todo conecte.</em></h2>
+            <p>Cuéntanos qué necesita tu red. Nuestro equipo puede ayudarte a encontrar el equipo y la solución correctos.</p>
+            <a href="/catalogo" className={styles.contactAction}>Ver productos y soluciones <ArrowUpRight size={17} /></a>
+          </div>
+          <div className={styles.contactVisual} data-reveal>
+            <Image
+              src="/neto-servicio-cliente.png"
+              alt="Neto servicio al cliente"
+              width={700}
+              height={700}
+              className={styles.contactImage}
+            />
+          </div>
         </div>
         <span className={styles.contactLocation}>San Pedro Sula — Honduras</span>
       </section>

@@ -1,7 +1,7 @@
 import { prisma } from "../../../lib/prisma";
 import { newSucursalId, parseSucursal } from "../../../lib/sucursales";
 import { toSucursal } from "../../../lib/serialize";
-import { requireSession } from "../../../lib/dal";
+import { requireSession, requireRole } from "../../../lib/dal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,12 +9,17 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const guard = await requireSession();
   if (guard.response) return guard.response;
-  const sucursales = await prisma.sucursal.findMany({ orderBy: { codigo: "asc" } });
-  return Response.json(sucursales.map(toSucursal));
+  try {
+    const sucursales = await prisma.sucursal.findMany({ orderBy: { codigo: "asc" } });
+    return Response.json(sucursales.map(toSucursal));
+  } catch (error) {
+    console.error("GET /api/sucursales", error?.message);
+    return Response.json({ error: "No se pudieron obtener las sucursales." }, { status: 500 });
+  }
 }
 
 export async function POST(request) {
-  const guard = await requireSession();
+  const guard = await requireRole(["administrador"]);
   if (guard.response) return guard.response;
   let body;
   try {

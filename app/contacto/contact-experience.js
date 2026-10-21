@@ -235,10 +235,10 @@ export default function ContactExperience() {
       <section className={styles.contactStory}>
         <div className={styles.storyVisual} data-reveal data-scroll data-scroll-speed="0.08">
           <Image
-            src="/gabinete-rack-de-piso.png"
-            alt="Gabinete rack de piso para infraestructura de red"
-            width={472}
-            height={910}
+            src="/neto-conducioendo.png"
+            alt="Neto conduciendo"
+            width={944}
+            height={1820}
           />
           <span>AR / HN — 01</span>
         </div>

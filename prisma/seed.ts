@@ -134,9 +134,13 @@ async function main() {
     }
   }
 
+  const seedPassword = process.env.SEED_ADMIN_PASSWORD;
+  if (!seedPassword || seedPassword.length < 12) {
+    throw new Error("SEED_ADMIN_PASSWORD must be set (min 12 chars).");
+  }
   const usuarios = [
-    ["u-admin", "Sofía Aguilar", "sofia.aguilar@arconet.com", hashPassword("arconet2026"), "administrador", "sps"],
-    ["u-demo", "Sofía Aguilar", "admin@arconet.com", hashPassword("arconet2026"), "administrador", "sps"],
+    ["u-admin", "Sof��a Aguilar", "sofia.aguilar@arconet.com", hashPassword(seedPassword), "administrador", "sps"],
+    ["u-demo", "Sof��a Aguilar", "admin@arconet.com", hashPassword(seedPassword), "administrador", "sps"],
   ];
   for (const [id, nombre, correo, passwordHash, rol, sucursalId] of usuarios) {
     const data = { nombre, correo, passwordHash, rol, sucursalId, activo: true };

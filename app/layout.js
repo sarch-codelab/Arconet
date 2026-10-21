@@ -5,6 +5,7 @@ import { CartProvider } from "./cart-context";
 import CartDrawer from "./cart-drawer";
 import PageTransition from "./page-transition";
 import AppToaster from "./toaster";
+import ThemeInit from "./theme-init";
 
 export const metadata = {
   metadataBase: new URL("https://arconethn.com"),
@@ -72,10 +73,6 @@ const exo2 = Exo_2({
   variable: "--font-heading",
 });
 
-const themeScript = `(function(){try{var k='arconet-theme';var s=localStorage.getItem(k);var h=new Date().getHours();var t=(s==='light'||s==='dark')?s:((h>=18||h<6)?'dark':'light');document.documentElement.setAttribute('data-theme',t);document.documentElement.style.colorScheme=t;}catch(e){}})();`;
-
-const bootScript = `(function(){try{var n=performance.getEntriesByType&&performance.getEntriesByType('navigation')[0];if(n&&n.type==='prerender')return;var r=document.documentElement;r.setAttribute('data-boot','cover');setTimeout(function(){r.setAttribute('data-boot','reveal');},700);setTimeout(function(){r.removeAttribute('data-boot');},1500);}catch(e){}})();`;
-
 export default function RootLayout({ children }) {
   return (
     <html
@@ -84,12 +81,11 @@ export default function RootLayout({ children }) {
       className={`${inter.variable} ${orbitron.variable} ${exo2.variable}`}
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-        <script dangerouslySetInnerHTML={{ __html: bootScript }} />
         <link rel="preload" as="image" href="/arconet.png" />
       </head>
       <body>
         <CartProvider>
+          <ThemeInit />
           {children}
           <ThemeToggle />
           <CartDrawer />

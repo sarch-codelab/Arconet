@@ -30,20 +30,6 @@ function saveClientSession(client) {
   }
 }
 
-const DEMO_CLIENTS = [
-  {
-    id: "c-1",
-    nombre: "Empresa TelecomHN",
-    correo: "cliente@telecomhn.com",
-    password: "demo123",
-    rtn: "08011999000123",
-    contacto: "Juan Pérez",
-    telefono: "+504 2500-1234",
-    direccion: "Bouvard del Norte, Tegucigalpa",
-    ciudad: "Tegucigalpa",
-  },
-];
-
 export default function LoginExperience() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -53,20 +39,7 @@ export default function LoginExperience() {
 
   function submit(event) {
     event.preventDefault();
-    const client = DEMO_CLIENTS.find(
-      (c) => c.correo === email && c.password === password
-    );
-    if (!client) {
-      sileo.error({ title: "Correo o contraseña incorrectos." });
-      return;
-    }
-    saveClientSession(client);
-    router.push("/cliente");
-  }
-
-  function fillDemo() {
-    setEmail(DEMO_CLIENTS[0].correo);
-    setPassword(DEMO_CLIENTS[0].password);
+    sileo.error({ title: "Acceso de clientes no disponible por ahora." });
   }
 
   return (
@@ -189,17 +162,6 @@ export default function LoginExperience() {
                 Ingresar a mi cuenta <span><ArrowRight size={15} /></span>
               </button>
             </form>
-
-            <div className={styles.demoBox}>
-              <p>Credenciales de demostración</p>
-              <div className={styles.demoCodes}>
-                <code>{DEMO_CLIENTS[0].correo}</code>
-                <code>{DEMO_CLIENTS[0].password}</code>
-              </div>
-              <button type="button" className={styles.ghostBtn} onClick={fillDemo}>
-                Usar credenciales demo
-              </button>
-            </div>
 
             <div className={styles.divider}>
               <span>o</span>
@@ -233,19 +195,7 @@ function ClientLoginView({ onLogin }) {
 
   function submit(event) {
     event.preventDefault();
-    const client = DEMO_CLIENTS.find(
-      (c) => c.correo === email && c.password === password
-    );
-    if (!client) {
-      sileo.error({ title: "Correo o contraseña incorrectos." });
-      return;
-    }
-    onLogin(client);
-  }
-
-  function fillDemo() {
-    setEmail(DEMO_CLIENTS[0].correo);
-    setPassword(DEMO_CLIENTS[0].password);
+    sileo.error({ title: "Acceso de clientes no disponible por ahora." });
   }
 
   return (
@@ -368,17 +318,6 @@ function ClientLoginView({ onLogin }) {
                 Ingresar a mi cuenta <span><ArrowRight size={15} /></span>
               </button>
             </form>
-
-            <div className={styles.demoBox}>
-              <p>Credenciales de demostración</p>
-              <div className={styles.demoCodes}>
-                <code>{DEMO_CLIENTS[0].correo}</code>
-                <code>{DEMO_CLIENTS[0].password}</code>
-              </div>
-              <button type="button" className={styles.ghostBtn} onClick={fillDemo}>
-                Usar credenciales demo
-              </button>
-            </div>
 
             <div className={styles.divider}>
               <span>o</span>

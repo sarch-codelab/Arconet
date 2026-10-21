@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Suspense, createContext, lazy, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -12,31 +12,45 @@ import {
   BarChart3,
   Bell,
   Building2,
+  Calendar,
+  Camera,
   Check,
-  Clock,
+  Copy,
   Cpu,
   Database,
+  Edit,
   Eye,
   EyeOff,
   FileText,
+  Globe,
   HardDrive,
+  Info,
+  Key,
   Layers,
-  LayoutDashboard,
+  Lock,
+  LogIn,
   LogOut,
+  Mail,
   MapPin,
-  Menu,
+  Monitor,
+  Moon,
   Package,
   Pencil,
+  Phone,
   Plus,
   RefreshCw,
-  Search,
+  RotateCw,
+  Save,
   ScrollText,
+  Search,
   Server,
   Settings,
   ShieldCheck,
+  Smartphone,
+  Star,
+  Sun,
   Trash2,
   TrendingUp,
-  Truck,
   User,
   Users,
   X,
@@ -44,6 +58,10 @@ import {
 import styles from "./admin-experience.module.css";
 import { compressImage } from "./image-utils";
 import { sileo } from "../toaster";
+import { useBodyScrollLock, useEscapeKey } from "./use-body-scroll-lock";
+import { AdminContext, NAV } from "./admin-nav";
+import { Topbar } from "./topbar";
+import { useAdminSmoothScroll } from "./use-smooth-scroll";
 import {
   BRANCHES,
   ROLES,
@@ -108,13 +126,6 @@ import {
 
 const FleetSection = lazy(() => import("./flota"));
 
-export const AdminContext = createContext({
-  section: "trabajadores",
-  goTo: () => {},
-  onOpenNav: () => {},
-  session: null,
-});
-
 export const EMPTY_WORKER = {
   id: "",
   nombre: "",
@@ -145,23 +156,11 @@ const EMPTY_PRODUCT = {
   descripcion: "",
 };
 
-const NAV = [
-  { id: "trabajadores", label: "Trabajadores", icon: Users, soon: false },
-  { id: "productos", label: "Productos", icon: Package, soon: false },
-  { id: "sucursales", label: "Sucursales", icon: Building2, soon: false },
-  { id: "clientes", label: "Clientes", icon: User, soon: false },
-  { id: "cotizaciones", label: "Cotizaciones", icon: FileText, soon: false },
-  { id: "flota", label: "Flota", icon: Truck, soon: false },
-  { id: "monitoreo", label: "Monitoreo", icon: Activity, soon: false },
-  { id: "resumen", label: "Resumen", icon: LayoutDashboard, soon: false },
-  { id: "ajustes", label: "Ajustes", icon: Settings, soon: false },
-];
-
 export function AdminLogin() {
   return <LoginView />;
 }
 
-export function AdminPanel({ session }) {
+export function AdminPanel({ session, initialSection }) {
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -172,7 +171,13 @@ export function AdminPanel({ session }) {
     router.replace("/admin");
   };
 
-  return <AdminShell session={session} onLogout={handleLogout} />;
+  return (
+    <AdminShell
+      session={session}
+      onLogout={handleLogout}
+      initialSection={initialSection}
+    />
+  );
 }
 
 function Avatar({ src, name, className, shape }) {
@@ -201,39 +206,50 @@ function notifyError(message) {
   if (message) sileo.error({ title: String(message) });
 }
 
-function useEscape(active, handler) {
-  useEffect(() => {
-    if (!active) return undefined;
-    const onKey = (event) => {
-      if (event.key === "Escape") handler();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [active, handler]);
-}
+const WIDE_LAYOUT_QUERY = "(min-width: 1200px)";
 
-function AdminShell({ session, onLogout }) {
-  const [section, setSection] = useState(() => {
-    if (typeof window !== "undefined") {
-      const sp = new URLSearchParams(window.location.search);
-      const s = sp.get("section");
-      if (s) return s;
-      const h = window.location.hash.replace("#", "");
-      if (h) return h;
-    }
-    return "trabajadores";
-  });
+function AdminShell({ session, onLogout, initialSection }) {
+  // La seccion inicial llega desde el servidor para que el HTML renderizado y
+  // el primer render del cliente coincidan (sin desajuste de hidratacion).
+  const [section, setSection] = useState(initialSection || "trabajadores");
   const [navOpen, setNavOpen] = useState(false);
+  const [isWide, setIsWide] = useState(false);
   const [workers, setWorkers] = useState([]);
   const [products, setProducts] = useState([]);
   const [sucursales, setSucursales] = useState([]);
   const [orders, setOrders] = useState([]);
   const [clientes, setClientes] = useState([]);
 
+  const { scrollToTop } = useAdminSmoothScroll();
+
+  // En pantallas anchas el panel lateral es persistente; en movil y tablet
+  // funciona como cajon deslizante por encima del contenido.
   useEffect(() => {
-    if (typeof window !== "undefined" && window.innerWidth <= 980) {
-      setNavOpen(false);
-    }
+    const media = window.matchMedia(WIDE_LAYOUT_QUERY);
+    const apply = () => {
+      const wide = media.matches;
+      setIsWide(wide);
+      setNavOpen(wide);
+    };
+    apply();
+    media.addEventListener("change", apply);
+    return () => media.removeEventListener("change", apply);
+  }, []);
+
+  // Invariante: en el diseno de escritorio la barra lateral es siempre
+  // visible, asi que no puede quedar cerrada sin forma de reabrirla.
+  useEffect(() => {
+    if (isWide) setNavOpen(true);
+  }, [isWide]);
+
+  useEffect(() => {
+    // El hash solo existe en el cliente: se sincroniza tras el montaje.
+    const hash = window.location.hash.replace("#", "").trim();
+    if (hash && hash !== section) setSection(hash);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     fetchWorkers()
       .then((remote) => setWorkers(remote))
       .catch(() => {});
@@ -259,11 +275,19 @@ function AdminShell({ session, onLogout }) {
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
+  // El cajon lateral no debe dejar desplazar el fondo mientras esta abierto.
+  useBodyScrollLock(!isWide && navOpen);
+
+  useEscapeKey(navOpen && !isWide, () => setNavOpen(false));
+
+  const closeNavOnNarrow = () => {
+    if (!isWide) setNavOpen(false);
+  };
+
   const goTo = (id) => {
     setSection(id);
-    if (typeof window !== "undefined" && window.innerWidth <= 980) {
-      setNavOpen(false);
-    }
+    closeNavOnNarrow();
+    scrollToTop();
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href);
       url.searchParams.set("section", id);
@@ -273,9 +297,7 @@ function AdminShell({ session, onLogout }) {
 
   const goToWithTransition = (id) => {
     if (id === section) {
-      if (typeof window !== "undefined" && window.innerWidth <= 980) {
-        setNavOpen(false);
-      }
+      closeNavOnNarrow();
       return;
     }
     if (typeof window === "undefined") {
@@ -294,19 +316,24 @@ function AdminShell({ session, onLogout }) {
     );
   };
 
+  const toggleNav = useCallback(() => {
+    setNavOpen((value) => !value);
+  }, []);
+
   return (
     <AdminContext.Provider
       value={{
         section,
         goTo: goToWithTransition,
-        onOpenNav: () => setNavOpen((value) => !value),
+        onOpenNav: toggleNav,
+        onLogout,
         navOpen,
         session,
       }}
     >
       <main className={styles.adminPage}>
         <div className={`${styles.shell} ${navOpen ? styles.shellNavOpen : styles.shellNavClosed}`}>
-        {navOpen && (
+        {navOpen && !isWide && (
           <button
             type="button"
             className={styles.navScrim}
@@ -315,12 +342,27 @@ function AdminShell({ session, onLogout }) {
           />
         )}
 
-        <aside className={`${styles.sidebar} ${navOpen ? styles.navOpen : styles.navClosed}`}>
+        <aside
+          className={`${styles.sidebar} ${navOpen ? styles.navOpen : styles.navClosed}`}
+          inert={!navOpen}
+          aria-label="Menú del panel"
+        >
           <div className={styles.sidebarHead}>
             <a className={styles.logoBadge} href="/" aria-label="Arconet, inicio">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/arconet.png" alt="Arconet" />
             </a>
+            <button
+              type="button"
+              className={styles.sidebarCloseBtn}
+              onClick={() => {
+                if (!isWide) setNavOpen(false);
+              }}
+              aria-label="Cerrar menú lateral"
+              tabIndex={isWide ? -1 : 0}
+            >
+              <X size={18} />
+            </button>
           </div>
 
           <nav className={styles.nav} aria-label="Secciones del panel">
@@ -332,13 +374,11 @@ function AdminShell({ session, onLogout }) {
                   key={item.id}
                   type="button"
                   className={`${styles.navItem} ${active ? styles.navActive : ""}`}
-                  onClick={() => !item.soon && goTo(item.id)}
-                  disabled={item.soon}
+                  onClick={() => goTo(item.id)}
                   aria-current={active ? "page" : undefined}
                 >
                   <Icon size={17} />
                   <span>{item.label}</span>
-                  {item.soon && <em className={styles.badge}>Pronto</em>}
                 </button>
               );
             })}
@@ -346,10 +386,10 @@ function AdminShell({ session, onLogout }) {
 
           <div className={styles.sidebarFoot}>
             <div className={styles.userCard}>
-              <span className={styles.userAvatar}>{initials(session.nombre)}</span>
+              <span className={styles.userAvatar}>{initials(session?.nombre)}</span>
               <span className={styles.userMeta}>
-                <strong>{session.nombre}</strong>
-                <em>{roleLabel(session.rol)}</em>
+                <strong>{session?.nombre || "Usuario"}</strong>
+                <em>{session?.rol ? roleLabel(session.rol) : "—"}</em>
               </span>
             </div>
             <button type="button" className={styles.logoutBtn} onClick={onLogout}>
@@ -363,26 +403,30 @@ function AdminShell({ session, onLogout }) {
             <WorkersSection
               workers={workers}
               setWorkers={setWorkers}
-              onOpenNav={() => setNavOpen((value) => !value)}
+              onOpenNav={toggleNav}
+              session={session}
             />
           ) : section === "productos" ? (
             <ProductsSection
               products={products}
               setProducts={setProducts}
-              onOpenNav={() => setNavOpen((value) => !value)}
+              onOpenNav={toggleNav}
+              session={session}
             />
           ) : section === "sucursales" ? (
             <SucursalesSection
               sucursales={sucursales}
               setSucursales={setSucursales}
               workers={workers}
-              onOpenNav={() => setNavOpen((value) => !value)}
+              onOpenNav={toggleNav}
+              session={session}
             />
           ) : section === "clientes" ? (
             <ClientesSection
               clientes={clientes}
               setClientes={setClientes}
-              onOpenNav={() => setNavOpen((value) => !value)}
+              onOpenNav={toggleNav}
+              session={session}
             />
           ) : section === "cotizaciones" ? (
             <CotizacionesSection
@@ -390,7 +434,8 @@ function AdminShell({ session, onLogout }) {
               setOrders={setOrders}
               clientes={clientes}
               products={products}
-              onOpenNav={() => setNavOpen((value) => !value)}
+              onOpenNav={toggleNav}
+              session={session}
             />
           ) : section === "resumen" ? (
             <ResumenSection
@@ -398,16 +443,21 @@ function AdminShell({ session, onLogout }) {
               products={products}
               sucursales={sucursales}
               orders={orders}
-              onOpenNav={() => setNavOpen((value) => !value)}
+              onOpenNav={toggleNav}
+              session={session}
             />
           ) : section === "ajustes" ? (
-            <AjustesSection onOpenNav={() => setNavOpen((value) => !value)} />
+            <AjustesSection onOpenNav={toggleNav} session={session} />
+          ) : section === "mi-perfil" ? (
+            <MiPerfilSection onOpenNav={toggleNav} session={session} workers={workers} />
           ) : section === "monitoreo" ? (
-            <MonitoreoSection onOpenNav={() => setNavOpen((value) => !value)} />
+            <MonitoreoSection onOpenNav={toggleNav} session={session} />
+          ) : section === "logs" ? (
+            <LogsSection onOpenNav={toggleNav} session={session} />
           ) : section === "flota" ? (
             <Suspense fallback={null}>
               <FleetSection
-                onOpenNav={() => setNavOpen((value) => !value)}
+                onOpenNav={toggleNav}
                 onNavigate={goTo}
               />
             </Suspense>
@@ -419,289 +469,8 @@ function AdminShell({ session, onLogout }) {
   );
 }
 
-const SECTION_NAV_CONFIG = {
-  trabajadores: {
-    brandName: "Personal",
-    tabs: [
-      { id: "all", label: "Trabajadores", icon: Users, title: "Todos los trabajadores" },
-      { id: "active", label: "Activos", icon: Check, title: "Personal activo" },
-      { id: "sps", label: "San Pedro", icon: Building2, title: "Sede San Pedro Sula" },
-      { id: "ceiba", label: "La Ceiba", icon: MapPin, title: "Sede La Ceiba" },
-      { id: "roles", label: "Gerencia", icon: ShieldCheck, title: "Roles administrativos" },
-    ],
-  },
-  productos: {
-    brandName: "Productos",
-    tabs: [
-      { id: "all", label: "Productos", icon: Package, title: "Catálogo completo" },
-      { id: "active", label: "En Stock", icon: Check, title: "Productos disponibles" },
-      { id: "out", label: "Agotados", icon: AlertTriangle, title: "Productos agotados" },
-      { id: "fiber", label: "Fibra", icon: Layers, title: "Fibra óptica" },
-      { id: "prices", label: "Tarifas", icon: TrendingUp, title: "Precios y stock" },
-    ],
-  },
-  sucursales: {
-    brandName: "Sucursales",
-    tabs: [
-      { id: "all", label: "Sucursales", icon: Building2, title: "Todas las sucursales" },
-      { id: "sps", label: "SPS Norte", icon: MapPin, title: "Sede San Pedro Sula" },
-      { id: "ceiba", label: "Ceiba Atl.", icon: MapPin, title: "Sede La Ceiba" },
-      { id: "warehouses", label: "Almacenes", icon: Package, title: "Bodegas principales" },
-      { id: "routes", label: "Rutas", icon: Truck, title: "Rutas de entrega" },
-    ],
-  },
-  clientes: {
-    brandName: "Clientes",
-    tabs: [
-      { id: "all", label: "Clientes", icon: User, title: "Directorio de clientes" },
-      { id: "active", label: "Activos", icon: Check, title: "Cuentas activas" },
-      { id: "companies", label: "Empresas", icon: Building2, title: "Clientes corporativos" },
-      { id: "orders", label: "Cotizados", icon: FileText, title: "Con cotizaciones recientes" },
-      { id: "growth", label: "Actividad", icon: TrendingUp, title: "Actividad comercial" },
-    ],
-  },
-  cotizaciones: {
-    brandName: "Cotizaciones",
-    tabs: [
-      { id: "all", label: "Cotizaciones", icon: FileText, title: "Todas las cotizaciones" },
-      { id: "pending", label: "Pendientes", icon: Clock, title: "En revisión" },
-      { id: "approved", label: "Aprobadas", icon: Check, title: "Aprobadas" },
-      { id: "completed", label: "Ventas", icon: TrendingUp, title: "Ventas cerradas" },
-      { id: "balance", label: "Balance", icon: BarChart3, title: "Balance de ventas" },
-    ],
-  },
-  flota: {
-    brandName: "Flota",
-    tabs: [
-      { id: "dashboard", label: "Dashboard", icon: Layers, title: "Dashboard de Flota" },
-      { id: "vehicles", label: "Vehículos", icon: Truck, title: "Lista de camiones" },
-      { id: "map", label: "Rastreo GPS", icon: MapPin, title: "Mapa satelital" },
-      { id: "orders", label: "Manifiestos", icon: FileText, title: "Órdenes de despacho" },
-      { id: "analytics", label: "Analítica", icon: TrendingUp, title: "Telemetría y combustible" },
-    ],
-  },
-  resumen: {
-    brandName: "Resumen",
-    tabs: [
-      { id: "all", label: "Resumen", icon: LayoutDashboard, title: "Visión general" },
-      { id: "sales", label: "Ventas", icon: TrendingUp, title: "Cotizaciones e ingresos" },
-      { id: "stock", label: "Stock", icon: Package, title: "Inventario" },
-      { id: "team", label: "Equipo", icon: Users, title: "Personal" },
-      { id: "fleet", label: "Flota", icon: Truck, title: "Flota y camiones" },
-    ],
-  },
-  monitoreo: {
-    brandName: "Monitoreo",
-    tabs: [
-      { id: "all", label: "Sistema", icon: Activity, title: "Estado del sistema" },
-      { id: "server", label: "Servidor", icon: Server, title: "Recursos del servidor" },
-      { id: "backups", label: "Backups", icon: Database, title: "Copias de seguridad" },
-      { id: "alerts", label: "Alertas", icon: AlertTriangle, title: "Alertas activas" },
-    ],
-  },
-  logs: {
-    brandName: "Logs",
-    tabs: [
-      { id: "all", label: "Todos", icon: ScrollText, title: "Registro de actividad" },
-      { id: "auth", label: "Autenticación", icon: User, title: "Accesos y sesiones" },
-      { id: "panel", label: "Panel", icon: LayoutDashboard, title: "Acciones del panel" },
-      { id: "api", label: "API", icon: Server, title: "Llamadas a la API" },
-      { id: "db", label: "Base de datos", icon: Database, title: "Eventos de base de datos" },
-      { id: "sistema", label: "Sistema", icon: Activity, title: "Eventos del sistema" },
-    ],
-  },
-  ajustes: {
-    brandName: "Ajustes",
-    tabs: [
-      { id: "all", label: "Ajustes", icon: Settings, title: "Configuración general" },
-      { id: "profile", label: "Perfil", icon: User, title: "Perfil de usuario" },
-      { id: "security", label: "Seguridad", icon: ShieldCheck, title: "Permisos y accesos" },
-      { id: "branches", label: "Sedes", icon: Building2, title: "Parámetros de sucursales" },
-      { id: "notifs", label: "Alertas", icon: Bell, title: "Notificaciones" },
-    ],
-  },
-};
 
-function Topbar({
-  title,
-  subtitle,
-  action,
-  onOpenNav,
-  activeTab: controlledTab,
-  onTabChange,
-  customTabs,
-}) {
-  const adminCtx = useContext(AdminContext);
-  const activeSection = adminCtx?.section || "trabajadores";
-  const goTo = adminCtx?.goTo || (() => {});
-  const handleOpenNav = onOpenNav || adminCtx?.onOpenNav;
-  const navOpen = adminCtx?.navOpen ?? false;
-  const session = adminCtx?.session;
-
-  const [internalTab, setInternalTab] = useState("all");
-  const [searchVal, setSearchVal] = useState("");
-
-  const sectionConfig = SECTION_NAV_CONFIG[activeSection] || SECTION_NAV_CONFIG.trabajadores;
-  const tabs = customTabs || sectionConfig.tabs;
-  const currentTabId = controlledTab !== undefined ? controlledTab : internalTab;
-
-  const showToast = (msg) => {
-    if (msg) sileo.info({ title: String(msg) });
-  };
-
-  const handleSelectTab = (tabId) => {
-    if (controlledTab === undefined) {
-      setInternalTab(tabId);
-    }
-    if (onTabChange) {
-      onTabChange(tabId);
-    }
-    const tabObj = tabs.find((t) => t.id === tabId);
-    if (tabObj) {
-      showToast(`${tabObj.title || tabObj.label} activo`);
-    }
-  };
-
-  const activeTabObj = tabs.find((t) => t.id === currentTabId) || tabs[0];
-  const ActiveIcon = activeTabObj.icon;
-
-  return (
-    <header className={styles.topbarContainer}>
-      {/* ==============================================================
-          1. UNIVERSAL ARCONET TOP BAR (Brand | Center Pill | Actions)
-          ============================================================== */}
-      <div className={styles.globalTopBar}>
-        <div className={styles.brandArea}>
-          {handleOpenNav && (
-            <button
-              type="button"
-              className={styles.navToggleBtn}
-              onClick={handleOpenNav}
-              aria-label={navOpen ? "Cerrar menú lateral" : "Abrir menú lateral"}
-              title={navOpen ? "Cerrar menú lateral" : "Abrir menú lateral"}
-            >
-              <Menu size={18} />
-            </button>
-          )}
-          <Link
-            href="/"
-            className={styles.topbarBrand}
-            title="Arconet, inicio"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/arconet.png"
-              alt="Arconet"
-              className={styles.topbarBrandImg}
-            />
-          </Link>
-        </div>
-
-        {/* Dynamic Center Pill Nav Bar tailored to the active page */}
-        <nav
-          className={styles.centerPillNav}
-          aria-label={`Navegación de ${title}`}
-        >
-          {/* Active capsule item: dark pill with icon and label */}
-          <button
-            type="button"
-            className={`${styles.pillItem} ${styles.pillItemActive}`}
-            onClick={() => handleSelectTab(activeTabObj.id)}
-            title={activeTabObj.title || activeTabObj.label}
-          >
-            <ActiveIcon size={15} />
-            <span>{activeTabObj.label}</span>
-          </button>
-
-          {/* Sibling items as circular icons */}
-          {tabs
-            .filter((t) => t.id !== activeTabObj.id)
-            .map((tab) => {
-              const TabIcon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  className={styles.pillIconOnly}
-                  onClick={() => handleSelectTab(tab.id)}
-                  title={tab.title || tab.label}
-                  aria-label={tab.label}
-                >
-                  <TabIcon size={16} />
-                </button>
-              );
-            })}
-        </nav>
-
-        {/* Right Search, Notification & Profile Avatar */}
-        <div className={styles.rightActions}>
-          <div className={styles.searchPill}>
-            <Search size={15} className={styles.searchIcon} />
-            <input
-              type="text"
-              placeholder="Search.."
-              value={searchVal}
-              onChange={(e) => setSearchVal(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && searchVal.trim()) {
-                  showToast(`Buscando "${searchVal.trim()}" en ${title}...`);
-                }
-              }}
-              className={styles.searchInput}
-              aria-label="Search"
-            />
-          </div>
-          <button
-            type="button"
-            className={styles.notifBtn}
-            onClick={() =>
-              showToast("Tienes 3 notificaciones activas del sistema")
-            }
-            aria-label="Notificaciones"
-            title="Notificaciones activas"
-          >
-            <Bell size={17} />
-            <span className={styles.notifDot} />
-          </button>
-          <div
-            className={styles.profileAvatar}
-            onClick={() =>
-              showToast(
-                `Sesión: ${session?.nombre || "Ethan Carter"} (${
-                  session?.rol || "Administrador"
-                })`
-              )
-            }
-            title={session?.nombre || "Ethan Carter"}
-            role="button"
-            tabIndex={0}
-          >
-            <Image
-              src="/fleet/driver-ethan.jpg"
-              alt={session?.nombre || "Ethan Carter"}
-              width={40}
-              height={40}
-              priority
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* ==============================================================
-          2. SECTION SUB-BAR (Title, Subtitle & Action Button)
-          ============================================================== */}
-      <div className={styles.sectionSubBar}>
-        <div className={styles.topbarTitle}>
-          <h1>{title}</h1>
-          <p>{subtitle}</p>
-        </div>
-        {action && <div className={styles.topbarActions}>{action}</div>}
-      </div>
-    </header>
-  );
-}
-
-function WorkersSection({ workers, setWorkers, onOpenNav }) {
+function WorkersSection({ workers, setWorkers, onOpenNav, session }) {
   const [activeTab, setActiveTab] = useState("all");
   const [query, setQuery] = useState("");
   const [branch, setBranch] = useState("all");
@@ -713,7 +482,8 @@ function WorkersSection({ workers, setWorkers, onOpenNav }) {
   const [confirmWorker, setConfirmWorker] = useState(null);
   const { show } = useToast();
 
-  useEscape(modalOpen, () => closeModal());
+  useEscapeKey(modalOpen, () => closeModal());
+  useBodyScrollLock(modalOpen);
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
@@ -864,6 +634,8 @@ function WorkersSection({ workers, setWorkers, onOpenNav }) {
             <Plus size={16} /> Nuevo trabajador
           </button>
         }
+        session={session}
+        workers={workers}
       />
 
       <div className={styles.body}>
@@ -955,7 +727,7 @@ function WorkersSection({ workers, setWorkers, onOpenNav }) {
               <tbody>
                 {filtered.map((worker) => (
                   <tr key={worker.id}>
-                    <td>
+                    <td data-label="Trabajador" className={styles.cellMain}>
                       <div className={styles.person}>
                         <Avatar src={worker.foto} name={worker.nombre} />
                         <span className={styles.personMeta}>
@@ -964,21 +736,21 @@ function WorkersSection({ workers, setWorkers, onOpenNav }) {
                         </span>
                       </div>
                     </td>
-                    <td>
+                    <td data-label="Contacto">
                       <div className={styles.contact}>
                         <a href={`mailto:${worker.correo}`}>{worker.correo}</a>
                         <span>{worker.telefono || "—"}</span>
                       </div>
                     </td>
-                    <td>{branchLabel(worker.sucursal)}</td>
-                    <td><span className={styles.role}>{roleLabel(worker.rol)}</span></td>
-                    <td>
+                    <td data-label="Sucursal">{branchLabel(worker.sucursal)}</td>
+                    <td data-label="Rol"><span className={styles.role}>{roleLabel(worker.rol)}</span></td>
+                    <td data-label="Estado">
                       <span className={`${styles.pill} ${styles[`status_${worker.estado}`]}`}>
                         {statusLabel(worker.estado)}
                       </span>
                     </td>
-                    <td>{formatDate(worker.ingreso)}</td>
-                    <td>
+                    <td data-label="Ingreso">{formatDate(worker.ingreso)}</td>
+                    <td data-label="Acciones">
                       <div className={styles.rowActions}>
                         <button
                           type="button"
@@ -1205,7 +977,7 @@ function WorkersSection({ workers, setWorkers, onOpenNav }) {
   );
 }
 
-function ProductsSection({ products, setProducts, onOpenNav }) {
+function ProductsSection({ products, setProducts, onOpenNav, session }) {
   const [activeTab, setActiveTab] = useState("all");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
@@ -1217,7 +989,8 @@ function ProductsSection({ products, setProducts, onOpenNav }) {
   const [confirmProduct, setConfirmProduct] = useState(null);
   const { show } = useToast();
 
-  useEscape(modalOpen, () => closeModal());
+  useEscapeKey(modalOpen, () => closeModal());
+  useBodyScrollLock(modalOpen);
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
@@ -1362,6 +1135,8 @@ function ProductsSection({ products, setProducts, onOpenNav }) {
             <Plus size={16} /> Nuevo producto
           </button>
         }
+        session={session}
+        workers={workers}
       />
 
       <div className={styles.body}>
@@ -1445,7 +1220,7 @@ function ProductsSection({ products, setProducts, onOpenNav }) {
               <tbody>
                 {filtered.map((product) => (
                   <tr key={product.id}>
-                    <td>
+                    <td data-label="Producto" className={styles.cellMain}>
                       <div className={styles.person}>
                         <Avatar src={product.foto} name={product.nombre} shape="square" />
                         <span className={styles.personMeta}>
@@ -1454,20 +1229,20 @@ function ProductsSection({ products, setProducts, onOpenNav }) {
                         </span>
                       </div>
                     </td>
-                    <td><span className={styles.role}>{product.categoria}</span></td>
-                    <td>{product.marca || "—"}</td>
-                    <td className={styles.priceCell}>{formatPrice(product.precio)}</td>
-                    <td>
+                    <td data-label="Categoría"><span className={styles.role}>{product.categoria}</span></td>
+                    <td data-label="Marca">{product.marca || "—"}</td>
+                    <td className={styles.priceCell} data-label="Precio">{formatPrice(product.precio)}</td>
+                    <td data-label="Stock">
                       <span className={Number(product.stock) === 0 ? styles.stockOut : styles.stockOk}>
                         {Number(product.stock) === 0 ? "Agotado" : formatStock(product.stock, product.unidad)}
                       </span>
                     </td>
-                    <td>
+                    <td data-label="Estado">
                       <span className={`${styles.pill} ${styles[`status_${product.estado}`]}`}>
                         {(PRODUCT_STATUSES.find((item) => item.id === product.estado) || {}).label || product.estado}
                       </span>
                     </td>
-                    <td>
+                    <td data-label="Acciones">
                       <div className={styles.rowActions}>
                         <button
                           type="button"
@@ -1678,7 +1453,7 @@ function ProductsSection({ products, setProducts, onOpenNav }) {
   );
 }
 
-function SucursalesSection({ sucursales, setSucursales, workers = [], onOpenNav }) {
+function SucursalesSection({ sucursales, setSucursales, workers = [], onOpenNav, session }) {
   const [query, setQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -1696,7 +1471,8 @@ function SucursalesSection({ sucursales, setSucursales, workers = [], onOpenNav 
   const [confirmSucursal, setConfirmSucursal] = useState(null);
   const { show } = useToast();
 
-  useEscape(modalOpen, () => closeModal());
+  useEscapeKey(modalOpen, () => closeModal());
+  useBodyScrollLock(modalOpen);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -1784,6 +1560,8 @@ function SucursalesSection({ sucursales, setSucursales, workers = [], onOpenNav 
             <Plus size={16} /> Nueva sucursal
           </button>
         }
+        session={session}
+        workers={workers}
       />
 
       <div className={styles.body}>
@@ -1835,7 +1613,7 @@ function SucursalesSection({ sucursales, setSucursales, workers = [], onOpenNav 
               <tbody>
                 {filtered.map((sucursal) => (
                   <tr key={sucursal.id}>
-                    <td>
+                    <td data-label="Sucursal" className={styles.cellMain}>
                       <div className={styles.person}>
                         <span className={styles.avatar}>{initialsSucursal(sucursal.nombre)}</span>
                         <span className={styles.personMeta}>
@@ -1844,21 +1622,21 @@ function SucursalesSection({ sucursales, setSucursales, workers = [], onOpenNav 
                         </span>
                       </div>
                     </td>
-                    <td><code>{sucursal.codigo}</code></td>
-                    <td>{sucursal.ciudad}</td>
-                    <td>
+                    <td data-label="Código"><code>{sucursal.codigo}</code></td>
+                    <td data-label="Ciudad">{sucursal.ciudad}</td>
+                    <td data-label="Contacto">
                       <div className={styles.contact}>
                         <a href={`mailto:${sucursal.email}`}>{sucursal.email}</a>
                         <span>{sucursal.telefono || "—"}</span>
                       </div>
                     </td>
-                    <td>{sucursal.responsable || "—"}</td>
-                    <td>
+                    <td data-label="Responsable">{sucursal.responsable || "—"}</td>
+                    <td data-label="Estado">
                       <span className={`${styles.pill} ${styles[`status_${sucursal.estado}`]}`}>
                         {sucursal.estado === "activo" ? "Activa" : sucursal.estado}
                       </span>
                     </td>
-                    <td>
+                    <td data-label="Acciones">
                       <div className={styles.rowActions}>
                         <button
                           type="button"
@@ -2043,7 +1821,7 @@ function SucursalesSection({ sucursales, setSucursales, workers = [], onOpenNav 
   );
 }
 
-function ClientesSection({ clientes, setClientes, onOpenNav }) {
+function ClientesSection({ clientes, setClientes, onOpenNav, session }) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [modalOpen, setModalOpen] = useState(false);
@@ -2064,7 +1842,8 @@ function ClientesSection({ clientes, setClientes, onOpenNav }) {
   const [confirmCliente, setConfirmCliente] = useState(null);
   const { show } = useToast();
 
-  useEscape(modalOpen, () => closeModal());
+  useEscapeKey(modalOpen, () => closeModal());
+  useBodyScrollLock(modalOpen);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -2179,6 +1958,8 @@ function ClientesSection({ clientes, setClientes, onOpenNav }) {
             <Plus size={16} /> Nuevo cliente
           </button>
         }
+        session={session}
+        workers={workers}
       />
 
       <div className={styles.body}>
@@ -2246,7 +2027,7 @@ function ClientesSection({ clientes, setClientes, onOpenNav }) {
               <tbody>
                 {filtered.map((cliente) => (
                   <tr key={cliente.id}>
-                    <td>
+                    <td data-label="Cliente" className={styles.cellMain}>
                       <div className={styles.person}>
                         <Avatar src={cliente.foto} name={cliente.nombre} />
                         <span className={styles.personMeta}>
@@ -2255,21 +2036,21 @@ function ClientesSection({ clientes, setClientes, onOpenNav }) {
                         </span>
                       </div>
                     </td>
-                    <td><code>{cliente.rtn || "—"}</code></td>
-                    <td>
+                    <td data-label="RTN"><code>{cliente.rtn || "—"}</code></td>
+                    <td data-label="Contacto">
                       <div className={styles.contact}>
                         <a href={`mailto:${cliente.correo}`}>{cliente.correo}</a>
                         <span>{cliente.telefono || "—"}</span>
                       </div>
                     </td>
-                    <td>{cliente.ciudad}</td>
-                    <td>{formatDate(cliente.fechaRegistro)}</td>
-                    <td>
+                    <td data-label="Ciudad">{cliente.ciudad}</td>
+                    <td data-label="Fecha registro">{formatDate(cliente.fechaRegistro)}</td>
+                    <td data-label="Estado">
                       <span className={`${styles.pill} ${styles[`status_${cliente.estado}`]}`}>
                         {clientStatusLabel(cliente.estado)}
                       </span>
                     </td>
-                    <td>
+                    <td data-label="Acciones">
                       <div className={styles.rowActions}>
                         <button
                           type="button"
@@ -2477,7 +2258,7 @@ function ClientesSection({ clientes, setClientes, onOpenNav }) {
   );
 }
 
-function CotizacionesSection({ orders, setOrders, clientes, products, onOpenNav }) {
+function CotizacionesSection({ orders, setOrders, clientes, products, onOpenNav, session }) {
   const [activeTab, setActiveTab] = useState("all");
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
@@ -2498,7 +2279,8 @@ function CotizacionesSection({ orders, setOrders, clientes, products, onOpenNav 
   const [confirmOrder, setConfirmOrder] = useState(null);
   const { show } = useToast();
 
-  useEscape(modalOpen, () => closeModal());
+  useEscapeKey(modalOpen, () => closeModal());
+  useBodyScrollLock(modalOpen);
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
@@ -2625,6 +2407,8 @@ function CotizacionesSection({ orders, setOrders, clientes, products, onOpenNav 
             <Plus size={16} /> Nueva cotización
           </button>
         }
+        session={session}
+        workers={workers}
       />
 
       <div className={styles.body}>
@@ -2708,8 +2492,8 @@ function CotizacionesSection({ orders, setOrders, clientes, products, onOpenNav 
               <tbody>
                 {filtered.map((order) => (
                   <tr key={order.id}>
-                    <td><code>{order.id}</code></td>
-                    <td>
+                    <td data-label="Cotización" className={styles.cellMain}><code>{order.id}</code></td>
+                    <td data-label="Cliente">
                       <div className={styles.person}>
                         <span className={styles.avatar}>{initialsCliente(order.cliente)}</span>
                         <span className={styles.personMeta}>
@@ -2717,15 +2501,15 @@ function CotizacionesSection({ orders, setOrders, clientes, products, onOpenNav 
                         </span>
                       </div>
                     </td>
-                    <td><span className={styles.role}>{orderTypeLabel(order.tipo)}</span></td>
-                    <td>{formatOrderDate(order.fecha)}</td>
-                    <td className={styles.priceCell}>{formatPrice(order.monto)}</td>
-                    <td>
+                    <td data-label="Tipo"><span className={styles.role}>{orderTypeLabel(order.tipo)}</span></td>
+                    <td data-label="Fecha">{formatOrderDate(order.fecha)}</td>
+                    <td className={styles.priceCell} data-label="Monto">{formatPrice(order.monto)}</td>
+                    <td data-label="Estado">
                       <span className={`${styles.pill} ${styles[`status_${order.estado}`]}`}>
                         {orderStatusLabel(order.estado)}
                       </span>
                     </td>
-                    <td>
+                    <td data-label="Acciones">
                       <div className={styles.rowActions}>
                         <button
                           type="button"
@@ -2889,7 +2673,7 @@ function CotizacionesSection({ orders, setOrders, clientes, products, onOpenNav 
   );
 }
 
-function ResumenSection({ workers, products, sucursales, orders, onOpenNav }) {
+function ResumenSection({ workers, products, sucursales, orders, onOpenNav, session }) {
   const stats = useMemo(() => {
     const workersTotal = workers.length;
     const workersActivos = workers.filter((worker) => worker.estado === "activo").length;
@@ -2942,6 +2726,8 @@ function ResumenSection({ workers, products, sucursales, orders, onOpenNav }) {
         title="Resumen"
         subtitle="Vista general de la operación de Arconet."
         onOpenNav={onOpenNav}
+        session={session}
+        workers={workers}
       />
 
       <div className={styles.body}>
@@ -3076,7 +2862,7 @@ function formatTimestamp(value) {
   }
 }
 
-function MonitoreoSection({ onOpenNav }) {
+function MonitoreoSection({ onOpenNav, session }) {
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -3132,6 +2918,8 @@ function MonitoreoSection({ onOpenNav }) {
         onOpenNav={onOpenNav}
         activeTab={tab}
         onTabChange={setTab}
+        session={session}
+        workers={workers}
       />
 
       <div className={styles.body}>
@@ -3316,105 +3104,878 @@ function MonitoreoSection({ onOpenNav }) {
   );
 }
 
-function LogsSection({ onOpenNav }) {
-  const [logs, setLogs] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [filterCategoria, setFilterCategoria] = useState("todas");
-  const [filterNivel, setFilterNivel] = useState("todos");
+const LOG_LEVELS = {
+  info: { label: "Info", icon: Info },
+  warn: { label: "Aviso", icon: AlertTriangle },
+  error: { label: "Error", icon: AlertTriangle },
+};
 
-  const loadLogs = useCallback(async (categoria = "todas", nivel = "todos") => {
-    try {
-      const url = new URL("/api/logs", window.location.origin);
-      if (categoria !== "todas") url.searchParams.set("categoria", categoria);
-      if (nivel !== "todos") url.searchParams.set("nivel", nivel);
-      const res = await fetch(url.toString(), { cache: "no-store" });
-      if (!res.ok) throw new Error("No se pudieron obtener los logs");
-      const data = await res.json();
-      setLogs(data);
-      setError("");
-    } catch (err) {
-      console.error("Error loading logs:", err);
-      setLogs([]);
-      setError("Error al cargar los logs");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+const LOG_CATEGORY_LABELS = {
+  auth: "Autenticación",
+  api: "API",
+  db: "Base de datos",
+  sistema: "Sistema",
+  panel: "Panel",
+};
+
+function LogsSection({ onOpenNav, session }) {
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState("");
+  const [tab, setTab] = useState("all");
+  const [nivel, setNivel] = useState("todos");
+
+  const loadLogs = useCallback(
+    async (categoria = "todas", filtroNivel = "todos") => {
+      try {
+        const params = new URLSearchParams();
+        // La API espera "todas" para no filtrar por categoria.
+        const categoriaApi = categoria === "all" ? "todas" : categoria;
+        if (categoriaApi !== "todas") params.set("categoria", categoriaApi);
+        if (filtroNivel !== "todos") params.set("nivel", filtroNivel);
+        const query = params.toString();
+        const res = await fetch(`/api/logs${query ? `?${query}` : ""}`, {
+          cache: "no-store",
+        });
+        if (!res.ok) throw new Error("No se pudieron obtener los logs");
+        const data = await res.json();
+        setLogs(Array.isArray(data) ? data : []);
+        setError("");
+      } catch (err) {
+        console.error("Error al cargar los logs:", err);
+        setLogs([]);
+        setError("No se pudieron cargar los registros del sistema.");
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
-    loadLogs(filterCategoria, filterNivel);
-    const timer = setInterval(() => loadLogs(filterCategoria, filterNivel), 30000);
+    setRefreshing(true);
+    loadLogs(tab, nivel);
+    const timer = setInterval(() => loadLogs(tab, nivel), 30000);
     return () => clearInterval(timer);
-}, [loadLogs, filterCategoria, filterNivel]);
-
-  const categoriasDisponibles = ["todas", "auth", "api", "db", "sistema", "panel"];
-  const nivelesDisponibles = ["todos", "info", "warn", "error"];
+  }, [loadLogs, tab, nivel]);
 
   return (
-    <section className={styles.section} aria-label="Logs del sistema">
-      <header className={styles.sectionHeader}>
-        <h3><ScrollText size={18} /> Logs del sistema</h3>
-        <div className={styles.sectionControls}>
-          <select value={filterCategoria} onChange={(e) => setFilterCategoria(e.target.value)} className={styles.filterSelect}>
-            <option value="todas">Todas</option>
-            <option value="auth">Autenticación</option>
-            <option value="api">API</option>
-            <option value="db">Base de datos</option>
-            <option value="sistema">Sistema</option>
-            <option value="panel">Panel</option>
-          </select>
-          <select value={filterNivel} onChange={(e) => setFilterNivel(e.target.value)} className={styles.filterSelect}>
-            <option value="todos">Todos</option>
-            <option value="info">Info</option>
-            <option value="warn">Aviso</option>
-            <option value="error">Error</option>
-          </select>
-          <button onClick={() => loadLogs("todas", "todos")} className={styles.refreshBtn}>
-            Refrescar
+    <>
+      <Topbar
+        title="Logs del sistema"
+        subtitle="Registro de actividad de autenticación, API, base de datos y panel."
+        onOpenNav={onOpenNav}
+        activeTab={tab}
+        onTabChange={setTab}
+        action={
+          <button
+            type="button"
+            className={styles.ghostBtn}
+            onClick={() => {
+              setRefreshing(true);
+              loadLogs(tab, nivel);
+            }}
+            disabled={refreshing}
+          >
+            <RefreshCw size={15} className={refreshing ? styles.spinning : undefined} />
+            {refreshing ? "Actualizando..." : "Actualizar"}
           </button>
-        </div>
-      </header>
-      <div className={styles.logsList}>
-        {loading ? (
-          <p>Cargando...</p>
-        ) : logs.length === 0 ? (
-          <p className={styles.emptyText}>No hay logs registrados</p>
-        ) : (
-          <ul>
-            {logs
-              .filter((l) => {
-                const catOk = filterCategoria === "todas" || l.categoria === filterCategoria;
-                const nivelOk = filterNivel === "todos" || l.nivel === filterNivel;
-                return catOk && nivelOk;
-              })
-              .map((log) => (
-                <li key={log.id} className={styles.logItem}>
-                  <div className={styles.logHeader}>
-                    <span className={styles.logLevel}>
-                      {log.nivel === "error" ? "⚠️" : log.nivel === "warn" ? "⚡" : "ℹ️"} {log.nivel}
-                    </span>
-                    <span className={styles.logCategory}>
-                      {log.categoria.charAt(0).toUpperCase() + log.categoria.slice(1)}
-                    </span>
-                    <span className={styles.logTime}>{formatTimestamp(log.createdAt)}</span>
-                  </div>
-                  <p className={styles.logMessage}>{log.mensaje}</p>
-                  {log.actor && (
-                    <small className={styles.logActor}>Por: {log.actor}</small>
-                  )}
-                  {log.ruta && (
-                    <small className={styles.logActor}>({log.ruta})</small>
-                  )}
-</li>
-              )
-            </ul>
-        )}
+        }
+        session={session}
+        workers={workers}
+      />
+
+      <div className={styles.body}>
+        <section className={styles.card} aria-label="Filtros de los registros">
+          <header className={styles.cardHeader}>
+            <h3>
+              <ScrollText size={18} /> Filtros
+            </h3>
+          </header>
+          <div className={styles.cardBody}>
+            <div className={styles.toolbar}>
+              <label className={styles.fieldInline}>
+                Nivel
+                <select
+                  value={nivel}
+                  onChange={(event) => setNivel(event.target.value)}
+                  className={styles.select}
+                >
+                  <option value="todos">Todos</option>
+                  <option value="info">Info</option>
+                  <option value="warn">Aviso</option>
+                  <option value="error">Error</option>
+                </select>
+              </label>
+              <span className={styles.logsCount}>
+                {loading
+                  ? "Cargando registros..."
+                  : `${logs.length} registro${logs.length === 1 ? "" : "s"}`}
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <section className={styles.card} aria-label="Registros del sistema">
+          <header className={styles.cardHeader}>
+            <h3>
+              <ScrollText size={18} /> Actividad registrada
+            </h3>
+          </header>
+          <div className={styles.cardBody}>
+            {loading ? (
+              <p className={styles.emptyText}>Cargando registros...</p>
+            ) : error ? (
+              <p className={styles.emptyText}>{error}</p>
+            ) : logs.length === 0 ? (
+              <p className={styles.emptyText}>
+                No hay registros para los filtros seleccionados.
+              </p>
+            ) : (
+              <ul className={styles.logsList}>
+                {logs.map((log) => {
+                  const level = LOG_LEVELS[log.nivel] || LOG_LEVELS.info;
+                  const LevelIcon = level.icon;
+                  return (
+                    <li key={log.id} className={styles.logItem}>
+                      <div className={styles.logHeader}>
+                        <span
+                          className={`${styles.logLevel} ${styles[`logLevel_${log.nivel}`] || ""}`}
+                        >
+                          <LevelIcon size={12} />
+                          {level.label}
+                        </span>
+                        <span className={styles.logCategory}>
+                          {LOG_CATEGORY_LABELS[log.categoria] || log.categoria}
+                        </span>
+                        <span className={styles.logTime}>
+                          {formatTimestamp(log.createdAt)}
+                        </span>
+                      </div>
+                      <p className={styles.logMessage}>{log.mensaje}</p>
+                      {(log.actor || log.ruta) && (
+                        <small className={styles.logActor}>
+                          {log.actor ? `Por: ${log.actor}` : ""}
+                          {log.actor && log.ruta ? " · " : ""}
+                          {log.ruta || ""}
+                        </small>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        </section>
       </div>
-    </section>
+    </>
   );
 }
 
-function AjustesSection({ onOpenNav }) {
+function MiPerfilSection({ onOpenNav, session, workers = [] }) {
+  const [activeTab, setActiveTab] = useState("all");
+  const [editMode, setEditMode] = useState(false);
+
+  const myWorker = useMemo(() => {
+    if (!session?.correo) return null;
+    return workers.find((w) => w.correo?.toLowerCase() === session.correo.toLowerCase()) || null;
+  }, [workers, session?.correo]);
+
+  const [formData, setFormData] = useState({
+    nombre: session?.nombre || "",
+    correo: session?.correo || "",
+    telefono: myWorker?.telefono || "",
+    direccion: myWorker?.direccion || "",
+    idioma: "es-HN",
+    zonaHoraria: "America/Tegucigalpa",
+  });
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [securityModals, setSecurityModals] = useState({
+    password: false,
+    twofa: false,
+    sessions: false,
+  });
+  const [passwordForm, setPasswordForm] = useState({ actual: "", nueva: "", confirmar: "" });
+  const { show } = useToast();
+
+  // Estadísticas del usuario
+  const userStats = useMemo(() => ({
+    tasksCompleted: 147,
+    daysActive: 45,
+    loginsThisMonth: 23,
+    rating: 4.8,
+    productivity: 92,
+  }), []);
+
+  const handlePhotoChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      show("El archivo debe ser una imagen.", "error");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      show("La imagen no debe superar 2 MB.", "error");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => setPhotoPreview(e.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  const handleSave = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    await new Promise((r) => setTimeout(r, 600));
+    setEditMode(false);
+    setPhotoPreview(null);
+    show("Perfil actualizado correctamente.");
+    setSaving(false);
+  };
+
+  const handleCancel = () => {
+    setFormData({
+      nombre: session?.nombre || "",
+      correo: session?.correo || "",
+      telefono: myWorker?.telefono || "",
+      direccion: myWorker?.direccion || "",
+      idioma: "es-HN",
+      zonaHoraria: "America/Tegucigalpa",
+    });
+    setPhotoPreview(null);
+    setEditMode(false);
+  };
+
+  const openSecurityModal = (type) => setSecurityModals((prev) => ({ ...prev, [type]: true }));
+  const closeSecurityModal = (type) => setSecurityModals((prev) => ({ ...prev, [type]: false }));
+
+  const handlePasswordSave = async (event) => {
+    event.preventDefault();
+    if (passwordForm.nueva !== passwordForm.confirmar) {
+      show("Las contraseñas no coinciden.", "error");
+      return;
+    }
+    if (passwordForm.nueva.length < 8) {
+      show("La contraseña debe tener al menos 8 caracteres.", "error");
+      return;
+    }
+    setSaving(true);
+    await new Promise((r) => setTimeout(r, 800));
+    setPasswordForm({ actual: "", nueva: "", confirmar: "" });
+    closeSecurityModal("password");
+    show("Contraseña actualizada correctamente.");
+    setSaving(false);
+  };
+
+  return (
+    <>
+      <Topbar
+        title="Mi perfil"
+        subtitle="Información personal y configuración de mi cuenta."
+        onOpenNav={onOpenNav}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        session={session}
+        workers={workers}
+      />
+
+      <div className={styles.body}>
+        {activeTab === "all" && (
+          <section className={styles.card} aria-label="Perfil de usuario">
+            <header className={styles.cardHeader}>
+              <h3><User size={18} /> Perfil</h3>
+              {!editMode && (
+                <button type="button" className={styles.ghostBtn} onClick={() => setEditMode(true)}>
+                  <Pencil size={14} /> Editar
+                </button>
+              )}
+            </header>
+
+            <form className={styles.profileForm} onSubmit={handleSave}>
+              <div className={styles.profileCard}>
+                <div className={styles.profileAvatarLarge}>
+                  {photoPreview ? (
+                    <img src={photoPreview} alt={formData.nombre || "Usuario"} width={120} height={120} />
+                  ) : myWorker?.foto ? (
+                    <img src={myWorker.foto} alt={session?.nombre || "Usuario"} width={120} height={120} />
+                  ) : (
+                    <span className={styles.avatarFallback}>{initials(formData.nombre || session?.nombre)}</span>
+                  )}
+                  {editMode && (
+                    <label className={styles.avatarUpload}>
+                      <Camera size={18} />
+                      <input type="file" accept="image/*" onChange={handlePhotoChange} />
+                    </label>
+                  )}
+                </div>
+                <div className={styles.profileInfo}>
+                  {editMode ? (
+                    <div className={styles.editGrid}>
+                      <label className={styles.editField}>
+                        <span>Nombre completo</span>
+                        <input
+                          type="text"
+                          value={formData.nombre}
+                          onChange={(e) => setFormData((prev) => ({ ...prev, nombre: e.target.value }))}
+                          required
+                        />
+                      </label>
+                      <label className={styles.editField}>
+                        <span>Correo electrónico</span>
+                        <input
+                          type="email"
+                          value={formData.correo}
+                          onChange={(e) => setFormData((prev) => ({ ...prev, correo: e.target.value }))}
+                          required
+                        />
+                      </label>
+                      <label className={styles.editField}>
+                        <span>Teléfono</span>
+                        <input
+                          type="tel"
+                          value={formData.telefono}
+                          onChange={(e) => setFormData((prev) => ({ ...prev, telefono: e.target.value }))}
+                          placeholder="+504 XXXX-XXXX"
+                        />
+                      </label>
+                      <label className={styles.editField}>
+                        <span>Dirección</span>
+                        <input
+                          type="text"
+                          value={formData.direccion}
+                          onChange={(e) => setFormData((prev) => ({ ...prev, direccion: e.target.value }))}
+                          placeholder="Ciudad, departamento"
+                        />
+                      </label>
+                      <label className={styles.editField}>
+                        <span>Idioma</span>
+                        <select value={formData.idioma} onChange={(e) => setFormData((prev) => ({ ...prev, idioma: e.target.value }))}>
+                          <option value="es-HN">Español (Honduras)</option>
+                          <option value="es-ES">Español (España)</option>
+                          <option value="en-US">English (US)</option>
+                        </select>
+                      </label>
+                      <label className={styles.editField}>
+                        <span>Zona horaria</span>
+                        <select value={formData.zonaHoraria} onChange={(e) => setFormData((prev) => ({ ...prev, zonaHoraria: e.target.value }))}>
+                          <option value="America/Tegucigalpa">CST (Honduras)</option>
+                          <option value="America/Guatemala">CST (Guatemala)</option>
+                          <option value="America/Managua">CST (Nicaragua)</option>
+                          <option value="America/Costa_Rica">CST (Costa Rica)</option>
+                          <option value="America/Panama">EST (Panamá)</option>
+                        </select>
+                      </label>
+                    </div>
+                  ) : (
+                    <>
+                      <h4>{session?.nombre || "Administrador"}</h4>
+                      <p className={styles.profileRole}>
+                        <span className={styles.badge}>
+                          {session?.rol === "admin" ? "Administrador" : roleLabel(session?.rol || "admin")}
+                        </span>
+                        {myWorker?.sucursal ? (
+                          <span className={styles.badge}>{branchLabel(myWorker.sucursal)}</span>
+                        ) : session?.sucursal ? (
+                          <span className={styles.badge}>{branchLabel(session.sucursal)}</span>
+                        ) : null}
+                      </p>
+                      <p className={styles.profileEmail}>{session?.correo || "admin@arconet.com"}</p>
+                      {myWorker?.telefono && <p className={styles.profileMeta}><Phone size={14} /> {myWorker.telefono}</p>}
+                      {myWorker?.direccion && <p className={styles.profileMeta}><MapPin size={14} /> {myWorker.direccion}</p>}
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {editMode && (
+                <footer className={styles.modalActions}>
+                  <button type="button" className={styles.ghostBtn} onClick={handleCancel}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className={styles.submit} disabled={saving}>
+                    {saving ? "Guardando..." : "Guardar cambios"}
+                  </button>
+                </footer>
+              )}
+
+              {!editMode && (
+                <>
+                  <div className={styles.statsGrid}>
+                    <div className={styles.statCard}>
+                      <div className={styles.statIcon}>
+                        <Activity size={20} />
+                      </div>
+                      <div className={styles.statContent}>
+                        <span className={styles.statValue}>{userStats.tasksCompleted}</span>
+                        <span className={styles.statLabel}>Tareas completadas</span>
+                      </div>
+                    </div>
+                    <div className={styles.statCard}>
+                      <div className={styles.statIcon}>
+                        <Calendar size={20} />
+                      </div>
+                      <div className={styles.statContent}>
+                        <span className={styles.statValue}>{userStats.daysActive}</span>
+                        <span className={styles.statLabel}>Días activo</span>
+                      </div>
+                    </div>
+                    <div className={styles.statCard}>
+                      <div className={styles.statIcon}>
+                        <LogIn size={20} />
+                      </div>
+                      <div className={styles.statContent}>
+                        <span className={styles.statValue}>{userStats.loginsThisMonth}</span>
+                        <span className={styles.statLabel}>Sesiones este mes</span>
+                      </div>
+                    </div>
+                    <div className={styles.statCard}>
+                      <div className={styles.statIcon}>
+                        <Star size={20} />
+                      </div>
+                      <div className={styles.statContent}>
+                        <span className={styles.statValue}>{userStats.rating}</span>
+                        <span className={styles.statLabel}>Calificación</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className={styles.detailGrid}>
+                    <div className={styles.detailCard}>
+                      <span className={styles.detailLabel}>Rol</span>
+                      <span className={styles.detailValue}>
+                        {myWorker?.rol ? roleLabel(myWorker.rol) : (session?.rol === "admin" ? "Administrador del sistema" : "Usuario")}
+                      </span>
+                    </div>
+                    <div className={styles.detailCard}>
+                      <span className={styles.detailLabel}>Sucursal</span>
+                      <span className={styles.detailValue}>
+                        {myWorker?.sucursal ? branchLabel(myWorker.sucursal) : (session?.sucursal ? branchLabel(session.sucursal) : "Matriz")}
+                      </span>
+                    </div>
+                    <div className={styles.detailCard}>
+                      <span className={styles.detailLabel}>Estado</span>
+                      <span className={styles.detailValue}>
+                        {myWorker?.estado ? (
+                          <span className={`${styles.pill} ${styles[`status_${myWorker.estado}`]}`}>
+                            {statusLabel(myWorker.estado)}
+                          </span>
+                        ) : (
+                          <> <span className={styles.statusDotActive} /> Activo </>
+                        )}
+                      </span>
+                    </div>
+                    <div className={styles.detailCard}>
+                      <span className={styles.detailLabel}>Fecha de ingreso</span>
+                      <span className={styles.detailValue}>
+                        {myWorker?.ingreso ? formatDate(myWorker.ingreso) : "—"}
+                      </span>
+                    </div>
+                    <div className={styles.detailCard}>
+                      <span className={styles.detailLabel}>Último acceso</span>
+                      <span className={styles.detailValue}>
+                        {new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    </div>
+                    <div className={styles.detailCard}>
+                      <span className={styles.detailLabel}>ID de usuario</span>
+                      <span className={styles.detailValue} style={{fontFamily:"monospace",fontSize:"12px"}}>{myWorker?.id || session?.id || "—"}</span>
+                    </div>
+                  </div>
+                </>
+              )}
+            </form>
+          </section>
+        )}
+
+        {activeTab === "activity" && (
+          <section className={styles.card} aria-label="Mi actividad">
+            <header className={styles.cardHeader}>
+              <h3><Activity size={18} /> Actividad reciente</h3>
+              <div className={styles.activityFilters}>
+                <button type="button" className={`${styles.activityFilter} ${styles.activityFilterActive}`}>Todas</button>
+                <button type="button" className={styles.activityFilter}>Sesiones</button>
+                <button type="button" className={styles.activityFilter}>Cambios</button>
+                <button type="button" className={styles.activityFilter}>Sistema</button>
+              </div>
+            </header>
+            <div className={styles.activityList}>
+              <article className={styles.activityItem}>
+                <div className={styles.activityIcon}><Activity size={16} /></div>
+                <div className={styles.activityContent}>
+                  <p><strong>Inició sesión</strong> en el panel administrativo</p>
+                  <time dateTime={new Date().toISOString()}>{new Date().toLocaleString("es-ES")}</time>
+                </div>
+                <span className={styles.activityBadge}>Sesión</span>
+              </article>
+              <article className={styles.activityItem}>
+                <div className={styles.activityIcon}><User size={16} /></div>
+                <div className={styles.activityContent}>
+                  <p><strong>Actualizó su perfil</strong> (nombre y foto)</p>
+                  <time dateTime={new Date(Date.now()-86400000).toISOString()}>{new Date(Date.now()-86400000).toLocaleString("es-ES")}</time>
+                </div>
+                <span className={styles.activityBadge}>Perfil</span>
+              </article>
+              <article className={styles.activityItem}>
+                <div className={styles.activityIcon}><Settings size={16} /></div>
+                <div className={styles.activityContent}>
+                  <p><strong>Cambió preferencias</strong> de notificaciones</p>
+                  <time dateTime={new Date(Date.now()-172800000).toISOString()}>{new Date(Date.now()-172800000).toLocaleString("es-ES")}</time>
+                </div>
+                <span className={styles.activityBadge}>Configuración</span>
+              </article>
+              <article className={styles.activityItem}>
+                <div className={styles.activityIcon}><Truck size={16} /></div>
+                <div className={styles.activityContent}>
+                  <p><strong>Accedió a la Flota</strong> - Panel de monitoreo</p>
+                  <time dateTime={new Date(Date.now()-259200000).toISOString()}>{new Date(Date.now()-259200000).toLocaleString("es-ES")}</time>
+                </div>
+                <span className={styles.activityBadge}>Flota</span>
+              </article>
+              <article className={styles.activityItem}>
+                <div className={styles.activityIcon}><FileText size={16} /></div>
+                <div className={styles.activityContent}>
+                  <p><strong>Generó reporte</strong> de ventas mensual</p>
+                  <time dateTime={new Date(Date.now()-345600000).toISOString()}>{new Date(Date.now()-345600000).toLocaleString("es-ES")}</time>
+                </div>
+                <span className={styles.activityBadge}>Reporte</span>
+              </article>
+              <article className={styles.activityItem}>
+                <div className={styles.activityIcon}><Building2 size={16} /></div>
+                <div className={styles.activityContent}>
+                  <p><strong>Modificó sucursal</strong> San Pedro Sula → La Ceiba</p>
+                  <time dateTime={new Date(Date.now()-432000000).toISOString()}>{new Date(Date.now()-432000000).toLocaleString("es-ES")}</time>
+                </div>
+                <span className={styles.activityBadge}>Cambios</span>
+              </article>
+            </div>
+            <p className={styles.activityNote}>Próximamente: historial completo sincronizado con <code>/api/logs?actor=yo</code>.</p>
+          </section>
+        )}
+
+        {activeTab === "security" && (
+          <section className={styles.card} aria-label="Seguridad de mi cuenta">
+            <header className={styles.cardHeader}>
+              <h3><ShieldCheck size={18} /> Seguridad</h3>
+            </header>
+            <div className={styles.securityGrid}>
+              <div className={styles.securityCard}>
+                <h4><Lock size={16} /> Contraseña</h4>
+                <p>Cambia tu contraseña para mantener tu cuenta segura. Última actualización: hace 45 días.</p>
+                <button type="button" className={styles.ghostBtn} onClick={() => openSecurityModal("password")}>
+                  <RotateCw size={14} /> Cambiar contraseña
+                </button>
+              </div>
+              <div className={styles.securityCard}>
+                <h4><ShieldCheck size={16} /> Autenticación de dos factores (2FA)</h4>
+                <p>Añade una capa extra de seguridad usando una app de autenticación (Google Authenticator, Authy, etc.).</p>
+                <button type="button" className={styles.ghostBtn} onClick={() => openSecurityModal("twofa")}>
+                  <ShieldCheck size={14} /> {myWorker?.twofa ? "Gestionar 2FA" : "Activar 2FA"}
+                </button>
+              </div>
+              <div className={styles.securityCard}>
+                <h4><Users size={16} /> Sesiones activas</h4>
+                <p>Revisa y cierra sesiones en otros dispositivos.</p>
+                <button type="button" className={styles.ghostBtn} onClick={() => openSecurityModal("sessions")}>
+                  <Users size={14} /> Ver sesiones (3 activas)
+                </button>
+              </div>
+              <div className={styles.securityCard}>
+                <h4><Trash2 size={16} style={{color:"var(--red)"}} /> Eliminar cuenta</h4>
+                <p className={styles.dangerText}>Esta acción es irreversible. Se eliminarán todos tus datos permanentemente.</p>
+                <button type="button" className={styles.dangerBtn} onClick={() => show("Función no disponible en demo.", "warn")}>
+                  <Trash2 size={14} /> Eliminar mi cuenta
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {activeTab === "notifications" && (
+          <section className={styles.card} aria-label="Preferencias de notificaciones">
+            <header className={styles.cardHeader}>
+              <h3><Bell size={18} /> Notificaciones</h3>
+            </header>
+            <div className={styles.prefGrid}>
+              <label className={styles.prefItem}>
+                <div className={styles.prefInfo}>
+                  <span className={styles.prefTitle}>Notificaciones por correo</span>
+                  <span className={styles.prefDesc}>Recibe alertas importantes en tu bandeja de entrada</span>
+                </div>
+                <input type="checkbox" defaultChecked />
+              </label>
+              <label className={styles.prefItem}>
+                <div className={styles.prefInfo}>
+                  <span className={styles.prefTitle}>Notificaciones en la app</span>
+                  <span className={styles.prefDesc}>Alertas emergentes dentro del panel administrativo</span>
+                </div>
+                <input type="checkbox" defaultChecked />
+              </label>
+              <label className={styles.prefItem}>
+                <div className={styles.prefInfo}>
+                  <span className={styles.prefTitle}>Recordatorios de tareas</span>
+                  <span className={styles.prefDesc}>Avisos de vencimientos y seguimientos</span>
+                </div>
+                <input type="checkbox" defaultChecked />
+              </label>
+              <label className={styles.prefItem}>
+                <div className={styles.prefInfo}>
+                  <span className={styles.prefTitle}>Reportes semanales</span>
+                  <span className={styles.prefDesc}>Resumen de actividad cada lunes</span>
+                </div>
+                <input type="checkbox" />
+              </label>
+              <label className={styles.prefItem}>
+                <div className={styles.prefInfo}>
+                  <span className={styles.prefTitle}>Alertas de seguridad</span>
+                  <span className={styles.prefDesc}>Intentos de acceso, cambios de contraseña, 2FA</span>
+                </div>
+                <input type="checkbox" defaultChecked />
+              </label>
+              <label className={styles.prefItem}>
+                <div className={styles.prefInfo}>
+                  <span className={styles.prefTitle}>Actualizaciones del sistema</span>
+                  <span className={styles.prefDesc}>Novedades, mantenimiento, nuevas funciones</span>
+                </div>
+                <input type="checkbox" />
+              </label>
+            </div>
+          </section>
+        )}
+
+        {activeTab === "privacy" && (
+          <section className={styles.card} aria-label="Privacidad">
+            <header className={styles.cardHeader}>
+              <h3><ShieldCheck size={18} /> Privacidad</h3>
+            </header>
+            <div className={styles.prefGrid}>
+              <label className={styles.prefItem}>
+                <div className={styles.prefInfo}>
+                  <span className={styles.prefTitle}>Perfil visible para otros</span>
+                  <span className={styles.prefDesc}>Permite que otros usuarios vean tu información básica</span>
+                </div>
+                <input type="checkbox" defaultChecked />
+              </label>
+              <label className={styles.prefItem}>
+                <div className={styles.prefInfo}>
+                  <span className={styles.prefTitle}>Mostrar actividad reciente</span>
+                  <span className={styles.prefDesc}>Permite que otros vean tu actividad en el sistema</span>
+                </div>
+                <input type="checkbox" defaultChecked />
+              </label>
+              <label className={styles.prefItem}>
+                <div className={styles.prefInfo}>
+                  <span className={styles.prefTitle}>Permitir análisis de uso</span>
+                  <span className={styles.prefDesc}>Ayuda a mejorar el sistema con datos anónimos</span>
+                </div>
+                <input type="checkbox" defaultChecked />
+              </label>
+              <label className={styles.prefItem}>
+                <div className={styles.prefInfo}>
+                  <span className={styles.prefTitle}>Historial de ubicación</span>
+                  <span className={styles.prefDesc}>Guarda tu ubicación para reportes de flota</span>
+                </div>
+                <input type="checkbox" />
+              </label>
+            </div>
+          </section>
+        )}
+
+        {activeTab === "appearance" && (
+          <section className={styles.card} aria-label="Apariencia">
+            <header className={styles.cardHeader}>
+              <h3><Settings size={18} /> Apariencia</h3>
+            </header>
+            <div className={styles.appearanceGrid}>
+              <div className={styles.appearanceCard}>
+                <h4><Sun size={16} /> Tema</h4>
+                <p>Elige cómo se ve el panel.</p>
+                <div className={styles.themeOptions}>
+                  <label className={styles.themeOption}>
+                    <input type="radio" name="theme" defaultChecked />
+                    <span><Sun size={16} /> Claro</span>
+                  </label>
+                  <label className={styles.themeOption}>
+                    <input type="radio" name="theme" />
+                    <span><Moon size={16} /> Oscuro</span>
+                  </label>
+                  <label className={styles.themeOption}>
+                    <input type="radio" name="theme" />
+                    <span><Monitor size={16} /> Sistema</span>
+                  </label>
+                </div>
+              </div>
+              <div className={styles.appearanceCard}>
+                <h4><Globe size={16} /> Idioma y región</h4>
+                <p>Configura el formato de fechas, números y moneda.</p>
+                <div className={styles.localeOptions}>
+                  <label className={styles.localeOption}>
+                    <input type="radio" name="locale" defaultChecked />
+                    <span>Español (Honduras) - L, dd/mm/aaaa</span>
+                  </label>
+                  <label className={styles.localeOption}>
+                    <input type="radio" name="locale" />
+                    <span>Español (España) - €, dd/mm/aaaa</span>
+                  </label>
+                  <label className={styles.localeOption}>
+                    <input type="radio" name="locale" />
+                    <span>English (US) - $, mm/dd/yyyy</span>
+                  </label>
+                </div>
+              </div>
+              <div className={styles.appearanceCard}>
+                <h4><Eye size={16} /> Densidad de información</h4>
+                <p>Controla el espacio entre elementos.</p>
+                <div className={styles.densityOptions}>
+                  <label className={styles.densityOption}>
+                    <input type="radio" name="density" defaultChecked />
+                    <span>Cómodo</span>
+                  </label>
+                  <label className={styles.densityOption}>
+                    <input type="radio" name="density" />
+                    <span>Compacto</span>
+                  </label>
+                  <label className={styles.densityOption}>
+                    <input type="radio" name="density" />
+                    <span>Amplio</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {activeTab === "api" && (
+          <section className={styles.card} aria-label="Claves de API">
+            <header className={styles.cardHeader}>
+              <h3><Key size={18} /> Claves de API</h3>
+            </header>
+            <p className={styles.apiNote}>Genera claves para integraciones externas (webhooks, scripts, apps móviles).</p>
+            <div className={styles.apiList}>
+              <article className={styles.apiItem}>
+                <div className={styles.apiInfo}>
+                  <strong>App móvil Arconet</strong>
+                  <span>Creada: 12/03/2026 · Último uso: hace 2 horas · Permisos: lectura/escritura</span>
+                </div>
+                <div className={styles.apiActions}>
+                  <button className={styles.ghostBtn}><Copy size={14} /> Copiar</button>
+                  <button className={styles.ghostBtn}><Edit size={14} /> Editar</button>
+                  <button className={styles.dangerBtn}><Trash2 size={14} /> Revocar</button>
+                </div>
+              </article>
+              <article className={styles.apiItem}>
+                <div className={styles.apiInfo}>
+                  <strong>Webhook ERP externo</strong>
+                  <span>Creada: 05/01/2026 · Último uso: hace 3 días · Permisos: solo lectura</span>
+                </div>
+                <div className={styles.apiActions}>
+                  <button className={styles.ghostBtn}><Copy size={14} /> Copiar</button>
+                  <button className={styles.ghostBtn}><Edit size={14} /> Editar</button>
+                  <button className={styles.dangerBtn}><Trash2 size={14} /> Revocar</button>
+                </div>
+              </article>
+            </div>
+            <button type="button" className={styles.primaryBtn} style={{marginTop:"16px"}}><Plus size={16} /> Nueva clave de API</button>
+          </section>
+        )}
+
+        {/* Modales de seguridad */}
+        {securityModals.password && (
+          <div className={styles.overlay} onClick={() => closeSecurityModal("password")} role="presentation">
+            <div className={styles.modal} role="dialog" aria-modal="true" aria-label="Cambiar contraseña" onClick={(e) => e.stopPropagation()}>
+              <h3><Lock size={20} /> Cambiar contraseña</h3>
+              <form onSubmit={handlePasswordSave}>
+                <div className={styles.modalField}>
+                  <label>Contraseña actual</label>
+                  <input type="password" value={passwordForm.actual} onChange={(e) => setPasswordForm((p) => ({ ...p, actual: e.target.value }))} required />
+                </div>
+                <div className={styles.modalField}>
+                  <label>Nueva contraseña</label>
+                  <input type="password" value={passwordForm.nueva} onChange={(e) => setPasswordForm((p) => ({ ...p, nueva: e.target.value }))} required minLength={8} />
+                </div>
+                <div className={styles.modalField}>
+                  <label>Confirmar nueva contraseña</label>
+                  <input type="password" value={passwordForm.confirmar} onChange={(e) => setPasswordForm((p) => ({ ...p, confirmar: e.target.value }))} required />
+                </div>
+                <footer className={styles.modalActions}>
+                  <button type="button" className={styles.ghostBtn} onClick={() => closeSecurityModal("password")}>Cancelar</button>
+                  <button type="submit" className={styles.submit} disabled={saving}>{saving ? "Guardando..." : "Actualizar"}</button>
+                </footer>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {securityModals.twofa && (
+          <div className={styles.overlay} onClick={() => closeSecurityModal("twofa")} role="presentation">
+            <div className={styles.modal} role="dialog" aria-modal="true" aria-label="Autenticación de dos factores" onClick={(e) => e.stopPropagation()}>
+              <h3><ShieldCheck size={20} /> {myWorker?.twofa ? "Gestionar 2FA" : "Activar 2FA"}</h3>
+              {myWorker?.twofa ? (
+                <div className={styles.twofaActive}>
+                  <p>2FA está <strong>activado</strong> con app de autenticación.</p>
+                  <div className={styles.modalActions}>
+                    <button className={styles.ghostBtn} onClick={() => show("Códigos de respaldo generados.", "info")}><FileText size={14} /> Ver códigos de respaldo</button>
+                    <button className={styles.dangerBtn} onClick={() => { show("2FA desactivado.", "warn"); closeSecurityModal("twofa"); }}>Desactivar 2FA</button>
+                  </div>
+                </div>
+              ) : (
+                <div className={styles.twofaSetup}>
+                  <p>Escanea este código QR con tu app de autenticación:</p>
+                  <div className={styles.qrPlaceholder} aria-label="Código QR para 2FA">[QR CODE]</div>
+                  <p className={styles.twofaNote}>Ingresa el código de 6 dígitos de tu app:</p>
+                  <input type="text" maxLength={6} placeholder="000000" className={styles.twofaInput} />
+                  <div className={styles.modalActions}>
+                    <button className={styles.ghostBtn} onClick={() => closeSecurityModal("twofa")}>Cancelar</button>
+                    <button className={styles.submit} onClick={() => { show("2FA activado correctamente."); closeSecurityModal("twofa"); }}>Activar</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {securityModals.sessions && (
+          <div className={styles.overlay} onClick={() => closeSecurityModal("sessions")} role="presentation">
+            <div className={styles.modal} role="dialog" aria-modal="true" aria-label="Sesiones activas" onClick={(e) => e.stopPropagation()}>
+              <h3><Users size={20} /> Sesiones activas</h3>
+              <div className={styles.sessionList}>
+                <article className={styles.sessionItem}>
+                  <div className={styles.sessionInfo}>
+                    <strong>Esta sesión</strong>
+                    <span>Chrome en Windows · San Pedro Sula, HN · Activa ahora</span>
+                  </div>
+                  <span className={styles.badge}>Actual</span>
+                </article>
+                <article className={styles.sessionItem}>
+                  <div className={styles.sessionInfo}>
+                    <strong>App móvil</strong>
+                    <span>iOS · La Ceiba, HN · Hace 2 horas</span>
+                  </div>
+                  <button className={styles.ghostBtn} style={{padding:"6px 10px",fontSize:"12px"}}>Cerrar</button>
+                </article>
+                <article className={styles.sessionItem}>
+                  <div className={styles.sessionInfo}>
+                    <strong>Chrome en Mac</strong>
+                    <span>Tegucigalpa, HN · Hace 1 día</span>
+                  </div>
+                  <button className={styles.ghostBtn} style={{padding:"6px 10px",fontSize:"12px"}}>Cerrar</button>
+                </article>
+              </div>
+              <div className={styles.modalActions}>
+                <button className={styles.ghostBtn} onClick={() => closeSecurityModal("sessions")}>Cerrar</button>
+                <button className={styles.dangerBtn} onClick={() => { show("Todas las demás sesiones cerradas."); closeSecurityModal("sessions"); }}>Cerrar todas las demás</button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+function AjustesSection({ onOpenNav, session }) {
   const [settings, setSettings] = useState({
     companyName: "Arconet, S.A.",
     email: "info@arconet.com",
@@ -3444,6 +4005,8 @@ function AjustesSection({ onOpenNav }) {
         title="Ajustes"
         subtitle="Configuración general del sistema."
         onOpenNav={onOpenNav}
+        session={session}
+        workers={workers}
       />
 
       <div className={styles.body}>

@@ -1,7 +1,7 @@
 import { prisma } from "../../../lib/prisma";
 import { newOrderId, parseOrden } from "../../../lib/ordenes";
 import { toOrden } from "../../../lib/serialize";
-import { requireSession } from "../../../lib/dal";
+import { requireSession, requireRole } from "../../../lib/dal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,22 +13,36 @@ export async function GET(request) {
   const tipo = searchParams.get("tipo");
   const estado = searchParams.get("estado");
   const clienteId = searchParams.get("clienteId");
+  const take = Math.min(Math.max(Number(searchParams.get("take")) || 100, 1), 500);
+  const skip = Math.max(Number(searchParams.get("skip")) || 0, 0);
 
   const where = {};
   if (tipo) where.tipo = tipo;
   if (estado) where.estado = estado;
   if (clienteId) where.clienteId = clienteId;
 
-  const ordenes = await prisma.orden.findMany({
-    where,
-    orderBy: { fecha: "desc" },
-    include: { cliente: true, items: true },
-  });
-  return Response.json(ordenes.map(toOrden));
+  try {
+    const ordenes = await prisma.orden.findMany({
+      where,
+      orderBy: { fecha: "desc" },
+      take,
+      skip,
+      select: {
+        id: true, tipo: true, clienteId: true, fecha: true, monto: true,
+        estado: true, notas: true,
+        cliente: { select: { nombre: true } },
+        items: { select: { productoId: true, nombre: true, cantidad: true, precio: true } },
+      },
+    });
+    return Response.json(ordenes.map(toOrden));
+  } catch (error) {
+    console.error("GET /api/ordenes", error?.message);
+    return Response.json({ error: "No se pudieron obtener las ordenes." }, { status: 500 });
+  }
 }
 
 export async function POST(request) {
-  const guard = await requireSession();
+  const guard = await requireRole(["administrador", "gerente", "ventas"]);
   if (guard.response) return guard.response;
   let body;
   try {

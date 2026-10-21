@@ -37,6 +37,11 @@ model Trabajador {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   sucursal   Sucursal? @relation(fields: [sucursalId], references: [id])
+
+  @@index([sucursalId])
+  @@index([rol])
+  @@index([estado])
+  @@index([nombre])
 }
 
 model Usuario {
@@ -50,6 +55,9 @@ model Usuario {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   sucursal     Sucursal? @relation(fields: [sucursalId], references: [id])
+
+  @@index([sucursalId])
+  @@index([rol])
 }
 
 model Producto {
@@ -66,6 +74,11 @@ model Producto {
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
   items     OrdenItem[]
+
+  @@index([categoria])
+  @@index([estado])
+  @@index([updatedAt])
+  @@index([nombre])
 }
 
 model Cliente {
@@ -83,6 +96,10 @@ model Cliente {
   updatedAt     DateTime @updatedAt
   foto          String?
   ordenes       Orden[]
+
+  @@index([estado])
+  @@index([fechaRegistro])
+  @@index([nombre])
 }
 
 model Orden {
@@ -97,6 +114,11 @@ model Orden {
   updatedAt DateTime    @updatedAt
   cliente   Cliente     @relation(fields: [clienteId], references: [id])
   items     OrdenItem[]
+
+  @@index([clienteId])
+  @@index([tipo])
+  @@index([estado])
+  @@index([fecha])
 }
 
 model OrdenItem {
@@ -108,6 +130,9 @@ model OrdenItem {
   precio     Decimal   @db.Decimal(12, 2)
   orden      Orden     @relation(fields: [ordenId], references: [id], onDelete: Cascade)
   producto   Producto? @relation(fields: [productoId], references: [id])
+
+  @@index([ordenId])
+  @@index([productoId])
 }
 
 model Log {

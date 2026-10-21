@@ -11,11 +11,32 @@ export const metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function PanelAdministrativoPage() {
+const ADMIN_SECTIONS = new Set([
+  "trabajadores",
+  "productos",
+  "sucursales",
+  "clientes",
+  "cotizaciones",
+  "flota",
+  "monitoreo",
+  "logs",
+  "resumen",
+  "mi-perfil",
+  "ajustes",
+]);
+
+export default async function PanelAdministrativoPage({ searchParams }) {
   const session = await getSession();
   if (!session) {
     redirect("/admin");
   }
+
+  const params = (await searchParams) || {};
+  const rawSection = params.section;
+  const initialSection =
+    typeof rawSection === "string" && ADMIN_SECTIONS.has(rawSection.trim())
+      ? rawSection.trim()
+      : "";
 
   return (
     <AdminPanel
@@ -25,6 +46,7 @@ export default async function PanelAdministrativoPage() {
         rol: session.rol,
         sucursal: session.sucursal ?? "",
       }}
+      initialSection={initialSection}
     />
   );
 }

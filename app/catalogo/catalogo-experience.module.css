@@ -19,7 +19,7 @@
 
 /* ==========================================================================
    DOCK DE NAVEGACIÃ“N SECUNDARIA
-   CÃ¡psula flotante de cristal que aparece al superar el hero.
+   Cápsula flotante de cristal que aparece al superar el hero.
    ========================================================================== */
 
 .topbar {
@@ -76,7 +76,7 @@
   transform-origin: left center;
 }
 
-/* CÃ¡psula */
+/* Cápsula */
 .topbarShell {
   position: relative;
   width: 100%;
@@ -194,7 +194,7 @@
   outline-offset: 3px;
 }
 
-/* Chevron del disparador del mega menÃº */
+/* Chevron del disparador del mega menú */
 .megaTrigger::after {
   content: "";
   width: 6px;
@@ -215,7 +215,7 @@
   transform: rotate(-135deg);
 }
 
-/* Mega menÃº: tarjeta flotante con columnas */
+/* Mega menú: tarjeta flotante con columnas */
 .megaMenuCatalogo {
   position: absolute;
   top: calc(100% + 12px);
@@ -398,7 +398,7 @@
   transform: translateX(3px);
 }
 
-/* BotÃ³n hamburguesa */
+/* Botón hamburguesa */
 .menuToggleCatalogo {
   display: none;
   position: relative;
@@ -451,7 +451,7 @@
   transform: translateY(-6px) rotate(-45deg);
 }
 
-/* Panel mÃ³vil */
+/* Panel móvil */
 .mobileMenu {
   display: none;
 }
@@ -592,7 +592,7 @@
   }
 }
 
-/* BotÃ³n de cotizaciÃ³n con carrito */
+/* Botón de cotización con carrito */
 .topbarAction {
   justify-self: end;
   display: inline-flex;
@@ -1174,7 +1174,7 @@
 }
 
 /* ==========================================================================
-   CATÃLOGOS DE EJEMPLO
+   CATÁLOGOS DE EJEMPLO
    ========================================================================== */
 
 .exampleSection {
@@ -1278,7 +1278,7 @@
 }
 
 /* ==========================================================================
-   CATÃLOGO
+   CATÁLOGO
    ========================================================================== */
 
 .catalogSection {
@@ -2117,11 +2117,19 @@
   mask-image: linear-gradient(90deg, #000, transparent 85%);
 }
 
-.contactContent {
+.contactInner {
   position: relative;
   z-index: 2;
-  width: min(820px, 72%);
-  padding: 100px clamp(24px, 12vw, 190px);
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 0.9fr;
+  align-items: center;
+  gap: clamp(40px, 6vw, 100px);
+  padding: 80px clamp(24px, 12vw, 190px);
+}
+
+.contactContent {
+  max-width: 600px;
 }
 
 .contactEyebrow {
@@ -2166,6 +2174,19 @@
 .contactAction:hover {
   background: #dce7ff;
   transform: translateY(-2px);
+}
+
+.contactVisual {
+  display: grid;
+  place-items: center;
+}
+
+.contactImage {
+  width: 100%;
+  max-width: 580px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 30px 40px rgba(0, 0, 0, 0.35));
 }
 
 .contactLocation {
@@ -2281,9 +2302,13 @@
   .detailBand { grid-template-columns: 1fr; gap: 18px; padding: 24px 20px; }
 
   .contactSection { min-height: 0; }
-  .contactContent { width: 100%; padding: 76px 22px 92px; }
+  .contactInner { grid-template-columns: 1fr; gap: 32px; padding: 64px 22px 80px; text-align: center; }
+  .contactContent { max-width: 100%; }
   .contactContent h2 {
   font-size: clamp(40px, 11vw, 84px); }
+  .contactAction { margin-left: auto; margin-right: auto; }
+  .contactVisual { order: -1; }
+  .contactImage { max-width: 85vw; }
   .contactLocation { right: 22px; bottom: 20px;
   font-size: 8.5px; }
 }
@@ -2311,7 +2336,7 @@
 }
 
 /* ==========================================================================
-   MODO OSCURO (automÃ¡tico segÃºn la hora)
+   MODO OSCURO (automático según la hora)
    ========================================================================== */
 
 :global(html[data-theme="dark"]) .topbarShell {
@@ -2487,7 +2512,7 @@
 }
 
 /* ==========================================================================
-   BIENVENIDA Â· SELECCIÃ“N DE SUCURSAL
+   BIENVENIDA · SELECCIÃ“N DE SUCURSAL
    ========================================================================== */
 
 .branchGate {

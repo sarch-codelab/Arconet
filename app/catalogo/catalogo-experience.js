@@ -9,7 +9,6 @@ import {
   ArrowRight,
   ArrowUpRight,
   Cable,
-  Check,
   Handshake,
   MapPin,
   Network,
@@ -24,13 +23,7 @@ import {
   X,
 } from "lucide-react";
 import styles from "./catalogo-experience.module.css";
-import {
-  CATEGORIES,
-  FAMILIES,
-  formatPrice,
-  getFamilyFlags,
-  getStockState,
-} from "./catalogo-data";
+import { CATEGORIES, formatPrice } from "./catalogo-data";
 import { useCart } from "../cart-context";
 import { useCatalogProducts } from "./catalogo-products";
 import Footer from "../footer";
@@ -64,6 +57,15 @@ const TRUST = [
 
 const BRANCH_KEY = "arconet-branch";
 
+// Ícono de respaldo para las tarjetas de producto sin foto, según su categoría.
+const PRODUCT_ICONS = {
+  "Fibra óptica": Cable,
+  "CATV y satélite": Satellite,
+  Infraestructura: Network,
+  "Medición y señal": Radio,
+  Accesorios: SlidersHorizontal,
+};
+
 const BRANCHES = [
   { id: "sps", label: "San Pedro Sula" },
   { id: "la-ceiba", label: "La Ceiba" },
@@ -95,9 +97,9 @@ const DETAILS = [
 ];
 
 const EXAMPLES = [
-  { title: "Infraestructura de Redes", text: "Gabinetes, paneles, organizadores y accesorios de montaje para ordenar y proteger tu equipamiento.", slug: "infraestructura-de-red", image: "/catalogo/prod-gabinete.png" },
-  { title: "Cableado Estructurado", text: "Splitters, patch cords, pigtails y conectores para llevar señal limpia a cada punto de la red.", slug: "fibra-optica", image: "/catalogo/prod-adss.png" },
-  { title: "Herramientas de Telecomunicaciones", text: "Moduladores, amplificadores y receptores para redes de televisión por cable y sistemas satelitales.", slug: "catv-satelite", image: "/catalogo/kit-herramientas.png" },
+  { title: "Infraestructura de Redes", text: "Gabinetes, paneles, organizadores y accesorios de montaje para ordenar y proteger tu equipamiento.", slug: "infraestructura-de-red", image: "/catalogo/prod-gabinete.png", category: true },
+  { title: "Cableado Estructurado", text: "Splitters, patch cords, pigtails y conectores para llevar señal limpia a cada punto de la red.", slug: "fibra-optica", image: "/catalogo/prod-adss.png", category: true },
+  { title: "Herramientas de Telecomunicaciones", text: "Moduladores, amplificadores y receptores para redes de televisión por cable y sistemas satelitales.", slug: "catv-satelite", image: "/catalogo/kit-herramientas.png", category: true },
 ];
 
 export default function CatalogoExperience() {
@@ -112,18 +114,18 @@ export default function CatalogoExperience() {
   const navRef = useRef(null);
   const topbarRef = useRef(null);
   const { count: cartCount, open: openCart, addItem } = useCart();
-  const { byCategory } = useCatalogProducts();
+  const { products, loading: productsLoading } = useCatalogProducts();
 
-  const addFamilyToQuote = (family) => {
+  const addProductToQuote = (product) => {
     addItem({
-      slug: family.slug,
-      title: family.title,
-      category: family.category,
-      index: family.index,
-      image: family.image,
-      presentation: "Unidad",
+      slug: product.id,
+      title: product.nombre,
+      category: product.categoria,
+      image: product.foto || "",
+      presentation: product.unidad || "Unidad",
     });
   };
+
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth > 1080) setMobileMenuOpen(false);
@@ -286,24 +288,22 @@ export default function CatalogoExperience() {
     return () => observer.disconnect();
   }, []);
 
-  const visibleFamilies = useMemo(() => {
+  const visibleProducts = useMemo(() => {
     const query = searchTerm.trim().toLocaleLowerCase("es");
-    return FAMILIES.filter((family) => {
-      const matchesCategory = activeCategory === "Todas" || family.category === activeCategory;
-      const haystack = `${family.title} ${family.summary} ${family.category} ${family.items.join(" ")}`.toLocaleLowerCase("es");
+    return products.filter((product) => {
+      const matchesCategory = activeCategory === "Todas" || product.categoria === activeCategory;
+      const haystack = `${product.nombre} ${product.sku} ${product.marca || ""} ${product.categoria}`.toLocaleLowerCase("es");
       return matchesCategory && (!query || haystack.includes(query));
     });
-  }, [activeCategory, searchTerm]);
+  }, [products, activeCategory, searchTerm]);
 
-  // Filter products by category for display
-  const filteredProducts = useMemo(() => {
-    if (activeCategory === "Todas") {
-      // When "Todas" is selected, return all products
-      return Object.values(byCategory).flat();
-    }
-    // Otherwise, return products from the selected category
-    return byCategory[activeCategory] || [];
-  }, [activeCategory, byCategory]);
+  // Filtros: las categorías conocidas más cualquier categoría nueva que exista en la BD.
+  const productCategories = useMemo(() => {
+    const extra = [...new Set(products.map((product) => product.categoria))].filter(
+      (category) => category && !CATEGORIES.includes(category)
+    );
+    return [...CATEGORIES, ...extra];
+  }, [products]);
 
   const resetFilters = () => {
     setActiveCategory("Todas");
@@ -596,7 +596,7 @@ export default function CatalogoExperience() {
         </div>
         <div className={styles.exampleGrid}>
           {EXAMPLES.map((example) => (
-            <Link className={styles.exampleCard} href={`/catalogo/${example.slug}`} key={example.title} data-reveal>
+            <Link className={styles.exampleCard} href={`/catalogo/categoria/${example.slug}`} key={example.title} data-reveal>
               <div className={styles.exampleVisual}>
                 <Image
                   src={example.image}
@@ -621,16 +621,16 @@ export default function CatalogoExperience() {
         <div className={styles.catalogHeading} data-reveal>
           <div>
             <p className={styles.sectionEyebrow}><i /> Encuentra tu solución</p>
-            <h2>Líneas de producto</h2>
+            <h2>Productos</h2>
           </div>
           <span className={styles.resultCount}>
-            {String(visibleFamilies.length).padStart(2, "0")} de {String(FAMILIES.length).padStart(2, "0")} líneas
+            {String(visibleProducts.length).padStart(2, "0")} de {String(products.length).padStart(2, "0")} productos
           </span>
         </div>
 
         <div className={styles.catalogControls}>
           <div className={styles.categoryFilters} role="group" aria-label="Filtrar por categoría">
-            {CATEGORIES.map((category) => (
+            {productCategories.map((category) => (
               <button
                 type="button"
                 key={category}
@@ -659,19 +659,26 @@ export default function CatalogoExperience() {
         </div>
 
         <div className={styles.familyGrid}>
-          {visibleFamilies.length ? (
-            visibleFamilies.map((family) => {
-              const Icon = family.icon;
-              const flags = getFamilyFlags(family);
-              const stockState = getStockState(family);
-              const soldOut = stockState === "out";
+          {productsLoading ? (
+            <div className={styles.emptyState}>
+              <Search size={24} strokeWidth={1.4} aria-hidden="true" />
+              <p>Cargando productos…</p>
+            </div>
+          ) : visibleProducts.length ? (
+            visibleProducts.map((product, index) => {
+              const stock = Number(product.stock) || 0;
+              const soldOut = stock <= 0;
+              const lowStock = stock > 0 && stock <= 5;
+              const stockState = soldOut ? "out" : lowStock ? "low" : "ok";
+              const Icon = PRODUCT_ICONS[product.categoria] || SlidersHorizontal;
+              const code = String(index + 1).padStart(2, "0");
               return (
-                <article className={styles.familyCard} key={family.id}>
-                  <div className={`${styles.familyVisual} ${styles[family.visual]}`}>
-                    {family.image ? (
+                <article className={styles.familyCard} key={product.id}>
+                  <div className={`${styles.familyVisual} ${product.foto ? styles.photoVisual : styles.graphicVisual}`}>
+                    {product.foto ? (
                       <Image
-                        src={family.image}
-                        alt={family.imageAlt}
+                        src={product.foto}
+                        alt={product.nombre}
                         fill
                         sizes="(max-width: 700px) 92vw, (max-width: 1080px) 46vw, 30vw"
                         className={styles.familyImage}
@@ -680,96 +687,54 @@ export default function CatalogoExperience() {
                       <div className={styles.familyGraphic} aria-hidden="true">
                         <div className={styles.graphicOrbit}><i /><i /><i /></div>
                         <Icon size={58} strokeWidth={1.1} />
-                        <span>AR / {family.index}</span>
+                        <span>AR / {product.sku}</span>
                       </div>
                     )}
-                    <span className={styles.familyIndex}>{family.index}</span>
-                    {flags.length ? (
+                    <span className={styles.familyIndex}>{code}</span>
+                    {stockState !== "ok" ? (
                       <div className={styles.familyFlags}>
-                        {flags.map((flag) => {
-                          const FlagIcon = flag.icon;
-                          return (
-                            <span
-                              key={flag.id}
-                              className={`${styles.familyFlag} ${styles[`flag_${flag.id}`] || ""}`}
-                            >
-                              <FlagIcon size={11} strokeWidth={2.2} aria-hidden="true" />
-                              {flag.label}
-                            </span>
-                          );
-                        })}
+                        <span className={`${styles.familyFlag} ${soldOut ? styles.flag_soldout : styles.flag_low}`}>
+                          {soldOut ? "Agotado" : "Últimas unidades"}
+                        </span>
                       </div>
                     ) : null}
                   </div>
 
                   <div className={styles.familyCopy}>
-                    <p className={styles.familyCategory}>{family.category}</p>
-                    <h3>{family.title}</h3>
-                    <p className={styles.familySummary}>{family.summary}</p>
-                    <ul className={styles.familyItems}>
-                      {family.items.map((item) => (
-                        <li key={item}><Check size={13} aria-hidden="true" />{item}</li>
-                      ))}
-                    </ul>
-
-                    {(() => {
-                      // Obtener productos de esta categoría desde BD
-                      const categoryProducts = byCategory[family.category] || [];
-
-                      // Solo mostrar productos si hay en esta categoría
-                      if (!categoryProducts.length) return null;
-                      const shown = categoryProducts.slice(0, 4);
-                      const rest = categoryProducts.length - shown.length;
-                      return (
-                        <div className={styles.familyProducts}>
-                          <span className={styles.familyProductsLabel}>
-                            {categoryProducts.length} producto{categoryProducts.length === 1 ? "" : "s"} en existencia
-                          </span>
-                          <ul>
-                            {shown.map((product) => (
-                              <li key={product.id}>
-                                <span>{product.nombre}</span>
-                                <span className={styles.familyProductPrice}>{formatPrice(product.precio)}</span>
-                              </li>
-                            ))}
-                          </ul>
-                          {rest > 0 && (
-                            <Link className={styles.familyProductsMore} href={`/catalogo/${family.slug}`}>
-                              Ver {rest} más
-                            </Link>
-                          )}
-                        </div>
-                      );
-                    })()}
+                    <p className={styles.familyCategory}>{product.categoria}</p>
+                    <h3>{product.nombre}</h3>
+                    <p className={styles.familySummary}>
+                      SKU {product.sku}
+                      {product.marca ? ` · ${product.marca}` : ""} · {product.unidad}
+                    </p>
 
                     <div className={styles.familyMeta}>
                       <div className={styles.metaCell}>
-                        <span className={styles.metaLabel}>Precio desde</span>
+                        <span className={styles.metaLabel}>Precio</span>
                         <span className={styles.metaPrice}>
-                          <strong>{formatPrice(family.price)}</strong>
-                          {family.compareAtPrice > family.price && (
-                            <s>{formatPrice(family.compareAtPrice)}</s>
-                          )}
+                          <strong>{formatPrice(product.precio)}</strong>
                         </span>
                       </div>
                       <div className={styles.metaCell}>
                         <span className={styles.metaLabel}>Existencias</span>
                         <span className={`${styles.metaStock} ${styles[`stock_${stockState}`] || ""}`}>
                           <i aria-hidden="true" />
-                          {soldOut ? "Agotado" : `${family.stock.toLocaleString("es-HN")} pzs disponibles`}
+                          {soldOut
+                            ? "Agotado"
+                            : `${stock.toLocaleString("es-HN")} pzs disponibles`}
                         </span>
                       </div>
                     </div>
 
-                    <Link className={styles.familyLink} href={`/catalogo/${family.slug}`}>
+                    <Link className={styles.familyLink} href={`/catalogo/producto/${product.id}`}>
                       Ver detalle y cotizar <ArrowUpRight size={16} />
                     </Link>
 
                     <button
                       type="button"
                       className={styles.familyQuoteButton}
-                      onClick={() => addFamilyToQuote(family)}
-                      aria-label={`Añadir ${family.title} a la cotización`}
+                      onClick={() => addProductToQuote(product)}
+                      aria-label={`Añadir ${product.nombre} a la cotización`}
                     >
                       Añadir a cotización
                       <span><ShoppingCart size={15} aria-hidden="true" /></span>
@@ -781,7 +746,7 @@ export default function CatalogoExperience() {
           ) : (
             <div className={styles.emptyState}>
               <Search size={24} strokeWidth={1.4} aria-hidden="true" />
-              <p>No encontramos esa línea todavía, pero podemos conseguirla para ti.</p>
+              <p>No encontramos ese producto todavía, pero podemos conseguirlo para ti.</p>
               <div>
                 <button type="button" onClick={resetFilters}>Ver todo el catálogo</button>
                 <a href="/#contacto">Escribir al equipo <ArrowRight size={15} /></a>
@@ -840,15 +805,26 @@ export default function CatalogoExperience() {
 
       <section className={styles.contactSection}>
         <div className={styles.contactGrid} aria-hidden="true" />
-        <div className={styles.contactContent} data-reveal>
-          <p className={styles.contactEyebrow}>Tu proyecto empieza con una conversación</p>
-          <h2>Hagamos que<br /><em>todo conecte.</em></h2>
-          <p>
-            Dinos qué necesitas conectar. Te respondemos con una recomendación concreta y una cotización clara, sin compromiso.
-          </p>
-          <a className={styles.contactAction} href="/#contacto">
-            Escribir al equipo <ArrowUpRight size={17} />
-          </a>
+        <div className={styles.contactInner}>
+          <div className={styles.contactContent} data-reveal>
+            <p className={styles.contactEyebrow}>Tu proyecto empieza con una conversación</p>
+            <h2>Hagamos que<br /><em>todo conecte.</em></h2>
+            <p>
+              Dinos qué necesitas conectar. Te respondemos con una recomendación concreta y una cotización clara, sin compromiso.
+            </p>
+            <a className={styles.contactAction} href="/#contacto">
+              Escribir al equipo <ArrowUpRight size={17} />
+            </a>
+          </div>
+          <div className={styles.contactVisual} data-reveal>
+            <Image
+              src="/neto-servicio-cliente.png"
+              alt="Neto servicio al cliente"
+              width={700}
+              height={700}
+              className={styles.contactImage}
+            />
+          </div>
         </div>
         <span className={styles.contactLocation}>San Pedro Sula · Honduras</span>
       </section>

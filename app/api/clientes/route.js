@@ -1,17 +1,19 @@
 import { prisma } from "../../../lib/prisma";
 import { newClienteId, parseCliente } from "../../../lib/clientes";
 import { toCliente } from "../../../lib/serialize";
-import { requireSession } from "../../../lib/dal";
+import { requireSession, requireRole } from "../../../lib/dal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request) {
-  const guard = await requireSession();
+  const guard = await requireRole(["administrador", "gerente", "ventas"]);
   if (guard.response) return guard.response;
   const { searchParams } = new URL(request.url);
   const estado = searchParams.get("estado");
   const q = searchParams.get("q");
+  const take = Math.min(Math.max(Number(searchParams.get("take")) || 100, 1), 500);
+  const skip = Math.max(Number(searchParams.get("skip")) || 0, 0);
 
   const where = {};
   if (estado) where.estado = estado;
@@ -23,15 +25,27 @@ export async function GET(request) {
     ];
   }
 
-  const clientes = await prisma.cliente.findMany({
-    where,
-    orderBy: { fechaRegistro: "desc" },
-  });
-  return Response.json(clientes.map(toCliente));
+  try {
+    const clientes = await prisma.cliente.findMany({
+      where,
+      orderBy: { fechaRegistro: "desc" },
+      take,
+      skip,
+      select: {
+        id: true, nombre: true, rtn: true, contacto: true, correo: true,
+        telefono: true, direccion: true, ciudad: true, estado: true, foto: true,
+        fechaRegistro: true,
+      },
+    });
+    return Response.json(clientes.map(toCliente));
+  } catch (error) {
+    console.error("GET /api/clientes", error?.message);
+    return Response.json({ error: "No se pudieron obtener los clientes." }, { status: 500 });
+  }
 }
 
 export async function POST(request) {
-  const guard = await requireSession();
+  const guard = await requireRole(["administrador", "gerente", "ventas"]);
   if (guard.response) return guard.response;
   let body;
   try {
