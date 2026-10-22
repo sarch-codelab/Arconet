@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import LocomotiveScroll from "locomotive-scroll";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -44,69 +45,50 @@ export default function ProductPage({ product }) {
   const [quantity, setQuantity] = useState(1);
   const { addItem, open: openCart, count: cartCount } = useCart();
   const { products } = useCatalogProducts();
+  const topbarRef = useRef(null);
+  const pageRef = useRef(null);
 
   const stock = Number(product.stock) || 0;
   const soldOut = stock <= 0;
   const lowStock = stock > 0 && stock <= 20;
   const Icon = CATEGORY_ICONS[product.categoria] || SlidersHorizontal;
-  const [activeSection, setActiveSection] = useState("familias");
-  const navRef = useRef(null);
   const NAVIGATION = [
-    { id: "inicio", label: "Inicio", href: "/" },
-    { id: "familias", label: "Soluciones", href: "/catalogo" },
-    { id: "empresa", label: "La empresa", href: "/#empresa" },
-    { id: "contacto", label: "Contacto", href: "/contacto" },
+    { href: "/catalogo", label: "Soluciones" },
+    { href: "/#empresa", label: "La empresa" },
+    { href: "/contacto", label: "Contacto" },
   ];
 
-  // Actualizar activeSection al hacer scroll (solo en la página principal)
   useEffect(() => {
-    const ids = NAVIGATION.map((item) => item.id).filter(Boolean);
-    const sections = ids.map((id) => document.getElementById(id)).filter(Boolean);
-    if (!sections.length || typeof IntersectionObserver === "undefined") return undefined;
+    const page = pageRef.current;
+    const topbar = topbarRef.current;
+    if (!page) return undefined;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) setActiveSection((current) => (current === entry.target.id ? current : entry.target.id));
-        });
-      },
-      { rootMargin: "-45% 0px -50% 0px" }
-    );
+    const updateScroll = ({ scroll = window.scrollY, limit, progress } = {}) => {
+      const scrollable = Math.max(limit ?? document.documentElement.scrollHeight - window.innerHeight, 1);
+      const pageProgress = typeof progress === "number" ? progress : Math.min(1, Math.max(0, scroll / scrollable));
+      page.style.setProperty("--page-progress", pageProgress.toFixed(4));
 
-    sections.forEach((section) => observer.observe(section));
-    return () => observer.disconnect();
-  }, [activeSection]);
-
-  // Indicador deslizante del menú de navegación
-  useEffect(() => {
-    const nav = navRef.current;
-    if (!nav) return undefined;
-
-    const syncIndicator = () => {
-      const active = nav.querySelector('[data-active="true"]');
-      if (!active || !active.offsetWidth) {
-        nav.style.setProperty("--nav-indicator-opacity", "0");
-        return;
+      if (topbar) {
+        topbar.style.setProperty("--scroll-progress", Math.min(1, Math.max(0, scroll / scrollable)).toFixed(4));
       }
-      nav.style.setProperty("--nav-indicator-x", `${active.offsetLeft}px`);
-      nav.style.setProperty("--nav-indicator-w", `${active.offsetWidth}px`);
-      nav.style.setProperty("--nav-indicator-opacity", "1");
     };
 
-    syncIndicator();
-    window.addEventListener("resize", syncIndicator);
+    const locomotive = new LocomotiveScroll({
+      lenisOptions: {
+        anchors: true,
+        lerp: 0.085,
+        respectReducedMotion: true,
+        smoothTouch: false,
+        smoothWheel: true,
+      },
+      scrollCallback: updateScroll,
+    });
 
-    let observer;
-    if (typeof ResizeObserver !== "undefined") {
-      observer = new ResizeObserver(syncIndicator);
-      observer.observe(nav);
-    }
+    updateScroll({ scroll: window.scrollY });
+    return () => locomotive.destroy();
+  }, []);
 
-    return () => {
-      window.removeEventListener("resize", syncIndicator);
-      observer?.disconnect();
-    };
-  }, [activeSection]);
+
 
   const related = products
     .filter((item) => item.categoria === product.categoria && item.id !== product.id)
@@ -126,44 +108,44 @@ export default function ProductPage({ product }) {
   };
 
   return (
-    <main className={styles.page}>
-      <header className={styles.header}>
-        <Link className={styles.brand} href="/" aria-label="Arconet, inicio">
-          <Image src="/arconet.png" alt="Arconet" width={2172} height={362} priority />
-        </Link>
-        <nav className={`${styles.nav} ${styles.navigation}`} aria-label="Navegación principal" ref={navRef}>
-          <span className={styles.navIndicator} aria-hidden="true" />
-          {NAVIGATION.map((item) => {
-            const isActive = activeSection === item.id;
-            return (
+    <main className={styles.page} ref={pageRef}>
+      <header
+        ref={topbarRef}
+        className={styles.topbar}
+      >
+        <span className={styles.scrollProgress} aria-hidden="true">
+          <i />
+        </span>
+
+        <div className={styles.topbarShell}>
+          <a className={styles.topbarBrand} href="/" aria-label="Arconet, inicio">
+            <Image src="/arconet.png" alt="Arconet" width={2172} height={362} />
+          </a>
+
+          <nav className={styles.topbarNav} aria-label="Navegación del catálogo">
+            {NAVIGATION.map((item) => (
               <a
                 key={item.label}
                 href={item.href}
-                data-active={isActive ? "true" : "false"}
-                className={isActive ? styles.navigationActive : undefined}
-                aria-current={isActive ? "page" : undefined}
               >
                 {item.label}
               </a>
-            );
-          })}
-        </nav>
-        <button
-          type="button"
-          className={styles.headerAction}
-          onClick={openCart}
-          aria-label={`Carrito de cotización, ${cartCount} ${cartCount === 1 ? "unidad" : "unidades"}`}
-        >
-          Cotización
-          <span>
-            <ShoppingCart size={15} aria-hidden="true" />
-            {cartCount > 0 && (
-              <i className="cartBadge" aria-hidden="true">
-                {cartCount > 99 ? "99+" : cartCount}
-              </i>
-            )}
-          </span>
-        </button>
+            ))}
+          </nav>
+
+          <button
+            type="button"
+            className={styles.topbarAction}
+            onClick={openCart}
+            aria-label={`Carrito de cotización, ${cartCount} ${cartCount === 1 ? "unidad" : "unidades"}`}
+          >
+            <span className={styles.topbarCartIcon}>
+              <ShoppingCart size={15} aria-hidden="true" />
+              {cartCount > 0 && <i className="cartBadge" aria-hidden="true">{cartCount > 99 ? "99+" : cartCount}</i>}
+            </span>
+            Cotización
+          </button>
+        </div>
       </header>
 
       <div className={styles.breadcrumb}>

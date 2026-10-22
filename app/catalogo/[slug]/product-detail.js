@@ -73,22 +73,34 @@ function ProductVisual({ item, className, priority = false }) {
 export default function ProductDetail({ slug }) {
   const family = findFamily(slug);
   const pageRef = useRef(null);
+  const topbarRef = useRef(null);
   const [activeTab, setActiveTab] = useState("detalles");
   const [activeImage, setActiveImage] = useState(0);
   const [saved, setSaved] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [presentation, setPresentation] = useState(PRESENTATIONS[0]);
+  const [scrolledPastHero, setScrolledPastHero] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { addItem, open: openCart, count: cartCount } = useCart();
   const { byCategory, loading: productsLoading } = useCatalogProducts();
 
   useEffect(() => {
     const page = pageRef.current;
+    const topbar = topbarRef.current;
     if (!page) return undefined;
 
     const updateScroll = ({ scroll = window.scrollY, limit, progress } = {}) => {
       const scrollable = Math.max(limit ?? document.documentElement.scrollHeight - window.innerHeight, 1);
       const pageProgress = typeof progress === "number" ? progress : Math.min(1, Math.max(0, scroll / scrollable));
       page.style.setProperty("--page-progress", pageProgress.toFixed(4));
+
+      // Show topbar after scrolling past a threshold
+      const shouldShow = scroll > window.innerHeight * 0.15;
+      setScrolledPastHero((current) => current === shouldShow ? current : shouldShow);
+
+      if (topbar) {
+        topbar.style.setProperty("--scroll-progress", Math.min(1, Math.max(0, scroll / scrollable)).toFixed(4));
+      }
     };
 
     const locomotive = new LocomotiveScroll({
@@ -163,25 +175,47 @@ export default function ProductDetail({ slug }) {
   return (
     <main className={styles.detail} ref={pageRef}>
       <div className={styles.readingProgress} aria-hidden="true" />
-      <header className={styles.header}>
-        <Link className={styles.brand} href="/" aria-label="Arconet, inicio">
-          <Image src="/arconet.png" alt="Arconet" width={2172} height={362} priority />
-        </Link>
-        <nav className={styles.nav} aria-label="Navegación principal">
-          {NAVIGATION.map((item) => <a key={item.label} href={item.href}>{item.label}</a>)}
-        </nav>
-        <button
-          type="button"
-          className={styles.headerAction}
-          onClick={openCart}
-          aria-label={`Carrito de cotización, ${cartCount} ${cartCount === 1 ? "unidad" : "unidades"}`}
-        >
-          Cotización
-          <span>
-            <ShoppingCart size={15} aria-hidden="true" />
-            {cartCount > 0 && <i className="cartBadge" aria-hidden="true">{cartCount > 99 ? "99+" : cartCount}</i>}
-          </span>
-        </button>
+
+      <header
+        ref={topbarRef}
+        className={`${styles.topbar} ${scrolledPastHero ? styles.topbarVisible : styles.topbarHidden}`}
+        aria-hidden={!scrolledPastHero}
+      >
+        <span className={styles.scrollProgress} aria-hidden="true">
+          <i />
+        </span>
+
+        <div className={styles.topbarShell}>
+          <a className={styles.topbarBrand} href="/" aria-label="Arconet, inicio" tabIndex={scrolledPastHero ? 0 : -1}>
+            <Image src="/arconet.png" alt="Arconet" width={2172} height={362} />
+          </a>
+
+          <nav className={styles.topbarNav} aria-label="Navegación del catálogo">
+            {NAVIGATION.map((item) => (
+              <a
+                key={item.label}
+                href={item.href}
+                tabIndex={scrolledPastHero ? 0 : -1}
+              >
+                {item.label}
+              </a>
+            ))}
+          </nav>
+
+          <button
+            type="button"
+            className={styles.topbarAction}
+            onClick={openCart}
+            tabIndex={scrolledPastHero ? 0 : -1}
+            aria-label={`Carrito de cotización, ${cartCount} ${cartCount === 1 ? "unidad" : "unidades"}`}
+          >
+            <span className={styles.topbarCartIcon}>
+              <ShoppingCart size={15} aria-hidden="true" />
+              {cartCount > 0 && <i className="cartBadge" aria-hidden="true">{cartCount > 99 ? "99+" : cartCount}</i>}
+            </span>
+            Cotización
+          </button>
+        </div>
       </header>
 
       <div className={styles.breadcrumb}>
