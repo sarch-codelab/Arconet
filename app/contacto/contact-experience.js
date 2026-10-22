@@ -11,7 +11,7 @@ import {
   MapPin,
   Network,
   Radio,
-  Satellite,
+  Wrench,
 } from "lucide-react";
 import styles from "./contact-experience.module.css";
 import Footer from "../footer";
@@ -25,10 +25,10 @@ const NAVIGATION = [
 ];
 
 const AREAS = [
-  { icon: Cable, title: "Fibra óptica", text: "Splitters, patch cords y pigtails." },
-  { icon: Radio, title: "CATV", text: "Equipos para redes de televisión por cable." },
-  { icon: Satellite, title: "Satelital", text: "Componentes para sistemas satelitales." },
-  { icon: Network, title: "Infraestructura", text: "Racks y accesorios para tu red." },
+  { icon: Cable, title: "Componentes pasivos", text: "Splitters, patch cords y pigtails." },
+  { icon: Radio, title: "Soluciones activas y Accesorios FTTH", text: "Equipos para redes de TV por cable y FTTH." },
+  { icon: Network, title: "Gabinetes y Racks", text: "Racks, gabinetes y accesorios para tu red." },
+  { icon: Wrench, title: "Herramientas y kits", text: "Kits e instrumentos para instalar y medir." },
 ];
 
 const STEPS = [
@@ -272,7 +272,7 @@ export default function ContactExperience() {
             <label>Correo electrónico<input type="email" name="email" autoComplete="email" required placeholder="nombre@empresa.com" /></label>
             <label>Teléfono <span>Opcional</span><input type="tel" name="phone" autoComplete="tel" placeholder="+504" /></label>
             <label className={styles.formFull}>Área de interés
-              <select name="area" defaultValue="Fibra óptica">
+              <select name="area" defaultValue="Componentes pasivos">
                 {AREAS.map((area) => <option key={area.title}>{area.title}</option>)}
                 <option>Otro proyecto</option>
               </select>

@@ -8,22 +8,27 @@ import {
   ArrowDown,
   ArrowRight,
   ArrowUpRight,
+  Boxes,
   Cable,
+  Gauge,
   Handshake,
+  Layers,
   MapPin,
   Network,
   PackageCheck,
   Radio,
-  Satellite,
+  Ruler,
   Search,
+  Server,
   ShieldCheck,
   ShoppingCart,
   SlidersHorizontal,
   Truck,
+  Wrench,
   X,
 } from "lucide-react";
 import styles from "./catalogo-experience.module.css";
-import { CATEGORIES, formatPrice } from "./catalogo-data";
+import { CATEGORIES, FAMILIES, formatPrice } from "./catalogo-data";
 import { useCart } from "../cart-context";
 import { useCatalogProducts } from "./catalogo-products";
 import Footer from "../footer";
@@ -31,14 +36,21 @@ import Footer from "../footer";
 const NAVIGATION = [
   { id: "inicio", label: "Inicio", mega: false, href: "/" },
   { id: "familias", label: "Soluciones", mega: true, href: "#familias", megaGroups: [
-    { title: "Conectividad", links: [
-      { label: "Fibra óptica", href: "/catalogo/fibra-optica" },
-      { label: "CATV y satélite", href: "/catalogo/catv-satelite" },
-      { label: "Medición y señal", href: "/catalogo/medicion-y-senal" }
+    { title: "Red óptica y FTTH", links: [
+      { label: "Soluciones de Preconectorizado", href: "/catalogo/soluciones-de-preconectorizado" },
+      { label: "Cajas de Distribución y Emplazamiento", href: "/catalogo/cajas-de-distribucion-y-emplazamiento" },
+      { label: "Soluciones activas y Accesorios FTTH", href: "/catalogo/soluciones-activas-y-accesorios-ftth" },
+      { label: "Componentes pasivos", href: "/catalogo/componentes-pasivos" }
     ]},
     { title: "Infraestructura", links: [
-      { label: "Infraestructura de red", href: "/catalogo/infraestructura-de-red" },
-      { label: "Accesorios técnicos", href: "/catalogo/accesorios-tecnicos" }
+      { label: "Gabinetes y Racks", href: "/catalogo/gabinetes-y-racks" },
+      { label: "Herrajes", href: "/catalogo/herrajes" },
+      { label: "Escaleras", href: "/catalogo/escaleras" },
+      { label: "Optical Distribution Frame - ODF", href: "/catalogo/optical-distribution-frame-odf" }
+    ]},
+    { title: "Medición y herramientas", links: [
+      { label: "Instrumentos de medición óptica", href: "/catalogo/instrumentos-de-medicion-optica" },
+      { label: "Herramientas y kits", href: "/catalogo/herramientas-y-kits" }
     ]},
     { title: "Más de Arconet", links: [
       { label: "La empresa", href: "/#empresa" },
@@ -59,11 +71,16 @@ const BRANCH_KEY = "arconet-branch";
 
 // Ícono de respaldo para las tarjetas de producto sin foto, según su categoría.
 const PRODUCT_ICONS = {
-  "Fibra óptica": Cable,
-  "CATV y satélite": Satellite,
-  Infraestructura: Network,
-  "Medición y señal": Radio,
-  Accesorios: SlidersHorizontal,
+  "Soluciones de Preconectorizado": Cable,
+  Herrajes: SlidersHorizontal,
+  "Gabinetes y Racks": Network,
+  "Cajas de Distribución y Emplazamiento": Boxes,
+  "Soluciones activas y Accesorios FTTH": Radio,
+  "Herramientas y kits": Wrench,
+  Escaleras: Ruler,
+  "Optical Distribution Frame - ODF": Server,
+  "Instrumentos de medición óptica": Gauge,
+  "Componentes pasivos": Layers,
 };
 
 const BRANCHES = [
@@ -96,11 +113,12 @@ const DETAILS = [
   { icon: ShieldCheck, title: "Soporte antes y después", text: "Te acompañamos también en la instalación." },
 ];
 
-const EXAMPLES = [
-  { title: "Infraestructura de Redes", text: "Gabinetes, paneles, organizadores y accesorios de montaje para ordenar y proteger tu equipamiento.", slug: "infraestructura-de-red", image: "/catalogo/prod-gabinete.png", category: true },
-  { title: "Cableado Estructurado", text: "Splitters, patch cords, pigtails y conectores para llevar señal limpia a cada punto de la red.", slug: "fibra-optica", image: "/catalogo/prod-adss.png", category: true },
-  { title: "Herramientas de Telecomunicaciones", text: "Moduladores, amplificadores y receptores para redes de televisión por cable y sistemas satelitales.", slug: "catv-satelite", image: "/catalogo/kit-herramientas.png", category: true },
-];
+const EXAMPLES = FAMILIES.map((family) => ({
+  title: family.title,
+  text: family.summary,
+  slug: family.slug,
+  image: family.image,
+}));
 
 export default function CatalogoExperience() {
   const [activeCategory, setActiveCategory] = useState("Todas");

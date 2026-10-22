@@ -78,7 +78,7 @@ export const SECTION_NAV_CONFIG = {
       { id: "all", label: "Productos", icon: Package, title: "Catálogo completo" },
       { id: "active", label: "En Stock", icon: Check, title: "Productos disponibles" },
       { id: "out", label: "Agotados", icon: AlertTriangle, title: "Productos agotados" },
-      { id: "fiber", label: "Fibra", icon: Layers, title: "Fibra óptica" },
+      { id: "fiber", label: "Pasivos", icon: Layers, title: "Componentes pasivos" },
       { id: "prices", label: "Tarifas", icon: TrendingUp, title: "Precios y stock" },
     ],
   },

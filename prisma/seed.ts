@@ -67,22 +67,22 @@ const CLIENTES = [
 ];
 
 const PRODUCTOS = [
-  ["p-seed-01", "Splitter óptico 1x8 PLC", "SP-1X8", "Fibra óptica", "Fiberhome", "Pieza", 850, 42, "activo", "/catalogo/sol-fibra.jpg"],
-  ["p-seed-02", "Patch cord SC/APC 3 m", "PC-SC-3", "Fibra óptica", "Arconet", "Unidad", 120, 300, "activo", "/catalogo/prod-adss.jpg"],
-  ["p-seed-03", "Pigtail SC/APC 1.5 m", "PG-SC-15", "Fibra óptica", "Arconet", "Unidad", 65, 500, "borrador", ""],
-  ["p-seed-04", "Cable ADSS 12 hilos", "ADSS-12", "Fibra óptica", "Fiberhome", "Metro", 38, 5000, "activo", "/catalogo/prod-adss.jpg"],
-  ["p-seed-05", "Modulador ágil CATV", "MOD-AG-500", "CATV y satélite", "PBI", "Unidad", 4200, 8, "activo", "/catalogo/infraestructura.jpg"],
-  ["p-seed-06", "Amplificador de línea 1 GHz", "AMP-1G", "CATV y satélite", "Lindsay", "Unidad", 3150, 12, "activo", ""],
-  ["p-seed-07", "Receptor satelital DVB-S2", "RX-DVBS2", "CATV y satélite", "PBI", "Unidad", 1890, 0, "activo", ""],
-  ["p-seed-08", "Cable coaxial RG-11", "RG-11", "CATV y satélite", "Belden", "Rollo", 2450, 0, "inactivo", ""],
-  ["p-seed-09", "Gabinete rack de pared 9U", "RK-W9", "Infraestructura", "Arconet", "Unidad", 2450, 14, "activo", "/catalogo/prod-gabinete.png"],
-  ["p-seed-10", "Gabinete rack de piso 42U", "RK-F42", "Infraestructura", "Arconet", "Unidad", 8900, 5, "activo", "/catalogo/prod-gabinete.jpg"],
-  ["p-seed-11", "Organizador horizontal 1U", "ORG-1U", "Infraestructura", "Arconet", "Unidad", 320, 60, "activo", ""],
-  ["p-seed-12", "OTDR portátil 1310/1550 nm", "OTDR-1316", "Medición y señal", "Sumitomo", "Unidad", 28500, 3, "activo", "/catalogo/prod-otdr.jpg"],
-  ["p-seed-13", "Medidor de potencia óptico PON", "PM-PON", "Medición y señal", "Joinwit", "Unidad", 4300, 9, "activo", "/catalogo/prod-powermeter.jpg"],
-  ["p-seed-14", "Fusionadora de fibra óptica", "FUS-82C", "Medición y señal", "Sumitomo", "Unidad", 42000, 2, "activo", "/catalogo/prod-fusionadora.jpg"],
-  ["p-seed-15", "Kit de herramientas para fibra", "KIT-FTTH", "Accesorios", "Arconet", "Caja", 1850, 20, "activo", "/catalogo/prod-herramientas.jpg"],
-  ["p-seed-16", "Conector de campo SC/APC", "CON-SC-APC", "Accesorios", "Fiberhome", "Unidad", 95, 0, "borrador", ""],
+  ["p-seed-01", "Splitter óptico 1x8 PLC", "SP-1X8", "Componentes pasivos", "Fiberhome", "Pieza", 850, 42, "activo", "/catalogo/sol-fibra.jpg"],
+  ["p-seed-02", "Patch cord SC/APC 3 m", "PC-SC-3", "Componentes pasivos", "Arconet", "Unidad", 120, 300, "activo", "/catalogo/prod-adss.jpg"],
+  ["p-seed-03", "Pigtail SC/APC 1.5 m", "PG-SC-15", "Componentes pasivos", "Arconet", "Unidad", 65, 500, "borrador", ""],
+  ["p-seed-04", "Cable ADSS 12 hilos", "ADSS-12", "Componentes pasivos", "Fiberhome", "Metro", 38, 5000, "activo", "/catalogo/prod-adss.jpg"],
+  ["p-seed-05", "Modulador ágil CATV", "MOD-AG-500", "Soluciones activas y Accesorios FTTH", "PBI", "Unidad", 4200, 8, "activo", "/catalogo/infraestructura.jpg"],
+  ["p-seed-06", "Amplificador de línea 1 GHz", "AMP-1G", "Soluciones activas y Accesorios FTTH", "Lindsay", "Unidad", 3150, 12, "activo", ""],
+  ["p-seed-07", "Receptor satelital DVB-S2", "RX-DVBS2", "Soluciones activas y Accesorios FTTH", "PBI", "Unidad", 1890, 0, "activo", ""],
+  ["p-seed-08", "Cable coaxial RG-11", "RG-11", "Soluciones activas y Accesorios FTTH", "Belden", "Rollo", 2450, 0, "inactivo", ""],
+  ["p-seed-09", "Gabinete rack de pared 9U", "RK-W9", "Gabinetes y Racks", "Arconet", "Unidad", 2450, 14, "activo", "/catalogo/prod-gabinete.png"],
+  ["p-seed-10", "Gabinete rack de piso 42U", "RK-F42", "Gabinetes y Racks", "Arconet", "Unidad", 8900, 5, "activo", "/catalogo/prod-gabinete.jpg"],
+  ["p-seed-11", "Organizador horizontal 1U", "ORG-1U", "Gabinetes y Racks", "Arconet", "Unidad", 320, 60, "activo", ""],
+  ["p-seed-12", "OTDR portátil 1310/1550 nm", "OTDR-1316", "Instrumentos de medición óptica", "Sumitomo", "Unidad", 28500, 3, "activo", "/catalogo/prod-otdr.jpg"],
+  ["p-seed-13", "Medidor de potencia óptico PON", "PM-PON", "Instrumentos de medición óptica", "Joinwit", "Unidad", 4300, 9, "activo", "/catalogo/prod-powermeter.jpg"],
+  ["p-seed-14", "Fusionadora de fibra óptica", "FUS-82C", "Instrumentos de medición óptica", "Sumitomo", "Unidad", 42000, 2, "activo", "/catalogo/prod-fusionadora.jpg"],
+  ["p-seed-15", "Kit de herramientas para fibra", "KIT-FTTH", "Herramientas y kits", "Arconet", "Caja", 1850, 20, "activo", "/catalogo/prod-herramientas.jpg"],
+  ["p-seed-16", "Conector de campo SC/APC", "CON-SC-APC", "Herramientas y kits", "Fiberhome", "Unidad", 95, 0, "borrador", ""],
 ];
 
 const ORDENES = [

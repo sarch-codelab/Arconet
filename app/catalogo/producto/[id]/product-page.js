@@ -7,18 +7,23 @@ import LocomotiveScroll from "locomotive-scroll";
 import {
   ArrowRight,
   ArrowUpRight,
+  Boxes,
   Cable,
+  Gauge,
   Handshake,
+  Layers,
   Minus,
   Network,
   PackageCheck,
   Plus,
   Radio,
-  Satellite,
+  Ruler,
+  Server,
   ShieldCheck,
   ShoppingCart,
   SlidersHorizontal,
   Truck,
+  Wrench,
 } from "lucide-react";
 import { formatPrice } from "../../catalogo-data";
 import { useCatalogProducts } from "../../catalogo-products";
@@ -27,11 +32,16 @@ import Footer from "../../../footer";
 import styles from "./product-page.module.css";
 
 const CATEGORY_ICONS = {
-  "Fibra óptica": Cable,
-  "CATV y satélite": Satellite,
-  Infraestructura: Network,
-  "Medición y señal": Radio,
-  Accesorios: SlidersHorizontal,
+  "Soluciones de Preconectorizado": Cable,
+  Herrajes: SlidersHorizontal,
+  "Gabinetes y Racks": Network,
+  "Cajas de Distribución y Emplazamiento": Boxes,
+  "Soluciones activas y Accesorios FTTH": Radio,
+  "Herramientas y kits": Wrench,
+  Escaleras: Ruler,
+  "Optical Distribution Frame - ODF": Server,
+  "Instrumentos de medición óptica": Gauge,
+  "Componentes pasivos": Layers,
 };
 
 const TRUST = [

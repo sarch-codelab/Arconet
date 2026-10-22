@@ -146,7 +146,7 @@ const EMPTY_PRODUCT = {
   id: "",
   nombre: "",
   sku: "",
-  categoria: "Fibra óptica",
+  categoria: "Soluciones de Preconectorizado",
   marca: "",
   unidad: "Unidad",
   precio: "",
@@ -1011,7 +1011,7 @@ function ProductsSection({ products, setProducts, workers = [], onOpenNav, sessi
       setStockOnly("out");
     } else if (tabId === "fiber") {
       setStatus("all");
-      setCategory("Fibra óptica");
+      setCategory("Componentes pasivos");
       setStockOnly("all");
     } else if (tabId === "prices") {
       setStatus("all");

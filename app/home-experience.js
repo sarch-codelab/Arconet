@@ -37,14 +37,21 @@ import Footer from "./footer";
 const NAVIGATION = [
   { id: "inicio", label: "Inicio", href: "#inicio", mega: false },
   { id: "soluciones", label: "Soluciones", href: "#soluciones", mega: true, megaGroups: [
-    { title: "Conectividad", links: [
-      { label: "Fibra óptica", href: "/catalogo/fibra-optica" },
-      { label: "CATV y satélite", href: "/catalogo/catv-satelite" },
-      { label: "Medición y señal", href: "/catalogo/medicion-y-senal" }
+    { title: "Red óptica y FTTH", links: [
+      { label: "Soluciones de Preconectorizado", href: "/catalogo/soluciones-de-preconectorizado" },
+      { label: "Cajas de Distribución y Emplazamiento", href: "/catalogo/cajas-de-distribucion-y-emplazamiento" },
+      { label: "Soluciones activas y Accesorios FTTH", href: "/catalogo/soluciones-activas-y-accesorios-ftth" },
+      { label: "Componentes pasivos", href: "/catalogo/componentes-pasivos" }
     ]},
     { title: "Infraestructura", links: [
-      { label: "Infraestructura de red", href: "/catalogo/infraestructura-de-red" },
-      { label: "Accesorios técnicos", href: "/catalogo/accesorios-tecnicos" }
+      { label: "Gabinetes y Racks", href: "/catalogo/gabinetes-y-racks" },
+      { label: "Herrajes", href: "/catalogo/herrajes" },
+      { label: "Escaleras", href: "/catalogo/escaleras" },
+      { label: "Optical Distribution Frame - ODF", href: "/catalogo/optical-distribution-frame-odf" }
+    ]},
+    { title: "Medición y herramientas", links: [
+      { label: "Instrumentos de medición óptica", href: "/catalogo/instrumentos-de-medicion-optica" },
+      { label: "Herramientas y kits", href: "/catalogo/herramientas-y-kits" }
     ]},
     { title: "Más de Arconet", links: [
       { label: "La empresa", href: "/#empresa" },
@@ -61,7 +68,7 @@ const NAVIGATION = [
 const SOLUTIONS = [
   {
     number: "01",
-    category: "Fibra óptica",
+    category: "Componentes pasivos",
     title: "Más alcance.\nMenos límites.",
     description:
       "Componentes y accesorios para llevar conectividad confiable hasta donde tu proyecto la necesita.",
@@ -72,7 +79,7 @@ const SOLUTIONS = [
   },
   {
     number: "02",
-    category: "CATV y satélite",
+    category: "Soluciones activas y Accesorios FTTH",
     title: "Una señal clara\nlo cambia todo.",
     description:
       "Equipos para redes de televisión por cable y sistemas satelitales, seleccionados para cada instalación.",
@@ -83,7 +90,7 @@ const SOLUTIONS = [
   },
   {
     number: "03",
-    category: "Infraestructura",
+    category: "Gabinetes y Racks",
     title: "El corazón de\nuna red sólida.",
     description:
       "Tecnología y accesorios para construir, ampliar y mantener la infraestructura de tu operación.",
