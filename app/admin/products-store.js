@@ -9,6 +9,7 @@ export const PRODUCT_CATEGORIES = [
   "Optical Distribution Frame - ODF",
   "Instrumentos de medición óptica",
   "Componentes pasivos",
+  "Microcables y Microproductos",
 ];
 
 export const PRODUCT_UNITS = ["Unidad", "Pieza", "Par", "Metro", "Rollo", "Caja"];

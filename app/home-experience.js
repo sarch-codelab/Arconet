@@ -41,7 +41,8 @@ const NAVIGATION = [
       { label: "Soluciones de Preconectorizado", href: "/catalogo/soluciones-de-preconectorizado" },
       { label: "Cajas de Distribución y Emplazamiento", href: "/catalogo/cajas-de-distribucion-y-emplazamiento" },
       { label: "Soluciones activas y Accesorios FTTH", href: "/catalogo/soluciones-activas-y-accesorios-ftth" },
-      { label: "Componentes pasivos", href: "/catalogo/componentes-pasivos" }
+      { label: "Componentes pasivos", href: "/catalogo/componentes-pasivos" },
+      { label: "Microcables y Microproductos", href: "/catalogo/microcables-y-microproductos" }
     ]},
     { title: "Infraestructura", links: [
       { label: "Gabinetes y Racks", href: "/catalogo/gabinetes-y-racks" },

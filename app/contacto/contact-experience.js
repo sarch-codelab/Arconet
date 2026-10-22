@@ -8,6 +8,7 @@ import {
   ArrowRight,
   ArrowUpRight,
   Cable,
+  Layers,
   MapPin,
   Network,
   Radio,
@@ -29,6 +30,7 @@ const AREAS = [
   { icon: Radio, title: "Soluciones activas y Accesorios FTTH", text: "Equipos para redes de TV por cable y FTTH." },
   { icon: Network, title: "Gabinetes y Racks", text: "Racks, gabinetes y accesorios para tu red." },
   { icon: Wrench, title: "Herramientas y kits", text: "Kits e instrumentos para instalar y medir." },
+  { icon: Layers, title: "Microcables y Microproductos", text: "Microcables y soluciones compactas para FTTH." },
 ];
 
 const STEPS = [

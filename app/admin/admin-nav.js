@@ -20,6 +20,7 @@ import {
   Settings,
   ShieldCheck,
   ScrollText,
+  Tags,
   TrendingUp,
   Truck,
   User,
@@ -45,6 +46,7 @@ export const AdminContext = createContext({
 export const NAV = [
   { id: "trabajadores", label: "Trabajadores", icon: Users },
   { id: "productos", label: "Productos", icon: Package },
+  { id: "categorias", label: "Categorías", icon: Tags },
   { id: "sucursales", label: "Sucursales", icon: Building2 },
   { id: "clientes", label: "Clientes", icon: User },
   { id: "cotizaciones", label: "Cotizaciones", icon: FileText },
@@ -80,6 +82,15 @@ export const SECTION_NAV_CONFIG = {
       { id: "out", label: "Agotados", icon: AlertTriangle, title: "Productos agotados" },
       { id: "fiber", label: "Pasivos", icon: Layers, title: "Componentes pasivos" },
       { id: "prices", label: "Tarifas", icon: TrendingUp, title: "Precios y stock" },
+    ],
+  },
+  categorias: {
+    brandName: "Categorías",
+    tabs: [
+      { id: "all", label: "Categorías", icon: Tags, title: "Todas las categorías" },
+      { id: "active", label: "Activas", icon: Check, title: "Categorías visibles en el catálogo" },
+      { id: "used", label: "Con productos", icon: Package, title: "Categorías con productos asignados" },
+      { id: "empty", label: "Vacías", icon: Layers, title: "Categorías sin productos" },
     ],
   },
   sucursales: {

@@ -28,9 +28,10 @@ import {
   X,
 } from "lucide-react";
 import styles from "./catalogo-experience.module.css";
-import { CATEGORIES, FAMILIES, formatPrice } from "./catalogo-data";
+import { FAMILIES, findFamily, formatPrice } from "./catalogo-data";
 import { useCart } from "../cart-context";
 import { useCatalogProducts } from "./catalogo-products";
+import { useCategorias } from "./categorias-store";
 import Footer from "../footer";
 
 const NAVIGATION = [
@@ -40,7 +41,8 @@ const NAVIGATION = [
       { label: "Soluciones de Preconectorizado", href: "/catalogo/soluciones-de-preconectorizado" },
       { label: "Cajas de Distribución y Emplazamiento", href: "/catalogo/cajas-de-distribucion-y-emplazamiento" },
       { label: "Soluciones activas y Accesorios FTTH", href: "/catalogo/soluciones-activas-y-accesorios-ftth" },
-      { label: "Componentes pasivos", href: "/catalogo/componentes-pasivos" }
+      { label: "Componentes pasivos", href: "/catalogo/componentes-pasivos" },
+      { label: "Microcables y Microproductos", href: "/catalogo/microcables-y-microproductos" }
     ]},
     { title: "Infraestructura", links: [
       { label: "Gabinetes y Racks", href: "/catalogo/gabinetes-y-racks" },
@@ -81,6 +83,7 @@ const PRODUCT_ICONS = {
   "Optical Distribution Frame - ODF": Server,
   "Instrumentos de medición óptica": Gauge,
   "Componentes pasivos": Layers,
+  "Microcables y Microproductos": Cable,
 };
 
 const BRANCHES = [
@@ -113,11 +116,14 @@ const DETAILS = [
   { icon: ShieldCheck, title: "Soporte antes y después", text: "Te acompañamos también en la instalación." },
 ];
 
-const EXAMPLES = FAMILIES.map((family) => ({
-  title: family.title,
-  text: family.summary,
+const FALLBACK_CATEGORIES = FAMILIES.map((family) => ({
+  id: family.id,
+  nombre: family.title,
   slug: family.slug,
-  image: family.image,
+  descripcion: family.summary,
+  foto: family.image,
+  orden: Number(family.index) || 0,
+  estado: "activo",
 }));
 
 export default function CatalogoExperience() {
@@ -133,6 +139,26 @@ export default function CatalogoExperience() {
   const topbarRef = useRef(null);
   const { count: cartCount, open: openCart, addItem } = useCart();
   const { products, loading: productsLoading } = useCatalogProducts();
+  const { categorias: remoteCategories, loaded: categoriesLoaded } = useCategorias();
+
+  const catalogCategories = useMemo(
+    () => (categoriesLoaded ? remoteCategories : FALLBACK_CATEGORIES),
+    [categoriesLoaded, remoteCategories]
+  );
+
+  const examples = useMemo(
+    () =>
+      catalogCategories.map((category) => {
+        const family = findFamily(category.slug) || findFamily(category.nombre);
+        return {
+          title: category.nombre,
+          text: category.descripcion || family?.summary || "Explora esta categoría.",
+          slug: category.slug,
+          image: category.foto || family?.image || "/catalogo/hero-fiber.jpg",
+        };
+      }),
+    [catalogCategories]
+  );
 
   const addProductToQuote = (product) => {
     addItem({
@@ -315,13 +341,14 @@ export default function CatalogoExperience() {
     });
   }, [products, activeCategory, searchTerm]);
 
-  // Filtros: las categorías conocidas más cualquier categoría nueva que exista en la BD.
+  // Filtros: las categorías activas más cualquier categoría nueva que exista en la BD.
   const productCategories = useMemo(() => {
+    const names = catalogCategories.map((category) => category.nombre);
     const extra = [...new Set(products.map((product) => product.categoria))].filter(
-      (category) => category && !CATEGORIES.includes(category)
+      (category) => category && !names.includes(category)
     );
-    return [...CATEGORIES, ...extra];
-  }, [products]);
+    return ["Todas", ...names, ...extra];
+  }, [catalogCategories, products]);
 
   const resetFilters = () => {
     setActiveCategory("Todas");
@@ -613,7 +640,7 @@ export default function CatalogoExperience() {
           <h2>Categoría</h2>
         </div>
         <div className={styles.exampleGrid}>
-          {EXAMPLES.map((example) => (
+          {examples.map((example) => (
             <Link className={styles.exampleCard} href={`/catalogo/categoria/${example.slug}`} key={example.title} data-reveal>
               <div className={styles.exampleVisual}>
                 <Image
@@ -621,6 +648,7 @@ export default function CatalogoExperience() {
                   alt={`${example.title} de Arconet`}
                   width={657}
                   height={601}
+                  unoptimized={String(example.image).startsWith("data:")}
                   sizes="(max-width: 760px) 92vw, 30vw"
                   className={styles.exampleImage}
                 />

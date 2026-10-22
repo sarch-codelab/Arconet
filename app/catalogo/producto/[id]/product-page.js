@@ -42,6 +42,7 @@ const CATEGORY_ICONS = {
   "Optical Distribution Frame - ODF": Server,
   "Instrumentos de medición óptica": Gauge,
   "Componentes pasivos": Layers,
+  "Microcables y Microproductos": Cable,
 };
 
 const TRUST = [

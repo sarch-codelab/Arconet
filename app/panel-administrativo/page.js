@@ -14,6 +14,7 @@ export const dynamic = "force-dynamic";
 const ADMIN_SECTIONS = new Set([
   "trabajadores",
   "productos",
+  "categorias",
   "sucursales",
   "clientes",
   "cotizaciones",

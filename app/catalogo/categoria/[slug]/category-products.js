@@ -33,8 +33,26 @@ const SUPPORT_ITEMS = [
   { icon: Truck, title: "Entrega en Honduras", text: "Coordinamos la entrega donde esté tu instalación." },
 ];
 
-export default function CategoryProducts({ slug }) {
-  const family = findFamily(slug);
+export default function CategoryProducts({ slug, category = null, blocked = false }) {
+  const staticFamily = findFamily(slug) || (category ? findFamily(category.slug) || findFamily(category.nombre) : null);
+  const family = category
+    ? {
+        ...(staticFamily || {}),
+        slug: category.slug || staticFamily?.slug || slug,
+        category: category.nombre,
+        title: category.nombre,
+        badge: staticFamily?.badge || "Categoría",
+        summary: category.descripcion || staticFamily?.summary || "Productos disponibles en esta categoría.",
+        description:
+          category.descripcion ||
+          staticFamily?.description ||
+          "Explora las referencias disponibles y cotiza con el equipo técnico de Arconet.",
+        items: staticFamily?.items || [],
+        image: category.foto || staticFamily?.image || "",
+        imageAlt: category.nombre,
+      }
+    : staticFamily;
+  const hasLine = Boolean(staticFamily && (!category || staticFamily.category === category.nombre));
   const pageRef = useRef(null);
   const [searchTerm, setSearchTerm] = useState("");
   const { addItem, open: openCart, count: cartCount } = useCart();
@@ -99,7 +117,7 @@ export default function CategoryProducts({ slug }) {
     );
   };
 
-  if (!family) {
+  if (blocked || !family) {
     return (
       <main className={styles.missing}>
         <p className={styles.eyebrow}>Catálogo Arconet</p>
@@ -158,6 +176,7 @@ export default function CategoryProducts({ slug }) {
               alt={family.imageAlt}
               fill
               priority
+              unoptimized={String(family.image).startsWith("data:")}
               sizes="(max-width: 900px) 92vw, 50vw"
               className={styles.heroImage}
             />
@@ -180,8 +199,8 @@ export default function CategoryProducts({ slug }) {
             ))}
           </ul>
 
-          <Link className={styles.primaryButton} href={`/catalogo/${family.slug}`}>
-            Ver línea completa <ArrowUpRight size={16} />
+          <Link className={styles.primaryButton} href={hasLine ? `/catalogo/${family.slug}` : "/catalogo#catalogo-items"}>
+            {hasLine ? "Ver línea completa" : "Ver catálogo completo"} <ArrowUpRight size={16} />
           </Link>
         </div>
       </section>
@@ -224,6 +243,7 @@ export default function CategoryProducts({ slug }) {
                       src={product.foto}
                       alt={product.nombre}
                       fill
+                      unoptimized={String(product.foto).startsWith("data:")}
                       sizes="(max-width: 700px) 90vw, 30vw"
                       className={styles.productCardImage}
                     />

@@ -81,6 +81,21 @@ model Producto {
   @@index([nombre])
 }
 
+model Categoria {
+  id          String   @id
+  nombre      String   @unique
+  slug        String   @unique
+  descripcion String?
+  foto        String?
+  orden       Int      @default(0)
+  estado      String   @default("activo")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([orden])
+  @@index([estado])
+}
+
 model Cliente {
   id            String   @id
   nombre        String

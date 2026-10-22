@@ -99,9 +99,28 @@ const ORDENES = [
   ]],
 ];
 
+const CATEGORIAS = [
+  ["cat-preconectorizado", "Soluciones de Preconectorizado", "soluciones-de-preconectorizado", "Cables, pigtails y patch cords terminados en fábrica para instalar más rápido y con menos pérdidas.", "/catalogo/sol-fibra.jpg", 1],
+  ["cat-herrajes", "Herrajes", "herrajes", "Soportes, abrazaderas y tensores para fijar cable y equipos con seguridad en poste, fachada o pared.", "/catalogo/infraestructura.jpg", 2],
+  ["cat-gabinetes", "Gabinetes y Racks", "gabinetes-y-racks", "El lugar donde vive tu equipo: ordenado, ventilado y listo para crecer contigo.", "/catalogo/prod-gabinete.jpg", 3],
+  ["cat-cajas", "Cajas de Distribución y Emplazamiento", "cajas-de-distribucion-y-emplazamiento", "Cajas de empalme, terminales y NAPs para organizar la distribución y proteger los empalmes en campo.", "/catalogo/sol-fibra.jpg", 4],
+  ["cat-activas", "Soluciones activas y Accesorios FTTH", "soluciones-activas-y-accesorios-ftth", "Equipos activos y accesorios para redes FTTH, CATV y enlaces ópticos, desde la cabecera hasta el cliente.", "/catalogo/infraestructura.jpg", 5],
+  ["cat-herramientas", "Herramientas y kits", "herramientas-y-kits", "Kits y herramientas de campo para pelar, limpiar, cortar y terminar fibra sin improvisar.", "/catalogo/prod-herramientas.jpg", 6],
+  ["cat-escaleras", "Escaleras", "escaleras", "Escaleras y accesorios de altura para llegar a postes, bandejas y gabinetes con seguridad.", "/catalogo/ingeniero-casco-redes.png", 7],
+  ["cat-odf", "Optical Distribution Frame - ODF", "optical-distribution-frame-odf", "Bandejas y marcos ODF para ordenar, proteger y administrar terminaciones de fibra en sala técnica.", "/catalogo/prod-gabinete.png", 8],
+  ["cat-medicion", "Instrumentos de medición óptica", "instrumentos-de-medicion-optica", "Instrumentos para instalar, ajustar y diagnosticar fibra sin depender de la improvisación.", "/catalogo/prod-otdr.jpg", 9],
+  ["cat-pasivos", "Componentes pasivos", "componentes-pasivos", "Splitters, conectores, adaptadores y cable para armar la red óptica sin componentes activos.", "/catalogo/hero-fiber.jpg", 10],
+  ["cat-microcables", "Microcables y Microproductos", "microcables-y-microproductos", "Microcables, microductos y accesorios compactos para instalaciones FTTH de alta densidad.", "/catalogo/prod-adss.jpg", 11],
+];
+
 async function main() {
   for (const s of SUCURSALES) {
     await prisma.sucursal.upsert({ where: { id: s.id }, update: s, create: s });
+  }
+
+  for (const [id, nombre, slug, descripcion, foto, orden] of CATEGORIAS) {
+    const data = { nombre, slug, descripcion, foto, orden, estado: "activo" };
+    await prisma.categoria.upsert({ where: { id }, update: data, create: { id, ...data } });
   }
 
   for (const [id, nombre, puesto, correo, telefono, sucursalId, rol, estado, ingreso] of TRABAJADORES) {
@@ -149,6 +168,7 @@ async function main() {
 
   console.log("Seed completo:", {
     sucursales: await prisma.sucursal.count(),
+    categorias: await prisma.categoria.count(),
     trabajadores: await prisma.trabajador.count(),
     clientes: await prisma.cliente.count(),
     productos: await prisma.producto.count(),

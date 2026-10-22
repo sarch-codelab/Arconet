@@ -33,6 +33,7 @@ export const CATEGORIES = [
   "Optical Distribution Frame - ODF",
   "Instrumentos de medición óptica",
   "Componentes pasivos",
+  "Microcables y Microproductos",
 ];
 
 export const FAMILIES = [
@@ -446,6 +447,46 @@ export const FAMILIES = [
       { src: "/catalogo/sol-fibra.jpg", alt: "Bandeja de empalme con fibra organizada", fit: "cover", caption: "Empalme" },
     ],
   },
+  {
+    id: "microcables",
+    slug: "microcables-y-microproductos",
+    index: "11",
+    category: "Microcables y Microproductos",
+    title: "Microcables y Microproductos",
+    badge: "Línea disponible",
+    price: 45,
+    stock: 8600,
+    summary:
+      "Microcables, microductos y accesorios compactos para instalaciones FTTH de alta densidad.",
+    description:
+      "Los microcables permiten llevar fibra óptica por ductos estrechos y espacios reducidos sin sacrificar protección ni rendimiento. Esta línea reúne microcables de pocos hilos, microductos y accesorios compactos para despliegues FTTH en edificios, condominios y redes donde cada centímetro cuenta.",
+    items: [
+      "Microcables de 2 a 24 hilos",
+      "Microductos y tubería de instalación",
+      "Accesorios y cajas compactas",
+    ],
+    specs: [
+      { label: "Tipo", value: "Microcable y microducto para FTTH" },
+      { label: "Hilos", value: "De 2 a 24 fibras según modelo" },
+      { label: "Diámetro", value: "Compacto para ductos de alta densidad" },
+      { label: "Presentación", value: "Carrete, rollo o por metro" },
+    ],
+    applications: [
+      "Redes FTTH de alta densidad",
+      "Edificios y condominios",
+      "Instalaciones por microducto",
+      "Acometidas interiores",
+    ],
+    image: "/catalogo/prod-adss.jpg",
+    imageAlt: "Microcable de fibra óptica en carrete",
+    visual: "photoVisual",
+    icon: Cable,
+    gallery: [
+      { src: "/catalogo/prod-adss.jpg", alt: "Carrete de microcable de fibra óptica", fit: "cover", caption: "Microcable" },
+      { src: "/catalogo/sol-fibra.jpg", alt: "Fibra óptica preparada para instalación", fit: "cover", caption: "Instalación" },
+      { src: "/catalogo/hero-fiber.jpg", alt: "Hebras de fibra óptica iluminadas", fit: "cover", caption: "Fibra óptica" },
+    ],
+  },
 ];
 
 export const TRUST = [
@@ -468,6 +509,7 @@ export function findFamily(slug) {
     (family) =>
       family.slug === slug ||
       family.id === slug ||
+      family.category === slug ||
       (Array.isArray(family.aliases) && family.aliases.includes(slug)),
   );
 }
