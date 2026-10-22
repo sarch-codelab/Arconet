@@ -36,9 +36,7 @@ import {
 export const AdminContext = createContext({
   section: "trabajadores",
   goTo: () => {},
-  onOpenNav: () => {},
   onLogout: () => {},
-  navOpen: false,
   session: null,
 });
 
@@ -70,6 +68,7 @@ export const SECTION_NAV_CONFIG = {
       { id: "all", label: "Trabajadores", icon: Users, title: "Todos los trabajadores" },
       { id: "active", label: "Activos", icon: Check, title: "Personal activo" },
       { id: "sps", label: "San Pedro", icon: Building2, title: "Sede San Pedro Sula" },
+      { id: "roles", label: "Roles", icon: ShieldCheck, title: "Roles y permisos del sistema" },
       { id: "ceiba", label: "La Ceiba", icon: MapPin, title: "Sede La Ceiba" },
       { id: "roles", label: "Gerencia", icon: ShieldCheck, title: "Roles administrativos" },
     ],

@@ -96,6 +96,19 @@ model Categoria {
   @@index([estado])
 }
 
+model Rol {
+  id          String   @id
+  nombre      String   @unique
+  slug        String   @unique
+  descripcion String?
+  permisos    String[] @default([])
+  estado      String   @default("activo")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([estado])
+}
+
 model Cliente {
   id            String   @id
   nombre        String

@@ -99,6 +99,14 @@ const ORDENES = [
   ]],
 ];
 
+const ROLES = [
+  ["rol-admin", "Administrador", "administrador", "Acceso total al sistema: gestión de usuarios, configuración, reportes y todas las secciones.", ["trabajadores:read","trabajadores:write","trabajadores:delete","productos:read","productos:write","productos:delete","categorias:read","categorias:write","categorias:delete","sucursales:read","sucursales:write","sucursales:delete","clientes:read","clientes:write","clientes:delete","ordenes:read","ordenes:write","ordenes:delete","reportes:read","ajustes:read","ajustes:write","logs:read","flota:read","mi-perfil:read","mi-perfil:write"], "activo"],
+  ["rol-gerente", "Gerente", "gerente", "Gestión operativa: trabajadores, productos, sucursales, clientes, órdenes y reportes. Sin acceso a ajustes de sistema ni logs.", ["trabajadores:read","trabajadores:write","productos:read","productos:write","sucursales:read","sucursales:write","clientes:read","clientes:write","ordenes:read","ordenes:write","reportes:read","mi-perfil:read","mi-perfil:write"], "activo"],
+  ["rol-tecnico", "Técnico", "tecnico", "Acceso técnico: catálogo de productos, órdenes asignadas, perfil propio. Sin gestión de personal ni configuración.", ["productos:read","ordenes:read","ordenes:write","mi-perfil:read","mi-perfil:write"], "activo"],
+  ["rol-ventas", "Ventas", "ventas", "Gestión comercial: clientes, órdenes, catálogo de productos, reportes de ventas. Sin acceso a personal ni inventario.", ["productos:read","clientes:read","clientes:write","ordenes:read","ordenes:write","reportes:read","mi-perfil:read","mi-perfil:write"], "activo"],
+  ["rol-bodega", "Bodega", "bodega", "Control de inventario: productos, stock, órdenes de preparación. Sin acceso a clientes ni configuración.", ["productos:read","productos:write","ordenes:read","mi-perfil:read","mi-perfil:write"], "activo"],
+];
+
 const CATEGORIAS = [
   ["cat-preconectorizado", "Soluciones de Preconectorizado", "soluciones-de-preconectorizado", "Cables, pigtails y patch cords terminados en fábrica para instalar más rápido y con menos pérdidas.", "/catalogo/sol-fibra.jpg", 1],
   ["cat-herrajes", "Herrajes", "herrajes", "Soportes, abrazaderas y tensores para fijar cable y equipos con seguridad en poste, fachada o pared.", "/catalogo/infraestructura.jpg", 2],
@@ -121,6 +129,11 @@ async function main() {
   for (const [id, nombre, slug, descripcion, foto, orden] of CATEGORIAS) {
     const data = { nombre, slug, descripcion, foto, orden, estado: "activo" };
     await prisma.categoria.upsert({ where: { id }, update: data, create: { id, ...data } });
+  }
+
+  for (const [id, nombre, slug, descripcion, permisos, estado] of ROLES) {
+    const data = { nombre, slug, descripcion, permisos, estado };
+    await prisma.rol.upsert({ where: { id }, update: data, create: { id, ...data } });
   }
 
   for (const [id, nombre, puesto, correo, telefono, sucursalId, rol, estado, ingreso] of TRABAJADORES) {
@@ -169,6 +182,7 @@ async function main() {
   console.log("Seed completo:", {
     sucursales: await prisma.sucursal.count(),
     categorias: await prisma.categoria.count(),
+    roles: await prisma.rol.count(),
     trabajadores: await prisma.trabajador.count(),
     clientes: await prisma.cliente.count(),
     productos: await prisma.producto.count(),
