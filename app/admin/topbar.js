@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Bell, ExternalLink, HelpCircle, LogOut, Menu, Search, User, MessageSquare, AlertTriangle, CheckCircle } from "lucide-react";
+import { Bell, ExternalLink, HelpCircle, LogOut, Search, User, MessageSquare, AlertTriangle, CheckCircle } from "lucide-react";
 import { sileo } from "../toaster";
 import { AdminContext, NAV } from "./admin-nav";
 import { roleLabel } from "./workers-store";
@@ -23,14 +23,11 @@ export function Topbar({
   title,
   subtitle,
   action,
-  onOpenNav,
   session,
   workers = [],
 }) {
   const adminCtx = useContext(AdminContext);
   const activeSection = adminCtx?.section || "trabajadores";
-  const handleOpenNav = onOpenNav || adminCtx?.onOpenNav;
-  const navOpen = adminCtx?.navOpen ?? false;
   const ctxSession = adminCtx?.session;
 
   const currentSession = session || ctxSession;
@@ -137,18 +134,6 @@ export function Topbar({
           ============================================================== */}
       <div className={styles.globalTopBar}>
         <div className={styles.brandArea}>
-          {handleOpenNav && (
-            <button
-              type="button"
-              className={styles.navToggleBtn}
-              onClick={handleOpenNav}
-              aria-label={navOpen ? "Cerrar menú lateral" : "Abrir menú lateral"}
-              aria-expanded={navOpen}
-              title={navOpen ? "Cerrar menú lateral" : "Abrir menú lateral"}
-            >
-              <Menu size={18} />
-            </button>
-          )}
           <Link href="/" className={styles.topbarBrand} title="Arconet, inicio">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img

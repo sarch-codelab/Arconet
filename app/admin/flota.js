@@ -206,7 +206,7 @@ const FLEET_TABS = [
   { id: "analytics", label: "Estadísticas", icon: TrendingUp, title: "Resumen y estadísticas de flota" },
 ];
 
-export default function FleetSection({ onOpenNav, onNavigate }) {
+export default function FleetSection({ onNavigate }) {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [selectedTruckId, setSelectedTruckId] = useState("trk-2");
   const [zoomScale, setZoomScale] = useState(1);
@@ -269,7 +269,6 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
       <Topbar
         title="Flota"
         subtitle="Monitoreo en vivo de vehículos, carga y rutas."
-        onOpenNav={onOpenNav}
       />
 
       <div className={styles.fleetContent}>
