@@ -25,5 +25,10 @@
     "dotenv": "^18.0.8",
     "prisma": "^7.10.1",
     "tsx": "^4.23.15"
+  },
+  "allowScripts": {
+    "prisma": true,
+    "@prisma/engines": true,
+    "esbuild": true
   }
 }

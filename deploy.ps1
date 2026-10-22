@@ -34,6 +34,38 @@ function Write-Log {
     Add-Content -Path $LogFile -Value $logEntry
 }
 
+# npm escribe avisos (no errores) por stderr. Con $ErrorActionPreference = 'Stop'
+# PowerShell convierte ese stderr en una excepcion y el deploy abortaba con
+# mensajes como "npm warn install-scripts ...". El resultado real es $LASTEXITCODE.
+function Invoke-Npm {
+    param([string[]]$NpmArgs)
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        & $NpmCmd @NpmArgs 2>&1 | Tee-Object -FilePath 'C:\arconet\logs\deploy-npm.log' -Append | Out-Null
+        return $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $prev
+    }
+}
+
+# Si algo falla, intenta dejar el sitio en pie en vez de dejarlo caido hasta
+# que el watchdog reaccione (paso el 22/10 con el fallo de npm ci).
+function Fail {
+    param([string]$Message)
+    Write-Log $Message "ERROR"
+    Write-Log "Intentando levantar la app para no dejar el sitio caido..." "WARN"
+    try {
+        & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $BootStart
+        if ($LASTEXITCODE -eq 0) { Write-Log "App levantada con el build anterior" "WARN" }
+        else { Write-Log "No se pudo levantar; el watchdog reintentara cada 5 min" "ERROR" }
+    } catch {
+        Write-Log "No se pudo levantar: $($_.Exception.Message)" "ERROR"
+    }
+    Write-Log "=== DEPLOY FAILED ===" "ERROR"
+    exit 1
+}
+
 try {
     Write-Log "=== DEPLOY STARTED ==="
     Write-Log "Branch: $Branch"
@@ -61,40 +93,49 @@ try {
     Start-Sleep -Seconds 2
     Write-Log "Application stopped"
 
-    # 4. Install dependencies
+    # 4. Install dependencies (solo si cambio package-lock.json)
+    $lockHashFile = 'C:\arconet\logs\package-lock.sha256'
+    $lockHash = if (Test-Path 'package-lock.json') { (Get-FileHash 'package-lock.json' -Algorithm SHA256).Hash } else { '' }
+    $needInstall = (-not (Test-Path 'node_modules')) -or
+                   (-not (Test-Path $lockHashFile)) -or
+                   ((Get-Content $lockHashFile -Raw).Trim() -ne $lockHash)
+
     if (-not $SkipInstall) {
-        Write-Log "Installing dependencies..."
-        & $NpmCmd ci 2>&1 | Tee-Object -Variable installOutput
-        if ($LASTEXITCODE -ne 0) {
-            Write-Log "npm ci failed with exit code $LASTEXITCODE" "ERROR"
-            exit 1
+        if ($needInstall) {
+            Write-Log "Installing dependencies..."
+            $code = Invoke-Npm @('ci', '--no-audit', '--no-fund')
+            if ($code -ne 0) { Fail "npm ci failed with exit code $code (ver C:\arconet\logs\deploy-npm.log)" }
+            Set-Content -Path $lockHashFile -Value $lockHash -Encoding ascii
+            Write-Log "Dependencies installed"
+        } else {
+            Write-Log "Dependencies unchanged (mismo package-lock), no se reinstala"
         }
-        Write-Log "Dependencies installed"
     }
 
-    # 5. Build Next.js app
+    # 5. Prisma generate ANTES del build: npm ci borra node_modules/.prisma y
+    #    el build falla si el cliente generado no existe.
+    if (Test-Path "prisma/schema.prisma") {
+        Write-Log "Running Prisma generate..."
+        $code = Invoke-Npm @('run', 'db:generate')
+        if ($code -ne 0) { Fail "prisma generate failed with exit code $code" }
+        Write-Log "Prisma client generated"
+
+        Write-Log "Applying database migrations..."
+        $code = Invoke-Npm @('run', 'db:migrate')
+        if ($code -ne 0) {
+            Write-Log "prisma migrate deploy failed with exit code $code (se continua)" "WARN"
+        } else {
+            Write-Log "Database migrations applied"
+        }
+    }
+
+    # 6. Build Next.js app
     if (-not $SkipBuild) {
         Write-Log "Building Next.js app..."
         $env:NODE_ENV = "production"
-        & $NpmCmd run build 2>&1 | Tee-Object -Variable buildOutput
-        if ($LASTEXITCODE -ne 0) {
-            Write-Log "npm run build failed with exit code $LASTEXITCODE" "ERROR"
-            exit 1
-        }
+        $code = Invoke-Npm @('run', 'build')
+        if ($code -ne 0) { Fail "npm run build failed with exit code $code" }
         Write-Log "Build completed"
-    }
-
-    # 6. Run Prisma generate/migrate if needed (optional - skip if DB not available)
-    if (Test-Path "prisma/schema.prisma") {
-        Write-Log "Running Prisma generate..."
-        try {
-            & $NpmCmd run db:generate 2>&1 | Out-Null
-            Write-Log "Running Prisma migrate deploy..."
-            & $NpmCmd run db:migrate 2>&1 | Out-Null
-            Write-Log "Database migrations applied"
-        } catch {
-            Write-Log "Prisma steps skipped (database may not be available)" "WARN"
-        }
     }
 
     # 7. Start app (the boot script verifies HTTP 200 and exits != 0 on failure)
@@ -125,6 +166,5 @@ try {
     exit 0
 
 } catch {
-    Write-Log "=== DEPLOY FAILED: $($_.Exception.Message) ===" "ERROR"
-    exit 1
+    Fail "Excepcion: $($_.Exception.Message)"
 }

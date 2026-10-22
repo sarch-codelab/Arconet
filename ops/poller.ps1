@@ -72,26 +72,46 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # 5. Desplegar mediante la tarea SYSTEM
-W "Nuevo commit: $(Short $head) -> $(Short $target). Lanzando $TaskName"
-$before = $null
-try { $before = (Get-ScheduledTaskInfo -TaskName $TaskName -ErrorAction Stop).LastRunTime } catch {
+# Si ya hay un deploy en curso (manual o anterior), no se lanza otro.
+$RUNNING_CODE = 267009   # 0x41301 = SCHED_S_TASK_RUNNING
+try {
+    $cur = Get-ScheduledTaskInfo -TaskName $TaskName -ErrorAction Stop
+    if ($cur.State -eq 'Running' -or $cur.LastTaskResult -eq $RUNNING_CODE) {
+        W "Ya hay un deploy en curso ($TaskName); no lanzo otro" 'WARN'
+        exit 0
+    }
+    $before = $cur.LastRunTime
+} catch {
     W "No pude leer la tarea $TaskName : $($_.Exception.Message)" 'ERROR'; exit 4
 }
 
+W "Nuevo commit: $(Short $head) -> $(Short $target). Lanzando $TaskName"
 schtasks /run /tn $TaskName 2>&1 | ForEach-Object { if ($_) { W "  ${_}" } }
 if ($LASTEXITCODE -ne 0) { W "No se pudo lanzar $TaskName (exit $LASTEXITCODE)" 'ERROR'; exit 4 }
 
 $deadline = (Get-Date).AddMinutes($MaxWaitMin)
-$info = $null
+$started  = $false
+$info     = $null
 while ((Get-Date) -lt $deadline) {
     Start-Sleep -Seconds 10
     try { $info = Get-ScheduledTaskInfo -TaskName $TaskName -ErrorAction Stop } catch { continue }
-    if ($info.LastRunTime -gt $before -and $info.State -ne 'Running') { break }
+
+    # La tarea tiene que haber arrancado (LastRunTime avanzó)...
+    if ($info.LastRunTime -gt $before) { $started = $true }
+    if (-not $started) { continue }
+
+    # ...y haber terminado de verdad. Justo despues de lanzarla el estado puede
+    # seguir siendo 'Ready' con LastTaskResult=267009 (en ejecucion): si se mira
+    # solo una vez se confunde con un fallo.
+    if ($info.State -eq 'Running') { continue }
+    if ($info.LastTaskResult -eq $RUNNING_CODE) { continue }
+    break
 }
 
-if (-not $info -or $info.LastRunTime -le $before) {
-    W "Timeout de $MaxWaitMin min esperando el deploy" 'ERROR'; exit 5
+if (-not $started) {
+    W "Timeout de $MaxWaitMin min: la tarea $TaskName no llego a arrancar" 'ERROR'; exit 5
 }
+
 
 if ($info.LastTaskResult -eq 0) {
     W "Deploy OK: $(Short $target) (duracion aprox. $([int](((Get-Date) - $info.LastRunTime).TotalMinutes)) min)"
