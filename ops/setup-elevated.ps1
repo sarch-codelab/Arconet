@@ -68,9 +68,8 @@ try {
 } catch { W "ERR Backup Arconet: $($_.Exception.Message)" 'ERROR' }
 
 # ---------- 4b. ArconetDeploy: deploy bajo demanda (SYSTEM) ----------
-# El deploy por SSH (GitHub Actions) NO llega elevado: el token del usuario
-# esta filtrado por UAC, asi que no puede matar el proceso SYSTEM de la app.
-# Por eso el deploy se ejecuta como SYSTEM a traves de esta tarea.
+# El deploy lo lanza el poller como SYSTEM: es la unica forma de detener la app,
+# que tambien corre como SYSTEM (un usuario con token filtrado por UAC no puede).
 try {
     $depAction = New-ScheduledTaskAction -Execute 'powershell.exe' `
         -Argument '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "C:\arconet\app\deploy.ps1"' `
@@ -83,7 +82,23 @@ try {
     W "OK  tarea ArconetDeploy: deploy bajo demanda como SYSTEM (sin trigger)"
 } catch { W "ERR ArconetDeploy: $($_.Exception.Message)" 'ERROR' }
 
-# ---------- 4c. Permisos de las tareas ----------
+# ---------- 4c. ArconetDeployPoll: revisa origin/main cada 5 min ----------
+# GitHub Actions no puede llegar a este servidor (esta en ZeroTier, sin IP
+# publica): el servidor es quien mira si hay commits nuevos y despliega.
+try {
+    $pollAction = New-ScheduledTaskAction -Execute 'powershell.exe' `
+        -Argument '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "C:\arconet\boot\poller.ps1"' `
+        -WorkingDirectory 'C:\arconet\app'
+    $pollTrigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(3) -RepetitionInterval (New-TimeSpan -Minutes 5)
+    $pollSettings = New-ScheduledTaskSettingsSet `
+        -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable `
+        -ExecutionTimeLimit (New-TimeSpan -Minutes 60) `
+        -MultipleInstances IgnoreNew
+    Register-ScheduledTask -TaskName 'ArconetDeployPoll' -Action $pollAction -Trigger $pollTrigger -Principal $principal -Settings $pollSettings -Force | Out-Null
+    W "OK  tarea ArconetDeployPoll: cada 5 minutos (auto-deploy desde origin/main)"
+} catch { W "ERR ArconetDeployPoll: $($_.Exception.Message)" 'ERROR' }
+
+# ---------- 4d. Permisos de las tareas ----------
 # Por defecto las tareas creadas como SYSTEM no son legibles/ejecutables por el
 # usuario cuando su token esta filtrado (UAC): "Acceso denegado" en schtasks.
 # Se concede control total al usuario concreto (su SID, presente en el token
@@ -94,7 +109,7 @@ try {
     $svc = New-Object -ComObject Schedule.Service
     $svc.Connect($null, $null, $null, $null)
     $root = $svc.GetFolder('\')
-    foreach ($n in @('ArconetApp','ArconetWatchdog','ArconetStop','ArconetDeploy','Backup Arconet')) {
+    foreach ($n in @('ArconetApp','ArconetWatchdog','ArconetStop','ArconetDeploy','ArconetDeployPoll','Backup Arconet')) {
         try {
             $t = $root.GetTask($n)
             $t.SetSecurityDescriptor($sddl, 0)
@@ -121,7 +136,7 @@ try {
 } catch { }
 
 # ---------- 6. Verificacion ----------
-foreach ($t in @('ArconetApp','ArconetWatchdog','ArconetStop','ArconetDeploy','Backup Arconet')) {
+foreach ($t in @('ArconetApp','ArconetWatchdog','ArconetStop','ArconetDeploy','ArconetDeployPoll','Backup Arconet')) {
     $task = Get-ScheduledTask -TaskName $t -ErrorAction SilentlyContinue
     if ($task) {
         $i = Get-ScheduledTaskInfo -TaskName $t -ErrorAction SilentlyContinue

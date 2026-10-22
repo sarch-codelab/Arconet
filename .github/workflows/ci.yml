@@ -1,0 +1,38 @@
+name: Build
+
+# El deploy NO se hace desde GitHub: este servidor esta en ZeroTier (sin IP
+# publica), asi que un runner de GitHub no puede alcanzarlo.
+# El despliegue lo hace la tarea ArconetDeployPoll en el propio servidor,
+# que revisa origin/main cada 5 minutos.
+# Este workflow solo compila para avisar temprano si el codigo no construye.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: npm ci + build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Compilar
+        env:
+          # Todas las rutas son force-dynamic, el build no consulta la BD;
+          # el valor solo evita que falle algo que instancie Prisma.
+          DATABASE_URL: 'postgresql://ci:ci@localhost:5432/ci?schema=public'
+        run: npm run build
