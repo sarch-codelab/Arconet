@@ -1345,3 +1345,36 @@
     animation: none;
   }
 }
+
+/* ==========================================================================
+   MODO OSCURO
+   La paleta base de flota se apoya en los tokens de .adminPage (definidos y
+   redefinidos para html[data-theme="dark"] en admin-experience.module.css),
+   por lo que fondos, textos y bordes ya se adaptan solos. Aqui solo se
+   ajustan los colores duros propios de este modulo para que conserven
+   contraste y coherencia sobre los fondos oscuros.
+   ========================================================================== */
+
+:global(html[data-theme="dark"]) .container3DThumb {
+  /* Borde naranja translucido algo mas visible sobre fondo oscuro */
+  border-color: rgba(249, 115, 22, 0.32);
+}
+
+:global(html[data-theme="dark"]) .activeDot {
+  /* Halo verde mas perceptible sobre fondos oscuros */
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.38);
+}
+
+:global(html[data-theme="dark"]) .routeTrackFilled {
+  /* Sustituye el naranja claro (#fed7aa) por un naranja tenue apto para oscuro */
+  background: rgba(249, 115, 22, 0.5);
+}
+
+:global(html[data-theme="dark"]) .modalBackdrop {
+  background: rgba(2, 6, 14, 0.62);
+}
+
+:global(html[data-theme="dark"]) .modalContent {
+  /* Reutiliza la sombra elevada que el panel ya adapta a modo oscuro */
+  box-shadow: var(--shadow-elevated);
+}

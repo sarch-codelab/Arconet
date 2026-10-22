@@ -166,7 +166,11 @@ const EMPTY_PRODUCT = {
   marca: "",
   unidad: "Unidad",
   precio: "",
+  costo: "",
   stock: "",
+  stockMinimo: "",
+  ubicacion: "",
+  peso: "",
   estado: "activo",
   foto: "",
   fotos: [],
@@ -1495,7 +1499,14 @@ function ProductsSection({ products, setProducts, categorias = [], workers = [],
   }
 
   function openEdit(product) {
-    setDraft({ ...product });
+    setDraft({
+      ...product,
+      costo: product.costo == null ? "" : product.costo,
+      peso: product.peso == null ? "" : product.peso,
+      stockMinimo: product.stockMinimo == null ? "" : product.stockMinimo,
+      ubicacion: product.ubicacion ?? "",
+      descripcion: product.descripcion ?? "",
+    });
     setEditingId(product.id);
     setModalOpen(true);
   }
@@ -1557,7 +1568,11 @@ function ProductsSection({ products, setProducts, categorias = [], workers = [],
       sku: String(draft.sku || "").trim().toUpperCase(),
       marca: String(draft.marca || "").trim(),
       precio: Number(draft.precio) || 0,
+      costo: draft.costo === "" || draft.costo == null ? null : Number(draft.costo) || 0,
       stock: Math.max(0, Math.floor(Number(draft.stock) || 0)),
+      stockMinimo: Math.max(0, Math.floor(Number(draft.stockMinimo) || 0)),
+      ubicacion: String(draft.ubicacion || "").trim(),
+      peso: draft.peso === "" || draft.peso == null ? null : Number(draft.peso) || 0,
     };
     let saved;
     try {
@@ -1887,6 +1902,18 @@ function ProductsSection({ products, setProducts, categorias = [], workers = [],
                   />
                 </label>
                 <label className={styles.field}>
+                  Costo (L)
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={draft.costo}
+                    onChange={(event) => changeField("costo", event.target.value)}
+                    placeholder="0.00"
+                  />
+                  <small className={styles.fieldHint}>Uso interno. Nunca se muestra en el catálogo.</small>
+                </label>
+                <label className={styles.field}>
                   {`Stock (${unitLabel(draft.unidad, 2)})`}
                   <input
                     type="number"
@@ -1895,6 +1922,38 @@ function ProductsSection({ products, setProducts, categorias = [], workers = [],
                     value={draft.stock}
                     onChange={(event) => changeField("stock", event.target.value)}
                     placeholder="0"
+                  />
+                </label>
+                <label className={styles.field}>
+                  Stock mínimo
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={draft.stockMinimo}
+                    onChange={(event) => changeField("stockMinimo", event.target.value)}
+                    placeholder="0"
+                  />
+                  <small className={styles.fieldHint}>Aviso de reposición cuando el stock baja de este valor.</small>
+                </label>
+                <label className={styles.field}>
+                  Ubicación en bodega
+                  <input
+                    type="text"
+                    value={draft.ubicacion}
+                    onChange={(event) => changeField("ubicacion", event.target.value)}
+                    placeholder="Ej. Pasillo 3 · Estante B"
+                  />
+                </label>
+                <label className={styles.field}>
+                  Peso (kg)
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.001"
+                    value={draft.peso}
+                    onChange={(event) => changeField("peso", event.target.value)}
+                    placeholder="0.000"
                   />
                 </label>
                 <label className={styles.field}>

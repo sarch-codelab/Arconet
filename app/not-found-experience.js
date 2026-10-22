@@ -25,7 +25,7 @@ export default function NotFoundExperience() {
         <section className={styles.heroCard}>
           <div className={styles.heroBackground}>
             <Image
-              src="/catalogo/hero-fiber.jpg"
+              src="/neto-error.png"
               alt=""
               fill
               priority

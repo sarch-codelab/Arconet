@@ -18,7 +18,7 @@
 }
 
 /* ==========================================================================
-   DOCK DE NAVEGACIÃ“N SECUNDARIA
+   DOCK DE NAVEGACIÓN SECUNDARIA
    Cápsula flotante de cristal que aparece al superar el hero.
    ========================================================================== */
 
@@ -1436,7 +1436,7 @@
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 22px;
-  background: #fff;
+  background: var(--surface);
   transition: transform 260ms cubic-bezier(0.2, 0.7, 0.25, 1), box-shadow 260ms ease, border-color 260ms ease;
   min-width: 0;
   max-width: 100%;
@@ -1454,7 +1454,7 @@
   display: grid;
   place-items: center;
   overflow: hidden;
-  background-color: #eef0f5;
+  background-color: var(--surface-2);
   background-image: linear-gradient(#1544b50a 1px, transparent 1px), linear-gradient(90deg, #1544b50a 1px, transparent 1px);
   background-size: 34px 34px;
 }
@@ -1865,9 +1865,9 @@
   align-items: center;
   gap: 14px;
   padding: 56px 24px;
-  border: 1px dashed #cdd2dc;
+  border: 1px dashed var(--line);
   border-radius: 22px;
-  background: #fff;
+  background: var(--surface);
   color: var(--muted);
   text-align: center;
 }
@@ -1918,7 +1918,7 @@
 }
 
 /* ==========================================================================
-   ACOMPAÃ‘AMIENTO
+   ACOMPAÑAMIENTO
    ========================================================================== */
 
 .supportSection {
@@ -2226,6 +2226,10 @@
    RESPONSIVE
    ========================================================================== */
 
+@media (max-width: 1080px) {
+  .familyGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 @media (min-width: 1080px) and (max-width: 1440px) {
   .familyGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -2512,7 +2516,7 @@
 }
 
 /* ==========================================================================
-   BIENVENIDA · SELECCIÃ“N DE SUCURSAL
+   BIENVENIDA · SELECCIÓN DE SUCURSAL
    ========================================================================== */
 
 .branchGate {

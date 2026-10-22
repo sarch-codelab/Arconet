@@ -61,23 +61,34 @@ model Usuario {
 }
 
 model Producto {
-  id        String      @id
-  nombre    String
-  sku       String      @unique
-  categoria String
-  marca     String?
-  unidad    String      @default("Unidad")
-  precio    Decimal     @db.Decimal(12, 2)
-  stock     Int         @default(0)
-  estado    String      @default("activo")
-  foto      String?        // Imagen principal/portada
-  fotos     String[] @default([]) // Galería de imágenes adicionales
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  items     OrdenItem[]
+  id          String      @id
+  nombre      String
+  sku         String      @unique
+  categoria   String
+  marca       String?
+  unidad      String      @default("Unidad")
+  descripcion String? // Descripción comercial larga
+  precio      Decimal     @db.Decimal(12, 2)
+  costo       Decimal?    @db.Decimal(12, 2) // Costo de adquisición (uso interno)
+  stock       Int         @default(0)
+  stockMinimo Int         @default(0) // Punto de reorden para alertas de inventario
+  ubicacion   String? // Ubicación física en bodega
+  peso        Decimal?    @db.Decimal(10, 3) // Peso en kilogramos (logística)
+  estado      String      @default("activo")
+  foto        String? // Imagen principal/portada
+  fotos       String[]    @default([]) // Galería de imágenes adicionales
+  createdBy   String? // Correo del usuario que creó el registro
+  updatedBy   String? // Correo del último usuario que lo modificó
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  items       OrdenItem[]
 
   @@index([categoria])
   @@index([estado])
+  @@index([marca])
+  @@index([precio])
+  @@index([stock])
+  @@index([createdAt])
   @@index([updatedAt])
   @@index([nombre])
 }
@@ -129,6 +140,8 @@ model Cliente {
   @@index([estado])
   @@index([fechaRegistro])
   @@index([nombre])
+  @@index([rtn])
+  @@index([ciudad])
 }
 
 model Orden {

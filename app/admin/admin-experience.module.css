@@ -3838,3 +3838,17 @@
   }
 }
 
+/* ---------------- Modo oscuro: ajustes de contraste ----------------
+   El bloque :global(html[data-theme="dark"]) .adminPage de arriba ya
+   redefine los tokens de superficies, textos y sombras. Aqui solo se cubren
+   los pocos textos/iconos que usan el azul de marca directo (var(--blue), que
+   no tiene variante oscura) sobre fondos azul tenue, donde el azul original
+   pierde contraste. */
+:global(html[data-theme="dark"]) .statIcon,
+:global(html[data-theme="dark"]) .notificationsFilterActive,
+:global(html[data-theme="dark"]) .status_en_proceso,
+:global(html[data-theme="dark"]) .logLevel_info,
+:global(html[data-theme="dark"]) .activityBadge {
+  color: #60a5fa;
+}
+

@@ -47,7 +47,7 @@ export default function LoginExperience() {
       <div className={styles.loginCard}>
         <div className={styles.visual}>
           <Image
-            src="/catalogo/infraestructura.jpg"
+            src="/neto-pensando.png"
             alt=""
             fill
             priority
@@ -203,7 +203,7 @@ function ClientLoginView({ onLogin }) {
       <div className={styles.loginCard}>
         <div className={styles.visual}>
           <Image
-            src="/catalogo/infraestructura.jpg"
+            src="/neto-pensando.png"
             alt=""
             fill
             priority

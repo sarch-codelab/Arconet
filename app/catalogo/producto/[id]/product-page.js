@@ -188,7 +188,7 @@ export default function ProductPage({ product }) {
 {soldOut ? (
             <span className={`${styles.mediaFlag} ${styles.flagOut}`}>Agotado</span>
           ) : lowStock ? (
-            <span className={`${styles.mediaFlag} ${styles.flagLow}`}>�ltimas unidades</span>
+            <span className={`${styles.mediaFlag} ${styles.flagLow}`}>Últimas unidades</span>
           ) : null}
         </div>
 
@@ -216,6 +216,10 @@ export default function ProductPage({ product }) {
             SKU {product.sku}
             {product.marca ? ` · ${product.marca}` : ""} · {product.unidad}
           </p>
+
+          {product.descripcion ? (
+            <p className={styles.description}>{product.descripcion}</p>
+          ) : null}
 
           <div className={styles.priceRow}>
             <strong>{formatPrice(product.precio)}</strong>

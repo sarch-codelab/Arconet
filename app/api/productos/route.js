@@ -13,7 +13,8 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const categoria = searchParams.get("categoria");
   const estado = searchParams.get("estado");
-  const q = searchParams.get("q");
+  // La búsqueda se acota en longitud para evitar consultas costosas o abusivas.
+  const q = searchParams.get("q")?.trim().slice(0, 80) || "";
   const take = Math.min(Math.max(Number(searchParams.get("take")) || 100, 1), 500);
   const skip = Math.max(Number(searchParams.get("skip")) || 0, 0);
 
@@ -36,7 +37,8 @@ export async function GET(request) {
       skip,
       select: {
         id: true, nombre: true, sku: true, categoria: true, marca: true,
-        unidad: true, precio: true, stock: true, estado: true, foto: true, updatedAt: true,
+        unidad: true, descripcion: true, precio: true, costo: true, stock: true,
+        stockMinimo: true, ubicacion: true, peso: true, estado: true, foto: true, updatedAt: true,
       },
     });
 
@@ -64,7 +66,7 @@ export async function POST(request) {
 
   try {
     const producto = await prisma.producto.create({
-      data: { id: newProductoId(), ...data },
+      data: { id: newProductoId(), ...data, createdBy: guard.session?.correo ?? null },
     });
     await writeLog("panel", `Producto creado: ${producto.nombre} (${producto.sku})`, {
       actor: guard.session?.correo,

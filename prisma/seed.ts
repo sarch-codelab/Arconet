@@ -171,8 +171,8 @@ async function main() {
     throw new Error("SEED_ADMIN_PASSWORD must be set (min 12 chars).");
   }
   const usuarios = [
-    ["u-admin", "Sof��a Aguilar", "sofia.aguilar@arconet.com", hashPassword(seedPassword), "administrador", "sps"],
-    ["u-demo", "Sof��a Aguilar", "admin@arconet.com", hashPassword(seedPassword), "administrador", "sps"],
+    ["u-admin", "Sofía Aguilar", "sofia.aguilar@arconet.com", hashPassword(seedPassword), "administrador", "sps"],
+    ["u-demo", "Sofía Aguilar", "admin@arconet.com", hashPassword(seedPassword), "administrador", "sps"],
   ];
   for (const [id, nombre, correo, passwordHash, rol, sucursalId] of usuarios) {
     const data = { nombre, correo, passwordHash, rol, sucursalId, activo: true };

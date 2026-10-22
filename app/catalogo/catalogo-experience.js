@@ -814,8 +814,8 @@ export default function CatalogoExperience() {
 
         <div className={styles.supportMedia} data-reveal>
           <Image
-            src="/catalogo/ingeniero-casco-redes.png"
-            alt="Ingeniero de telecomunicaciones de Arconet"
+            src="/neto-mañana.png"
+            alt="Neto, representante de Arconet"
             fill
             sizes="(max-width: 900px) 92vw, 42vw"
             className={styles.supportImage}

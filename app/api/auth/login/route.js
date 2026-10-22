@@ -47,7 +47,7 @@ export async function POST(request) {
   const password = typeof body?.password === "string" ? body.password.slice(0, 256) : "";
   const ip = getClientIp(request);
   if (rateLimit(`ip:${ip}`, 30) || rateLimit(`acct:${email || "anon"}`, 10)) {
-    return Response.json({ error: "Demasiados intentos. Intenta m��s tarde." }, { status: 429 });
+    return Response.json({ error: "Demasiados intentos. Intenta más tarde." }, { status: 429 });
   }
   if (!email || !password) {
     return Response.json({ error: "Correo y contraseña son obligatorios." }, { status: 400 });

@@ -12,8 +12,8 @@
 }
 
 /* ==========================================================================
-   DOCK DE NAVEGACIÃ“N SECUNDARIA
-   CÃ¡psula flotante de cristal fija.
+   DOCK DE NAVEGACIÓN SECUNDARIA
+   Cápsula flotante de cristal fija.
    ========================================================================== */
 
 .topbar {
@@ -53,7 +53,7 @@
   transform-origin: left center;
 }
 
-/* CÃ¡psula */
+/* Cápsula */
 .topbarShell {
   position: relative;
   width: 100%;
@@ -149,7 +149,7 @@
   outline-offset: 3px;
 }
 
-/* BotÃ³n de cotizaciÃ³n con carrito */
+/* Botón de cotización con carrito */
 .topbarAction {
   justify-self: end;
   display: inline-flex;
@@ -563,6 +563,15 @@
   font-size: 13px;
   font-weight: 650;
   letter-spacing: 0.02em;
+}
+
+/* Descripción comercial del producto */
+.description {
+  margin-top: 18px;
+  color: var(--muted);
+  font-size: 14.5px;
+  line-height: 1.75;
+  white-space: pre-line;
 }
 
 .priceRow {
@@ -1073,5 +1082,122 @@
     width: 100px;
     height: 100px;
   }
+}
+
+/* ==========================================================================
+   MODO OSCURO
+   ========================================================================== */
+
+/* --- Topbar / dock de cristal --- */
+:global(html[data-theme="dark"]) .topbarShell {
+  border-color: #ffffff14;
+  background: rgba(20, 24, 32, 0.85);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 20px 44px -26px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+@supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))) {
+  :global(html[data-theme="dark"]) .topbarShell {
+    background: rgba(20, 24, 32, 0.97);
+  }
+}
+
+:global(html[data-theme="dark"]) .topbarBrand img {
+  filter: brightness(0) invert(1);
+}
+
+:global(html[data-theme="dark"]) .topbarBrand:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:global(html[data-theme="dark"]) .topbarNav {
+  border-color: #ffffff12;
+  background: #ffffff0a;
+}
+
+:global(html[data-theme="dark"]) .topbarNav a {
+  color: var(--muted);
+}
+
+:global(html[data-theme="dark"]) .topbarNav a:hover {
+  color: var(--accent-ink);
+}
+
+:global(html[data-theme="dark"]) .topbarAction {
+  background: #eef1f7;
+  color: #101827 !important;
+  box-shadow: 0 12px 26px -16px rgba(0, 0, 0, 0.9);
+}
+
+:global(html[data-theme="dark"]) .topbarCartIcon {
+  background: rgba(16, 24, 39, 0.1);
+}
+
+:global(html[data-theme="dark"]) .topbarCartIcon svg {
+  color: #101827;
+  stroke: #101827;
+}
+
+:global(html[data-theme="dark"]) .topbarAction:hover {
+  background: var(--blue);
+  color: #ffffff !important;
+}
+
+:global(html[data-theme="dark"]) .topbarAction:hover .topbarCartIcon {
+  background: #ffffff;
+}
+
+:global(html[data-theme="dark"]) .topbarAction:hover .topbarCartIcon svg {
+  color: var(--blue);
+  stroke: var(--blue);
+}
+
+/* --- Migas de pan --- */
+:global(html[data-theme="dark"]) .separator {
+  color: var(--muted);
+}
+
+/* --- Ficha: media, foto y galería --- */
+:global(html[data-theme="dark"]) .media,
+:global(html[data-theme="dark"]) .relatedMedia {
+  background-color: var(--surface-2);
+}
+
+:global(html[data-theme="dark"]) .mediaPhoto,
+:global(html[data-theme="dark"]) .galleryImage {
+  background: var(--surface-2);
+}
+
+/* --- Estado de stock --- */
+:global(html[data-theme="dark"]) .stockLow {
+  color: #fdb022;
+}
+
+:global(html[data-theme="dark"]) .stockOut {
+  color: #fda4af;
+}
+
+/* --- Acentos azules (enlaces, iconos, textos) --- */
+:global(html[data-theme="dark"]) .eyebrow,
+:global(html[data-theme="dark"]) .trust svg,
+:global(html[data-theme="dark"]) .qty button,
+:global(html[data-theme="dark"]) .breadcrumb a:hover,
+:global(html[data-theme="dark"]) .relatedCard > p {
+  color: var(--accent-ink);
+}
+
+:global(html[data-theme="dark"]) .eyebrow i {
+  background: var(--accent-ink);
+}
+
+:global(html[data-theme="dark"]) .secondary,
+:global(html[data-theme="dark"]) .relatedAll {
+  color: var(--accent-ink) !important;
+}
+
+/* --- Tarjetas de productos relacionados --- */
+:global(html[data-theme="dark"]) .relatedCard:hover {
+  border-color: #ffffff24;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
 }
 

@@ -1,5 +1,5 @@
 import { prisma } from "../../../lib/prisma";
-import { requireRole } from "../../../lib/dal";
+import { requireSession, requireRole } from "../../../lib/dal";
 import { writeLog } from "../../../lib/logs";
 
 export const runtime = "nodejs";
@@ -19,6 +19,9 @@ function toRol(rol) {
 }
 
 export async function GET() {
+  // Los roles y sus permisos son información interna del panel: nunca públicos.
+  const guard = await requireSession();
+  if (guard.response) return guard.response;
   try {
     const roles = await prisma.rol.findMany({
       orderBy: { nombre: "asc" },

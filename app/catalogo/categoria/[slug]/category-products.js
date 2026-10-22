@@ -7,12 +7,36 @@ import LocomotiveScroll from "locomotive-scroll";
 import {
   ArrowRight,
   ArrowUpRight,
+  Boxes,
+  Cable,
   Check,
   ChevronRight,
+  Gauge,
+  Layers,
+  Network,
   PackageCheck,
+  Radio,
+  Ruler,
+  Server,
   ShoppingCart,
+  SlidersHorizontal,
   Truck,
+  Wrench,
 } from "lucide-react";
+
+const PRODUCT_ICONS = {
+  "Soluciones de Preconectorizado": Cable,
+  Herrajes: SlidersHorizontal,
+  "Gabinetes y Racks": Network,
+  "Cajas de Distribución y Emplazamiento": Boxes,
+  "Soluciones activas y Accesorios FTTH": Radio,
+  "Herramientas y kits": Wrench,
+  Escaleras: Ruler,
+  "Optical Distribution Frame - ODF": Server,
+  "Instrumentos de medición óptica": Gauge,
+  "Componentes pasivos": Layers,
+  "Microcables y Microproductos": Cable,
+};
 import { findFamily, formatPrice } from "../../catalogo-data";
 import { useCatalogProducts } from "../../catalogo-products";
 import { useCart } from "../../../cart-context";
@@ -235,49 +259,86 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
           </div>
         ) : (
           <ul className={styles.productsGrid}>
-            {filteredProducts.map((product) => (
-              <li key={product.id} className={styles.productCard}>
-                <div className={styles.productCardMedia}>
-                  {product.foto ? (
-                    <Image
-                      src={product.foto}
-                      alt={product.nombre}
-                      fill
-                      unoptimized={String(product.foto).startsWith("data:")}
-                      sizes="(max-width: 700px) 90vw, 30vw"
-                      className={styles.productCardImage}
-                    />
-                  ) : (
-                    <div className={styles.productCardPlaceholder} aria-hidden="true">
-                      <span>{product.nombre.charAt(0)}</span>
-                    </div>
-                  )}
-                </div>
-                <div className={styles.productCardCopy}>
-                  {product.marca ? <p className={styles.productCardBrand}>{product.marca}</p> : null}
-                  <h3>{product.nombre}</h3>
-                  <p className={styles.productCardSku}>SKU {product.sku}</p>
-                  <div className={styles.productCardMeta}>
-                    <strong>{formatPrice(product.precio)}</strong>
-                    <span className={product.stock > 0 ? styles.productInStock : styles.productOutStock}>
-                      {product.stock > 0
-                        ? `${product.stock.toLocaleString("es-HN")} ${product.unidad.toLowerCase()}`
-                        : "Agotado"}
-                    </span>
+            {filteredProducts.map((product, index) => {
+              const stock = Number(product.stock) || 0;
+              const soldOut = stock <= 0;
+              const lowStock = stock > 0 && stock <= 5;
+              const stockState = soldOut ? "out" : lowStock ? "low" : "ok";
+              const Icon = PRODUCT_ICONS[product.categoria] || SlidersHorizontal;
+              const code = String(index + 1).padStart(2, "0");
+              return (
+                <li key={product.id} className={styles.familyCard}>
+                  <div className={`${styles.familyVisual} ${product.foto ? styles.photoVisual : styles.graphicVisual}`}>
+                    {product.foto ? (
+                      <Image
+                        src={product.foto}
+                        alt={product.nombre}
+                        fill
+                        unoptimized={String(product.foto).startsWith("data:")}
+                        sizes="(max-width: 700px) 92vw, (max-width: 1080px) 46vw, 30vw"
+                        className={styles.familyImage}
+                      />
+                    ) : (
+                      <div className={styles.familyGraphic} aria-hidden="true">
+                        <div className={styles.graphicOrbit}><i /><i /><i /></div>
+                        <Icon size={58} strokeWidth={1.1} />
+                        <span>AR / {product.sku}</span>
+                      </div>
+                    )}
+                    <span className={styles.familyIndex}>{code}</span>
+                    {stockState !== "ok" ? (
+                      <div className={styles.familyFlags}>
+                        <span className={`${styles.familyFlag} ${soldOut ? styles.flag_soldout : styles.flag_low}`}>
+                          {soldOut ? "Agotado" : "Últimas unidades"}
+                        </span>
+                      </div>
+                    ) : null}
                   </div>
-                  <button
-                    type="button"
-                    className={styles.addToCartButton}
-                    onClick={() => handleAddToCart(product)}
-                    disabled={product.stock <= 0}
-                    aria-label={`Añadir ${product.nombre} a la cotización`}
-                  >
-                    <ShoppingCart size={15} aria-hidden="true" />
-                    Añadir a cotización
-                  </button>
-                </div>
-              </li>
-            ))}
+
+                  <div className={styles.familyCopy}>
+                    <p className={styles.familyCategory}>{product.categoria}</p>
+                    <h3>{product.nombre}</h3>
+                    <p className={styles.familySummary}>
+                      SKU {product.sku}
+                      {product.marca ? ` · ${product.marca}` : ""} · {product.unidad}
+                    </p>
+
+                    <div className={styles.familyMeta}>
+                      <div className={styles.metaCell}>
+                        <span className={styles.metaLabel}>Precio</span>
+                        <span className={styles.metaPrice}>
+                          <strong>{formatPrice(product.precio)}</strong>
+                        </span>
+                      </div>
+                      <div className={styles.metaCell}>
+                        <span className={styles.metaLabel}>Existencias</span>
+                        <span className={`${styles.metaStock} ${styles[`stock_${stockState}`] || ""}`}>
+                          <i aria-hidden="true" />
+                          {soldOut
+                            ? "Agotado"
+                            : `${stock.toLocaleString("es-HN")} pzs disponibles`}
+                        </span>
+                      </div>
+                    </div>
+
+                    <Link className={styles.familyLink} href={`/catalogo/producto/${product.id}`}>
+                      Ver detalle y cotizar <ArrowUpRight size={16} />
+                    </Link>
+
+                    <button
+                      type="button"
+                      className={styles.familyQuoteButton}
+                      onClick={() => handleAddToCart(product)}
+                      disabled={soldOut}
+                      aria-label={`Añadir ${product.nombre} a la cotización`}
+                    >
+                      Añadir a cotización
+                      <span><ShoppingCart size={15} aria-hidden="true" /></span>
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>

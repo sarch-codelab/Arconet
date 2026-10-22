@@ -1913,3 +1913,99 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* MODO OSCURO */
+
+/* Login */
+
+:global(html[data-theme="dark"]) .panelTop,
+:global(html[data-theme="dark"]) .panelBottom {
+  color: var(--muted);
+}
+
+:global(html[data-theme="dark"]) .sectionLabel,
+:global(html[data-theme="dark"]) .panelHeader h2 em,
+:global(html[data-theme="dark"]) .textLink,
+:global(html[data-theme="dark"]) .textLink:hover,
+:global(html[data-theme="dark"]) .panelFooter a,
+:global(html[data-theme="dark"]) .panelFooter a:hover,
+:global(html[data-theme="dark"]) .panelBottom a,
+:global(html[data-theme="dark"]) .backLink:hover,
+:global(html[data-theme="dark"]) .reveal:hover,
+:global(html[data-theme="dark"]) .reveal:focus-visible {
+  color: var(--accent-ink);
+}
+
+:global(html[data-theme="dark"]) .loginForm .field {
+  color: var(--ink);
+}
+
+:global(html[data-theme="dark"]) .loginForm .field input {
+  border-bottom-color: var(--line);
+}
+
+:global(html[data-theme="dark"]) .checkbox > span {
+  border-color: var(--line);
+}
+
+:global(html[data-theme="dark"]) .ghost:hover {
+  border-color: var(--accent-ink);
+}
+
+/* Portal del cliente */
+
+:global(html[data-theme="dark"]) .statIcon {
+  background: rgba(127, 166, 255, 0.14);
+  color: var(--accent-ink);
+}
+
+:global(html[data-theme="dark"]) .projectType {
+  background: rgba(127, 166, 255, 0.15);
+  color: var(--accent-ink);
+}
+
+:global(html[data-theme="dark"]) .progressFill {
+  background: var(--accent-ink);
+}
+
+:global(html[data-theme="dark"]) .highlight,
+:global(html[data-theme="dark"]) .modalHead .eyebrow {
+  color: var(--accent-ink);
+}
+
+:global(html[data-theme="dark"]) .status_en_proceso {
+  border-color: rgba(127, 166, 255, 0.35);
+  background: rgba(127, 166, 255, 0.16);
+  color: var(--accent-ink);
+}
+
+:global(html[data-theme="dark"]) .status_abierto {
+  border-color: rgba(217, 119, 6, 0.4);
+  background: rgba(217, 119, 6, 0.2);
+  color: #fbbf24;
+}
+
+:global(html[data-theme="dark"]) .status_aprobada,
+:global(html[data-theme="dark"]) .status_resuelto {
+  border-color: rgba(16, 163, 74, 0.4);
+  background: rgba(16, 163, 74, 0.18);
+  color: #4ade80;
+}
+
+:global(html[data-theme="dark"]) .secondaryBtn {
+  border-color: var(--accent-ink);
+  color: var(--accent-ink);
+}
+
+:global(html[data-theme="dark"]) .viewBtn:hover,
+:global(html[data-theme="dark"]) .backBtn:hover,
+:global(html[data-theme="dark"]) .ghostBtn:hover,
+:global(html[data-theme="dark"]) .downloadBtn:hover {
+  border-color: var(--accent-ink);
+  color: var(--accent-ink);
+}
+
+:global(html[data-theme="dark"]) .contactCard:hover,
+:global(html[data-theme="dark"]) .docCard:hover {
+  border-color: var(--accent-ink);
+}

@@ -36,7 +36,10 @@ export async function PATCH(request, { params }) {
   }
 
   try {
-    const producto = await prisma.producto.update({ where: { id }, data });
+    const producto = await prisma.producto.update({
+      where: { id },
+      data: { ...data, updatedBy: guard.session?.correo ?? null },
+    });
     await writeLog("panel", `Producto actualizado: ${producto.nombre} (${producto.sku})`, {
       actor: guard.session?.correo,
       ruta: `/api/productos/${id}`,

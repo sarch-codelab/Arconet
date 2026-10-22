@@ -387,3 +387,15 @@
     transition: none;
   }
 }
+
+/* MODO OSCURO */
+
+:global(html[data-theme="dark"]) .emptyButton,
+:global(html[data-theme="dark"]) .actionPrimary {
+  color: #0e1116;
+}
+
+:global(html[data-theme="dark"]) .actionPrimary:hover {
+  background: #558eff;
+  color: #0e1116;
+}

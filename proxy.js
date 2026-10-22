@@ -9,6 +9,9 @@ const PROTECTED_API = [
   "/api/sucursales",
   "/api/trabajadores",
   "/api/ordenes",
+  "/api/roles",
+  "/api/logs",
+  "/api/monitor",
 ];
 
 function isProtectedApi(pathname) {
