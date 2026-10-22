@@ -39,6 +39,28 @@
   font-size: 13px;
   font-weight: 650;
   color: var(--muted);
+  position: relative;
+}
+
+.navIndicator {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: var(--nav-indicator-w, 0px);
+  height: 2px;
+  border-radius: 2px;
+  background: var(--blue);
+  opacity: var(--nav-indicator-opacity, 0);
+  transform: translateX(var(--nav-indicator-x, 0px));
+  transition: transform 220ms ease, width 220ms ease, opacity 180ms ease;
+  pointer-events: none;
+}
+
+.navigation a {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 0;
+  white-space: nowrap;
 }
 
 .nav a {
@@ -48,6 +70,16 @@
 
 .nav a:hover {
   color: var(--blue);
+}
+
+.navigation .navigationActive {
+  color: var(--blue);
+}
+
+.nav a:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+  border-radius: 2px;
 }
 
 .headerAction {

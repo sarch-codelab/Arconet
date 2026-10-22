@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -49,6 +49,65 @@ export default function ProductPage({ product }) {
   const soldOut = stock <= 0;
   const lowStock = stock > 0 && stock <= 20;
   const Icon = CATEGORY_ICONS[product.categoria] || SlidersHorizontal;
+  const [activeSection, setActiveSection] = useState("familias");
+  const navRef = useRef(null);
+  const NAVIGATION = [
+    { id: "inicio", label: "Inicio", href: "/" },
+    { id: "familias", label: "Soluciones", href: "/catalogo" },
+    { id: "empresa", label: "La empresa", href: "/#empresa" },
+    { id: "contacto", label: "Contacto", href: "/contacto" },
+  ];
+
+  // Actualizar activeSection al hacer scroll (solo en la página principal)
+  useEffect(() => {
+    const ids = NAVIGATION.map((item) => item.id).filter(Boolean);
+    const sections = ids.map((id) => document.getElementById(id)).filter(Boolean);
+    if (!sections.length || typeof IntersectionObserver === "undefined") return undefined;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) setActiveSection((current) => (current === entry.target.id ? current : entry.target.id));
+        });
+      },
+      { rootMargin: "-45% 0px -50% 0px" }
+    );
+
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, [activeSection]);
+
+  // Indicador deslizante del menú de navegación
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return undefined;
+
+    const syncIndicator = () => {
+      const active = nav.querySelector('[data-active="true"]');
+      if (!active || !active.offsetWidth) {
+        nav.style.setProperty("--nav-indicator-opacity", "0");
+        return;
+      }
+      nav.style.setProperty("--nav-indicator-x", `${active.offsetLeft}px`);
+      nav.style.setProperty("--nav-indicator-w", `${active.offsetWidth}px`);
+      nav.style.setProperty("--nav-indicator-opacity", "1");
+    };
+
+    syncIndicator();
+    window.addEventListener("resize", syncIndicator);
+
+    let observer;
+    if (typeof ResizeObserver !== "undefined") {
+      observer = new ResizeObserver(syncIndicator);
+      observer.observe(nav);
+    }
+
+    return () => {
+      window.removeEventListener("resize", syncIndicator);
+      observer?.disconnect();
+    };
+  }, [activeSection]);
+
   const related = products
     .filter((item) => item.categoria === product.categoria && item.id !== product.id)
     .slice(0, 3);
@@ -72,10 +131,22 @@ export default function ProductPage({ product }) {
         <Link className={styles.brand} href="/" aria-label="Arconet, inicio">
           <Image src="/arconet.png" alt="Arconet" width={2172} height={362} priority />
         </Link>
-        <nav className={styles.nav} aria-label="Navegación principal">
-          <Link href="/catalogo">Catálogo</Link>
-          <Link href="/#empresa">La empresa</Link>
-          <Link href="/contacto">Contacto</Link>
+        <nav className={`${styles.nav} ${styles.navigation}`} aria-label="Navegación principal" ref={navRef}>
+          <span className={styles.navIndicator} aria-hidden="true" />
+          {NAVIGATION.map((item) => {
+            const isActive = activeSection === item.id;
+            return (
+              <a
+                key={item.label}
+                href={item.href}
+                data-active={isActive ? "true" : "false"}
+                className={isActive ? styles.navigationActive : undefined}
+                aria-current={isActive ? "page" : undefined}
+              >
+                {item.label}
+              </a>
+            );
+          })}
         </nav>
         <button
           type="button"
