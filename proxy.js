@@ -17,7 +17,9 @@ function isProtectedApi(pathname) {
   );
 }
 
-function readSession(request) {
+// verifyToken es async: sin `await`, la sesión sería un Promise (siempre
+// truthy) y las comprobaciones de abajo nunca bloquearían nada.
+async function readSession(request) {
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   return verifyToken(token);
 }
@@ -32,7 +34,7 @@ function maxBodyFor(pathname) {
   return MAX_BODY_BYTES;
 }
 
-export default function proxy(request) {
+export default async function proxy(request) {
   const { pathname } = request.nextUrl;
   const method = request.method.toUpperCase();
   if (method === "OPTIONS") {
@@ -95,7 +97,7 @@ export default function proxy(request) {
     }
   }
 
-  const session = readSession(request);
+  const session = await readSession(request);
 
   if (
     pathname === PROTECTED_PAGES ||
