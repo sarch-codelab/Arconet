@@ -3,9 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Bell, ExternalLink, HelpCircle, LogOut, Menu, Search, User, MessageSquare, AlertTriangle, CheckCircle, Clock } from "lucide-react";
+import { Bell, ExternalLink, HelpCircle, LogOut, Menu, Search, User, MessageSquare, AlertTriangle, CheckCircle } from "lucide-react";
 import { sileo } from "../toaster";
-import { AdminContext, SECTION_NAV_CONFIG } from "./admin-nav";
+import { AdminContext, NAV } from "./admin-nav";
 import { roleLabel } from "./workers-store";
 import styles from "./admin-experience.module.css";
 
@@ -15,16 +15,15 @@ import styles from "./admin-experience.module.css";
  * Se comparte entre todas las secciones (incluida Flota) para que la
  * navegacion, la cabecera pegajosa, el buscador y la barra de progreso
  * se comporten igual en todo el panel.
+ *
+ * La pildora central replica las secciones de la barra lateral, de modo que
+ * cambiar de pagina se hace desde aqui y no desde el menu lateral.
  */
 export function Topbar({
   title,
   subtitle,
   action,
   onOpenNav,
-  activeTab: controlledTab,
-  onTabChange,
-  customTabs,
-  onTabSelect,
   session,
   workers = [],
 }) {
@@ -41,7 +40,6 @@ export function Topbar({
     return workers.find((w) => w.correo?.toLowerCase() === currentSession.correo.toLowerCase()) || null;
   }, [workers, currentSession?.correo]);
 
-  const [internalTab, setInternalTab] = useState("all");
   const [searchVal, setSearchVal] = useState("");
   const [accountOpen, setAccountOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -91,6 +89,10 @@ export function Topbar({
   const closeAccount = () => setAccountOpen(false);
   const closeNotifications = () => setNotificationsOpen(false);
 
+  const showToast = (msg, type = "info") => {
+    if (msg) sileo.show({ type, title: String(msg) });
+  };
+
   // Mock notifications data
   const notifications = useMemo(() => [
     { id: 1, type: "nuevo_trabajador", title: "Nuevo trabajador registrado", message: "José Pérez se ha unido como Técnico en San Pedro Sula", time: "Hace 15 min", read: false },
@@ -125,38 +127,13 @@ export function Topbar({
     }, 30000);
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const sectionConfig = SECTION_NAV_CONFIG[activeSection] || SECTION_NAV_CONFIG.trabajadores;
-  const tabs = customTabs || sectionConfig.tabs;
-  const currentTabId = controlledTab !== undefined ? controlledTab : internalTab;
-
-  const handleSelectTab = (tabId) => {
-    if (onTabSelect) {
-      onTabSelect(tabId);
-      return;
-    }
-    if (controlledTab === undefined) {
-      setInternalTab(tabId);
-    }
-    onTabChange?.(tabId);
-    const tabObj = tabs.find((t) => t.id === tabId);
-    if (tabObj) {
-      showToast(`${tabObj.title || tabObj.label} activo`);
-    }
-  };
-
-  const activeTabObj = tabs.find((t) => t.id === currentTabId) || tabs[0];
-  const ActiveIcon = activeTabObj?.icon;
-
-  const showToast = (msg, type = "info") => {
-    if (msg) sileo.show({ type, title: String(msg) });
-  };
 
   return (
     <header className={styles.topbarContainer}>
       {/* ==============================================================
-          1. BARRA GLOBAL (Marca | Pildoras | Buscador y acciones)
+          1. BARRA GLOBAL (Marca | Secciones | Buscador y acciones)
           ============================================================== */}
       <div className={styles.globalTopBar}>
         <div className={styles.brandArea}>
@@ -182,37 +159,29 @@ export function Topbar({
           </Link>
         </div>
 
-        {/* Pildora de navegacion: la activa muestra icono + texto y las
-            hermanas solo icono, para no saturar la cabecera. */}
-        <nav className={styles.centerPillNav} aria-label={`Navegación de ${title}`}>
-          <button
-            type="button"
-            className={`${styles.pillItem} ${styles.pillItemActive}`}
-            onClick={() => handleSelectTab(activeTabObj.id)}
-            title={activeTabObj.title || activeTabObj.label}
-            aria-current="true"
-          >
-            {ActiveIcon ? <ActiveIcon size={15} /> : null}
-            <span>{activeTabObj.label}</span>
-          </button>
-
-          {tabs
-            .filter((t) => t.id !== activeTabObj.id)
-            .map((tab) => {
-              const TabIcon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  className={styles.pillIconOnly}
-                  onClick={() => handleSelectTab(tab.id)}
-                  title={tab.title || tab.label}
-                  aria-label={tab.label}
-                >
-                  {TabIcon ? <TabIcon size={16} /> : null}
-                </button>
-              );
-            })}
+        {/* Pildora de navegacion: replica las secciones de la barra lateral
+            (Trabajadores, Productos, Flota, etc.) para cambiar de pagina sin
+            salir de la cabecera. La activa muestra icono + texto y las
+            hermanas solo icono, para no saturarla. */}
+        <nav className={styles.centerPillNav} aria-label="Secciones del panel">
+          {NAV.map((item) => {
+            const Icon = item.icon;
+            const isActive = item.id === activeSection;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className={isActive ? `${styles.pillItem} ${styles.pillItemActive}` : styles.pillIconOnly}
+                onClick={() => adminCtx?.goTo?.(item.id)}
+                title={item.label}
+                aria-label={item.label}
+                aria-current={isActive ? "page" : undefined}
+              >
+                <Icon size={15} />
+                {isActive ? <span>{item.label}</span> : null}
+              </button>
+            );
+          })}
         </nav>
 
         {/* Buscador, notificaciones y perfil */}
@@ -463,5 +432,39 @@ export function Topbar({
         <span className={styles.scrollProgressBar} />
       </div>
     </header>
+  );
+}
+
+/**
+ * Fila de sub-filtros de una seccion.
+ *
+ * La cabecera quedo reservada a la navegacion entre secciones del panel, asi
+ * que los tabs propios de cada area (estado, sede, tipo de registro, vista)
+ * se muestran aqui, al inicio del cuerpo de la seccion. Reutiliza el lenguaje
+ * de pildoras de la cabecera para que la transicion se sienta continua.
+ */
+export function SectionTabs({ tabs, activeTab, onTabChange, label = "Filtros de la sección" }) {
+  if (!tabs?.length) return null;
+
+  return (
+    <nav className={styles.sectionTabs} aria-label={label}>
+      {tabs.map((tab) => {
+        const Icon = tab.icon;
+        const isActive = tab.id === activeTab;
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            className={isActive ? `${styles.pillItem} ${styles.pillItemActive}` : styles.pillItem}
+            onClick={() => onTabChange?.(tab.id)}
+            title={tab.title || tab.label}
+            aria-current={isActive ? "true" : undefined}
+          >
+            {Icon ? <Icon size={15} /> : null}
+            <span>{tab.label}</span>
+          </button>
+        );
+      })}
+    </nav>
   );
 }

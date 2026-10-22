@@ -985,6 +985,34 @@
   color: var(--text-main);
 }
 
+.pillIconOnly:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 2px;
+}
+
+/* Fila de sub-filtros de cada seccion, dentro de su cuerpo. Hereda el
+   lenguaje de pildoras de la cabecera para que la transicion se sienta
+   continua. */
+.sectionTabs {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  background: var(--pill-track);
+  padding: 4px;
+  border-radius: 9999px;
+  gap: 4px;
+  width: fit-content;
+}
+
+.sectionTabs::-webkit-scrollbar {
+  display: none;
+}
+
 
 /* Right Top Bar (Search + Notification + Profile) */
 .rightActions {

@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import styles from "./flota.module.css";
 import { sileo } from "../toaster";
-import { Topbar } from "./topbar";
+import { SectionTabs, Topbar } from "./topbar";
 import { useBodyScrollLock, useEscapeKey } from "./use-body-scroll-lock";
 
 const TRUCKS_DATA = [
@@ -270,12 +270,15 @@ export default function FleetSection({ onOpenNav, onNavigate }) {
         title="Flota"
         subtitle="Monitoreo en vivo de vehículos, carga y rutas."
         onOpenNav={onOpenNav}
-        activeTab={activeTab}
-        customTabs={FLEET_TABS}
-        onTabSelect={handleTabSelect}
       />
 
       <div className={styles.fleetContent}>
+        <SectionTabs
+          tabs={FLEET_TABS}
+          activeTab={activeTab}
+          onTabChange={handleTabSelect}
+          label="Vistas de flota"
+        />
 
       {/* ==================================================================
           2. TITLE ROW & 4 FLOATING KPI CARDS

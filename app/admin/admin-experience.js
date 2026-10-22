@@ -60,8 +60,8 @@ import styles from "./admin-experience.module.css";
 import { compressImage } from "./image-utils";
 import { sileo } from "../toaster";
 import { useBodyScrollLock, useEscapeKey } from "./use-body-scroll-lock";
-import { AdminContext, NAV } from "./admin-nav";
-import { Topbar } from "./topbar";
+import { AdminContext, NAV, SECTION_NAV_CONFIG } from "./admin-nav";
+import { SectionTabs, Topbar } from "./topbar";
 import { useAdminSmoothScroll } from "./use-smooth-scroll";
 import {
   BRANCHES,
@@ -664,8 +664,6 @@ function WorkersSection({ workers, setWorkers, onOpenNav, session }) {
         title="Trabajadores"
         subtitle="Personal de Arconet por sucursal, rol y estado."
         onOpenNav={onOpenNav}
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
         action={
           <button type="button" className={styles.primaryBtn} onClick={openCreate}>
             <Plus size={16} /> Nuevo trabajador
@@ -676,6 +674,13 @@ function WorkersSection({ workers, setWorkers, onOpenNav, session }) {
       />
 
       <div className={styles.body}>
+        <SectionTabs
+          tabs={SECTION_NAV_CONFIG.trabajadores.tabs}
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          label="Filtros de trabajadores"
+        />
+
         <section className={styles.stats} aria-label="Resumen de trabajadores">
           <article className={styles.statCard}>
             <span className={styles.statIcon}><Users size={18} /></span>
@@ -1189,8 +1194,6 @@ function ProductsSection({ products, setProducts, categorias = [], workers = [],
         title="Productos"
         subtitle="Catálogo de Arconet: categoría, precio, stock y disponibilidad."
         onOpenNav={onOpenNav}
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
         action={
           <button type="button" className={styles.primaryBtn} onClick={openCreate}>
             <Plus size={16} /> Nuevo producto
@@ -1201,6 +1204,13 @@ function ProductsSection({ products, setProducts, categorias = [], workers = [],
       />
 
       <div className={styles.body}>
+        <SectionTabs
+          tabs={SECTION_NAV_CONFIG.productos.tabs}
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          label="Filtros de productos"
+        />
+
         <section className={styles.stats} aria-label="Resumen">
           <article className={styles.statCard}>
             <span className={styles.statIcon}><Package size={18} /></span>
@@ -2037,8 +2047,6 @@ function CategoriasSection({ categorias, setCategorias, products, setProducts, w
         title="Categorías"
         subtitle="Administra las categorías del catálogo: nombre, foto, orden y visibilidad."
         onOpenNav={onOpenNav}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
         action={
           <button type="button" className={styles.primaryBtn} onClick={openCreate}>
             <Plus size={16} /> Nueva categoría
@@ -2049,6 +2057,13 @@ function CategoriasSection({ categorias, setCategorias, products, setProducts, w
       />
 
       <div className={styles.body}>
+        <SectionTabs
+          tabs={SECTION_NAV_CONFIG.categorias.tabs}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          label="Filtros de categorías"
+        />
+
         <section className={styles.stats} aria-label="Resumen de categorías">
           <article className={styles.statCard}>
             <span className={styles.statIcon}><Tags size={18} /></span>
@@ -2880,8 +2895,6 @@ function CotizacionesSection({ orders, setOrders, clientes, products, workers = 
         title="Cotizaciones"
         subtitle="Gestión de cotizaciones y órdenes de venta."
         onOpenNav={onOpenNav}
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
         action={
           <button type="button" className={styles.primaryBtn} onClick={openCreate}>
             <Plus size={16} /> Nueva cotización
@@ -2892,6 +2905,13 @@ function CotizacionesSection({ orders, setOrders, clientes, products, workers = 
       />
 
       <div className={styles.body}>
+        <SectionTabs
+          tabs={SECTION_NAV_CONFIG.cotizaciones.tabs}
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          label="Filtros de cotizaciones"
+        />
+
         <section className={styles.stats} aria-label="Resumen de cotizaciones">
           <article className={styles.statCard}>
             <span className={styles.statIcon}><FileText size={18} /></span>
@@ -3396,13 +3416,18 @@ function MonitoreoSection({ onOpenNav, session, workers = [] }) {
         title="Monitoreo"
         subtitle="Estado del servidor, recursos y copias de seguridad."
         onOpenNav={onOpenNav}
-        activeTab={tab}
-        onTabChange={setTab}
         session={session}
         workers={workers}
       />
 
       <div className={styles.body}>
+        <SectionTabs
+          tabs={SECTION_NAV_CONFIG.monitoreo.tabs}
+          activeTab={tab}
+          onTabChange={setTab}
+          label="Vistas de monitoreo"
+        />
+
         <div className={styles.monitorBar}>
           <span className={styles.monitorHint}>
             {status?.generatedAt
@@ -3647,8 +3672,6 @@ function LogsSection({ onOpenNav, session, workers = [] }) {
         title="Logs del sistema"
         subtitle="Registro de actividad de autenticación, API, base de datos y panel."
         onOpenNav={onOpenNav}
-        activeTab={tab}
-        onTabChange={setTab}
         action={
           <button
             type="button"
@@ -3668,6 +3691,13 @@ function LogsSection({ onOpenNav, session, workers = [] }) {
       />
 
       <div className={styles.body}>
+        <SectionTabs
+          tabs={SECTION_NAV_CONFIG.logs.tabs}
+          activeTab={tab}
+          onTabChange={setTab}
+          label="Filtros de registros"
+        />
+
         <section className={styles.card} aria-label="Filtros de los registros">
           <header className={styles.cardHeader}>
             <h3>
@@ -3856,13 +3886,18 @@ function MiPerfilSection({ onOpenNav, session, workers = [] }) {
         title="Mi perfil"
         subtitle="Información personal y configuración de mi cuenta."
         onOpenNav={onOpenNav}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
         session={session}
         workers={workers}
       />
 
       <div className={styles.body}>
+        <SectionTabs
+          tabs={SECTION_NAV_CONFIG["mi-perfil"].tabs}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          label="Secciones de mi perfil"
+        />
+
         {activeTab === "all" && (
           <section className={styles.card} aria-label="Perfil de usuario">
             <header className={styles.cardHeader}>
