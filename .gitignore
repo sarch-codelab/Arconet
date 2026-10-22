@@ -30,6 +30,8 @@ dev.log
 # local env files
 .env*.local
 .env
+.env.bak*
+*.dump
 
 # vercel
 .vercel
