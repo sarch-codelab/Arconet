@@ -336,6 +336,7 @@ function AdminShell({ session, onLogout, initialSection }) {
             <WorkersSection
               workers={workers}
               setWorkers={setWorkers}
+              roles={roles}
               session={session}
             />
           ) : section === "productos" ? (
@@ -874,7 +875,7 @@ function RolesSection({ roles, setRoles, workers = [], session }) {
   );
 }
 
-function WorkersSection({ workers, setWorkers, session }) {
+function WorkersSection({ workers, setWorkers, roles = [], session }) {
   const [activeTab, setActiveTab] = useState("all");
   const [query, setQuery] = useState("");
   const [branch, setBranch] = useState("all");
