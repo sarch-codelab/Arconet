@@ -169,6 +169,7 @@ const EMPTY_PRODUCT = {
   stock: "",
   estado: "activo",
   foto: "",
+  fotos: [],
   descripcion: "",
 };
 
@@ -1524,6 +1525,26 @@ function ProductsSection({ products, setProducts, categorias = [], workers = [],
     event.target.value = "";
   }
 
+  async function handleGalleryPhotos(event) {
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
+    const validFiles = files.filter((f) => f.type.startsWith("image/"));
+    if (validFiles.length !== files.length) {
+      notifyError("Todos los archivos deben ser imágenes.");
+    }
+    try {
+      const compressed = await Promise.all(validFiles.map(compressImage));
+      changeField("fotos", [...(draft.fotos || []), ...compressed]);
+    } catch (error) {
+      notifyError(error.message || "No se pudieron procesar las imágenes.");
+    }
+    event.target.value = "";
+  }
+
+  function removeGalleryPhoto(index) {
+    changeField("fotos", draft.fotos.filter((_, i) => i !== index));
+  }
+
   async function submitProduct(event) {
     event.preventDefault();
     if (!draft.nombre.trim()) {
@@ -1753,15 +1774,60 @@ function ProductsSection({ products, setProducts, categorias = [], workers = [],
                     className={styles.fileInput}
                     onChange={handlePhoto}
                   />
-                  <label htmlFor="product-photo" className={styles.upload}>Subir imagen</label>
+                  <label htmlFor="product-photo" className={styles.upload}>Subir imagen principal</label>
                   {draft.foto && (
                     <button type="button" className={styles.ghostBtn} onClick={() => changeField("foto", "")}>
-                      Quitar imagen
+                      Quitar imagen principal
                     </button>
                   )}
-                  <p>JPG o PNG. Se guarda en el servidor.</p>
+                  <p>JPG o PNG. Imagen principal del producto.</p>
                 </div>
               </div>
+
+              <div className={styles.photoRow}>
+                <strong style={{fontSize:"13px",color:"var(--text-muted)",marginRight:"12px"}}>Galería:</strong>
+                <div className={styles.photoActions} style={{flex:1,flexWrap:"wrap"}}>
+                  <input
+                    id="product-gallery"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className={styles.fileInput}
+                    onChange={handleGalleryPhotos}
+                  />
+                  <label htmlFor="product-gallery" className={styles.upload}>Agregar imágenes a galería</label>
+                  <p>JPG o PNG. Múltiples imágenes para mostrar detalles del producto.</p>
+                </div>
+              </div>
+
+              {draft.fotos && draft.fotos.length > 0 && (
+                <div className={styles.photoRow} style={{alignItems:"flex-start"}}>
+                  <div className={styles.galleryPreview} style={{display:"flex",flexWrap:"wrap",gap:"8px",alignItems:"center"}}>
+                    {draft.fotos.map((galleryImg, idx) => (
+                      <div key={idx} style={{position:"relative",display:"inline-flex"}}>
+                        <img
+                          src={galleryImg}
+                          alt={`Galería ${idx + 1}`}
+                          style={{width:"80px",height:"80px",objectFit:"cover",borderRadius:"8px",border:"2px solid var(--border)"}}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeGalleryPhoto(idx)}
+                          style={{
+                            position:"absolute",top:"-6px",right:"-6px",width:"22px",height:"22px",
+                            borderRadius:"50%",background:"var(--red)",color:"white",border:"none",
+                            cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",
+                            fontSize:"12px",lineHeight:1,boxShadow:"var(--shadow-sm)"
+                          }}
+                          aria-label={`Eliminar imagen ${idx + 1}`}
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className={styles.fieldGrid}>
                 <label className={`${styles.field} ${styles.spanFull}`}>

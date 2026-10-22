@@ -1,4 +1,4 @@
-.page {
+﻿.page {
   --blue: #1544b5;
   --blue-deep: #0c2874;
   min-height: 100vh;
@@ -12,8 +12,8 @@
 }
 
 /* ==========================================================================
-   DOCK DE NAVEGACIÓN SECUNDARIA
-   Cápsula flotante de cristal fija.
+   DOCK DE NAVEGACIÃ“N SECUNDARIA
+   CÃ¡psula flotante de cristal fija.
    ========================================================================== */
 
 .topbar {
@@ -53,7 +53,7 @@
   transform-origin: left center;
 }
 
-/* Cápsula */
+/* CÃ¡psula */
 .topbarShell {
   position: relative;
   width: 100%;
@@ -149,7 +149,7 @@
   outline-offset: 3px;
 }
 
-/* Botón de cotización con carrito */
+/* BotÃ³n de cotizaciÃ³n con carrito */
 .topbarAction {
   justify-self: end;
   display: inline-flex;
@@ -1023,3 +1023,55 @@
     font-size: 14px;
   }
 }
+
+/* ---------------- Galeria de imágenes ---------------- */
+.gallery {
+  display: flex;
+  gap: 8px;
+  padding: 12px 0 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--blue) transparent;
+}
+
+.gallery::-webkit-scrollbar {
+  height: 6px;
+}
+
+.gallery::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.gallery::-webkit-scrollbar-thumb {
+  background: var(--blue);
+  border-radius: 999px;
+}
+
+.galleryImage {
+  flex: 0 0 auto;
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #f6f7fa;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  cursor: pointer;
+}
+
+.galleryImage:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  border-color: var(--blue);
+}
+
+@media (max-width: 720px) {
+  .gallery {
+    padding: 8px 0 0;
+  }
+  .galleryImage {
+    width: 100px;
+    height: 100px;
+  }
+}
+

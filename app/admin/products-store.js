@@ -31,7 +31,7 @@ export const PRODUCT_STATUSES = [
 
 const PRODUCTS_KEY = "arconet-products";
 const SEED_KEY = "arconet-products-seed";
-const SEED_VERSION = "2";
+const SEED_VERSION = "3";
 
 const SEED = [
   {
@@ -45,6 +45,7 @@ const SEED = [
     stock: 42,
     estado: "activo",
     foto: "/catalogo/sol-fibra.jpg",
+    fotos: ["/catalogo/prod-adss.jpg", "/catalogo/hero-fiber.jpg"],
   },
   {
     id: "p-seed-02",
@@ -57,6 +58,7 @@ const SEED = [
     stock: 300,
     estado: "activo",
     foto: "/catalogo/prod-adss.jpg",
+    fotos: ["/catalogo/sol-fibra.jpg"],
   },
   {
     id: "p-seed-03",
@@ -69,6 +71,7 @@ const SEED = [
     stock: 500,
     estado: "borrador",
     foto: "",
+    fotos: [],
   },
   {
     id: "p-seed-04",
@@ -81,6 +84,7 @@ const SEED = [
     stock: 5000,
     estado: "activo",
     foto: "/catalogo/prod-adss.jpg",
+    fotos: ["/catalogo/hero-fiber.jpg", "/catalogo/sol-fibra.jpg"],
   },
   {
     id: "p-seed-05",
@@ -93,6 +97,7 @@ const SEED = [
     stock: 8,
     estado: "activo",
     foto: "/catalogo/infraestructura.jpg",
+    fotos: [],
   },
   {
     id: "p-seed-06",
@@ -105,6 +110,7 @@ const SEED = [
     stock: 12,
     estado: "activo",
     foto: "",
+    fotos: [],
   },
   {
     id: "p-seed-07",
@@ -117,6 +123,7 @@ const SEED = [
     stock: 0,
     estado: "activo",
     foto: "",
+    fotos: [],
   },
   {
     id: "p-seed-08",
@@ -129,6 +136,7 @@ const SEED = [
     stock: 0,
     estado: "inactivo",
     foto: "",
+    fotos: [],
   },
   {
     id: "p-seed-09",
@@ -141,6 +149,7 @@ const SEED = [
     stock: 14,
     estado: "activo",
     foto: "/catalogo/prod-gabinete.png",
+    fotos: ["/catalogo/prod-gabinete.jpg"],
   },
   {
     id: "p-seed-10",

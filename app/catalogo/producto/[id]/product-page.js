@@ -185,12 +185,29 @@ export default function ProductPage({ product }) {
               <span>{product.sku}</span>
             </div>
           )}
-          {soldOut ? (
+{soldOut ? (
             <span className={`${styles.mediaFlag} ${styles.flagOut}`}>Agotado</span>
           ) : lowStock ? (
-            <span className={`${styles.mediaFlag} ${styles.flagLow}`}>Últimas unidades</span>
+            <span className={`${styles.mediaFlag} ${styles.flagLow}`}>�ltimas unidades</span>
           ) : null}
         </div>
+
+        {product.fotos && product.fotos.length > 0 && (
+          <div className={styles.gallery} aria-label="Galería de imágenes del producto">
+            {product.fotos.map((img, idx) => (
+              <Image
+                key={idx}
+                src={img}
+                alt={`${product.nombre} - Imagen ${idx + 1}`}
+                width={120}
+                height={120}
+                unoptimized={String(img).startsWith("data:")}
+                sizes="120px"
+                className={styles.galleryImage}
+              />
+            ))}
+          </div>
+        )}
 
         <div className={styles.info}>
           <p className={styles.eyebrow}><i /> {product.categoria}</p>

@@ -546,297 +546,14 @@
   background: var(--bg-page);
 }
 
-.shellNavClosed,
-.shellNavOpen {
-  display: block;
-}
-
-.navScrim {
-  position: fixed;
-  inset: 0;
-  z-index: 45;
-  border: 0;
-  padding: 0;
-  background: rgba(8, 12, 20, 0.5);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
-  cursor: pointer;
-  animation: scrimIn 0.2s ease;
-}
-
-@keyframes scrimIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  /* Fallback para navegadores sin svh */
-  height: 100vh;
-  height: 100svh;
-  display: flex;
-  flex-direction: column;
-  background: var(--sidebar);
-  color: #e7ecf5;
-  border-right: 1px solid var(--sidebar-line);
-  z-index: 50;
-  width: 272px;
-  min-width: 272px;
-  max-width: min(320px, 86vw);
-  box-shadow: 0 24px 60px -24px rgba(0, 0, 0, 0.6);
-  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity 0.2s ease;
-  overflow-y: auto;
-  overflow-x: hidden;
-  overscroll-behavior: contain;
-  /* Safe area para dispositivos con notch/gestos */
-  padding-bottom: max(env(safe-area-inset-bottom), 12px);
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
-  /* Evitar parpadeo en iOS Safari durante transiciones */
-  -webkit-overflow-scrolling: touch;
-}
-
-.sidebar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.sidebar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.sidebar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.16);
-  border-radius: 999px;
-}
-
-.navClosed {
-  transform: translateX(-102%);
-  opacity: 0;
-  pointer-events: none;
-}
-
-.navOpen {
-  transform: translateX(0);
-  opacity: 1;
-}
-
-.sidebarHead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 18px 16px 16px;
-  border-bottom: 1px solid var(--sidebar-line);
-}
-
-.logoBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: #ffffff;
-  padding: 8px 16px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.logoBadge:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.logoBadge img {
-  width: 136px;
-  height: auto;
-  display: block;
-}
-
-.sidebarCloseBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  /* Touch target mínimo 44px para dedos */
-  width: 44px;
-  height: 44px;
-  flex-shrink: 0;
-  border: 1px solid var(--sidebar-line);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.05);
-  color: #cbd5e1;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
-  /* Área de toque ampliada sin cambiar el visual */
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.sidebarCloseBtn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
-}
-
-/* En pantallas anchas la barra lateral es persistente: no hay nada que
-   cerrar, asi que el boton de cierre se retira. */
-@media (min-width: 1200px) {
-  .sidebarCloseBtn {
-    display: none;
-  }
-}
-
-
-.nav {
-  flex: 1;
-  display: grid;
-  align-content: start;
-  gap: 5px;
-  padding: 16px 12px;
-}
-
-.navItem {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  min-height: 44px;
-  padding: 10px 14px;
-  border: 0;
-  border-radius: 12px;
-  background: transparent;
-  color: #94a3b8;
-  cursor: pointer;
-  font-size: 13.5px;
-  font-weight: 600;
-  text-align: left;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.navItem span {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.navItem:hover {
-  background: rgba(255, 255, 255, 0.07);
-  color: #ffffff;
-}
-
-.navItem:focus-visible {
-  outline: 2px solid var(--orange);
-  outline-offset: -2px;
-}
-
-.navActive {
-  background: #1e293b;
-  color: #ffffff !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-  border-left: 3.5px solid var(--orange);
-  padding-left: 10.5px;
-}
-
-.navActive:hover {
-  background: #1e293b;
-  color: #ffffff;
-}
-
-
-.sidebarFoot {
-  display: grid;
-  gap: 10px;
-  padding: 16px 14px 20px;
-  border-top: 1px solid var(--sidebar-line);
-}
-
-.userCard {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.userAvatar {
-  width: 38px;
-  height: 38px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--blue);
-  color: #ffffff;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-}
-
-.userMeta {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-}
-
-.userMeta strong {
-  color: #ffffff;
-  font-size: 13px;
-  font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.userMeta em {
-  color: #8b97ab;
-  font-size: 10px;
-  font-style: normal;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.logoutBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 9px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 9999px;
-  background: transparent;
-  color: #cdd5e2;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  transition: all 0.15s ease;
-}
-
-.logoutBtn:hover {
-  border-color: rgba(255, 255, 255, 0.25);
-  background: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
-}
-
 /* ---------------- Content & Topbar ---------------- */
 
 .content {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  transition: margin-left 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* En pantallas anchas la barra lateral es persistente: el contenido se
-   desplaza para no quedar por debajo. */
-@media (min-width: 1200px) {
-  .shellNavOpen .content {
-    margin-left: 272px;
-  }
-}
 
 /* ==========================================================================
    FLEETTRACK TOP NAVIGATION (Unified across all /admin sections)
@@ -872,36 +589,6 @@
   align-items: center;
   gap: 12px;
   min-width: 0;
-}
-
-
-.navToggleBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  /* Touch target mínimo 44px */
-  width: 44px;
-  height: 44px;
-  flex-shrink: 0;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-  color: var(--text-main);
-  cursor: pointer;
-  box-shadow: var(--shadow-sm);
-  transition: background 0.15s ease, border-color 0.15s ease;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.navToggleBtn:hover {
-  background: var(--bg-card-subtle);
-  border-color: var(--text-light);
-}
-
-.navToggleBtn:focus-visible {
-  outline: 2px solid var(--orange);
-  outline-offset: 2px;
 }
 
 
@@ -2873,13 +2560,6 @@
 
 /* ---------------- Responsive ---------------- */
 
-/* En pantallas anchas la barra lateral es persistente, por lo que el
-   boton que la despliega deja de ser necesario. */
-@media (min-width: 1200px) {
-  .navToggleBtn {
-    display: none;
-  }
-}
 
 @media (max-width: 1180px) {
   .globalTopBar {
@@ -2907,14 +2587,7 @@
 }
 
 @media (max-width: 900px) {
-  .sidebar {
-    width: min(300px, 84vw);
-    min-width: unset;
-  }
 
-  .navOpen {
-    width: min(300px, 84vw);
-  }
 
   /* El buscador global no cabe en la cabecera: se oculta y la busqueda
      por seccion queda disponible en cada tabla. */
@@ -3240,7 +2913,6 @@
   .overlay,
   .modal,
   .confirm,
-  .navScrim,
   .accountPanel {
     animation: none;
   }
