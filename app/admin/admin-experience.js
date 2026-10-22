@@ -410,6 +410,7 @@ function AdminShell({ session, onLogout, initialSection }) {
             <ProductsSection
               products={products}
               setProducts={setProducts}
+              workers={workers}
               onOpenNav={toggleNav}
               session={session}
             />
@@ -425,6 +426,7 @@ function AdminShell({ session, onLogout, initialSection }) {
             <ClientesSection
               clientes={clientes}
               setClientes={setClientes}
+              workers={workers}
               onOpenNav={toggleNav}
               session={session}
             />
@@ -434,6 +436,7 @@ function AdminShell({ session, onLogout, initialSection }) {
               setOrders={setOrders}
               clientes={clientes}
               products={products}
+              workers={workers}
               onOpenNav={toggleNav}
               session={session}
             />
@@ -447,13 +450,13 @@ function AdminShell({ session, onLogout, initialSection }) {
               session={session}
             />
           ) : section === "ajustes" ? (
-            <AjustesSection onOpenNav={toggleNav} session={session} />
+            <AjustesSection onOpenNav={toggleNav} session={session} workers={workers} />
           ) : section === "mi-perfil" ? (
             <MiPerfilSection onOpenNav={toggleNav} session={session} workers={workers} />
           ) : section === "monitoreo" ? (
-            <MonitoreoSection onOpenNav={toggleNav} session={session} />
+            <MonitoreoSection onOpenNav={toggleNav} session={session} workers={workers} />
           ) : section === "logs" ? (
-            <LogsSection onOpenNav={toggleNav} session={session} />
+            <LogsSection onOpenNav={toggleNav} session={session} workers={workers} />
           ) : section === "flota" ? (
             <Suspense fallback={null}>
               <FleetSection
@@ -977,7 +980,7 @@ function WorkersSection({ workers, setWorkers, onOpenNav, session }) {
   );
 }
 
-function ProductsSection({ products, setProducts, onOpenNav, session }) {
+function ProductsSection({ products, setProducts, workers = [], onOpenNav, session }) {
   const [activeTab, setActiveTab] = useState("all");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
@@ -1821,7 +1824,7 @@ function SucursalesSection({ sucursales, setSucursales, workers = [], onOpenNav,
   );
 }
 
-function ClientesSection({ clientes, setClientes, onOpenNav, session }) {
+function ClientesSection({ clientes, setClientes, workers = [], onOpenNav, session }) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [modalOpen, setModalOpen] = useState(false);
@@ -2258,7 +2261,7 @@ function ClientesSection({ clientes, setClientes, onOpenNav, session }) {
   );
 }
 
-function CotizacionesSection({ orders, setOrders, clientes, products, onOpenNav, session }) {
+function CotizacionesSection({ orders, setOrders, clientes, products, workers = [], onOpenNav, session }) {
   const [activeTab, setActiveTab] = useState("all");
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
@@ -2862,7 +2865,7 @@ function formatTimestamp(value) {
   }
 }
 
-function MonitoreoSection({ onOpenNav, session }) {
+function MonitoreoSection({ onOpenNav, session, workers = [] }) {
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -3118,7 +3121,7 @@ const LOG_CATEGORY_LABELS = {
   panel: "Panel",
 };
 
-function LogsSection({ onOpenNav, session }) {
+function LogsSection({ onOpenNav, session, workers = [] }) {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -3975,7 +3978,7 @@ function MiPerfilSection({ onOpenNav, session, workers = [] }) {
   );
 }
 
-function AjustesSection({ onOpenNav, session }) {
+function AjustesSection({ onOpenNav, session, workers = [] }) {
   const [settings, setSettings] = useState({
     companyName: "Arconet, S.A.",
     email: "info@arconet.com",
