@@ -49,6 +49,8 @@
   --shadow-card: 0 4px 18px rgba(0, 0, 0, 0.035), 0 1px 2px rgba(0, 0, 0, 0.02);
   --shadow-elevated: 0 12px 36px rgba(0, 0, 0, 0.07), 0 2px 6px rgba(0, 0, 0, 0.03);
 
+  /* Fallback para navegadores sin svh */
+  min-height: 100vh;
   min-height: 100svh;
   background: var(--bg-page);
   color: var(--text-main);
@@ -104,6 +106,8 @@
 /* ---------------- Login ---------------- */
 
 .loginPage {
+  /* Fallback para navegadores sin svh */
+  min-height: 100vh;
   min-height: 100svh;
   display: flex;
   padding: 8px;
@@ -125,6 +129,8 @@
 .loginCard {
   position: relative;
   flex: 1;
+  /* Fallback para navegadores sin svh */
+  min-height: calc(100vh - 16px);
   min-height: calc(100svh - 16px);
   display: grid;
   grid-template-columns: 1.06fr 0.94fr;
@@ -213,7 +219,7 @@
   gap: 10px;
   color: #d3e0ff;
   font-size: 9px;
-  font-weight: 750;
+  font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -306,7 +312,7 @@
   gap: 10px;
   color: var(--blue);
   font-size: 9px;
-  font-weight: 750;
+  font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -315,7 +321,6 @@
   width: 20px;
   height: 1px;
   background: currentColor;
-  content: "";
 }
 
 .loginPanelBody h2 {
@@ -535,6 +540,8 @@
 /* ---------------- Panel shell ---------------- */
 
 .shell {
+  /* Fallback para navegadores sin svh */
+  min-height: 100vh;
   min-height: 100svh;
   background: var(--bg-page);
 }
@@ -566,6 +573,8 @@
   position: fixed;
   top: 0;
   left: 0;
+  /* Fallback para navegadores sin svh */
+  height: 100vh;
   height: 100svh;
   display: flex;
   flex-direction: column;
@@ -582,9 +591,12 @@
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
-  padding-bottom: env(safe-area-inset-bottom);
+  /* Safe area para dispositivos con notch/gestos */
+  padding-bottom: max(env(safe-area-inset-bottom), 12px);
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  /* Evitar parpadeo en iOS Safari durante transiciones */
+  -webkit-overflow-scrolling: touch;
 }
 
 .sidebar::-webkit-scrollbar {
@@ -646,8 +658,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  /* Touch target mínimo 44px para dedos */
+  width: 44px;
+  height: 44px;
   flex-shrink: 0;
   border: 1px solid var(--sidebar-line);
   border-radius: 10px;
@@ -655,6 +668,9 @@
   color: #cbd5e1;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
+  /* Área de toque ampliada sin cambiar el visual */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .sidebarCloseBtn:hover {
@@ -755,7 +771,7 @@
   background: var(--blue);
   color: #ffffff;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.02em;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
@@ -863,8 +879,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  /* Touch target mínimo 44px */
+  width: 44px;
+  height: 44px;
   flex-shrink: 0;
   border-radius: 10px;
   border: 1px solid var(--border);
@@ -873,6 +890,8 @@
   cursor: pointer;
   box-shadow: var(--shadow-sm);
   transition: background 0.15s ease, border-color 0.15s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .navToggleBtn:hover {
@@ -928,20 +947,24 @@
 
 .pillItem {
   display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  flex: 0 0 auto;
-  scroll-snap-align: center;
-  padding: 8px 16px;
-  border-radius: 9999px;
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-  color: var(--pill-text);
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease;
+  align-items: center.
+  gap: 8px.
+  flex: 0 0 auto.
+  scroll-snap-align: center.
+  /* Altura mínima 44px para touch */
+  min-height: 44px.
+  padding: 8px 16px.
+  border-radius: 9999px.
+  font-size: 13px.
+  font-weight: 600.
+  white-space: nowrap.
+  color: var(--pill-text).
+  border: none.
+  background: transparent.
+  cursor: pointer.
+  transition: color 0.15s ease, background 0.15s ease.
+  touch-action: manipulation.
+  -webkit-tap-highlight-color: transparent.
 }
 
 .pillItem:hover {
@@ -969,8 +992,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  /* Touch target mínimo 44px */
+  width: 44px;
+  height: 44px;
   flex: 0 0 auto;
   border-radius: 50%;
   border: none;
@@ -978,6 +1002,8 @@
   color: var(--pill-text);
   cursor: pointer;
   transition: color 0.15s ease, background 0.15s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .pillIconOnly:hover {
@@ -1059,8 +1085,9 @@
 }
 
 .notifBtn {
-  width: 40px;
-  height: 40px;
+  /* Touch target mínimo 44px */
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: none;
   background: var(--bg-card);
@@ -1072,6 +1099,8 @@
   box-shadow: var(--shadow-sm);
   transition: all 0.15s ease;
   position: relative;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .notifBtn:hover {
@@ -1125,8 +1154,9 @@
 }
 
 .profileAvatar {
-  width: 40px;
-  height: 40px;
+  /* Touch target mínimo 44px */
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   overflow: hidden;
   box-shadow: var(--shadow-sm);
@@ -1137,6 +1167,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 
@@ -1164,6 +1196,7 @@
   top: calc(100% + 12px);
   right: 0;
   z-index: 60;
+  /* min() con fallback para Opera Mini */
   width: min(300px, calc(100vw - 32px));
   padding: 8px;
   border: 1px solid var(--border);
@@ -1171,6 +1204,12 @@
   background: var(--bg-card);
   box-shadow: var(--shadow-card);
   animation: accountDrop 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  /* Evitar que el panel se salga de la pantalla en móvil muy pequeño */
+  max-height: calc(100vh - 80px);
+  max-height: calc(100svh - 80px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Punta del menu apuntando al avatar */
@@ -1254,21 +1293,25 @@
 
 .accountItem {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 10px;
-  border: none;
-  border-radius: 10px;
-  background: transparent;
-  color: var(--text-main);
-  font-family: inherit;
-  font-size: 13.5px;
-  font-weight: 500;
-  text-align: left;
-  text-decoration: none;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  align-items: center.
+  gap: 10px.
+  width: 100%.
+  /* Touch target mínimo 44px */
+  min-height: 44px.
+  padding: 10px 12px.
+  border: none.
+  border-radius: 10px.
+  background: transparent.
+  color: var(--text-main).
+  font-family: inherit.
+  font-size: 13.5px.
+  font-weight: 500.
+  text-align: left.
+  text-decoration: none.
+  cursor: pointer.
+  transition: background 0.15s ease, color 0.15s ease.
+  touch-action: manipulation.
+  -webkit-tap-highlight-color: transparent.
 }
 
 .accountItem:hover {
@@ -1307,7 +1350,8 @@
   right: 0;
   z-index: 60;
   width: min(380px, calc(100vw - 32px));
-  max-height: 420px;
+  max-height: min(420px, calc(100vh - 90px));
+  max-height: min(420px, calc(100svh - 90px));
   overflow-y: auto;
   padding: 0;
   border: 1px solid var(--border);
@@ -1315,6 +1359,8 @@
   background: var(--bg-card);
   box-shadow: var(--shadow-card);
   animation: accountDrop 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .notificationsPanel::before {
@@ -1552,7 +1598,7 @@
 
 .topbarTitle h1 {
   font-size: clamp(20px, 2.1vw, 28px);
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.025em;
   color: var(--text-main);
   line-height: 1.2;
@@ -1576,7 +1622,8 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 40px;
+  /* Touch target mínimo 44px */
+  min-height: 44px;
   padding: 0 20px;
   border: 0;
   border-radius: 9999px;
@@ -1588,6 +1635,8 @@
   white-space: nowrap;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .primaryBtn:hover {
@@ -1606,7 +1655,8 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 40px;
+  /* Touch target mínimo 44px */
+  min-height: 44px;
   padding: 0 16px;
   border: 1px solid var(--border);
   border-radius: 9999px;
@@ -1618,6 +1668,8 @@
   white-space: nowrap;
   box-shadow: var(--shadow-sm);
   transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .ghostBtn:hover:not(:disabled) {
@@ -1716,7 +1768,7 @@
 .statValue {
   grid-area: value;
   font-size: 22px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--text-main);
   line-height: 1.1;
@@ -1853,6 +1905,8 @@
 .tableWrap {
   width: 100%;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .table {
@@ -1962,7 +2016,7 @@
   }
 
   .table tbody td::before {
-    content: attr(data-label);
+    content: attr(data-label, "Campo");
     color: var(--text-muted);
     font-size: 10px;
     font-weight: 700;
@@ -2012,7 +2066,7 @@
   background: var(--bg-card-subtle);
   color: var(--text-main);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.02em;
   overflow: hidden;
   border: 1.5px solid var(--bg-card);
@@ -2036,7 +2090,7 @@
   background: var(--bg-card-subtle);
   color: var(--text-main);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.02em;
   overflow: hidden;
   border: 1.5px solid var(--bg-card);
@@ -2177,8 +2231,8 @@
 }
 
 .rowActions button {
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2188,6 +2242,8 @@
   color: var(--text-muted);
   cursor: pointer;
   transition: all 0.15s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .rowActions button:hover {
@@ -2254,6 +2310,8 @@
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   animation: fadeIn 180ms ease both;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .modal {
@@ -2261,6 +2319,7 @@
   max-height: 92svh;
   overflow-y: auto;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid var(--border);
   border-radius: 22px;
   background: var(--bg-card);
@@ -2320,14 +2379,14 @@
 .modalHead h2 {
   margin-top: 4px;
   font-size: 20px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.015em;
   color: var(--text-main);
 }
 
 .iconBtn {
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2337,6 +2396,8 @@
   color: var(--text-muted);
   cursor: pointer;
   transition: all 0.15s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .iconBtn:hover {
@@ -2568,7 +2629,7 @@
 
 .confirm h3 {
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--text-main);
   letter-spacing: -0.01em;
 }
@@ -2591,19 +2652,22 @@
 
 .dangerBtn {
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 40px;
-  padding: 0 22px;
-  border: 0;
-  border-radius: 9999px;
-  background: var(--red-strong);
-  color: #ffffff;
-  cursor: pointer;
-  font-size: 12.5px;
-  font-weight: 700;
-  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.25);
-  transition: all 0.15s ease;
+  align-items: center.
+  justify-content: center.
+  /* Touch target mínimo 44px */
+  min-height: 44px.
+  padding: 0 22px.
+  border: 0.
+  border-radius: 9999px.
+  background: var(--red-strong).
+  color: #ffffff.
+  cursor: pointer.
+  font-size: 12.5px.
+  font-weight: 700.
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.25).
+  transition: background 0.15s ease, box-shadow 0.15s ease.
+  touch-action: manipulation.
+  -webkit-tap-highlight-color: transparent.
 }
 
 .dangerBtn:hover {
@@ -2867,6 +2931,8 @@
   }
 
   .loginCard {
+    /* Fallback para navegadores sin svh */
+    min-height: 100vh;
     min-height: 100svh;
     grid-template-columns: 1fr;
     border-radius: 0;
@@ -2884,6 +2950,42 @@
   .loginPanelBody {
     width: 100%;
     padding: 40px clamp(20px, 6vw, 40px);
+  }
+
+  /* Los paneles de notificaciones y cuenta en móvil se convierten en
+     hojas inferiores para mayor facilidad de uso con el pulgar */
+  .accountPanel,
+  .notificationsPanel {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 22px 22px 0 0;
+    border-bottom: none;
+    padding-bottom: max(env(safe-area-inset-bottom), 16px);
+    max-height: 80vh;
+    max-height: 80svh;
+    animation: sheetUp 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.18);
+  }
+
+  .accountPanel::before,
+  .notificationsPanel::before {
+    display: none;
+  }
+
+  @keyframes sheetUp {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
 
@@ -2960,6 +3062,104 @@
 
   .topbarActions {
     justify-content: stretch;
+  }
+
+  /* En móvil pequeño las pills de navegación se hacen un poco más compactas */
+  .pillItem {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .centerPillNav {
+    gap: 2px;
+  }
+
+  /* Las filas de acciones en tarjetas se apilan en móvil muy pequeño */
+  .rowActions {
+    gap: 8px;
+  }
+
+  .rowActions button {
+    /* Touch target ampliado a 44px mínimo */
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Pantallas muy estrechas: apilar todo el topbar y hacer pills de ancho completo */
+  .globalTopBar {
+    grid-template-areas:
+      "brand"
+      "pills"
+      "actions";
+    gap: 8px;
+  }
+
+  .brandArea {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .centerPillNav {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .pillItem {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 8px 10px;
+    font-size: 11.5px;
+  }
+
+  .pillIconOnly {
+    width: 40px;
+    height: 40px;
+  }
+
+  .rightActions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .searchPill {
+    display: none !important;
+  }
+
+  .topbarActions .primaryBtn,
+  .topbarActions .ghostBtn {
+    min-height: 44px;
+  }
+
+  .sectionSubBar {
+    gap: 8px;
+  }
+
+  .topbarTitle h1 {
+    font-size: 18px;
+  }
+
+  .topbarTitle p {
+    font-size: 12px;
+  }
+
+  .statCard {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "value"
+      "label"
+      "badge";
+    text-align: center;
+    padding: 12px;
+  }
+
+  .statIcon {
+    justify-self: center;
+  }
+
+  .statValue {
+    font-size: 20px;
   }
 }
 
@@ -3093,6 +3293,7 @@
   max-height: 620px;
   overflow-y: auto;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   padding-right: 4px;
 }
 
@@ -3126,7 +3327,7 @@
   border-radius: 9999px;
   border: 1px solid transparent;
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
 }
@@ -3281,7 +3482,7 @@
   background: var(--blue);
   color: #fff;
   font-size: 28px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.02em;
 }
 
@@ -3964,3 +4165,4 @@
     grid-template-columns: 1fr;
   }
 }
+
