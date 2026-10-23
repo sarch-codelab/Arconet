@@ -13,6 +13,9 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
+  // Solo afecta a `next dev`: permite abrir el servidor de desarrollo desde
+  // los portales de los orbs de Amp.
+  allowedDevOrigins: ["*.onamp.dev"],
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

@@ -1,0 +1,8 @@
+services:
+  web:
+    # `next dev` escucha en $PORT, que Amp asigna.
+    command: npm run dev
+    portal:
+      url: /admin
+      title: Arconet
+      description: Panel en /admin con admin@arconet.com / ArconetLocal2026 (datos sembrados por .agents/setup).

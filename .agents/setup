@@ -1,0 +1,126 @@
+#!/usr/bin/env bash
+# Prepara un orb de Amp para Arconet: PostgreSQL local, .env de desarrollo,
+# dependencias de npm, cliente de Prisma, migraciones y datos de prueba.
+# Es idempotente: en un snapshot ya preparado solo verifica y sale rápido.
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+step() {
+  local label="$1"
+  shift
+  local start=$SECONDS
+  echo "==> $label"
+  "$@"
+  echo "    ($label: $((SECONDS - start))s)"
+}
+
+PG_VERSION=15
+DB_NAME=arconet
+DB_USER=arconet
+DB_PASSWORD=arconet
+# Contraseña solo para las cuentas sembradas en la base local del orb.
+SEED_PASSWORD=ArconetLocal2026
+
+install_postgres() {
+  if dpkg -s postgresql >/dev/null 2>&1; then
+    echo "    PostgreSQL ya instalado"
+  else
+    sudo apt-get update -q
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q postgresql
+  fi
+
+  # Base efímera de desarrollo: velocidad antes que durabilidad.
+  local conf="/etc/postgresql/$PG_VERSION/main/conf.d/amp-orb.conf"
+  local wanted=$'fsync = off\nsynchronous_commit = off\nfull_page_writes = off\n'
+  if [ "$(sudo cat "$conf" 2>/dev/null)"$'\n' != "$wanted" ]; then
+    printf '%s' "$wanted" | sudo tee "$conf" >/dev/null
+    sudo systemctl restart "postgresql@$PG_VERSION-main"
+  fi
+  # systemd lo arranca en cada orb restaurado desde el snapshot.
+  sudo systemctl enable --now postgresql >/dev/null 2>&1
+  sudo systemctl start "postgresql@$PG_VERSION-main"
+
+  for _ in $(seq 1 30); do
+    pg_isready -q -h localhost && break
+    sleep 1
+  done
+  pg_isready -h localhost
+}
+
+create_database() {
+  local psql=(sudo -u postgres psql -v ON_ERROR_STOP=1 -tAq)
+  if [ "$("${psql[@]}" -c "SELECT 1 FROM pg_roles WHERE rolname = '$DB_USER'")" != 1 ]; then
+    # CREATEDB permite que `prisma migrate dev` cree su base sombra.
+    "${psql[@]}" -c "CREATE ROLE $DB_USER LOGIN CREATEDB PASSWORD '$DB_PASSWORD'"
+  fi
+  if [ "$("${psql[@]}" -c "SELECT 1 FROM pg_database WHERE datname = '$DB_NAME'")" != 1 ]; then
+    "${psql[@]}" -c "CREATE DATABASE $DB_NAME OWNER $DB_USER"
+  fi
+}
+
+write_env() {
+  # .env está en .gitignore; prisma.config.ts, el seed y `next dev` lo leen.
+  if [ -f .env ]; then
+    echo "    .env ya existe; no se modifica"
+    return
+  fi
+  cat > .env <<EOF
+DATABASE_URL=postgresql://$DB_USER:$DB_PASSWORD@localhost:5432/$DB_NAME
+SESSION_SECRET=$(openssl rand -hex 32)
+SEED_ADMIN_PASSWORD=$SEED_PASSWORD
+EOF
+}
+
+install_dependencies() {
+  # `npm ci` siempre borra node_modules (~15 s aun con caché); se omite si el
+  # lockfile y la versión de Node no cambiaron desde la última instalación.
+  local stamp=node_modules/.amp-setup-stamp
+  local fingerprint
+  fingerprint="$(node -v) $(sha256sum package-lock.json | cut -d' ' -f1)"
+  if [ -f "$stamp" ] && [ "$(cat "$stamp")" = "$fingerprint" ]; then
+    echo "    node_modules al día"
+    return
+  fi
+  npm ci --no-audit --no-fund --prefer-offline
+  echo "$fingerprint" > "$stamp"
+}
+
+migrate_and_seed() {
+  npx prisma migrate deploy
+  # El seed reescribe los registros de prueba; solo se ejecuta en una base vacía.
+  local usuarios
+  usuarios="$(sudo -u postgres psql -d "$DB_NAME" -tAq -c 'SELECT count(*) FROM "Usuario"')"
+  if [ "$usuarios" = 0 ]; then
+    npm run db:seed
+  else
+    echo "    La base ya tiene datos; no se siembra"
+  fi
+}
+
+write_agent_notes() {
+  local notes="$HOME/.config/amp/AGENTS.md"
+  local marker="<!-- arconet-orb-setup -->"
+  mkdir -p "$(dirname "$notes")"
+  if grep -Fq "$marker" "$notes" 2>/dev/null; then
+    return
+  fi
+  cat >> "$notes" <<EOF
+
+$marker
+# Arconet en este orb
+
+- PostgreSQL $PG_VERSION corre como servicio de systemd con la base \`$DB_NAME\` (usuario \`$DB_USER\`, contraseña \`$DB_PASSWORD\`). \`.env\` ya tiene \`DATABASE_URL\`, \`SESSION_SECRET\` y \`SEED_ADMIN_PASSWORD\`.
+- Migraciones: \`npm run db:migrate\`. Datos de prueba: \`npm run db:seed\` (sobrescribe los registros sembrados).
+- Panel en \`/admin\`: entra con \`admin@arconet.com\` / \`$SEED_PASSWORD\` (rol Administrador).
+- Servidor de desarrollo: \`amp orb services ensure\` (declarado en \`.amp/services.yaml\`).
+EOF
+}
+
+step "PostgreSQL" install_postgres
+step "Base de datos" create_database
+step ".env" write_env
+step "Dependencias npm" install_dependencies
+step "Cliente de Prisma" npx prisma generate
+step "Migraciones y seed" migrate_and_seed
+step "Notas para agentes" write_agent_notes

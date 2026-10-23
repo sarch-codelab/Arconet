@@ -47,3 +47,6 @@ next-env.d.ts
 
 # backups
 /backups/
+
+# amp orb portals
+.amp/portals/*
