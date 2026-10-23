@@ -1284,3 +1284,194 @@
 :global(html[data-theme="dark"]) .docCard:hover {
   border-color: var(--accent-ink);
 }
+
+/* Portal cliente con el mismo sistema visual del panel administrativo. */
+.clientDashboard {
+  --blue: #2563eb;
+  --blue-deep: #1d4ed8;
+  --bg: #f0f2f5;
+  --surface: #fff;
+  --surface-2: #f8f9fb;
+  --ink: #111827;
+  --muted: #626a76;
+  --line: #e5e7eb;
+  --topbar: rgba(240, 242, 245, 0.94);
+  font-family: var(--font-body), system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+:global(html[data-theme="dark"]) .clientDashboard {
+  --bg: #0e1116;
+  --surface: #151b23;
+  --surface-2: #1b222c;
+  --ink: #e9ebef;
+  --muted: #9aa1ab;
+  --line: #262d38;
+  --topbar: rgba(14, 17, 22, 0.94);
+}
+
+.dashboardShell {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.dashboardTopbar {
+  position: sticky;
+  display: grid;
+  grid-template-columns: auto minmax(180px, 1fr) auto;
+  grid-template-areas:
+    "brand nav actions"
+    "title title title";
+  gap: 12px 20px;
+  padding: 14px clamp(16px, 3vw, 32px) 12px;
+  background: var(--topbar);
+  border-bottom-color: var(--line);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.035);
+}
+
+.brandArea {
+  grid-area: brand;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.clientSidebar .logo img,
+.brandArea .logo img {
+  width: 138px;
+  filter: none;
+}
+
+.logoTag {
+  padding-left: 10px;
+  border-left: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.nav {
+  grid-area: nav;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  overflow: auto hidden;
+  padding: 4px;
+  border-radius: 999px;
+  background: #e5e8ec;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+}
+
+:global(html[data-theme="dark"]) .nav {
+  background: #1b222c;
+}
+
+.nav::-webkit-scrollbar { display: none; }
+
+.navItem {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #667080;
+  cursor: pointer;
+  scroll-snap-align: center;
+  transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+:global(html[data-theme="dark"]) .navItem { color: #9aa1ab; }
+.navItem:hover { background: rgba(255,255,255,.62); color: var(--ink); }
+:global(html[data-theme="dark"]) .navItem:hover { background: rgba(255,255,255,.08); }
+.navActive { background: #fff; color: #111827; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+:global(html[data-theme="dark"]) .navActive { background: #e9ebef; color: #111827; }
+.navActive:hover { background: #fff; color: #111827; }
+
+.topbarTitle {
+  grid-area: title;
+  min-width: 0;
+}
+
+.topbarTitle h1 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 21px;
+  letter-spacing: -0.025em;
+}
+
+.accountButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 10px 3px 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  transition: border-color 150ms ease, color 150ms ease, background 150ms ease;
+}
+
+.accountButton:hover { border-color: var(--blue); color: var(--blue); }
+.accountButton .userAvatar { width: 32px; height: 32px; background: var(--blue); }
+.topbarActions {
+  grid-area: actions;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.dashboardBody {
+  width: min(1440px, 100%);
+  margin: 0 auto;
+  padding: clamp(20px, 3vw, 32px);
+}
+
+.welcomeCard,
+.recentOrders,
+.statCard,
+.orderCard,
+.projectCard,
+.profileCard,
+.quickContact,
+.ticketForm,
+.recentTickets,
+.documentsPage > p {
+  border-color: var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.035), 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.statCard { border-radius: 12px; }
+.orderCard { background: var(--surface-2); }
+.orderCard:hover { box-shadow: 0 8px 20px -12px rgba(0,0,0,.2); }
+
+@media (max-width: 1180px) {
+  .dashboardTopbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "brand actions" "nav nav" "title title";
+  }
+  .nav { justify-content: flex-start; width: 100%; }
+}
+
+@media (max-width: 620px) {
+  .dashboardTopbar { gap: 10px; padding: 12px 14px 10px; }
+  .brandArea .logo img { width: 116px; }
+  .logoTag { font-size: 9px; }
+  .navItem { min-height: 34px; padding: 0 10px; font-size: 12px; }
+  .navItem:not(.navActive) { width: 34px; padding: 0; }
+  .topbarTitle h1 { font-size: 19px; }
+  .dashboardBody { padding: 16px 14px 28px; }
+}

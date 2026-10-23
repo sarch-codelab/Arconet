@@ -4,8 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, Check, Eye, EyeOff } from "lucide-react";
-import styles from "./login-experience.module.css";
+import { ArrowRight, Check, Eye, EyeOff } from "lucide-react";
+import styles from "../admin/admin-experience.module.css";
 import { sileo } from "../toaster";
 
 export default function LoginExperience() {
@@ -39,27 +39,25 @@ export default function LoginExperience() {
   return (
     <main className={styles.loginPage}>
       <div className={styles.loginCard}>
-        <div className={styles.visual}>
+        <div className={styles.loginVisual}>
           <Image
-            src="/neto-pensando.png"
+            src="/catalogo/infraestructura.jpg"
             alt=""
             fill
             priority
-            sizes="(max-width: 900px) 100vw, 55vw"
-            className={styles.visualImage}
+            sizes="(max-width: 900px) 100vw, 50vw"
+            className={styles.loginVisualImg}
           />
-          <div className={styles.visualOverlay} />
+          <div className={styles.loginVisualOverlay} />
 
           <Link className={styles.logoTab} href="/" aria-label="Arconet, inicio">
             <Image src="/arconet.png" alt="Arconet" width={2172} height={362} priority />
           </Link>
 
-          <div className={styles.visualCopy}>
-            <p className={styles.eyebrow}>
-              <i /> Acceso de clientes · Arconet
-            </p>
+          <div className={styles.loginVisualCopy}>
+            <p className={styles.eyebrow}><i /> Portal de clientes · Arconet</p>
             <h1>
-              Tu red, tus proyectos,
+              Tus proyectos,
               <br />
               <em>en un solo lugar.</em>
             </h1>
@@ -69,7 +67,7 @@ export default function LoginExperience() {
             </p>
           </div>
 
-          <div className={styles.visualFooter}>
+          <div className={styles.loginVisualFooter}>
             <span>FIBRA ÓPTICA · CATV · TELECOMUNICACIONES</span>
             <Link href="/contacto">
               ¿Necesitas ayuda? Escríbenos <ArrowRight size={14} />
@@ -77,28 +75,21 @@ export default function LoginExperience() {
           </div>
         </div>
 
-        <section className={styles.panel} aria-label="Formulario de acceso">
-          <div className={styles.panelTop}>
-            <Link className={styles.backLink} href="/">
-              <ArrowLeft size={15} /> Volver al inicio
-            </Link>
-            <span>HN · 2026</span>
-          </div>
-
-          <div className={styles.panelBody}>
-            <header className={styles.panelHeader}>
+        <section className={styles.loginPanel} aria-label="Formulario de acceso">
+          <div className={styles.loginPanelBody}>
+            <header>
               <p className={styles.sectionLabel}>Iniciar sesión</p>
               <h2>
                 Bienvenido
                 <br />
                 <em>de nuevo.</em>
               </h2>
-              <p className={styles.panelIntro}>
+              <p className={styles.loginIntro}>
                 Usa tu correo y contraseña para acceder a tu cuenta Arconet.
               </p>
             </header>
 
-            <form className={styles.loginForm} onSubmit={submit}>
+            <form className={styles.form} onSubmit={submit}>
               <label className={styles.field}>
                 Correo electrónico
                 <input
@@ -147,9 +138,7 @@ export default function LoginExperience() {
                   </span>
                   Recordarme
                 </label>
-                <Link className={styles.textLink} href="/contacto">
-                  ¿Olvidaste tu contraseña?
-                </Link>
+                <Link href="/contacto">¿Olvidaste tu contraseña?</Link>
               </div>
 
               <button type="submit" className={styles.submit} disabled={submitting}>
@@ -157,23 +146,15 @@ export default function LoginExperience() {
               </button>
             </form>
 
-            <div className={styles.divider}>
-              <span>o</span>
-            </div>
-
-            <Link className={styles.ghost} href="/contacto">
-              Solicitar acceso corporativo
-            </Link>
-
-            <p className={styles.panelFooter}>
+            <p className={styles.loginFooter}>
               ¿Aún no tienes cuenta?{" "}
               <Link href="/registro">Crea una aquí</Link>
             </p>
-          </div>
-
-          <div className={styles.panelBottom}>
-            <span>© 2026 Arconet, S.A.</span>
-            <Link href="/terminos">Términos de uso</Link>
+            <p className={styles.loginFooter}>
+              <Link href="/contacto">Solicitar acceso corporativo</Link>
+              <span aria-hidden="true"> · </span>
+              <Link href="/terminos">Términos de uso</Link>
+            </p>
           </div>
         </section>
       </div>

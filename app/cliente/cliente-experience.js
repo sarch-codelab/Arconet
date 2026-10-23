@@ -11,7 +11,6 @@ import {
   Download,
   FileText,
   LogOut,
-  Menu,
   Package,
   Plus,
   Send,
@@ -75,7 +74,6 @@ export default function ClientExperience() {
 }
 
 function ClientDashboard({ session, orders, setOrders, onLogout }) {
-  const [navOpen, setNavOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [requestModalOpen, setRequestModalOpen] = useState(false);
@@ -125,98 +123,36 @@ function ClientDashboard({ session, orders, setOrders, onLogout }) {
   return (
     <main className={styles.clientDashboard}>
       <div className={styles.dashboardShell}>
-        {navOpen && (
-          <button
-            type="button"
-            className={styles.navScrim}
-            onClick={() => setNavOpen(false)}
-            aria-label="Cerrar menú"
-          />
-        )}
-
-        <aside className={`${styles.clientSidebar} ${navOpen ? styles.navOpen : ""}`}>
-          <div className={styles.sidebarHead}>
-            <a className={styles.logo} href="/" aria-label="Arconet, inicio">
-              <img src="/arconet.png" alt="Arconet" />
-            </a>
-            <span className={styles.logoTag}>Portal de clientes</span>
-          </div>
-
-          <nav className={styles.nav} aria-label="Secciones del portal">
-            <button
-              type="button"
-              className={`${styles.navItem} ${activeTab === "dashboard" ? styles.navActive : ""}`}
-              onClick={() => { setActiveTab("dashboard"); setNavOpen(false); }}
-            >
-              <Building2 size={17} />
-              <span>Dashboard</span>
-            </button>
-            <button
-              type="button"
-              className={`${styles.navItem} ${activeTab === "cotizaciones" ? styles.navActive : ""}`}
-              onClick={() => { setActiveTab("cotizaciones"); setNavOpen(false); }}
-            >
-              <FileText size={17} />
-              <span>Mis cotizaciones</span>
-            </button>
-            <button
-              type="button"
-              className={`${styles.navItem} ${activeTab === "proyectos" ? styles.navActive : ""}`}
-              onClick={() => { setActiveTab("proyectos"); setNavOpen(false); }}
-            >
-              <Package size={17} />
-              <span>Proyectos</span>
-            </button>
-            <button
-              type="button"
-              className={`${styles.navItem} ${activeTab === "soporte" ? styles.navActive : ""}`}
-              onClick={() => { setActiveTab("soporte"); setNavOpen(false); }}
-            >
-              <Check size={17} />
-              <span>Soporte</span>
-            </button>
-            <button
-              type="button"
-              className={`${styles.navItem} ${activeTab === "documentos" ? styles.navActive : ""}`}
-              onClick={() => { setActiveTab("documentos"); setNavOpen(false); }}
-            >
-              <Download size={17} />
-              <span>Documentos</span>
-            </button>
-            <button
-              type="button"
-              className={`${styles.navItem} ${activeTab === "perfil" ? styles.navActive : ""}`}
-              onClick={() => { setActiveTab("perfil"); setNavOpen(false); }}
-            >
-              <User size={17} />
-              <span>Mi perfil</span>
-            </button>
-          </nav>
-
-          <div className={styles.sidebarFoot}>
-            <div className={styles.userCard}>
-              <span className={styles.userAvatar}>{session.nombre[0]}</span>
-              <span className={styles.userMeta}>
-                <strong>{session.nombre}</strong>
-                <em>{session.correo}</em>
-              </span>
-            </div>
-            <button type="button" className={styles.logoutBtn} onClick={onLogout}>
-              <LogOut size={16} /> Cerrar sesión
-            </button>
-          </div>
-        </aside>
-
         <div className={styles.dashboardContent}>
           <header className={styles.dashboardTopbar}>
-            <button
-              type="button"
-              className={styles.navToggle}
-              onClick={() => setNavOpen((value) => !value)}
-              aria-label="Abrir menú"
-            >
-              <Menu size={18} />
-            </button>
+            <div className={styles.brandArea}>
+              <a className={styles.logo} href="/" aria-label="Arconet, inicio">
+                <img src="/arconet.png" alt="Arconet" />
+              </a>
+              <span className={styles.logoTag}>Portal de clientes</span>
+            </div>
+            <nav className={styles.nav} aria-label="Secciones del portal">
+              {[
+                ["dashboard", "Dashboard", Building2],
+                ["cotizaciones", "Cotizaciones", FileText],
+                ["proyectos", "Proyectos", Package],
+                ["soporte", "Soporte", Check],
+                ["documentos", "Documentos", Download],
+                ["perfil", "Mi perfil", User],
+              ].map(([id, label, Icon]) => (
+                <button
+                  key={id}
+                  type="button"
+                  className={`${styles.navItem} ${activeTab === id ? styles.navActive : ""}`}
+                  onClick={() => setActiveTab(id)}
+                  aria-current={activeTab === id ? "page" : undefined}
+                  title={label}
+                >
+                  <Icon size={15} />
+                  {activeTab === id ? <span>{label}</span> : null}
+                </button>
+              ))}
+            </nav>
             <div className={styles.topbarTitle}>
               <h1>
                 {activeTab === "dashboard" && "Dashboard"}
@@ -228,11 +164,17 @@ function ClientDashboard({ session, orders, setOrders, onLogout }) {
                 {activeTab === "orden-detalle" && "Detalle de cotización"}
               </h1>
             </div>
-            {activeTab === "cotizaciones" && (
-              <button type="button" className={styles.primaryBtn} onClick={handleCreateRequest}>
-                <Plus size={16} /> Nueva solicitud
+            <div className={styles.topbarActions}>
+              {activeTab === "cotizaciones" && (
+                <button type="button" className={styles.primaryBtn} onClick={handleCreateRequest}>
+                  <Plus size={16} /> Nueva solicitud
+                </button>
+              )}
+              <button type="button" className={styles.accountButton} onClick={onLogout} aria-label="Cerrar sesión" title={`Cerrar sesión de ${session.nombre}`}>
+                <span className={styles.userAvatar}>{session.nombre[0]}</span>
+                <LogOut size={15} />
               </button>
-            )}
+            </div>
           </header>
 
           <div className={styles.dashboardBody}>
