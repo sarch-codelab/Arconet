@@ -634,24 +634,24 @@
 
 .pillItem {
   display: inline-flex;
-  align-items: center.
-  gap: 8px.
-  flex: 0 0 auto.
-  scroll-snap-align: center.
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  scroll-snap-align: center;
   /* Altura mínima 44px para touch */
-  min-height: 44px.
-  padding: 8px 16px.
-  border-radius: 9999px.
-  font-size: 13px.
-  font-weight: 600.
-  white-space: nowrap.
-  color: var(--pill-text).
-  border: none.
-  background: transparent.
-  cursor: pointer.
-  transition: color 0.15s ease, background 0.15s ease.
-  touch-action: manipulation.
-  -webkit-tap-highlight-color: transparent.
+  min-height: 44px;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--pill-text);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .pillItem:hover {
@@ -980,25 +980,25 @@
 
 .accountItem {
   display: flex;
-  align-items: center.
-  gap: 10px.
-  width: 100%.
+  align-items: center;
+  gap: 10px;
+  width: 100%;
   /* Touch target mínimo 44px */
-  min-height: 44px.
-  padding: 10px 12px.
-  border: none.
-  border-radius: 10px.
-  background: transparent.
-  color: var(--text-main).
-  font-family: inherit.
-  font-size: 13.5px.
-  font-weight: 500.
-  text-align: left.
-  text-decoration: none.
-  cursor: pointer.
-  transition: background 0.15s ease, color 0.15s ease.
-  touch-action: manipulation.
-  -webkit-tap-highlight-color: transparent.
+  min-height: 44px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .accountItem:hover {
@@ -2339,22 +2339,22 @@
 
 .dangerBtn {
   display: inline-flex;
-  align-items: center.
-  justify-content: center.
+  align-items: center;
+  justify-content: center;
   /* Touch target mínimo 44px */
-  min-height: 44px.
-  padding: 0 22px.
-  border: 0.
-  border-radius: 9999px.
-  background: var(--red-strong).
-  color: #ffffff.
-  cursor: pointer.
-  font-size: 12.5px.
-  font-weight: 700.
-  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.25).
-  transition: background 0.15s ease, box-shadow 0.15s ease.
-  touch-action: manipulation.
-  -webkit-tap-highlight-color: transparent.
+  min-height: 44px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--red-strong);
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.25);
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .dangerBtn:hover {
@@ -2833,6 +2833,23 @@
 
   .statValue {
     font-size: 20px;
+  }
+}
+
+/* iOS Safari y otros navegadores táctiles amplían la página al enfocar un
+   campo con tipografía menor a 16 px. En dispositivos de puntero grueso
+   (teléfonos y tabletas) se fija 16 px en los controles del panel para
+   evitar ese zoom automático y mantener la interfaz estable. */
+@media (pointer: coarse) {
+  .adminPage input,
+  .adminPage select,
+  .adminPage textarea,
+  .adminPage .fieldGrid .field input,
+  .adminPage .fieldGrid .field select,
+  .adminPage .fieldGrid .field textarea,
+  .adminPage .accessBox .field input,
+  .loginPage input {
+    font-size: 16px;
   }
 }
 
