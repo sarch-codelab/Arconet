@@ -2100,6 +2100,9 @@
 
 .form {
   display: grid;
+  /* minmax(0, 1fr): sin esto, el contenido ancho (p. ej. la matriz de
+     permisos) ensancha la columna y el modal se desliza de lado en celular. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 20px;
   padding: 20px 26px 24px;
 }
@@ -4045,4 +4048,34 @@
   color: var(--text-muted);
   font-size: 12px;
   line-height: 1.5;
+}
+
+/* En celular la matriz de permisos cabe sin desplazamiento lateral. */
+@media (max-width: 640px) {
+  .permMatrixCard {
+    padding: 12px;
+  }
+
+  .permMatrix thead th {
+    padding: 8px 2px;
+    white-space: normal;
+    line-height: 1.25;
+  }
+
+  .permMatrix thead th:first-child {
+    padding-left: 10px;
+  }
+
+  .permMatrix tbody th {
+    padding: 8px 6px 8px 10px;
+    white-space: normal;
+  }
+
+  .permMatrix tbody th svg {
+    display: none;
+  }
+
+  .permMatrix tbody td {
+    padding: 8px 2px;
+  }
 }
