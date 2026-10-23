@@ -1,14 +1,14 @@
 import { prisma } from "../../../lib/prisma";
-import { newWorkerId, parseTrabajador } from "../../../lib/trabajadores";
+import { checkRolAsignado, newWorkerId, parseTrabajador } from "../../../lib/trabajadores";
 import { toTrabajador } from "../../../lib/serialize";
 import { parseAcceso, syncUsuario } from "../../../lib/usuarios";
-import { requireSession, requireRole } from "../../../lib/dal";
+import { requirePermission } from "../../../lib/dal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request) {
-  const guard = await requireRole(["administrador", "gerente"]);
+  const guard = await requirePermission("trabajadores:read");
   if (guard.response) return guard.response;
   const { searchParams } = new URL(request.url);
   const sucursal = searchParams.get("sucursal");
@@ -50,7 +50,7 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const guard = await requireRole(["administrador"]);
+  const guard = await requirePermission("trabajadores:write");
   if (guard.response) return guard.response;
   let body;
   try {
@@ -61,6 +61,9 @@ export async function POST(request) {
 
   const { data, errors } = parseTrabajador(body);
   if (errors.length) return Response.json({ error: errors[0], errors }, { status: 400 });
+
+  const rolError = await checkRolAsignado(prisma, guard.session, { nuevo: data.rol });
+  if (rolError) return Response.json({ error: rolError.error }, { status: rolError.status });
 
   const acceso = parseAcceso(body);
   if (acceso.errors.length) return Response.json({ error: acceso.errors[0], errors: acceso.errors }, { status: 400 });

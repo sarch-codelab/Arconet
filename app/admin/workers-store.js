@@ -3,14 +3,6 @@ export const BRANCHES = [
   { id: "la-ceiba", label: "La Ceiba" },
 ];
 
-export const ROLES = [
-  { id: "administrador", label: "Administrador" },
-  { id: "gerente", label: "Gerente" },
-  { id: "tecnico", label: "Técnico" },
-  { id: "ventas", label: "Ventas" },
-  { id: "bodega", label: "Bodega" },
-];
-
 export const STATUSES = [
   { id: "activo", label: "Activo" },
   { id: "vacaciones", label: "Vacaciones" },
@@ -88,10 +80,6 @@ export async function authenticate(email, password) {
 
 export function branchLabel(id) {
   return BRANCHES.find((branch) => branch.id === id)?.label || id;
-}
-
-export function roleLabel(id) {
-  return ROLES.find((role) => role.id === id)?.label || id;
 }
 
 export function statusLabel(id) {

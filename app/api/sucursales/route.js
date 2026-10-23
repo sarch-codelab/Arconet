@@ -1,7 +1,7 @@
 import { prisma } from "../../../lib/prisma";
 import { newSucursalId, parseSucursal } from "../../../lib/sucursales";
 import { toSucursal } from "../../../lib/serialize";
-import { requireSession, requireRole } from "../../../lib/dal";
+import { requirePermission, requireSession } from "../../../lib/dal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,7 +19,7 @@ export async function GET() {
 }
 
 export async function POST(request) {
-  const guard = await requireRole(["administrador"]);
+  const guard = await requirePermission("sucursales:write");
   if (guard.response) return guard.response;
   let body;
   try {

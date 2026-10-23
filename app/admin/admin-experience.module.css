@@ -3880,3 +3880,169 @@
   color: #60a5fa;
 }
 
+
+/* ---------------- Roles y permisos ---------------- */
+
+.roleBadgeIcon {
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+.roleChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: 360px;
+}
+
+.roleChip {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  background: var(--bg-card-subtle);
+  color: var(--text-main);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.roleMuted {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.modalWide {
+  width: min(860px, 100%);
+}
+
+.permMatrixCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-card-subtle);
+}
+
+.permMatrixHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.permMatrixHead strong {
+  color: var(--text-main);
+  font-size: 14px;
+}
+
+.permMatrixHead p {
+  margin: 4px 0 0;
+  max-width: 520px;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.permMatrixBulk {
+  display: flex;
+  gap: 8px;
+}
+
+.permMatrixBulk .ghostBtn {
+  min-height: 34px;
+  padding: 0 12px;
+  font-size: 12px;
+}
+
+.permMatrixWrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+}
+
+.permMatrix {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.permMatrix thead th {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.permMatrix thead th:first-child,
+.permMatrix tbody th {
+  text-align: left;
+}
+
+.permMatrix tbody th {
+  padding: 9px 12px;
+  color: var(--text-main);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.permMatrix tbody th svg {
+  margin-right: 6px;
+  vertical-align: -2px;
+  color: var(--text-muted);
+}
+
+.permMatrix tbody td {
+  padding: 9px 12px;
+  text-align: center;
+}
+
+.permMatrix tbody tr + tr > * {
+  border-top: 1px solid var(--border-subtle);
+}
+
+.permMatrix .checkbox {
+  justify-content: center;
+}
+
+.permMatrix .checkbox input:disabled + span {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.permNa {
+  color: var(--text-light);
+}
+
+.permMatrixNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  color: var(--text-main);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.permMatrixNote svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--blue);
+}
+
+.permMatrixSummary {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}

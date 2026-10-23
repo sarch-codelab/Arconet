@@ -1,13 +1,13 @@
 import { prisma } from "../../../lib/prisma";
 import { newClienteId, parseCliente } from "../../../lib/clientes";
 import { toCliente } from "../../../lib/serialize";
-import { requireSession, requireRole } from "../../../lib/dal";
+import { requirePermission } from "../../../lib/dal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request) {
-  const guard = await requireRole(["administrador", "gerente", "ventas"]);
+  const guard = await requirePermission("clientes:read");
   if (guard.response) return guard.response;
   const { searchParams } = new URL(request.url);
   const estado = searchParams.get("estado");
@@ -45,7 +45,7 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const guard = await requireRole(["administrador", "gerente", "ventas"]);
+  const guard = await requirePermission("clientes:write");
   if (guard.response) return guard.response;
   let body;
   try {

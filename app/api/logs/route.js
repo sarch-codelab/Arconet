@@ -1,12 +1,12 @@
 import { listLogs, serializeLog } from "../../../lib/logs";
 import { prisma } from "../../../lib/prisma";
-import { requireRole } from "../../../lib/dal";
+import { requirePermission } from "../../../lib/dal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request) {
-  const guard = await requireRole(["administrador"]);
+  const guard = await requirePermission("logs:read");
   if (guard.response) return guard.response;
 
   try {
@@ -25,7 +25,7 @@ export async function GET(request) {
 }
 
 export async function DELETE() {
-  const guard = await requireRole(["administrador"]);
+  const guard = await requirePermission("logs:delete");
   if (guard.response) return guard.response;
 
   try {

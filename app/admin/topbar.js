@@ -6,7 +6,7 @@ import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Bell, ExternalLink, HelpCircle, LogOut, Search, User, MessageSquare, AlertTriangle, CheckCircle } from "lucide-react";
 import { sileo } from "../toaster";
 import { AdminContext, NAV } from "./admin-nav";
-import { roleLabel } from "./workers-store";
+import { canAccessSection } from "../../lib/permisos";
 import styles from "./admin-experience.module.css";
 
 /**
@@ -178,7 +178,7 @@ export function Topbar({
           aria-label="Secciones del panel"
           ref={pillNavRef}
         >
-          {NAV.map((item) => {
+          {NAV.filter((item) => canAccessSection(currentSession?.permisos, item.id)).map((item) => {
             const Icon = item.icon;
             const isActive = item.id === activeSection;
             return (
@@ -369,7 +369,7 @@ export function Topbar({
                   </span>
                   <span className={styles.accountIdentity}>
                     <strong>{currentSession?.nombre || "Administrador"}</strong>
-                    <span>{currentSession?.rol ? roleLabel(currentSession.rol) : "Administrador"}</span>
+                    <span>{currentSession?.rolNombre || "Administrador"}</span>
                     {currentSession?.correo ? <em>{currentSession.correo}</em> : null}
                     {currentSession?.sucursal ? <em>{currentSession.sucursal}</em> : null}
                   </span>

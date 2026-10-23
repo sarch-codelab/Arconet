@@ -1,7 +1,7 @@
 import { prisma } from "../../../lib/prisma";
 import { newProductoId, parseProducto } from "../../../lib/productos";
 import { toProducto } from "../../../lib/serialize";
-import { requireSession, requireRole } from "../../../lib/dal";
+import { requirePermission, requireSession } from "../../../lib/dal";
 import { writeLog } from "../../../lib/logs";
 
 export const runtime = "nodejs";
@@ -50,7 +50,7 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const guard = await requireRole(["administrador", "gerente"]);
+  const guard = await requirePermission("productos:write");
   if (guard.response) return guard.response;
   let body;
   try {

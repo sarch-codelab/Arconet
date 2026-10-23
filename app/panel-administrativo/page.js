@@ -1,5 +1,8 @@
 import { redirect } from "next/navigation";
 import { getSession } from "../../lib/session";
+import { getPermisos } from "../../lib/dal";
+import { prisma } from "../../lib/prisma";
+import { PERMISSION_MODULES, canAccessSection } from "../../lib/permisos";
 import { AdminPanel } from "../admin/admin-experience";
 
 export const metadata = {
@@ -11,33 +14,25 @@ export const metadata = {
 
 export const dynamic = "force-dynamic";
 
-const ADMIN_SECTIONS = new Set([
-  "trabajadores",
-  "productos",
-  "categorias",
-  "sucursales",
-  "clientes",
-  "cotizaciones",
-  "flota",
-  "monitoreo",
-  "logs",
-  "resumen",
-  "mi-perfil",
-  "ajustes",
-]);
-
 export default async function PanelAdministrativoPage({ searchParams }) {
   const session = await getSession();
   if (!session) {
     redirect("/admin");
   }
 
+  const [permisos, rol] = await Promise.all([
+    getPermisos(session),
+    prisma.rol.findUnique({ where: { slug: session.rol ?? "" }, select: { nombre: true } }),
+  ]);
+
+  // Solo se abre una seccion que el rol del usuario puede ver; si no, la
+  // primera permitida (Mi perfil siempre lo esta).
   const params = (await searchParams) || {};
-  const rawSection = params.section;
-  const initialSection =
-    typeof rawSection === "string" && ADMIN_SECTIONS.has(rawSection.trim())
-      ? rawSection.trim()
-      : "";
+  const requested = typeof params.section === "string" ? params.section.trim() : "";
+  const initialSection = canAccessSection(permisos, requested)
+    ? requested
+    : PERMISSION_MODULES.map((module) => module.section).find((id) => canAccessSection(permisos, id)) ||
+      "mi-perfil";
 
   return (
     <AdminPanel
@@ -45,6 +40,8 @@ export default async function PanelAdministrativoPage({ searchParams }) {
         nombre: session.nombre,
         correo: session.correo,
         rol: session.rol,
+        rolNombre: rol?.nombre ?? session.rol,
+        permisos,
         sucursal: session.sucursal ?? "",
       }}
       initialSection={initialSection}

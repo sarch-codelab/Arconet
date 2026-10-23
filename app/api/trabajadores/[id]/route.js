@@ -1,14 +1,14 @@
 import { prisma } from "../../../../lib/prisma";
-import { parseTrabajador } from "../../../../lib/trabajadores";
+import { checkRolAsignado, parseTrabajador } from "../../../../lib/trabajadores";
 import { toTrabajador } from "../../../../lib/serialize";
 import { parseAcceso, syncUsuario } from "../../../../lib/usuarios";
-import { requireSession, requireRole } from "../../../../lib/dal";
+import { requirePermission } from "../../../../lib/dal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(_request, { params }) {
-  const guard = await requireRole(["administrador", "gerente"]);
+  const guard = await requirePermission("trabajadores:read");
   if (guard.response) return guard.response;
   const { id } = await params;
   const trabajador = await prisma.trabajador.findUnique({ where: { id } });
@@ -18,7 +18,7 @@ export async function GET(_request, { params }) {
 }
 
 export async function PATCH(request, { params }) {
-  const guard = await requireRole(["administrador"]);
+  const guard = await requirePermission("trabajadores:write");
   if (guard.response) return guard.response;
   const { id } = await params;
   let body;
@@ -37,6 +37,9 @@ export async function PATCH(request, { params }) {
   try {
     const actual = await prisma.trabajador.findUnique({ where: { id } });
     if (!actual) return Response.json({ error: "Trabajador no encontrado." }, { status: 404 });
+
+    const rolError = await checkRolAsignado(prisma, guard.session, { nuevo: data.rol, actual: actual.rol });
+    if (rolError) return Response.json({ error: rolError.error }, { status: rolError.status });
 
     const cuentaExistente = await prisma.usuario.findUnique({ where: { correo: actual.correo } });
     const quiereAcceso = acceso.accesoPanel;
@@ -80,12 +83,14 @@ export async function PATCH(request, { params }) {
 }
 
 export async function DELETE(_request, { params }) {
-  const guard = await requireRole(["administrador"]);
+  const guard = await requirePermission("trabajadores:delete");
   if (guard.response) return guard.response;
   const { id } = await params;
   try {
     const trabajador = await prisma.trabajador.findUnique({ where: { id } });
     if (!trabajador) return Response.json({ error: "Trabajador no encontrado." }, { status: 404 });
+    const rolError = await checkRolAsignado(prisma, guard.session, { actual: trabajador.rol });
+    if (rolError) return Response.json({ error: rolError.error }, { status: rolError.status });
     await prisma.trabajador.delete({ where: { id } });
     await prisma.usuario.deleteMany({ where: { correo: trabajador.correo } });
     return Response.json({ ok: true });

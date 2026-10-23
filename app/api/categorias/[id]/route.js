@@ -1,6 +1,6 @@
 import { prisma } from "../../../../lib/prisma";
 import { parseCategoria } from "../../../../lib/categorias";
-import { requireRole } from "../../../../lib/dal";
+import { requirePermission } from "../../../../lib/dal";
 import { writeLog } from "../../../../lib/logs";
 
 export const runtime = "nodejs";
@@ -19,7 +19,7 @@ function toCategoria(categoria) {
 }
 
 export async function PATCH(request, { params }) {
-  const guard = await requireRole(["administrador", "gerente"]);
+  const guard = await requirePermission("categorias:write");
   if (guard.response) return guard.response;
 
   const { id } = await params;
@@ -83,7 +83,7 @@ export async function PATCH(request, { params }) {
 }
 
 export async function DELETE(_request, { params }) {
-  const guard = await requireRole(["administrador", "gerente"]);
+  const guard = await requirePermission("categorias:delete");
   if (guard.response) return guard.response;
 
   const { id } = await params;

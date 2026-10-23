@@ -1,13 +1,13 @@
 import { prisma } from "../../../../lib/prisma";
 import { parseOrden } from "../../../../lib/ordenes";
 import { toOrden } from "../../../../lib/serialize";
-import { requireSession, requireRole } from "../../../../lib/dal";
+import { requirePermission } from "../../../../lib/dal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(_request, { params }) {
-  const guard = await requireRole(["administrador", "gerente", "ventas"]);
+  const guard = await requirePermission("ordenes:read");
   if (guard.response) return guard.response;
   const { id } = await params;
   const orden = await prisma.orden.findUnique({
@@ -19,7 +19,7 @@ export async function GET(_request, { params }) {
 }
 
 export async function PATCH(request, { params }) {
-  const guard = await requireRole(["administrador", "gerente", "ventas"]);
+  const guard = await requirePermission("ordenes:write");
   if (guard.response) return guard.response;
   const { id } = await params;
   let body;
@@ -57,7 +57,7 @@ export async function PATCH(request, { params }) {
 }
 
 export async function DELETE(_request, { params }) {
-  const guard = await requireRole(["administrador", "gerente"]);
+  const guard = await requirePermission("ordenes:delete");
   if (guard.response) return guard.response;
   const { id } = await params;
   try {

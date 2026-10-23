@@ -43,6 +43,7 @@ export const AdminContext = createContext({
 /** Secciones del panel, en el orden en que aparecen en la barra lateral. */
 export const NAV = [
   { id: "trabajadores", label: "Trabajadores", icon: Users },
+  { id: "roles", label: "Roles", icon: ShieldCheck },
   { id: "productos", label: "Productos", icon: Package },
   { id: "categorias", label: "Categorías", icon: Tags },
   { id: "sucursales", label: "Sucursales", icon: Building2 },
@@ -71,6 +72,14 @@ export const SECTION_NAV_CONFIG = {
       { id: "roles", label: "Roles", icon: ShieldCheck, title: "Roles y permisos del sistema" },
       { id: "ceiba", label: "La Ceiba", icon: MapPin, title: "Sede La Ceiba" },
       { id: "gerencia", label: "Gerencia", icon: ShieldCheck, title: "Personal de gerencia" },
+    ],
+  },
+  roles: {
+    brandName: "Roles",
+    tabs: [
+      { id: "all", label: "Roles", icon: ShieldCheck, title: "Todos los roles" },
+      { id: "active", label: "Activos", icon: Check, title: "Roles que se pueden asignar" },
+      { id: "inactive", label: "Inactivos", icon: Clock, title: "Roles desactivados" },
     ],
   },
   productos: {

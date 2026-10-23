@@ -51,6 +51,7 @@ import {
   Tags,
   Trash2,
   TrendingUp,
+  Truck,
   User,
   Users,
   X,
@@ -63,8 +64,13 @@ import { AdminContext, NAV, SECTION_NAV_CONFIG } from "./admin-nav";
 import { SectionTabs, Topbar } from "./topbar";
 import { useAdminSmoothScroll } from "./use-smooth-scroll";
 import {
+  PERMISSION_ACTIONS,
+  PERMISSION_MODULES,
+  SUPER_ROLE,
+  canAccessSection,
+} from "../../lib/permisos";
+import {
   BRANCHES,
-  ROLES,
   STATUSES,
   authenticate,
   branchLabel,
@@ -75,7 +81,6 @@ import {
   formatDate,
   initials,
   newWorkerId,
-  roleLabel,
   statusLabel,
   updateWorker,
 } from "./workers-store";
@@ -250,11 +255,14 @@ function AdminShell({ session, onLogout, initialSection }) {
   const [clientes, setClientes] = useState([]);
 
   const { scrollToTop } = useAdminSmoothScroll();
+  // El rol define que secciones puede abrir el usuario (el servidor tambien
+  // valida cada accion en las APIs).
+  const canOpen = (id) => canAccessSection(session?.permisos, id);
 
   useEffect(() => {
     // El hash solo existe en el cliente: se sincroniza tras el montaje.
     const hash = window.location.hash.replace("#", "").trim();
-    if (hash && hash !== section) setSection(hash);
+    if (hash && hash !== section && canOpen(hash)) setSection(hash);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -284,13 +292,14 @@ function AdminShell({ session, onLogout, initialSection }) {
     const handlePopState = () => {
       const sp = new URLSearchParams(window.location.search);
       const s = sp.get("section");
-      if (s) setSection(s);
+      if (s && canOpen(s)) setSection(s);
     };
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
   const goTo = (id) => {
+    if (!canOpen(id)) return;
     setSection(id);
     scrollToTop();
     if (typeof window !== "undefined") {
@@ -416,31 +425,33 @@ function AdminShell({ session, onLogout, initialSection }) {
   );
 }
 
+const EMPTY_ROLE = { nombre: "", slug: "", descripcion: "", permisos: [], estado: "activo" };
+
 function RolesSection({ roles, setRoles, workers = [], session }) {
   const [activeTab, setActiveTab] = useState("all");
   const [query, setQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [draft, setDraft] = useState({
-    id: "",
-    nombre: "",
-    slug: "",
-    descripcion: "",
-    permisos: [],
-    estado: "activo",
-  });
+  const [draft, setDraft] = useState(EMPTY_ROLE);
+  const [saving, setSaving] = useState(false);
   const [confirmRole, setConfirmRole] = useState(null);
   const { show } = useToast();
+
+  // Lo que el usuario actual puede hacer aqui depende de su propio rol. Solo
+  // puede otorgar permisos que el mismo tiene (el servidor aplica la misma regla).
+  const myPermisos = session?.permisos || [];
+  const canWrite = myPermisos.includes("roles:write");
+  const canDelete = myPermisos.includes("roles:delete");
+  const isSuperUser = session?.rol === SUPER_ROLE;
 
   useEscapeKey(modalOpen, () => closeModal());
   useBodyScrollLock(modalOpen);
 
-  const stats = useMemo(() => {
-    const total = roles.length;
-    const activos = roles.filter((r) => r.estado === "activo").length;
-    const conPermisos = roles.filter((r) => r.permisos && r.permisos.length > 0).length;
-    return { total, activos, conPermisos };
-  }, [roles]);
+  const stats = useMemo(() => ({
+    total: roles.length,
+    activos: roles.filter((r) => r.estado === "activo").length,
+    asignados: roles.reduce((sum, r) => sum + (r.trabajadores || 0), 0),
+  }), [roles]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLocaleLowerCase("es");
@@ -448,14 +459,18 @@ function RolesSection({ roles, setRoles, workers = [], session }) {
       if (activeTab === "active" && role.estado !== "activo") return false;
       if (activeTab === "inactive" && role.estado !== "inactivo") return false;
       if (!q) return true;
-      return `${role.nombre} ${role.slug} ${role.descripcion || ""} ${(role.permisos || []).join(" ")}`
+      return `${role.nombre} ${role.slug} ${role.descripcion || ""}`
         .toLocaleLowerCase("es")
         .includes(q);
     });
   }, [roles, activeTab, query]);
 
+  const isSuperRole = (role) => role?.slug === SUPER_ROLE;
+  const visibleSections = (role) =>
+    PERMISSION_MODULES.filter((module) => isSuperRole(role) || role.permisos?.includes(`${module.id}:read`));
+
   function openCreate() {
-    setDraft({ id: "", nombre: "", slug: "", descripcion: "", permisos: [], estado: "activo" });
+    setDraft(EMPTY_ROLE);
     setEditingId(null);
     setModalOpen(true);
   }
@@ -475,20 +490,36 @@ function RolesSection({ roles, setRoles, workers = [], session }) {
     setDraft((prev) => ({ ...prev, [field]: value }));
   }
 
-  function togglePermission(perm) {
-    setDraft((prev) => ({
-      ...prev,
-      permisos: prev.permisos.includes(perm)
-        ? prev.permisos.filter((p) => p !== perm)
-        : [...prev.permisos, perm],
-    }));
+  // Ver es la base de cada seccion: crear, editar o eliminar la activan, y
+  // quitar Ver quita tambien el resto de privilegios de esa seccion.
+  function togglePermission(module, action) {
+    const perm = `${module.id}:${action}`;
+    setDraft((prev) => {
+      const current = new Set(prev.permisos);
+      if (current.has(perm)) {
+        current.delete(perm);
+        if (action === "read") module.actions.forEach((a) => current.delete(`${module.id}:${a}`));
+      } else {
+        current.add(perm);
+        if (action !== "read") current.add(`${module.id}:read`);
+      }
+      return { ...prev, permisos: [...current] };
+    });
+  }
+
+  function setAllPermissions(enabled) {
+    setDraft((prev) => {
+      // Los permisos que el usuario no puede otorgar se conservan tal cual.
+      const kept = prev.permisos.filter((perm) => !myPermisos.includes(perm));
+      return { ...prev, permisos: enabled ? [...new Set([...kept, ...myPermisos])] : kept };
+    });
   }
 
   function requestDelete(role) {
-    const workerCount = workers.filter((w) => w.rol === (role.slug || role.nombre)).length;
-    if (workerCount > 0) {
+    const assigned = (role.trabajadores || 0) + (role.usuarios || 0);
+    if (assigned > 0) {
       show(
-        `No se puede eliminar "${role.nombre}": tiene ${workerCount} trabajador${workerCount === 1 ? "" : "es"} asignados. Reasígnalos primero.`,
+        `No se puede eliminar "${role.nombre}": tiene ${role.trabajadores || 0} trabajador(es) asignados. Reasígnalos primero.`,
         "error",
       );
       return;
@@ -503,117 +534,61 @@ function RolesSection({ roles, setRoles, workers = [], session }) {
       notifyError("El nombre del rol es obligatorio.");
       return;
     }
-    const slugValue = draft.slug.trim() || rolSlug(nombre);
-    if (!slugValue) {
-      notifyError("No se pudo generar el slug del rol.");
-      return;
-    }
     const payload = {
       nombre,
-      slug: slugValue,
       descripcion: draft.descripcion.trim(),
-      permisos: draft.permisos.filter(Boolean),
+      permisos: draft.permisos,
       estado: draft.estado,
     };
 
+    setSaving(true);
     try {
       if (editingId) {
-        const before = roles.find((item) => item.id === editingId);
         const saved = await updateRol(editingId, payload);
-        setRoles((current) =>
-          current.map((item) => (item.id === editingId ? saved : item)),
-        );
-        if (before && (before.slug || before.nombre) !== saved.slug) {
-          setWorkers((current) =>
-            current.map((worker) =>
-              worker.rol === (before.slug || before.nombre)
-                ? { ...worker, rol: saved.slug }
-                : worker,
-            ),
-          );
-        }
+        setRoles((current) => current.map((item) => (item.id === editingId ? saved : item)));
         show("Rol actualizado.");
       } else {
-        const saved = await createRol(payload);
+        const saved = await createRol({ ...payload, slug: rolSlug(nombre) });
         setRoles((current) => [...current, saved].sort((a, b) => a.nombre.localeCompare(b.nombre, "es")));
         show("Rol creado.");
       }
     } catch (error) {
       notifyError(error.message || "No se pudo guardar el rol.");
       return;
+    } finally {
+      setSaving(false);
     }
     closeModal();
   }
 
+  const editingSuper = isSuperRole(draft);
   const slugPreview = editingId ? draft.slug : rolSlug(draft.nombre);
-
-  // Todos los permisos disponibles en el sistema, agrupados por categoría
-  const ALL_PERMISSIONS = useMemo(
-    () => [
-      // Trabajadores
-      { id: "trabajadores:read", label: "Ver trabajadores", category: "Personal" },
-      { id: "trabajadores:write", label: "Crear/editar trabajadores", category: "Personal" },
-      { id: "trabajadores:delete", label: "Eliminar trabajadores", category: "Personal" },
-      // Productos
-      { id: "productos:read", label: "Ver productos", category: "Catálogo" },
-      { id: "productos:write", label: "Crear/editar productos", category: "Catálogo" },
-      { id: "productos:delete", label: "Eliminar productos", category: "Catálogo" },
-      // Categorías
-      { id: "categorias:read", label: "Ver categorías", category: "Catálogo" },
-      { id: "categorias:write", label: "Crear/editar categorías", category: "Catálogo" },
-      { id: "categorias:delete", label: "Eliminar categorías", category: "Catálogo" },
-      // Sucursales
-      { id: "sucursales:read", label: "Ver sucursales", category: "Sucursales" },
-      { id: "sucursales:write", label: "Crear/editar sucursales", category: "Sucursales" },
-      { id: "sucursales:delete", label: "Eliminar sucursales", category: "Sucursales" },
-      // Clientes
-      { id: "clientes:read", label: "Ver clientes", category: "Clientes" },
-      { id: "clientes:write", label: "Crear/editar clientes", category: "Clientes" },
-      { id: "clientes:delete", label: "Eliminar clientes", category: "Clientes" },
-      // Órdenes
-      { id: "ordenes:read", label: "Ver cotizaciones/órdenes", category: "Comercial" },
-      { id: "ordenes:write", label: "Crear/editar cotizaciones/órdenes", category: "Comercial" },
-      { id: "ordenes:delete", label: "Eliminar cotizaciones/órdenes", category: "Comercial" },
-      // Reportes
-      { id: "reportes:read", label: "Ver reportes", category: "Reportes" },
-      // Ajustes
-      { id: "ajustes:read", label: "Ver ajustes", category: "Sistema" },
-      { id: "ajustes:write", label: "Editar ajustes", category: "Sistema" },
-      // Logs
-      { id: "logs:read", label: "Ver logs del sistema", category: "Sistema" },
-      // Flota
-      { id: "flota:read", label: "Ver flota", category: "Flota" },
-      // Mi perfil
-      { id: "mi-perfil:read", label: "Ver mi perfil", category: "Cuenta" },
-      { id: "mi-perfil:write", label: "Editar mi perfil", category: "Cuenta" },
-    ],
-    []
-  );
-
-  const permissionsByCategory = useMemo(() => {
-    const grouped = {};
-    ALL_PERMISSIONS.forEach((perm) => {
-      if (!grouped[perm.category]) grouped[perm.category] = [];
-      grouped[perm.category].push(perm);
-    });
-    return grouped;
-  }, [ALL_PERMISSIONS]);
+  const draftSections = visibleSections(draft);
 
   return (
     <>
       <Topbar
         title="Roles y permisos"
-        subtitle="Define roles del sistema y asigna permisos granulares a cada uno."
+        subtitle="Crea roles, define qué secciones del panel ve cada uno y qué puede hacer en ellas."
         action={
-          <button type="button" className={styles.primaryBtn} onClick={openCreate}>
-            <Plus size={16} /> Nuevo rol
-          </button>
+          canWrite ? (
+            <button type="button" className={styles.primaryBtn} onClick={openCreate}>
+              <Plus size={16} /> Nuevo rol
+            </button>
+          ) : null
         }
         session={session}
         workers={workers}
       />
 
       <div className={styles.body}>
+        <SectionTabs
+          tabs={SECTION_NAV_CONFIG.roles.tabs}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          label="Filtros de roles"
+        />
+
         <section className={styles.stats} aria-label="Resumen de roles">
           <article className={styles.statCard}>
             <span className={styles.statIcon}><ShieldCheck size={18} /></span>
@@ -626,20 +601,25 @@ function RolesSection({ roles, setRoles, workers = [], session }) {
             <span className={styles.statLabel}>Activos</span>
           </article>
           <article className={styles.statCard}>
-            <span className={styles.statIcon}><Key size={18} /></span>
-            <strong className={styles.statValue}>{stats.conPermisos}</strong>
-            <span className={styles.statLabel}>Con permisos</span>
+            <span className={styles.statIcon}><Users size={18} /></span>
+            <strong className={styles.statValue}>{stats.asignados}</strong>
+            <span className={styles.statLabel}>Trabajadores asignados</span>
+          </article>
+          <article className={styles.statCard}>
+            <span className={styles.statIcon}><Layers size={18} /></span>
+            <strong className={styles.statValue}>{PERMISSION_MODULES.length}</strong>
+            <span className={styles.statLabel}>Secciones controladas</span>
           </article>
         </section>
 
-        <section className={styles.toolbar} aria-label="Filtros de roles">
+        <section className={styles.toolbar} aria-label="Buscar roles">
           <label className={styles.search}>
             <Search size={16} />
             <input
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Buscar por nombre, slug, descripción o permiso"
+              placeholder="Buscar por nombre o descripción"
               aria-label="Buscar roles"
             />
           </label>
@@ -656,66 +636,93 @@ function RolesSection({ roles, setRoles, workers = [], session }) {
               <thead>
                 <tr>
                   <th>Rol</th>
-                  <th>Descripción</th>
-                  <th>Permisos</th>
+                  <th>Secciones visibles</th>
+                  <th>Privilegios</th>
+                  <th>Personal</th>
                   <th>Estado</th>
-                  <th className={styles.actionsCol}>Acciones</th>
+                  {(canWrite || canDelete) && <th className={styles.actionsCol}>Acciones</th>}
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((role) => (
-                  <tr key={role.id}>
-                    <td data-label="Rol" className={styles.cellMain}>
-                      <div className={styles.person}>
-                        <span className={styles.avatar} style={{background:"var(--blue-soft)",color:"var(--blue)"}}>
-                          <ShieldCheck size={14} />
-                        </span>
+                {filtered.map((role) => {
+                  const sections = visibleSections(role);
+                  const privileges = isSuperRole(role)
+                    ? null
+                    : (role.permisos || []).filter((perm) => !perm.endsWith(":read")).length;
+                  return (
+                    <tr key={role.id}>
+                      <td data-label="Rol" className={styles.cellMain}>
+                        <div className={styles.person}>
+                          <span className={`${styles.avatar} ${styles.roleBadgeIcon}`}>
+                            <ShieldCheck size={14} />
+                          </span>
+                          <span className={styles.personMeta}>
+                            <strong>{role.nombre}</strong>
+                            <em>{role.descripcion || role.slug}</em>
+                          </span>
+                        </div>
+                      </td>
+                      <td data-label="Secciones">
+                        {isSuperRole(role) ? (
+                          <span className={styles.roleChip}>Todas · acceso total</span>
+                        ) : sections.length ? (
+                          <span className={styles.roleChips}>
+                            {sections.map((module) => (
+                              <span key={module.id} className={styles.roleChip}>{module.label}</span>
+                            ))}
+                          </span>
+                        ) : (
+                          <span className={styles.roleMuted}>Solo Mi perfil</span>
+                        )}
+                      </td>
+                      <td data-label="Privilegios">
+                        {privileges === null
+                          ? "Todos"
+                          : privileges
+                            ? `${privileges} privilegio${privileges === 1 ? "" : "s"} de edición`
+                            : "Solo lectura"}
+                      </td>
+                      <td data-label="Personal">
                         <span className={styles.personMeta}>
-                          <strong>{role.nombre}</strong>
-                          <em>{role.slug}</em>
+                          <strong>{role.trabajadores || 0} trabajador{role.trabajadores === 1 ? "" : "es"}</strong>
+                          <em>{role.usuarios || 0} con acceso al panel</em>
                         </span>
-                      </div>
-                    </td>
-                    <td data-label="Descripción">{role.descripcion || "-"}</td>
-                    <td data-label="Permisos">
-                      {role.permisos && role.permisos.length > 0 ? (
-                        <span className={styles.pill} style={{fontSize:"11px",padding:"2px 8px"}}>
-                          {role.permisos.length} permiso{role.permisos.length !== 1 ? "s" : ""}
+                      </td>
+                      <td data-label="Estado">
+                        <span className={`${styles.pill} ${styles[`status_${role.estado}`]}`}>
+                          {(ROLE_STATUSES.find((item) => item.id === role.estado) || {}).label || role.estado}
                         </span>
-                      ) : (
-                        <span className={styles.pill} style={{background:"var(--orange-light)",color:"var(--text-warning)"}}>
-                          Sin permisos
-                        </span>
+                      </td>
+                      {(canWrite || canDelete) && (
+                        <td data-label="Acciones">
+                          <div className={styles.rowActions}>
+                            {canWrite && (!isSuperRole(role) || isSuperUser) && (
+                              <button
+                                type="button"
+                                onClick={() => openEdit(role)}
+                                aria-label={`Editar ${role.nombre}`}
+                                title="Editar permisos"
+                              >
+                                <Pencil size={15} />
+                              </button>
+                            )}
+                            {canDelete && !isSuperRole(role) && (
+                              <button
+                                type="button"
+                                className={styles.danger}
+                                onClick={() => requestDelete(role)}
+                                aria-label={`Eliminar ${role.nombre}`}
+                                title="Eliminar"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            )}
+                          </div>
+                        </td>
                       )}
-                    </td>
-                    <td data-label="Estado">
-                      <span className={`${styles.pill} ${styles[`status_${role.estado}`]}`}>
-                        {(ROLE_STATUSES.find((item) => item.id === role.estado) || {}).label || role.estado}
-                      </span>
-                    </td>
-                    <td data-label="Acciones">
-                      <div className={styles.rowActions}>
-                        <button
-                          type="button"
-                          onClick={() => openEdit(role)}
-                          aria-label={`Editar ${role.nombre}`}
-                          title="Editar"
-                        >
-                          <Pencil size={15} />
-                        </button>
-                        <button
-                          type="button"
-                          className={styles.danger}
-                          onClick={() => requestDelete(role)}
-                          aria-label={`Eliminar ${role.nombre}`}
-                          title="Eliminar"
-                        >
-                          <Trash2 size={15} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
 
@@ -742,11 +749,16 @@ function RolesSection({ roles, setRoles, workers = [], session }) {
             if (event.target === event.currentTarget) closeModal();
           }}
         >
-          <div className={styles.modal} role="dialog" aria-modal="true" aria-label={editingId ? "Editar rol" : "Nuevo rol"}>
+          <div
+            className={`${styles.modal} ${styles.modalWide}`}
+            role="dialog"
+            aria-modal="true"
+            aria-label={editingId ? "Editar rol" : "Nuevo rol"}
+          >
             <header className={styles.modalHead}>
               <div>
                 <p className={styles.eyebrow}>{editingId ? "Editar" : "Nuevo"}</p>
-                <h2>{editingId ? "Editar rol" : "Agregar rol"}</h2>
+                <h2>{editingId ? `Rol ${draft.nombre}` : "Agregar rol"}</h2>
               </div>
               <button type="button" className={styles.iconBtn} onClick={closeModal} aria-label="Cerrar">
                 <X size={18} />
@@ -766,17 +778,20 @@ function RolesSection({ roles, setRoles, workers = [], session }) {
                   />
                 </label>
                 <label className={styles.field}>
-                  Enlace (slug)
-                  <input
-                    type="text"
-                    value={slugPreview}
-                    readOnly
-                    placeholder="se-genera-con-el-nombre"
-                  />
+                  Estado
+                  <select
+                    value={draft.estado}
+                    onChange={(event) => changeField("estado", event.target.value)}
+                    disabled={editingSuper}
+                  >
+                    {ROLE_STATUSES.map((item) => (
+                      <option key={item.id} value={item.id}>{item.label}</option>
+                    ))}
+                  </select>
                   <small className={styles.fieldHint}>
-                    {editingId
-                      ? "El enlace no cambia al renombrar el rol."
-                      : `Se usará en la base de datos y APIs`}
+                    {editingSuper
+                      ? "El rol Administrador siempre está activo."
+                      : "Un rol inactivo no se puede asignar y sus usuarios solo ven Mi perfil."}
                   </small>
                 </label>
                 <label className={`${styles.field} ${styles.spanFull}`}>
@@ -785,63 +800,104 @@ function RolesSection({ roles, setRoles, workers = [], session }) {
                     value={draft.descripcion}
                     onChange={(event) => changeField("descripcion", event.target.value)}
                     placeholder="Describe qué hace este rol y a quién va dirigido."
-                    rows={3}
+                    rows={2}
                   />
-                </label>
-                <label className={styles.field}>
-                  Estado
-                  <select value={draft.estado} onChange={(event) => changeField("estado", event.target.value)}>
-                    {ROLE_STATUSES.map((item) => (
-                      <option key={item.id} value={item.id}>{item.label}</option>
-                    ))}
-                  </select>
+                  <small className={styles.fieldHint}>
+                    Identificador: <code>{slugPreview || "se-genera-con-el-nombre"}</code>
+                    {editingId ? " (no cambia al renombrar el rol)" : ""}
+                  </small>
                 </label>
               </div>
 
-              <label className={`${styles.field} ${styles.spanFull}`}>
-                Permisos
-                <div className={styles.accessBox}>
-                  {Object.entries(permissionsByCategory).map(([category, perms]) => (
-                    <div key={category} style={{marginBottom:"12px"}}>
-                      <strong style={{display:"block",marginBottom:"8px",color:"var(--text-muted)",fontSize:"11px",textTransform:"uppercase",letterSpacing:"0.06em"}}>
-                        {category}
-                      </strong>
-                      <div style={{display:"flex",flexWrap:"wrap",gap:"8px"}}>
-                        {perms.map((perm) => (
-                          <label
-                            key={perm.id}
-                            className={styles.checkbox}
-                            style={{
-                              width: "calc(50% - 4px)",
-                              minWidth: "180px",
-                              fontSize: "12px",
-                              color: "var(--text-main)",
-                              background: draft.permisos.includes(perm.id) ? "var(--blue-soft)" : "transparent",
-                              border: draft.permisos.includes(perm.id) ? "1px solid var(--blue)" : "1px solid var(--border)",
-                              borderRadius: "8px",
-                              padding: "8px 10px",
-                            }}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={draft.permisos.includes(perm.id)}
-                              onChange={() => togglePermission(perm.id)}
-                            />
-                            <span>{perm.label}</span>
-                          </label>
-                        ))}
-                      </div>
+              <section className={styles.permMatrixCard} aria-label="Secciones y privilegios">
+                <header className={styles.permMatrixHead}>
+                  <div>
+                    <strong>Secciones y privilegios</strong>
+                    <p>
+                      <em>Ver</em> muestra la sección en el menú del panel. Los demás privilegios permiten
+                      crear, editar o eliminar dentro de ella. <em>Mi perfil</em> siempre está disponible.
+                    </p>
+                  </div>
+                  {!editingSuper && (
+                    <div className={styles.permMatrixBulk}>
+                      <button type="button" className={styles.ghostBtn} onClick={() => setAllPermissions(true)}>
+                        Marcar todo
+                      </button>
+                      <button type="button" className={styles.ghostBtn} onClick={() => setAllPermissions(false)}>
+                        Quitar todo
+                      </button>
                     </div>
-                  ))}
-                </div>
-              </label>
+                  )}
+                </header>
+
+                {editingSuper ? (
+                  <p className={styles.permMatrixNote}>
+                    <ShieldCheck size={16} /> El rol Administrador tiene acceso total a todas las secciones
+                    y privilegios; no se puede limitar para evitar quedar sin acceso al panel.
+                  </p>
+                ) : (
+                  <div className={styles.permMatrixWrap}>
+                    <table className={styles.permMatrix}>
+                      <thead>
+                        <tr>
+                          <th scope="col">Sección</th>
+                          {PERMISSION_ACTIONS.map((action) => (
+                            <th key={action.id} scope="col">{action.label}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {PERMISSION_MODULES.map((module) => {
+                          const Icon = NAV.find((item) => item.id === module.section)?.icon || Layers;
+                          return (
+                            <tr key={module.id}>
+                              <th scope="row">
+                                <Icon size={15} aria-hidden="true" /> {module.label}
+                              </th>
+                              {PERMISSION_ACTIONS.map((action) => {
+                                if (!module.actions.includes(action.id)) {
+                                  return <td key={action.id} className={styles.permNa}>—</td>;
+                                }
+                                const perm = `${module.id}:${action.id}`;
+                                const checked = draft.permisos.includes(perm);
+                                return (
+                                  <td key={action.id}>
+                                    <label className={styles.checkbox}>
+                                      <input
+                                        type="checkbox"
+                                        checked={checked}
+                                        disabled={!checked && !myPermisos.includes(perm)}
+                                        onChange={() => togglePermission(module, action.id)}
+                                        aria-label={`${action.label}: ${module.label}`}
+                                      />
+                                      <span><Check size={12} /></span>
+                                    </label>
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {!editingSuper && (
+                  <p className={styles.permMatrixSummary}>
+                    {draftSections.length
+                      ? `Verá ${draftSections.length} sección${draftSections.length === 1 ? "" : "es"} además de Mi perfil: ${draftSections.map((m) => m.label).join(", ")}.`
+                      : "Sin secciones marcadas: solo verá Mi perfil."}
+                  </p>
+                )}
+              </section>
 
               <footer className={styles.modalActions}>
                 <button type="button" className={styles.ghostBtn} onClick={closeModal}>
                   Cancelar
                 </button>
-                <button type="submit" className={styles.submit}>
-                  {editingId ? "Guardar cambios" : "Agregar rol"}
+                <button type="submit" className={styles.submit} disabled={saving}>
+                  {saving ? "Guardando..." : editingId ? "Guardar cambios" : "Agregar rol"}
                 </button>
               </footer>
             </form>
@@ -877,6 +933,7 @@ function RolesSection({ roles, setRoles, workers = [], session }) {
 
 function WorkersSection({ workers, setWorkers, roles = [], session }) {
   const [activeTab, setActiveTab] = useState("all");
+  const roleName = (slug) => roles.find((item) => item.slug === slug)?.nombre || slug;
   const [query, setQuery] = useState("");
   const [branch, setBranch] = useState("all");
   const [role, setRole] = useState("all");
@@ -956,7 +1013,7 @@ function WorkersSection({ workers, setWorkers, roles = [], session }) {
   }
 
   function openCreate() {
-    const firstActiveRole = roles.find((r) => r.estado === "activo");
+    const firstActiveRole = roles.find((r) => r.estado === "activo" && r.slug !== SUPER_ROLE);
     setDraft({
       ...EMPTY_WORKER,
       id: newWorkerId(),
@@ -1052,7 +1109,9 @@ function WorkersSection({ workers, setWorkers, roles = [], session }) {
 
       <div className={styles.body}>
         <SectionTabs
-          tabs={SECTION_NAV_CONFIG.trabajadores.tabs}
+          tabs={SECTION_NAV_CONFIG.trabajadores.tabs.filter(
+            (tab) => tab.id !== "roles" || canAccessSection(session?.permisos, "roles"),
+          )}
           activeTab={activeTab}
           onTabChange={handleTabChange}
           label="Filtros de trabajadores"
@@ -1164,7 +1223,7 @@ function WorkersSection({ workers, setWorkers, roles = [], session }) {
                       </div>
                     </td>
                     <td data-label="Sucursal">{branchLabel(worker.sucursal)}</td>
-                    <td data-label="Rol"><span className={styles.role}>{roleLabel(worker.rol)}</span></td>
+                    <td data-label="Rol"><span className={styles.role}>{roleName(worker.rol)}</span></td>
                     <td data-label="Estado">
                       <span className={`${styles.pill} ${styles[`status_${worker.estado}`]}`}>
                         {statusLabel(worker.estado)}
@@ -1303,7 +1362,8 @@ function WorkersSection({ workers, setWorkers, roles = [], session }) {
                   Rol
                   <select value={draft.rol} onChange={(event) => changeField("rol", event.target.value)}>
                     {roles
-                      .filter((r) => r.estado === "activo")
+                      .filter((r) => r.estado === "activo" || r.slug === draft.rol)
+                      .filter((r) => r.slug !== SUPER_ROLE || session?.rol === SUPER_ROLE || draft.rol === SUPER_ROLE)
                       .map((item) => (
                         <option key={item.id} value={item.slug || item.nombre}>{item.nombre}</option>
                       ))}
@@ -4481,7 +4541,7 @@ function MiPerfilSection({ session, workers = [] }) {
                       <h4>{session?.nombre || "Administrador"}</h4>
                       <p className={styles.profileRole}>
                         <span className={styles.badge}>
-                          {session?.rol === "admin" ? "Administrador" : roleLabel(session?.rol || "admin")}
+                          {session?.rolNombre || "Administrador"}
                         </span>
                         {myWorker?.sucursal ? (
                           <span className={styles.badge}>{branchLabel(myWorker.sucursal)}</span>
@@ -4553,7 +4613,7 @@ function MiPerfilSection({ session, workers = [] }) {
                     <div className={styles.detailCard}>
                       <span className={styles.detailLabel}>Rol</span>
                       <span className={styles.detailValue}>
-                        {myWorker?.rol ? roleLabel(myWorker.rol) : (session?.rol === "admin" ? "Administrador del sistema" : "Usuario")}
+                        {session?.rolNombre || "Usuario"}
                       </span>
                     </div>
                     <div className={styles.detailCard}>

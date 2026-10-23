@@ -1,6 +1,6 @@
 import { prisma } from "../../../lib/prisma";
 import { newCategoriaId, parseCategoria } from "../../../lib/categorias";
-import { requireRole } from "../../../lib/dal";
+import { requirePermission } from "../../../lib/dal";
 import { writeLog } from "../../../lib/logs";
 
 export const runtime = "nodejs";
@@ -38,7 +38,7 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const guard = await requireRole(["administrador", "gerente"]);
+  const guard = await requirePermission("categorias:write");
   if (guard.response) return guard.response;
 
   let body;

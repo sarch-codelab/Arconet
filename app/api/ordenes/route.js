@@ -1,7 +1,7 @@
 import { prisma } from "../../../lib/prisma";
 import { newOrderId, parseOrden } from "../../../lib/ordenes";
 import { toOrden } from "../../../lib/serialize";
-import { requireSession, requireRole } from "../../../lib/dal";
+import { requirePermission, requireSession } from "../../../lib/dal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -42,7 +42,7 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const guard = await requireRole(["administrador", "gerente", "ventas"]);
+  const guard = await requirePermission("ordenes:write");
   if (guard.response) return guard.response;
   let body;
   try {
