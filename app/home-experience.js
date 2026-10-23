@@ -308,6 +308,7 @@ useEffect(() => {
     const isMobile = () => window.matchMedia("(max-width: 760px)").matches;
     const previousHtmlOverflow = document.documentElement.style.overflow;
     const previousBodyOverflow = document.body.style.overflow;
+    const trigger = document.activeElement;
 
     if (isMobile()) {
       document.documentElement.style.overflow = "hidden";
@@ -317,7 +318,11 @@ useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
         setMenuOpen(false);
-        menuToggleRef.current?.focus();
+        if (trigger instanceof HTMLElement && trigger.isConnected) {
+          trigger.focus({ preventScroll: true });
+        } else {
+          menuToggleRef.current?.focus();
+        }
       }
     };
 
@@ -739,6 +744,20 @@ useEffect(() => {
                 </a>
               ))}
             </nav>
+
+            <button
+              type="button"
+              className={`${styles.cardMenuToggle}${menuOpen ? ` ${styles.menuToggleActive}` : ""}`}
+              aria-expanded={menuOpen}
+              aria-controls="home-mobile-menu"
+              aria-haspopup="true"
+              aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
+              onClick={() => setMenuOpen(!menuOpen)}
+            >
+              <span className={styles.menuBar} />
+              <span className={styles.menuBar} />
+              <span className={styles.menuBar} />
+            </button>
 
             <div className={styles.cardActionTab}>
               <a className={styles.cardTopPill} href="#contacto">
