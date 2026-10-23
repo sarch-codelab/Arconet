@@ -4,7 +4,25 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { ArrowLeft, ArrowRight, Check, Eye, EyeOff } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Building2,
+  Check,
+  ChevronRight,
+  Clock,
+  Download,
+  Eye,
+  EyeOff,
+  FileText,
+  LogOut,
+  Menu,
+  Package,
+  Plus,
+  Send,
+  User,
+  X,
+} from "lucide-react";
 import styles from "./login-experience.module.css";
 import { sileo } from "../toaster";
 
