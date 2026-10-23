@@ -1,6 +1,6 @@
 import { prisma } from "../../../lib/prisma";
 import { requirePermission } from "../../../lib/dal";
-import { AREAS_SOLICITUD, canSeeAllSolicitudes, newSolicitudId, PRIORIDADES_SOLICITUD, rolesForArea, createSolicitudNotifications } from "../../../lib/solicitudes-internas";
+import { canSeeAllSolicitudes, newSolicitudId, PRIORIDADES_SOLICITUD, createSolicitudNotifications } from "../../../lib/solicitudes-internas";
 import { writeLog } from "../../../lib/logs";
 
 export const runtime = "nodejs";
@@ -10,13 +10,14 @@ export async function GET() {
   const guard = await requirePermission("solicitudes:read");
   if (guard.response) return guard.response;
   const email = guard.session.correo.toLowerCase();
-  const areas = Object.entries(AREAS_SOLICITUD)
-    .filter(([, config]) => config.roles.includes(guard.session.rol))
-    .map(([area]) => area);
-  const where = canSeeAllSolicitudes(guard.session)
-    ? {}
-    : { OR: [{ solicitanteCorreo: { equals: email, mode: "insensitive" } }, { responsableCorreo: { equals: email, mode: "insensitive" } }, ...(areas.length ? [{ area: { in: areas } }] : [])] };
   try {
+    const areas = await prisma.areaSolicitud.findMany({
+      where: { roles: { has: guard.session.rol } },
+      select: { slug: true },
+    });
+    const where = canSeeAllSolicitudes(guard.session)
+      ? {}
+      : { OR: [{ solicitanteCorreo: { equals: email, mode: "insensitive" } }, { responsableCorreo: { equals: email, mode: "insensitive" } }, ...(areas.length ? [{ area: { in: areas.map((area) => area.slug) } }] : [])] };
     const requests = await prisma.solicitudInterna.findMany({
       where,
       orderBy: { updatedAt: "desc" },
@@ -41,12 +42,14 @@ export async function POST(request) {
   const descripcion = typeof body?.descripcion === "string" ? body.descripcion.trim().slice(0, 4000) : "";
   const area = typeof body?.area === "string" ? body.area : "";
   const prioridad = typeof body?.prioridad === "string" ? body.prioridad : "normal";
-  if (!titulo || !descripcion || !AREAS_SOLICITUD[area] || !PRIORIDADES_SOLICITUD.includes(prioridad)) {
+  if (!titulo || !descripcion || !area || !PRIORIDADES_SOLICITUD.includes(prioridad)) {
     return Response.json({ error: "Completa el asunto, el detalle, el área responsable y la prioridad." }, { status: 400 });
   }
   const solicitudId = newSolicitudId();
   const session = guard.session;
   try {
+    const areaConfig = await prisma.areaSolicitud.findUnique({ where: { slug: area } });
+    if (!areaConfig?.activa) return Response.json({ error: "El área seleccionada ya no está disponible." }, { status: 400 });
     const solicitud = await prisma.solicitudInterna.create({
       data: {
         id: solicitudId,
@@ -62,9 +65,9 @@ export async function POST(request) {
     });
     await createSolicitudNotifications(prisma, {
       solicitudId,
-      area,
+      areaSlugValue: area,
       actorEmail: session.correo,
-      title: `Nueva orden para ${AREAS_SOLICITUD[area].label}`,
+      title: `Nueva orden para ${areaConfig.nombre}`,
       message: `${session.nombre || session.correo}: ${titulo}`,
     });
     await writeLog("panel", `Nueva orden interna: ${solicitudId}`, { actor: session.correo, ruta: "/api/solicitudes", detalle: { area, prioridad } });

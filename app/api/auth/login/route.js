@@ -2,6 +2,7 @@ import { prisma } from "../../../../lib/prisma";
 import { verifyPassword } from "../../../../lib/auth";
 import { createSession } from "../../../../lib/session";
 import { writeLog } from "../../../../lib/logs";
+import { decryptTotpSecret, verifyTotp } from "../../../../lib/totp";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -71,13 +72,22 @@ export async function POST(request) {
     return Response.json({ error: "Credenciales inválidas." }, { status: 401 });
   }
 
+  if (usuario.twoFactorEnabled) {
+    const code = typeof body?.codigo === "string" ? body.codigo : "";
+    if (!code) return Response.json({ twoFactorRequired: true });
+    if (!usuario.twoFactorSecret || !verifyTotp(decryptTotpSecret(usuario.twoFactorSecret), code)) {
+      await writeLog("auth", `Código de verificación inválido: ${email}`, { nivel: "warn", actor: email, ruta: "/api/auth/login" });
+      return Response.json({ error: "El código de verificación no es válido." }, { status: 401 });
+    }
+  }
+
   await createSession({
     id: usuario.id,
     nombre: usuario.nombre,
     correo: usuario.correo,
     rol: usuario.rol,
     sucursal: usuario.sucursalId ?? "",
-  });
+  }, { userAgent: request.headers.get("user-agent") });
 
   await writeLog("auth", `Inicio de sesión: ${usuario.correo}`, {
     actor: usuario.correo,

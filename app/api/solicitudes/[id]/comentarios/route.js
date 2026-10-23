@@ -19,7 +19,8 @@ export async function POST(request, { params }) {
     const current = await prisma.solicitudInterna.findUnique({ where: { id } });
     if (!current) return Response.json({ error: "No se encontró la orden." }, { status: 404 });
     const session = guard.session;
-    if (!canAccessSolicitud(session, current)) return Response.json({ error: "No tienes acceso a esta orden." }, { status: 403 });
+    const area = await prisma.areaSolicitud.findUnique({ where: { slug: current.area } });
+    if (!canAccessSolicitud(session, current, area)) return Response.json({ error: "No tienes acceso a esta orden." }, { status: 403 });
     const comment = await prisma.$transaction(async (tx) => {
       const saved = await tx.comentarioSolicitud.create({
         data: {
@@ -35,7 +36,7 @@ export async function POST(request, { params }) {
     });
     await createSolicitudNotifications(prisma, {
       solicitudId: id,
-      area: current.area,
+      areaSlugValue: current.area,
       actorEmail: session.correo,
       extraRecipients: [current.solicitanteCorreo, current.responsableCorreo].filter(Boolean),
       title: `Nuevo comentario en ${id}`,

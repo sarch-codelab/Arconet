@@ -49,15 +49,39 @@ model Usuario {
   nombre       String
   correo       String    @unique
   passwordHash String
+  telefono     String?
+  foto         String?
   rol          String    @default("administrador")
   sucursalId   String?
   activo       Boolean   @default(true)
+  twoFactorSecret  String?
+  twoFactorEnabled Boolean   @default(false)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   sucursal     Sucursal? @relation(fields: [sucursalId], references: [id])
+  sesiones     SesionUsuario[]
 
   @@index([sucursalId])
   @@index([rol])
+}
+
+model SesionUsuario {
+  id          String    @id
+  sessionId   String    @unique
+  usuarioId   String
+  userAgent   String?
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  usuario     Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId, revokedAt, expiresAt])
+}
+
+model ConfiguracionSistema {
+  clave     String   @id
+  valor     String
+  updatedAt DateTime @updatedAt
 }
 
 model Producto {
@@ -225,6 +249,18 @@ model SolicitudInterna {
   @@index([area, estado, createdAt])
   @@index([solicitanteCorreo, createdAt])
   @@index([responsableCorreo])
+}
+
+model AreaSolicitud {
+  id        String   @id
+  nombre    String
+  slug      String   @unique
+  roles     String[]
+  activa    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([activa, nombre])
 }
 
 model ComentarioSolicitud {

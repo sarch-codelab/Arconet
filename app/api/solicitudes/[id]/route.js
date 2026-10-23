@@ -1,6 +1,6 @@
 import { prisma } from "../../../../lib/prisma";
 import { requirePermission } from "../../../../lib/dal";
-import { AREAS_SOLICITUD, canAccessSolicitud, canSeeAllSolicitudes, createSolicitudNotifications, ESTADOS_SOLICITUD, rolesForArea } from "../../../../lib/solicitudes-internas";
+import { canAccessSolicitud, canSeeAllSolicitudes, createSolicitudNotifications, ESTADOS_SOLICITUD, rolesForArea } from "../../../../lib/solicitudes-internas";
 import { writeLog } from "../../../../lib/logs";
 
 export const runtime = "nodejs";
@@ -20,9 +20,10 @@ export async function PATCH(request, { params }) {
     const current = await prisma.solicitudInterna.findUnique({ where: { id }, include: { comentarios: { orderBy: { createdAt: "asc" } } } });
     if (!current) return Response.json({ error: "No se encontró la orden." }, { status: 404 });
     const session = guard.session;
-    if (!canAccessSolicitud(session, current)) return Response.json({ error: "No tienes acceso a esta orden." }, { status: 403 });
+    const area = await prisma.areaSolicitud.findUnique({ where: { slug: current.area } });
+    if (!canAccessSolicitud(session, current, area)) return Response.json({ error: "No tienes acceso a esta orden." }, { status: 403 });
     const isCoordinator = canSeeAllSolicitudes(session);
-    const canWorkArea = rolesForArea(current.area).includes(session.rol);
+    const canWorkArea = rolesForArea(area).includes(session.rol);
     if (!isCoordinator && !canWorkArea) return Response.json({ error: "Solo el área asignada puede cambiar el estado." }, { status: 403 });
     const transitions = {
       pendiente: ["en_revision"],
@@ -46,7 +47,7 @@ export async function PATCH(request, { params }) {
     });
     await createSolicitudNotifications(prisma, {
       solicitudId: id,
-      area: current.area,
+      areaSlugValue: current.area,
       actorEmail: session.correo,
       extraRecipients: [current.solicitanteCorreo],
       title: `Orden ${id}: ${estado.replaceAll("_", " ")}`,

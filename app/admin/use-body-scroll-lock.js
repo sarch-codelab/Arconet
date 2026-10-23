@@ -6,7 +6,7 @@ import { useEffect } from "react";
  * Bloqueo compartido del desplazamiento del fondo.
  *
  * Se mantiene un contador a nivel de modulo para que varios componentes
- * (cajon lateral, modales del panel y modales de flota) puedan bloquear el
+ * (cajon lateral y modales del panel) puedan bloquear el
  * desplazamiento sin que uno restaure el valor original mientras otro sigue
  * abierto.
  */

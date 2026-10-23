@@ -1,6 +1,6 @@
 import { prisma } from "../../../../lib/prisma";
 import { requireSession, getPermisos } from "../../../../lib/dal";
-import { AREAS_SOLICITUD, canSeeAllSolicitudes } from "../../../../lib/solicitudes-internas";
+import { canSeeAllSolicitudes } from "../../../../lib/solicitudes-internas";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,15 +29,15 @@ export async function GET(request) {
     }));
     if (permissions.includes("solicitudes:read")) {
       const session = guard.session;
-      const areas = Object.entries(AREAS_SOLICITUD).filter(([, area]) => area.roles.includes(session.rol)).map(([area]) => area);
+      const areas = await prisma.areaSolicitud.findMany({ where: { roles: { has: session.rol } }, select: { slug: true, nombre: true } });
       const where = canSeeAllSolicitudes(session) ? { OR: [contains("id"), contains("titulo"), contains("descripcion")] } : {
         AND: [
-          { OR: [{ solicitanteCorreo: { equals: session.correo, mode: "insensitive" } }, { responsableCorreo: { equals: session.correo, mode: "insensitive" } }, ...(areas.length ? [{ area: { in: areas } }] : [])] },
+          { OR: [{ solicitanteCorreo: { equals: session.correo, mode: "insensitive" } }, { responsableCorreo: { equals: session.correo, mode: "insensitive" } }, ...(areas.length ? [{ area: { in: areas.map((area) => area.slug) } }] : [])] },
           { OR: [contains("id"), contains("titulo"), contains("descripcion")] },
         ],
       };
       jobs.push(prisma.solicitudInterna.findMany({ where, take: 5, select: { id: true, titulo: true, area: true, estado: true } }).then((items) => {
-        results.push(...items.map((item) => ({ id: item.id, title: item.titulo, detail: `${AREAS_SOLICITUD[item.area]?.label || item.area} · ${item.estado.replaceAll("_", " ")}`, section: "solicitudes", sectionLabel: "Órdenes internas" })));
+        results.push(...items.map((item) => ({ id: item.id, title: item.titulo, detail: `${areas.find((area) => area.slug === item.area)?.nombre || item.area} · ${item.estado.replaceAll("_", " ")}`, section: "solicitudes", sectionLabel: "Órdenes internas" })));
       }));
     }
     await Promise.all(jobs);

@@ -165,10 +165,6 @@ export const SECTION_NAV_CONFIG = {
       { id: "all", label: "Perfil", icon: User, title: "Mi perfil de usuario" },
       { id: "activity", label: "Actividad", icon: Activity, title: "Mi actividad reciente" },
       { id: "security", label: "Seguridad", icon: ShieldCheck, title: "Seguridad de mi cuenta" },
-      { id: "notifications", label: "Notificaciones", icon: Bell, title: "Preferencias de notificaciones" },
-      { id: "privacy", label: "Privacidad", icon: ShieldCheck, title: "Configuración de privacidad" },
-      { id: "appearance", label: "Apariencia", icon: Settings, title: "Tema, idioma y densidad" },
-      { id: "api", label: "Claves API", icon: Key, title: "Claves de acceso para integraciones" },
     ],
   },
   ajustes: {

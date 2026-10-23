@@ -4339,73 +4339,100 @@ function LogsSection({ session, workers = [] }) {
 function MiPerfilSection({ session, workers = [] }) {
   const [activeTab, setActiveTab] = useState("all");
   const [editMode, setEditMode] = useState(false);
-
+  const [profile, setProfile] = useState(null);
+  const [activity, setActivity] = useState([]);
+  const [profileError, setProfileError] = useState("");
+  const [twoFactorFlow, setTwoFactorFlow] = useState(null);
+  const [sessions, setSessions] = useState([]);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [sessionsError, setSessionsError] = useState("");
   const myWorker = useMemo(() => {
+    if (profile?.trabajador) return profile.trabajador;
     if (!session?.correo) return null;
     return workers.find((w) => w.correo?.toLowerCase() === session.correo.toLowerCase()) || null;
-  }, [workers, session?.correo]);
+  }, [profile, workers, session?.correo]);
+
+  const refreshProfile = useCallback(async () => {
+    try {
+      const response = await fetch("/api/perfil", { cache: "no-store" });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "No se pudo cargar el perfil.");
+      setProfile(data);
+      setActivity(Array.isArray(data.activity) ? data.activity : []);
+      setFormData({ nombre: data.nombre || "", correo: data.correo || "", telefono: data.trabajador?.telefono || "" });
+      setProfileError("");
+    } catch (error) {
+      setProfileError(error.message);
+    }
+  }, []);
+  useEffect(() => { refreshProfile(); }, [refreshProfile]);
+  const refreshSessions = useCallback(async () => {
+    setSessionsLoading(true);
+    try {
+      const response = await fetch("/api/perfil/sesiones", { cache: "no-store" });
+      const data = await response.json().catch(() => []);
+      if (!response.ok) throw new Error(data.error || "No se pudieron cargar las sesiones.");
+      setSessions(Array.isArray(data) ? data : []);
+      setSessionsError("");
+    } catch (error) { setSessionsError(error.message); }
+    finally { setSessionsLoading(false); }
+  }, []);
+  useEffect(() => { if (activeTab === "security") refreshSessions(); }, [activeTab, refreshSessions]);
 
   const [formData, setFormData] = useState({
     nombre: session?.nombre || "",
     correo: session?.correo || "",
     telefono: myWorker?.telefono || "",
-    direccion: myWorker?.direccion || "",
-    idioma: "es-HN",
-    zonaHoraria: "America/Tegucigalpa",
   });
   const [photoPreview, setPhotoPreview] = useState(null);
   const [saving, setSaving] = useState(false);
-  const [securityModals, setSecurityModals] = useState({
-    password: false,
-    twofa: false,
-    sessions: false,
-  });
+  const [securityModals, setSecurityModals] = useState({ password: false });
   const [passwordForm, setPasswordForm] = useState({ actual: "", nueva: "", confirmar: "" });
   const { show } = useToast();
 
-  // Estadísticas del usuario
-  const userStats = useMemo(() => ({
-    tasksCompleted: 147,
-    daysActive: 45,
-    loginsThisMonth: 23,
-    rating: 4.8,
-    productivity: 92,
-  }), []);
+  const userStats = profile?.stats || { completedOrders: 0, daysOnPlatform: 0, loginsThisMonth: 0 };
 
-  const handlePhotoChange = (event) => {
+  const handlePhotoChange = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
       show("El archivo debe ser una imagen.", "error");
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-      show("La imagen no debe superar 2 MB.", "error");
+    if (file.size > 8 * 1024 * 1024) {
+      show("La imagen original no debe superar 8 MB.", "error");
       return;
     }
-    const reader = new FileReader();
-    reader.onload = (e) => setPhotoPreview(e.target.result);
-    reader.readAsDataURL(file);
+    try {
+      const compressed = await compressImage(file, { maxDimension: 384, quality: 0.72 });
+      if (compressed.length > 280000) throw new Error("La imagen sigue siendo demasiado grande. Elige una imagen más pequeña.");
+      setPhotoPreview(compressed);
+    } catch (error) {
+      show(error.message || "No se pudo procesar la imagen.", "error");
+    }
   };
 
   const handleSave = async (event) => {
     event.preventDefault();
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 600));
-    setEditMode(false);
-    setPhotoPreview(null);
-    show("Perfil actualizado correctamente.");
-    setSaving(false);
+    try {
+      const response = await fetch("/api/perfil", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nombre: formData.nombre, telefono: formData.telefono, ...(photoPreview ? { foto: photoPreview } : {}) }) });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "No se pudo guardar el perfil.");
+      setEditMode(false);
+      setPhotoPreview(null);
+      await refreshProfile();
+      show("Perfil actualizado correctamente.");
+    } catch (error) {
+      show(error.message || "No se pudo guardar el perfil.", "error");
+    } finally { setSaving(false); }
   };
 
   const handleCancel = () => {
     setFormData({
-      nombre: session?.nombre || "",
-      correo: session?.correo || "",
+      nombre: profile?.nombre || session?.nombre || "",
+      correo: profile?.correo || session?.correo || "",
       telefono: myWorker?.telefono || "",
-      direccion: myWorker?.direccion || "",
-      idioma: "es-HN",
-      zonaHoraria: "America/Tegucigalpa",
     });
     setPhotoPreview(null);
     setEditMode(false);
@@ -4420,16 +4447,67 @@ function MiPerfilSection({ session, workers = [] }) {
       show("Las contraseñas no coinciden.", "error");
       return;
     }
-    if (passwordForm.nueva.length < 8) {
-      show("La contraseña debe tener al menos 8 caracteres.", "error");
+    if (passwordForm.nueva.length < 12) {
+      show("La contraseña debe tener al menos 12 caracteres.", "error");
       return;
     }
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 800));
-    setPasswordForm({ actual: "", nueva: "", confirmar: "" });
-    closeSecurityModal("password");
-    show("Contraseña actualizada correctamente.");
-    setSaving(false);
+    try {
+      const response = await fetch("/api/perfil/password", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(passwordForm) });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "No se pudo actualizar la contraseña.");
+      setPasswordForm({ actual: "", nueva: "", confirmar: "" });
+      closeSecurityModal("password");
+      show("Contraseña actualizada correctamente.");
+    } catch (error) {
+      show(error.message || "No se pudo actualizar la contraseña.", "error");
+    } finally { setSaving(false); }
+  };
+
+  const startTwoFactorSetup = async () => {
+    setSaving(true);
+    try {
+      const response = await fetch("/api/perfil/2fa", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "setup" }) });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "No se pudo iniciar la configuración.");
+      setTwoFactorFlow({ mode: "setup", secret: data.secret, uri: data.uri, codigo: "", password: "" });
+    } catch (error) { show(error.message, "error"); }
+    finally { setSaving(false); }
+  };
+
+  const submitTwoFactor = async (event) => {
+    event.preventDefault();
+    if (!twoFactorFlow || saving) return;
+    setSaving(true);
+    try {
+      const response = await fetch("/api/perfil/2fa", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: twoFactorFlow.mode === "setup" ? "enable" : "disable", codigo: twoFactorFlow.codigo, ...(twoFactorFlow.mode === "disable" ? { password: twoFactorFlow.password } : {}) }) });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "No se pudo actualizar la autenticación.");
+      setTwoFactorFlow(null);
+      await refreshProfile();
+      show(data.enabled ? "Autenticación en dos pasos activada." : "Autenticación en dos pasos desactivada.");
+    } catch (error) { show(error.message, "error"); }
+    finally { setSaving(false); }
+  };
+
+  const revokeSession = async (sessionId) => {
+    try {
+      const response = await fetch("/api/perfil/sesiones", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId }) });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "No se pudo cerrar la sesión.");
+      setSessions((current) => current.filter((item) => item.sessionId !== sessionId));
+      show("Sesión cerrada.");
+    } catch (error) { show(error.message, "error"); }
+  };
+
+  const revokeOtherSessions = async () => {
+    try {
+      const response = await fetch("/api/perfil/sesiones", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ allOther: true }) });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "No se pudieron cerrar las sesiones.");
+      setSessions((current) => current.filter((item) => item.current));
+      show(`${data.revoked || 0} sesiones cerradas.`);
+    } catch (error) { show(error.message, "error"); }
   };
 
   return (
@@ -4494,8 +4572,7 @@ function MiPerfilSection({ session, workers = [] }) {
                         <input
                           type="email"
                           value={formData.correo}
-                          onChange={(e) => setFormData((prev) => ({ ...prev, correo: e.target.value }))}
-                          required
+                          readOnly
                         />
                       </label>
                       <label className={styles.editField}>
@@ -4507,40 +4584,13 @@ function MiPerfilSection({ session, workers = [] }) {
                           placeholder="+504 XXXX-XXXX"
                         />
                       </label>
-                      <label className={styles.editField}>
-                        <span>Dirección</span>
-                        <input
-                          type="text"
-                          value={formData.direccion}
-                          onChange={(e) => setFormData((prev) => ({ ...prev, direccion: e.target.value }))}
-                          placeholder="Ciudad, departamento"
-                        />
-                      </label>
-                      <label className={styles.editField}>
-                        <span>Idioma</span>
-                        <select value={formData.idioma} onChange={(e) => setFormData((prev) => ({ ...prev, idioma: e.target.value }))}>
-                          <option value="es-HN">Español (Honduras)</option>
-                          <option value="es-ES">Español (España)</option>
-                          <option value="en-US">English (US)</option>
-                        </select>
-                      </label>
-                      <label className={styles.editField}>
-                        <span>Zona horaria</span>
-                        <select value={formData.zonaHoraria} onChange={(e) => setFormData((prev) => ({ ...prev, zonaHoraria: e.target.value }))}>
-                          <option value="America/Tegucigalpa">CST (Honduras)</option>
-                          <option value="America/Guatemala">CST (Guatemala)</option>
-                          <option value="America/Managua">CST (Nicaragua)</option>
-                          <option value="America/Costa_Rica">CST (Costa Rica)</option>
-                          <option value="America/Panama">EST (Panamá)</option>
-                        </select>
-                      </label>
                     </div>
                   ) : (
                     <>
-                      <h4>{session?.nombre || "Administrador"}</h4>
+                      <h4>{profile?.nombre || session?.nombre || "Usuario"}</h4>
                       <p className={styles.profileRole}>
                         <span className={styles.badge}>
-                          {session?.rolNombre || "Administrador"}
+                          {profile?.rolNombre || session?.rolNombre || session?.rol || "Usuario"}
                         </span>
                         {myWorker?.sucursal ? (
                           <span className={styles.badge}>{branchLabel(myWorker.sucursal)}</span>
@@ -4548,9 +4598,9 @@ function MiPerfilSection({ session, workers = [] }) {
                           <span className={styles.badge}>{branchLabel(session.sucursal)}</span>
                         ) : null}
                       </p>
-                      <p className={styles.profileEmail}>{session?.correo || "admin@arconet.hn"}</p>
+                      <p className={styles.profileEmail}>{profile?.correo || session?.correo}</p>
                       {myWorker?.telefono && <p className={styles.profileMeta}><Phone size={14} /> {myWorker.telefono}</p>}
-                      {myWorker?.direccion && <p className={styles.profileMeta}><MapPin size={14} /> {myWorker.direccion}</p>}
+                      {profileError && <p className={styles.dangerText} role="alert">{profileError} <button type="button" className={styles.clearBtn} onClick={refreshProfile}>Reintentar</button></p>}
                     </>
                   )}
                 </div>
@@ -4575,8 +4625,8 @@ function MiPerfilSection({ session, workers = [] }) {
                         <Activity size={20} />
                       </div>
                       <div className={styles.statContent}>
-                        <span className={styles.profileStatValue}>{userStats.tasksCompleted}</span>
-                        <span className={styles.profileStatLabel}>Tareas completadas</span>
+                        <span className={styles.profileStatValue}>{userStats.completedOrders}</span>
+                        <span className={styles.profileStatLabel}>Órdenes completadas</span>
                       </div>
                     </div>
                     <div className={styles.profileStatCard}>
@@ -4584,8 +4634,8 @@ function MiPerfilSection({ session, workers = [] }) {
                         <Calendar size={20} />
                       </div>
                       <div className={styles.statContent}>
-                        <span className={styles.profileStatValue}>{userStats.daysActive}</span>
-                        <span className={styles.profileStatLabel}>Días activo</span>
+                        <span className={styles.profileStatValue}>{userStats.daysOnPlatform}</span>
+                        <span className={styles.profileStatLabel}>Días en la plataforma</span>
                       </div>
                     </div>
                     <div className={styles.profileStatCard}>
@@ -4595,15 +4645,6 @@ function MiPerfilSection({ session, workers = [] }) {
                       <div className={styles.statContent}>
                         <span className={styles.profileStatValue}>{userStats.loginsThisMonth}</span>
                         <span className={styles.profileStatLabel}>Sesiones este mes</span>
-                      </div>
-                    </div>
-                    <div className={styles.profileStatCard}>
-                      <div className={styles.profileStatIcon}>
-                        <Star size={20} />
-                      </div>
-                      <div className={styles.statContent}>
-                        <span className={styles.profileStatValue}>{userStats.rating}</span>
-                        <span className={styles.profileStatLabel}>Calificación</span>
                       </div>
                     </div>
                   </div>
@@ -4642,7 +4683,7 @@ function MiPerfilSection({ session, workers = [] }) {
                     <div className={styles.detailCard}>
                       <span className={styles.detailLabel}>Último acceso</span>
                       <span className={styles.detailValue}>
-                        {new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                        {(() => { const lastLogin = activity.find((entry) => entry.category === "auth" && entry.message.startsWith("Inicio de sesión")); return lastLogin ? new Date(lastLogin.createdAt).toLocaleString("es-HN") : "—"; })()}
                       </span>
                     </div>
                     <div className={styles.detailCard}>
@@ -4662,7 +4703,7 @@ function MiPerfilSection({ session, workers = [] }) {
               <h3><Activity size={18} /> Actividad reciente</h3>
             </header>
             <div className={styles.activityList}>
-              <p className={styles.activityNote}>El historial personal todavía no está conectado a los registros del sistema.</p>
+              {profileError ? <p className={styles.activityNote}>{profileError}</p> : activity.length ? activity.map((entry) => <article className={styles.activityItem} key={entry.id}><div className={styles.activityIcon}><Activity size={16} /></div><div className={styles.activityContent}><p>{entry.message}</p><time dateTime={entry.createdAt}>{new Date(entry.createdAt).toLocaleString("es-HN", { dateStyle: "medium", timeStyle: "short" })}</time>{entry.route && <small>{entry.route}</small>}</div><span className={styles.activityBadge}>{entry.category}</span></article>) : <p className={styles.activityNote}>No hay actividad registrada para esta cuenta.</p>}
             </div>
           </section>
         )}
@@ -4682,117 +4723,18 @@ function MiPerfilSection({ session, workers = [] }) {
               </div>
               <div className={styles.securityCard}>
                 <h4><ShieldCheck size={16} /> Autenticación de dos factores (2FA)</h4>
-                <p>Añade una capa extra de seguridad usando una app de autenticación (Google Authenticator, Authy, etc.).</p>
-                <button type="button" className={styles.ghostBtn} disabled title="La autenticación de dos factores aún no está implementada.">
-                  <ShieldCheck size={14} /> Autenticación de dos factores no disponible
+                <p>{profile?.twoFactorEnabled ? "Tu cuenta solicita un código de autenticación además de la contraseña al iniciar sesión." : "Protege tu cuenta con un código temporal de una aplicación de autenticación."}</p>
+                <button type="button" className={profile?.twoFactorEnabled ? styles.dangerBtn : styles.ghostBtn} disabled={saving} onClick={profile?.twoFactorEnabled ? () => setTwoFactorFlow({ mode: "disable", secret: "", uri: "", codigo: "", password: "" }) : startTwoFactorSetup}>
+                  <ShieldCheck size={14} /> {profile?.twoFactorEnabled ? "Desactivar verificación en dos pasos" : "Configurar verificación en dos pasos"}
                 </button>
               </div>
               <div className={styles.securityCard}>
                 <h4><Users size={16} /> Sesiones activas</h4>
-                <p>La administración de sesiones de otros dispositivos todavía no está habilitada.</p>
-                <button type="button" className={styles.ghostBtn} disabled>
-                  <Users size={14} /> Administración de sesiones no disponible
-                </button>
-              </div>
-              <div className={styles.securityCard}>
-                <h4><Trash2 size={16} style={{color:"var(--red)"}} /> Eliminar cuenta</h4>
-                <p className={styles.dangerText}>Para solicitar la eliminación de tu cuenta, comunícate con un administrador.</p>
-                <button type="button" className={styles.dangerBtn} disabled title="Contacta a un administrador para solicitar la eliminación de tu cuenta.">
-                  <Trash2 size={14} /> Eliminar mi cuenta
-                </button>
+                <p>Revisa los accesos vigentes de tu cuenta y cierra los que no reconozcas.</p>
+                {sessionsError ? <p className={styles.dangerText} role="alert">{sessionsError} <button type="button" className={styles.clearBtn} onClick={refreshSessions}>Reintentar</button></p> : sessionsLoading ? <p>Cargando sesiones…</p> : <div className={styles.sessionList}>{sessions.map((item) => <article className={styles.sessionItem} key={item.id}><div className={styles.sessionInfo}><strong>{item.current ? "Esta sesión" : item.userAgent || "Dispositivo sin información"}</strong><span>{new Date(item.createdAt).toLocaleString("es-HN", { dateStyle: "medium", timeStyle: "short" })} · {item.current ? "Activa ahora" : "Sesión activa"}</span></div>{item.current ? <span className={styles.badge}>Actual</span> : <button type="button" className={styles.ghostBtn} onClick={() => revokeSession(item.sessionId)}>Cerrar</button>}</article>)}{!sessions.length && <p>No hay sesiones activas registradas.</p>}</div>}
+                {sessions.filter((item) => !item.current).length > 0 && <button type="button" className={styles.dangerBtn} onClick={revokeOtherSessions}>Cerrar las demás sesiones</button>}
               </div>
             </div>
-          </section>
-        )}
-
-        {activeTab === "notifications" && (
-          <section className={styles.card} aria-label="Preferencias de notificaciones">
-            <header className={styles.cardHeader}>
-              <h3><Bell size={18} /> Notificaciones</h3>
-            </header>
-            <p className={styles.apiNote}>Las notificaciones internas de órdenes están activas y aparecen en la campana del panel. Las alertas por correo y los recordatorios todavía no están habilitados.</p>
-          </section>
-        )}
-
-        {activeTab === "privacy" && (
-          <section className={styles.card} aria-label="Privacidad">
-            <header className={styles.cardHeader}>
-              <h3><ShieldCheck size={18} /> Privacidad</h3>
-            </header>
-            <p className={styles.apiNote}>La cuenta usa los permisos de su rol y no comparte actividad personal. Las opciones de privacidad personalizadas aún no están disponibles.</p>
-          </section>
-        )}
-
-        {activeTab === "appearance" && (
-          <section className={styles.card} aria-label="Apariencia">
-            <header className={styles.cardHeader}>
-              <h3><Settings size={18} /> Apariencia</h3>
-            </header>
-            <div className={styles.appearanceGrid}>
-              <div className={styles.appearanceCard}>
-                <h4><Sun size={16} /> Tema</h4>
-                <p>Elige cómo se ve el panel.</p>
-                <div className={styles.themeOptions}>
-                  <label className={styles.themeOption}>
-                    <input type="radio" name="theme" defaultChecked />
-                    <span><Sun size={16} /> Claro</span>
-                  </label>
-                  <label className={styles.themeOption}>
-                    <input type="radio" name="theme" />
-                    <span><Moon size={16} /> Oscuro</span>
-                  </label>
-                  <label className={styles.themeOption}>
-                    <input type="radio" name="theme" />
-                    <span><Monitor size={16} /> Sistema</span>
-                  </label>
-                </div>
-              </div>
-              <div className={styles.appearanceCard}>
-                <h4><Globe size={16} /> Idioma y región</h4>
-                <p>Configura el formato de fechas, números y moneda.</p>
-                <div className={styles.localeOptions}>
-                  <label className={styles.localeOption}>
-                    <input type="radio" name="locale" defaultChecked />
-                    <span>Español (Honduras) - L, dd/mm/aaaa</span>
-                  </label>
-                  <label className={styles.localeOption}>
-                    <input type="radio" name="locale" />
-                    <span>Español (España) - €, dd/mm/aaaa</span>
-                  </label>
-                  <label className={styles.localeOption}>
-                    <input type="radio" name="locale" />
-                    <span>English (US) - $, mm/dd/yyyy</span>
-                  </label>
-                </div>
-              </div>
-              <div className={styles.appearanceCard}>
-                <h4><Eye size={16} /> Densidad de información</h4>
-                <p>Controla el espacio entre elementos.</p>
-                <div className={styles.densityOptions}>
-                  <label className={styles.densityOption}>
-                    <input type="radio" name="density" defaultChecked />
-                    <span>Cómodo</span>
-                  </label>
-                  <label className={styles.densityOption}>
-                    <input type="radio" name="density" />
-                    <span>Compacto</span>
-                  </label>
-                  <label className={styles.densityOption}>
-                    <input type="radio" name="density" />
-                    <span>Amplio</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {activeTab === "api" && (
-          <section className={styles.card} aria-label="Claves de API">
-            <header className={styles.cardHeader}>
-              <h3><Key size={18} /> Claves de API</h3>
-            </header>
-            <p className={styles.apiNote}>La gestión de claves de integración aún no está habilitada para esta cuenta.</p>
           </section>
         )}
 
@@ -4808,7 +4750,7 @@ function MiPerfilSection({ session, workers = [] }) {
                 </div>
                 <div className={styles.modalField}>
                   <label>Nueva contraseña</label>
-                  <input type="password" value={passwordForm.nueva} onChange={(e) => setPasswordForm((p) => ({ ...p, nueva: e.target.value }))} required minLength={8} />
+                  <input type="password" value={passwordForm.nueva} onChange={(e) => setPasswordForm((p) => ({ ...p, nueva: e.target.value }))} required minLength={12} />
                 </div>
                 <div className={styles.modalField}>
                   <label>Confirmar nueva contraseña</label>
@@ -4823,29 +4765,59 @@ function MiPerfilSection({ session, workers = [] }) {
           </div>
         )}
 
+        {twoFactorFlow && (
+          <div className={styles.overlay} role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setTwoFactorFlow(null); }}>
+            <div className={styles.modal} role="dialog" aria-modal="true" aria-label="Verificación en dos pasos">
+              <h3><ShieldCheck size={20} /> {twoFactorFlow.mode === "setup" ? "Configurar verificación en dos pasos" : "Desactivar verificación en dos pasos"}</h3>
+              {twoFactorFlow.mode === "setup" ? <div className={styles.twofaSetup}><p>Agrega esta clave manualmente en tu aplicación de autenticación. La clave se guarda cifrada.</p><code className={styles.totpSecret}>{twoFactorFlow.secret}</code><a className={styles.clearBtn} href={twoFactorFlow.uri}>Abrir en una aplicación compatible</a><p className={styles.twofaNote}>Ingresa el código actual para confirmar la configuración.</p></div> : <div className={styles.modalField}><label>Contraseña actual</label><input type="password" autoComplete="current-password" value={twoFactorFlow.password} onChange={(event) => setTwoFactorFlow((current) => ({ ...current, password: event.target.value }))} required /></div>}
+              <form onSubmit={submitTwoFactor}>
+                <div className={styles.modalField}><label>Código de autenticación</label><input type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} value={twoFactorFlow.codigo} onChange={(event) => setTwoFactorFlow((current) => ({ ...current, codigo: event.target.value.replace(/\D/g, "").slice(0, 6) }))} required /></div>
+                <footer className={styles.modalActions}><button type="button" className={styles.ghostBtn} onClick={() => setTwoFactorFlow(null)}>Cancelar</button><button type="submit" className={styles.submit} disabled={saving}>{saving ? "Verificando…" : twoFactorFlow.mode === "setup" ? "Activar" : "Desactivar"}</button></footer>
+              </form>
+            </div>
+          </div>
+        )}
+
       </div>
     </>
   );
 }
 
 function AjustesSection({ session, workers = [] }) {
-  const [settings, setSettings] = useState({
-    companyName: "Arconet, S.A.",
-    email: CONTACT_EMAIL,
-    phone: CONTACT_PHONE,
-    currency: "L",
-    theme: "light",
-  });
-  const [saveStatus, setSaveStatus] = useState("");
+  const [settings, setSettings] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
   const { show } = useToast();
 
-  function handleSave(event) {
+  useEffect(() => {
+    let active = true;
+    fetch("/api/configuracion", { cache: "no-store" }).then(async (response) => {
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "No se pudo cargar la configuración.");
+      if (active) setSettings(data);
+    }).catch((loadError) => { if (active) setError(loadError.message); }).finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!settings?.theme || typeof document === "undefined") return;
+    const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
+    document.documentElement.dataset.theme = settings.theme === "system" ? (prefersDark ? "dark" : "light") : settings.theme;
+  }, [settings?.theme]);
+
+  async function handleSave(event) {
     event.preventDefault();
-    setSaveStatus("Guardando...");
-    setTimeout(() => {
+    if (!settings || saving) return;
+    setSaving(true);
+    try {
+      const response = await fetch("/api/configuracion", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(settings) });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "No se pudo guardar la configuración.");
+      setSettings(data);
       show("Configuración guardada.");
-      setSaveStatus("");
-    }, 500);
+    } catch (saveError) { show(saveError.message, "error"); }
+    finally { setSaving(false); }
   }
 
   function changeField(field, value) {
@@ -4866,7 +4838,7 @@ function AjustesSection({ session, workers = [] }) {
           <header className={styles.cardHeader}>
             <h3><Settings size={18} /> Configuración general</h3>
           </header>
-          <form className={styles.form} onSubmit={handleSave}>
+          {loading ? <p className={styles.cardBody}>Cargando configuración…</p> : error ? <div className={styles.cardBody}><p className={styles.dangerText} role="alert">{error}</p><button type="button" className={styles.ghostBtn} onClick={() => window.location.reload()}>Reintentar</button></div> : <form className={styles.form} onSubmit={handleSave}>
             <div className={styles.fieldGrid}>
               <label className={styles.field}>
                 Nombre de la empresa
@@ -4910,11 +4882,11 @@ function AjustesSection({ session, workers = [] }) {
             </div>
 
             <footer className={styles.modalActions}>
-              <button type="submit" className={styles.submit} disabled={saveStatus}>
-                {saveStatus || "Guardar cambios"}
+              <button type="submit" className={styles.submit} disabled={saving}>
+                {saving ? "Guardando…" : "Guardar cambios"}
               </button>
             </footer>
-          </form>
+          </form>}
         </section>
 
         <section className={styles.card} aria-label="Información del sistema">
@@ -4924,32 +4896,11 @@ function AjustesSection({ session, workers = [] }) {
           <div className={styles.cardBody}>
             <div className={styles.infoRow}>
               <span>Versión</span>
-              <strong>1.0.0</strong>
-            </div>
-            <div className={styles.infoRow}>
-              <span>Última actualización</span>
-              <strong>16 de octubre, 2026</strong>
+              <strong>0.1.0</strong>
             </div>
             <div className={styles.infoRow}>
               <span>Entorno</span>
-              <strong>Desarrollo</strong>
-            </div>
-          </div>
-        </section>
-
-        <section className={styles.card} aria-label="Zona de peligro">
-          <header className={styles.cardHeader}>
-            <h3 className={styles.danger}><AlertTriangle size={18} /> Zona de peligro</h3>
-          </header>
-          <div className={styles.cardBody}>
-            <p>Estas acciones son irreversibles. Procede con cuidado.</p>
-            <div className={styles.dangerActions}>
-              <button type="button" className={styles.dangerBtn}>
-                Limpiar todos los datos
-              </button>
-              <button type="button" className={styles.dangerBtn}>
-                Restablecer configuración
-              </button>
+              <strong>{process.env.NODE_ENV === "production" ? "Producción" : "Desarrollo"}</strong>
             </div>
           </div>
         </section>
@@ -4991,12 +4942,19 @@ function LoginView() {
   const [remember, setRemember] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [twoFactorRequired, setTwoFactorRequired] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   async function submit(event) {
     event.preventDefault();
     setSubmitting(true);
-    const user = await authenticate(email, password);
+    const user = await authenticate(email, password, verificationCode);
+    if (user?.twoFactorRequired) {
+      setTwoFactorRequired(true);
+      setSubmitting(false);
+      return;
+    }
     if (!user) {
       notifyError("Correo o contraseña incorrectos.");
       setSubmitting(false);
@@ -5073,7 +5031,7 @@ function LoginView() {
                   required
                     placeholder="usuario@arconet.hn"
                   value={email}
-                  onChange={(event) => setEmail(event.target.value)}
+                  onChange={(event) => { setEmail(event.target.value); setTwoFactorRequired(false); setVerificationCode(""); }}
                 />
               </label>
 
@@ -5087,7 +5045,7 @@ function LoginView() {
                     required
                     placeholder="Tu contraseña"
                     value={password}
-                    onChange={(event) => setPassword(event.target.value)}
+                    onChange={(event) => { setPassword(event.target.value); setTwoFactorRequired(false); setVerificationCode(""); }}
                   />
                   <button
                     type="button"
@@ -5099,6 +5057,12 @@ function LoginView() {
                   </button>
                 </span>
               </label>
+
+              {twoFactorRequired && <label className={styles.field}>
+                Código de autenticación
+                <input type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required value={verificationCode} onChange={(event) => setVerificationCode(event.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="000000" aria-describedby="two-factor-help" />
+                <small id="two-factor-help">Ingresa el código actual de tu aplicación de autenticación.</small>
+              </label>}
 
               <div className={styles.formRow}>
                 <label className={styles.checkbox}>

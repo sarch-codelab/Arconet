@@ -62,14 +62,14 @@ export function clearSession() {
   } catch {}
 }
 
-export async function authenticate(email, password) {
+export async function authenticate(email, password, codigo = "") {
   if (!email || !password) return null;
   const normalized = email.trim().toLowerCase();
   try {
     const response = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: normalized, password }),
+      body: JSON.stringify({ email: normalized, password, ...(codigo ? { codigo } : {}) }),
     });
     if (response.ok) {
       return await response.json();
