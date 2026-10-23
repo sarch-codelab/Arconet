@@ -729,8 +729,10 @@
 
 /* Right Top Bar (Search + Notification + Profile) */
 .rightActions {
+  grid-area: actions;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 12px;
 }
 
@@ -2764,22 +2766,18 @@
 }
 
 @media (max-width: 480px) {
-  /* Pantallas muy estrechas: apilar todo el topbar y hacer pills de ancho completo */
+  /* Pantallas muy estrechas: marca y acciones arriba, pills a ancho completo */
   .globalTopBar {
-    /* Sin redefinir las columnas, las areas de una sola columna se colocaban
-       en la primera pista del grid de 2 columnas heredado y el topbar quedaba
-       dividido en dos anchos distintos. */
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
-      "brand"
-      "pills"
-      "actions";
+      "brand actions"
+      "pills pills";
     gap: 8px;
   }
 
   .brandArea {
-    width: 100%;
-    justify-content: space-between;
+    width: auto;
+    justify-content: flex-start;
   }
 
   .centerPillNav {
@@ -2803,7 +2801,7 @@
   }
 
   .rightActions {
-    width: 100%;
+    width: auto;
     justify-content: flex-end;
   }
 
