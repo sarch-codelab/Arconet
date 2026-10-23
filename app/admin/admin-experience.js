@@ -37,6 +37,7 @@ import {
   Pencil,
   Phone,
   Plus,
+  Printer,
   RefreshCw,
   RotateCw,
   Save,
@@ -385,6 +386,7 @@ function AdminShell({ session, onLogout, initialSection }) {
               orders={orders}
               setOrders={setOrders}
               clientes={clientes}
+              setClientes={setClientes}
               products={products}
               workers={workers}
               session={session}
@@ -3309,7 +3311,7 @@ function ClientesSection({ clientes, setClientes, workers = [], session }) {
   );
 }
 
-function CotizacionesSection({ orders, setOrders, clientes, products, workers = [], session }) {
+function CotizacionesSection({ orders, setOrders, clientes, setClientes, products, workers = [], session }) {
   const [activeTab, setActiveTab] = useState("all");
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
@@ -3328,6 +3330,8 @@ function CotizacionesSection({ orders, setOrders, clientes, products, workers = 
     notas: "",
   });
   const [confirmOrder, setConfirmOrder] = useState(null);
+  const [newClientMode, setNewClientMode] = useState(false);
+  const [newClient, setNewClient] = useState({ nombre: "", rtn: "", correo: "", telefono: "" });
   const { show } = useToast();
 
   useEscapeKey(modalOpen, () => closeModal());
@@ -3396,6 +3400,8 @@ function CotizacionesSection({ orders, setOrders, clientes, products, workers = 
       notas: "",
     });
     setEditingId(null);
+    setNewClientMode(false);
+    setNewClient({ nombre: "", rtn: "", correo: "", telefono: "" });
     setModalOpen(true);
   }
 
@@ -3408,22 +3414,57 @@ function CotizacionesSection({ orders, setOrders, clientes, products, workers = 
   function closeModal() {
     setModalOpen(false);
     setEditingId(null);
+    setNewClientMode(false);
   }
 
   function changeField(field, value) {
     setDraft((prev) => ({ ...prev, [field]: value }));
   }
 
+  function addCatalogItem() {
+    const product = products.find((item) => item.estado === "activo");
+    if (!product) return;
+    setDraft((prev) => ({ ...prev, items: [...prev.items, { productoId: product.id, nombre: product.nombre, cantidad: 1, precio: Number(product.precio) || 0 }] }));
+  }
+
+  function updateLine(index, field, value) {
+    setDraft((prev) => ({ ...prev, items: prev.items.map((line, lineIndex) => {
+      if (lineIndex !== index) return line;
+      if (field === "productoId") {
+        const product = products.find((item) => item.id === value);
+        return product ? { ...line, productoId: product.id, nombre: product.nombre, precio: Number(product.precio) || 0 } : line;
+      }
+      return { ...line, [field]: value };
+    }) }));
+  }
+
   async function submitOrder(event) {
     event.preventDefault();
-    if (!draft.clienteId || !draft.cliente.trim()) {
+    if ((!newClientMode && !draft.clienteId) || (newClientMode && newClient.nombre.trim().length < 2) || (!newClientMode && !draft.cliente.trim())) {
       notifyError("El cliente es obligatorio.");
       return;
     }
+    const items = draft.items.map((line) => ({ ...line, cantidad: Number(line.cantidad), precio: Number(line.precio) }));
+    let clienteId = draft.clienteId;
+    let clienteNombre = draft.cliente.trim();
+    if (newClientMode) {
+      try {
+        const savedClient = await createCliente({ id: newClienteId(), nombre: newClient.nombre.trim(), rtn: newClient.rtn.trim(), correo: newClient.correo.trim(), telefono: newClient.telefono.trim(), estado: "prospecto" });
+        setClientes((current) => [savedClient, ...current]);
+        clienteId = savedClient.id;
+        clienteNombre = savedClient.nombre;
+      } catch (error) {
+        notifyError(error.message || "No se pudo registrar el cliente.");
+        return;
+      }
+    }
+    const computedTotal = items.reduce((sum, line) => sum + line.cantidad * line.precio, 0);
     const payload = {
       ...draft,
-      cliente: draft.cliente.trim(),
-      monto: Number(draft.monto) || 0,
+      clienteId,
+      cliente: clienteNombre,
+      items,
+      monto: items.length ? computedTotal : Number(draft.monto) || 0,
     };
     let saved;
     try {
@@ -3568,6 +3609,14 @@ function CotizacionesSection({ orders, setOrders, clientes, products, workers = 
                       <div className={styles.rowActions}>
                         <button
                           type="button"
+                          onClick={() => window.open(`/api/ordenes/${encodeURIComponent(order.id)}/documento`, "_blank", "noopener,noreferrer")}
+                          aria-label={`Imprimir o guardar PDF de ${order.id}`}
+                          title="Imprimir o guardar como PDF"
+                        >
+                          <Printer size={15} />
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => openEdit(order)}
                           aria-label={`Editar ${order.id}`}
                           title="Editar"
@@ -3628,17 +3677,31 @@ function CotizacionesSection({ orders, setOrders, clientes, products, workers = 
               <div className={styles.fieldGrid}>
                 <label className={styles.field}>
                   Cliente
-                  <select value={draft.clienteId} onChange={(event) => {
+                  <select value={newClientMode ? "__nuevo__" : draft.clienteId} onChange={(event) => {
+                    if (event.target.value === "__nuevo__") {
+                      setNewClientMode(true);
+                      changeField("clienteId", "");
+                      changeField("cliente", "");
+                      return;
+                    }
+                    setNewClientMode(false);
                     const cliente = clientes.find((c) => c.id === event.target.value);
                     changeField("clienteId", event.target.value);
                     changeField("cliente", cliente ? cliente.nombre : "");
                   }}>
                     <option value="">Seleccionar cliente</option>
+                    <option value="__nuevo__">Cliente eventual / no registrado</option>
                     {clientes.map((cliente) => (
                       <option key={cliente.id} value={cliente.id}>{cliente.nombre}</option>
                     ))}
                   </select>
                 </label>
+                {newClientMode && <>
+                  <label className={styles.field}>Nombre o razón social<input value={newClient.nombre} onChange={(event) => setNewClient((current) => ({ ...current, nombre: event.target.value }))} required /></label>
+                  <label className={styles.field}>RTN (opcional)<input value={newClient.rtn} onChange={(event) => setNewClient((current) => ({ ...current, rtn: event.target.value }))} /></label>
+                  <label className={styles.field}>Correo (opcional)<input type="email" value={newClient.correo} onChange={(event) => setNewClient((current) => ({ ...current, correo: event.target.value }))} /></label>
+                  <label className={styles.field}>Teléfono (opcional)<input type="tel" value={newClient.telefono} onChange={(event) => setNewClient((current) => ({ ...current, telefono: event.target.value }))} /></label>
+                </>}
                 <label className={styles.field}>
                   Tipo
                   <select value={draft.tipo} onChange={(event) => changeField("tipo", event.target.value)}>
@@ -3669,11 +3732,24 @@ function CotizacionesSection({ orders, setOrders, clientes, products, workers = 
                     type="number"
                     min="0"
                     step="0.01"
-                    value={draft.monto}
+                    value={draft.items.length ? draft.items.reduce((sum, line) => sum + Number(line.cantidad || 0) * Number(line.precio || 0), 0).toFixed(2) : draft.monto}
                     onChange={(event) => changeField("monto", event.target.value)}
                     placeholder="0.00"
+                    readOnly={draft.items.length > 0}
                   />
                 </label>
+                <div className={`${styles.field} ${styles.spanFull}`}>
+                  <span>Productos de catálogo</span>
+                  {draft.items.map((line, index) => <div key={`${index}-${line.productoId}`} className={styles.toolbar}>
+                    <select className={styles.select} value={line.productoId || ""} onChange={(event) => updateLine(index, "productoId", event.target.value)} aria-label={`Producto de la línea ${index + 1}`}>
+                      {products.filter((item) => item.estado === "activo" || item.id === line.productoId).map((item) => <option key={item.id} value={item.id}>{item.nombre} · {formatPrice(item.precio)}</option>)}
+                    </select>
+                    <input className={styles.lineQuantity} type="number" min="0.001" step="0.001" value={line.cantidad} onChange={(event) => updateLine(index, "cantidad", event.target.value)} aria-label="Cantidad" />
+                    <button type="button" className={styles.clearBtn} onClick={() => setDraft((prev) => ({ ...prev, items: prev.items.filter((_, lineIndex) => lineIndex !== index) }))}>Quitar</button>
+                  </div>)}
+                  <button type="button" className={styles.ghostBtn} onClick={addCatalogItem} disabled={!products.some((item) => item.estado === "activo")}>Añadir producto real del catálogo</button>
+                  <small>El total se calcula con el precio actual del catálogo. Impuestos y condiciones se confirmarán en la propuesta.</small>
+                </div>
                 <label className={`${styles.field} ${styles.spanFull}`}>
                   Notas
                   <textarea
@@ -4862,6 +4938,15 @@ function AjustesSection({ session, workers = [] }) {
                   type="tel"
                   value={settings.phone}
                   onChange={(event) => changeField("phone", event.target.value)}
+                />
+              </label>
+              <label className={styles.field}>
+                WhatsApp de cotizaciones
+                <input
+                  type="tel"
+                  value={settings.whatsapp}
+                  onChange={(event) => changeField("whatsapp", event.target.value)}
+                  placeholder="504XXXXXXXX"
                 />
               </label>
               <label className={styles.field}>

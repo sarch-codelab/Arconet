@@ -42,6 +42,7 @@ import { useCatalogProducts } from "../../catalogo-products";
 import { useCart } from "../../../cart-context";
 import styles from "./category-products.module.css";
 import Footer from "../../../footer";
+import MobileSiteMenu from "../../../mobile-site-menu";
 
 const NAVIGATION = [
   { href: "/catalogo#familias", label: "Soluciones" },
@@ -170,6 +171,7 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
         <Link className={styles.brand} href="/" aria-label="Arconet, inicio">
           <Image src="/arconet.png" alt="Arconet" width={2172} height={362} priority />
         </Link>
+        <MobileSiteMenu />
         <nav className={styles.nav} aria-label="Navegación principal">
           {NAVIGATION.map((item) => <a key={item.label} href={item.href}>{item.label}</a>)}
         </nav>

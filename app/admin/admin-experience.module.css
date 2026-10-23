@@ -2622,6 +2622,8 @@
   min-width: 160px;
 }
 
+.lineQuantity { width: 92px; min-height: 40px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 9px; background: var(--bg-card); color: var(--text-main); font: inherit; }
+
 /* ---------------- Responsive ---------------- */
 
 

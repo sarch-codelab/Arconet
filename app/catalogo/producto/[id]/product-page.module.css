@@ -1,4 +1,5 @@
 ﻿.page {
+  overflow-x: clip;
   --blue: #1544b5;
   --blue-deep: #0c2874;
   min-height: 100vh;
@@ -10,6 +11,9 @@
 .page a {
   text-decoration: none;
 }
+
+.whatsappLink { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; padding: 0 16px; border: 1px solid #ccebdd; border-radius: 999px; background: #effaf4; color: #137547 !important; font-size: 12px; font-weight: 700; transition: background 180ms ease, transform 180ms ease; }
+.whatsappLink:hover { background: #e1f6e9; transform: translateY(-1px); }
 
 /* ==========================================================================
    DOCK DE NAVEGACIÓN SECUNDARIA
@@ -262,11 +266,14 @@
   }
 
   .topbarNav a {
-    display: none;
+    display: inline-flex;
+    padding: 6px 9px;
+    font-size: 11px;
   }
 }
 
 @media (max-width: 760px) {
+  .topbarNav { display: none; }
   .topbar {
     padding: 10px 12px 0;
   }
@@ -962,6 +969,11 @@
     flex-direction: column;
     gap: 12px;
   }
+
+  .qty { min-height: 48px; }
+  .primary { min-height: 50px; white-space: normal; text-align: center; justify-content: center; }
+  .secondary { min-height: 46px; justify-content: center; }
+  .whatsappLink { width: 100%; }
 
   .qty {
     width: 100%;

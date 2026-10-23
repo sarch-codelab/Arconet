@@ -20,12 +20,21 @@ import { sileo } from "./toaster";
 import styles from "./cart.module.css";
 import { CONTACT_EMAIL } from "../lib/contact";
 
-const WHATSAPP_NUMBER = (process.env.NEXT_PUBLIC_WHATSAPP || "").replace(/\D/g, "");
 const SUBJECT = "Solicitud de cotización — Arconet";
 
 export default function CartDrawer() {
   const { items, count, isOpen, close, setQuantity, removeItem, clear } = useCart();
   const [copied, setCopied] = useState(false);
+  const [whatsappNumber, setWhatsappNumber] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/site-config", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => { if (active) setWhatsappNumber(data?.whatsapp || ""); })
+      .catch(() => { if (active) setWhatsappNumber(""); });
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -43,8 +52,8 @@ export default function CartDrawer() {
   }, [copied]);
 
   const message = buildCartMessage(items);
-  const whatsappHref = WHATSAPP_NUMBER
-    ? `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`
+  const whatsappHref = whatsappNumber
+    ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`
     : null;
   const mailHref = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(SUBJECT)}&body=${encodeURIComponent(message)}`;
 

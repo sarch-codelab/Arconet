@@ -12,6 +12,7 @@ import {
   Gauge,
   Handshake,
   Layers,
+  MessageCircle,
   Minus,
   Network,
   PackageCheck,
@@ -30,6 +31,7 @@ import { useCatalogProducts } from "../../catalogo-products";
 import { useCart } from "../../../cart-context";
 import Footer from "../../../footer";
 import styles from "./product-page.module.css";
+import MobileSiteMenu from "../../../mobile-site-menu";
 
 const CATEGORY_ICONS = {
   "Soluciones de Preconectorizado": Cable,
@@ -54,6 +56,7 @@ const TRUST = [
 
 export default function ProductPage({ product }) {
   const [quantity, setQuantity] = useState(1);
+  const [whatsappNumber, setWhatsappNumber] = useState("");
   const { addItem, open: openCart, count: cartCount } = useCart();
   const { products } = useCatalogProducts();
   const topbarRef = useRef(null);
@@ -63,6 +66,16 @@ export default function ProductPage({ product }) {
   const soldOut = stock <= 0;
   const lowStock = stock > 0 && stock <= 20;
   const Icon = CATEGORY_ICONS[product.categoria] || SlidersHorizontal;
+  const whatsappMessage = `Hola, necesito asesoría sobre ${product.nombre} (SKU ${product.sku}). Cantidad: ${quantity}.`;
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/site-config", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => { if (active) setWhatsappNumber(data?.whatsapp || ""); })
+      .catch(() => { if (active) setWhatsappNumber(""); });
+    return () => { active = false; };
+  }, []);
   const NAVIGATION = [
     { href: "/catalogo", label: "Soluciones" },
     { href: "/#empresa", label: "La empresa" },
@@ -133,6 +146,7 @@ export default function ProductPage({ product }) {
           <a className={styles.topbarBrand} href="/" aria-label="Arconet, inicio">
             <Image src="/arconet.png" alt="Arconet" width={2172} height={362} />
           </a>
+          <MobileSiteMenu />
 
           <nav className={styles.topbarNav} aria-label="Navegación del catálogo">
             {NAVIGATION.map((item) => (
@@ -161,6 +175,8 @@ export default function ProductPage({ product }) {
       </header>
 
       <div className={styles.breadcrumb}>
+        <Link href="/">Inicio</Link>
+        <span className={styles.separator}>/</span>
         <Link href="/catalogo">Catálogo</Link>
         <span className={styles.separator}>/</span>
         <Link href="/catalogo#catalogo-items">{product.categoria}</Link>
@@ -260,6 +276,7 @@ export default function ProductPage({ product }) {
             Pedir asesoría técnica
             <ArrowUpRight size={15} aria-hidden="true" />
           </Link>
+          {whatsappNumber ? <a className={styles.whatsappLink} href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`} target="_blank" rel="noopener noreferrer"><MessageCircle size={16} aria-hidden="true" /> Consultar por WhatsApp</a> : null}
 
           <dl className={styles.specs}>
             <div><dt>SKU</dt><dd>{product.sku}</dd></div>

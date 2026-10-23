@@ -7,6 +7,7 @@ import { ArrowDown, ArrowRight, ArrowUpRight } from "lucide-react";
 import styles from "./terminos-experience.module.css";
 import Footer from "../footer";
 import { CONTACT_EMAIL, CONTACT_PHONE } from "../../lib/contact";
+import MobileSiteMenu from "../mobile-site-menu";
 
 const SECTIONS = [
   {
@@ -211,6 +212,7 @@ export default function TerminosExperience() {
               <Link href="/contacto">Contacto</Link>
             </nav>
             <div className={styles.headerActionTab}>
+              <MobileSiteMenu />
               <Link className={styles.headerAction} href="/contacto">Hablemos <span><ArrowUpRight size={15} /></span></Link>
             </div>
           </header>

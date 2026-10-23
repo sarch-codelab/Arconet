@@ -4,6 +4,7 @@ import { ArrowDown, ArrowRight, ArrowUpRight, ShieldCheck } from "lucide-react";
 import Footer from "../footer";
 import styles from "../terminos/terminos-experience.module.css";
 import { CONTACT_EMAIL } from "../../lib/contact";
+import MobileSiteMenu from "../mobile-site-menu";
 
 export const metadata = {
   title: "Aviso de privacidad",
@@ -117,6 +118,7 @@ export default function PrivacyPage() {
               <Link href="/contacto">Contacto</Link>
             </nav>
             <div className={styles.headerActionTab}>
+              <MobileSiteMenu />
               <Link className={styles.headerAction} href="/contacto">Hablemos <span><ArrowUpRight size={15} /></span></Link>
             </div>
           </header>

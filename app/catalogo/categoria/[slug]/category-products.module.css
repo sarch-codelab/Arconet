@@ -1090,3 +1090,9 @@
     font-size: 23px;
   }
 }
+
+@media (max-width: 760px) {
+  .header { grid-template-columns: auto 1fr auto; gap: 10px; padding: 0 14px; }
+  .nav { display: none; }
+  .headerAction { grid-column: 3; }
+}

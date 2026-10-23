@@ -8,6 +8,7 @@ import { ArrowRight, Check, Eye, EyeOff } from "lucide-react";
 import styles from "../admin/admin-experience.module.css";
 import { sileo } from "../toaster";
 import { CONTACT_EMAIL } from "../../lib/contact";
+import MobileSiteMenu from "../mobile-site-menu";
 
 export default function LoginExperience() {
   const router = useRouter();
@@ -48,6 +49,7 @@ export default function LoginExperience() {
 
   return (
     <main className={styles.loginPage}>
+      <MobileSiteMenu floating />
       <div className={styles.loginCard}>
         <div className={styles.loginVisual}>
           <Image

@@ -6,7 +6,7 @@ import { writeLog } from "../../../lib/logs";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const DEFAULTS = { companyName: "Arconet", email: CONTACT_EMAIL, phone: CONTACT_PHONE, currency: "L", theme: "system" };
+const DEFAULTS = { companyName: "Arconet", email: CONTACT_EMAIL, phone: CONTACT_PHONE, whatsapp: "", currency: "L", theme: "system" };
 const ALLOWED = new Set(Object.keys(DEFAULTS));
 
 export async function GET() {
@@ -36,6 +36,7 @@ export async function PATCH(request) {
   if (data.companyName != null && (data.companyName.length < 2 || data.companyName.length > 100)) return Response.json({ error: "El nombre debe tener entre 2 y 100 caracteres." }, { status: 400 });
   if (data.email != null && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) return Response.json({ error: "Escribe un correo de contacto válido." }, { status: 400 });
   if (data.phone != null && data.phone.length > 40) return Response.json({ error: "El teléfono no puede superar 40 caracteres." }, { status: 400 });
+  if (data.whatsapp != null && data.whatsapp && !/^\+?[\d\s().-]{8,24}$/.test(data.whatsapp)) return Response.json({ error: "Ingresa un número de WhatsApp válido, con código de país." }, { status: 400 });
   if (data.currency != null && !["L", "USD"].includes(data.currency)) return Response.json({ error: "La moneda indicada no está admitida." }, { status: 400 });
   if (data.theme != null && !["light", "dark", "system"].includes(data.theme)) return Response.json({ error: "El tema indicado no está admitido." }, { status: 400 });
   try {

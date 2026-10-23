@@ -8,6 +8,7 @@ import { ArrowRight, Check, Eye, EyeOff } from "lucide-react";
 import styles from "../admin/admin-experience.module.css";
 import registration from "./registro-experience.module.css";
 import { sileo } from "../toaster";
+import MobileSiteMenu from "../mobile-site-menu";
 
 export default function RegistroExperience() {
   const router = useRouter();
@@ -74,6 +75,7 @@ export default function RegistroExperience() {
 
   return (
     <main className={styles.loginPage}>
+      <MobileSiteMenu floating />
       <div className={styles.loginCard}>
         <div className={styles.loginVisual}>
           <Image
