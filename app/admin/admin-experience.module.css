@@ -1039,9 +1039,13 @@
   right: 0;
   z-index: 60;
   width: min(380px, calc(100vw - 32px));
-  max-height: min(420px, calc(100vh - 90px));
-  max-height: min(420px, calc(100svh - 90px));
-  overflow-y: auto;
+  max-height: min(480px, calc(100vh - 90px));
+  max-height: min(480px, calc(100svh - 90px));
+  /* Encabezado y pie fijos; solo la lista se desplaza. Antes el panel y la
+     lista tenían cada uno su propio scroll y el pie quedaba cortado. */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   padding: 0;
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -1070,7 +1074,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  flex-shrink: 0;
   padding: 12px 14px;
   border-bottom: 1px solid var(--border-subtle);
 }
@@ -1127,9 +1133,11 @@
 }
 
 .notificationsList {
+  flex: 1 1 auto;
+  min-height: 0;
   padding: 4px;
-  max-height: 340px;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .notificationsEmpty {
@@ -1246,6 +1254,7 @@
 }
 
 .notificationsFooter {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
