@@ -19,6 +19,7 @@ import {
   HeartHandshake,
   Landmark,
   Lightbulb,
+  LogIn,
   PackageCheck,
   Radio,
   Satellite,
@@ -30,6 +31,7 @@ import {
   Eye,
   Wifi,
   Wrench,
+  X,
 } from "lucide-react";
 import styles from "./page.module.css";
 import Footer from "./footer";
@@ -297,6 +299,49 @@ useEffect(() => {
   const locomotiveRef = useRef(null);
   const navRef = useRef(null);
   const topbarRef = useRef(null);
+  const menuToggleRef = useRef(null);
+  const mobileMenuRef = useRef(null);
+
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+
+    const isMobile = () => window.matchMedia("(max-width: 760px)").matches;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    const previousBodyOverflow = document.body.style.overflow;
+
+    if (isMobile()) {
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
+    }
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+        menuToggleRef.current?.focus();
+      }
+    };
+
+    const handlePointerDown = (event) => {
+      if (topbarRef.current && !topbarRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("pointerdown", handlePointerDown, true);
+
+    const focusFrame = window.requestAnimationFrame(() => {
+      mobileMenuRef.current?.focus({ preventScroll: true });
+    });
+
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      document.body.style.overflow = previousBodyOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("pointerdown", handlePointerDown, true);
+    };
+  }, [menuOpen]);
 
   useEffect(() => {
     let frame = 0;
@@ -469,9 +514,9 @@ useEffect(() => {
       <header
         ref={topbarRef}
         className={`${styles.topbar} ${
-          scrolledPastHero ? styles.topbarVisible : styles.topbarHidden
+          scrolledPastHero || menuOpen ? styles.topbarVisible : styles.topbarHidden
         }`}
-        aria-hidden={!scrolledPastHero}
+        aria-hidden={!(scrolledPastHero || menuOpen)}
       >
         <span className={styles.scrollProgress} aria-hidden="true">
           <i />
@@ -499,9 +544,12 @@ useEffect(() => {
               );
             })}
             <button
+              ref={menuToggleRef}
               type="button"
               className={`${styles.menuToggle}${menuOpen ? ` ${styles.menuToggleActive}` : ""}`}
               aria-expanded={menuOpen}
+              aria-controls="home-mobile-menu"
+              aria-haspopup="true"
               aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
               onClick={() => setMenuOpen(!menuOpen)}
             >
@@ -550,25 +598,100 @@ useEffect(() => {
           )}
 
           {menuOpen && (
-            <div className={styles.mobileMenu}>
-              {NAVIGATION.map((item) =>
-                item.mega ? (
-                  <div key={item.id ?? item.label}>
-                    <a href={item.href} onClick={() => setMenuOpen(false)}>{item.label}</a>
-                    {item.megaGroups.map((group) => (
-                      <div key={group.title}>
-                        <strong>{group.title}</strong>
-                        {group.links.map((link) => (
-                          <a key={link.label} href={link.href} onClick={() => setMenuOpen(false)}>{link.label}</a>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <a key={item.id ?? item.label} href={item.href} onClick={() => setMenuOpen(false)}>{item.label}</a>
-                )
-              )}
-            </div>
+            <nav
+              id="home-mobile-menu"
+              ref={mobileMenuRef}
+              className={styles.mobileMenu}
+              aria-label="Menú de navegación móvil"
+              tabIndex={-1}
+            >
+              <div className={styles.mobileMenuHead}>
+                <span className={styles.mobileMenuEyebrow}>Navegación</span>
+                <button
+                  type="button"
+                  className={styles.mobileMenuClose}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    menuToggleRef.current?.focus();
+                  }}
+                  aria-label="Cerrar menú"
+                >
+                  <X size={17} aria-hidden="true" />
+                </button>
+              </div>
+
+              <a
+                className={styles.mobileMenuPrimary}
+                href="/catalogo"
+                onClick={() => setMenuOpen(false)}
+              >
+                <span className={styles.mobileMenuPrimaryText}>
+                  <span className={styles.mobileMenuPrimaryLabel}>Catálogo</span>
+                  <span className={styles.mobileMenuPrimaryHint}>Explora todos los productos</span>
+                </span>
+                <span className={styles.mobileMenuPrimaryIcon}>
+                  <ArrowRight size={18} aria-hidden="true" />
+                </span>
+              </a>
+
+              <div className={styles.mobileMenuAuth}>
+                <a
+                  className={styles.mobileMenuLogin}
+                  href="/login"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <LogIn size={16} aria-hidden="true" />
+                  Login
+                </a>
+                <a
+                  className={styles.mobileMenuAdmin}
+                  href="/admin"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <ShieldCheck size={16} aria-hidden="true" />
+                  Admin
+                </a>
+              </div>
+
+              <div className={styles.mobileMenuLinks}>
+                {NAVIGATION.filter((item) => item.href !== "/catalogo").map((item) =>
+                  item.mega ? (
+                    <div key={item.id ?? item.label} className={styles.mobileMenuGroup}>
+                      <a
+                        className={styles.mobileMenuGroupTitle}
+                        href={item.href}
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        {item.label}
+                      </a>
+                      {item.megaGroups.map((group) => (
+                        <div key={group.title} className={styles.mobileMenuSubgroup}>
+                          <strong>{group.title}</strong>
+                          {group.links.map((link) => (
+                            <a
+                              key={link.label}
+                              href={link.href}
+                              onClick={() => setMenuOpen(false)}
+                            >
+                              {link.label}
+                            </a>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <a
+                      key={item.id ?? item.label}
+                      className={styles.mobileMenuLink}
+                      href={item.href}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {item.label}
+                    </a>
+                  )
+                )}
+              </div>
+            </nav>
           )}
         </div>
       </header>
