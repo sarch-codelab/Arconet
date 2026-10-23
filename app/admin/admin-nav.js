@@ -124,6 +124,7 @@ export const SECTION_NAV_CONFIG = {
     brandName: "Cotizaciones",
     tabs: [
       { id: "all", label: "Cotizaciones", icon: FileText, title: "Todas las cotizaciones" },
+      { id: "invoices", label: "Facturas", icon: FileText, title: "Facturas comerciales" },
       { id: "pending", label: "Pendientes", icon: Clock, title: "En revisión" },
       { id: "approved", label: "Aprobadas", icon: Check, title: "Aprobadas" },
       { id: "completed", label: "Ventas", icon: TrendingUp, title: "Ventas cerradas" },

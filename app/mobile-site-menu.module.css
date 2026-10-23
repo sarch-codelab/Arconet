@@ -14,4 +14,4 @@
 :global(html[data-theme="dark"]) .panel > a:hover { background: #202d47; color: #a8c2ff; }
 :global(html[data-theme="dark"]) .legal { border-color: #30394a; }
 :global(html[data-theme="dark"]) .legal a, :global(html[data-theme="dark"]) .label { color: #aab5c7; }
-@media (max-width: 760px) { .root { position: relative; z-index: 100; display: block; flex: 0 0 auto; justify-self: center; } }
+@media (max-width: 1080px) { .root { position: relative; z-index: 100; display: block; flex: 0 0 auto; justify-self: center; } }

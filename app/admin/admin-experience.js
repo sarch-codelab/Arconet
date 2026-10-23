@@ -3354,6 +3354,9 @@ function CotizacionesSection({ orders, setOrders, clientes, setClientes, product
     } else if (tabId === "balance") {
       setStatus("all");
       setType("all");
+    } else if (tabId === "invoices") {
+      setStatus("all");
+      setType("venta");
     }
   };
 
@@ -3387,10 +3390,10 @@ function CotizacionesSection({ orders, setOrders, clientes, setClientes, product
     setActiveTab("all");
   }
 
-  function openCreate() {
+  function openCreate(documentType = "cotizacion") {
     setDraft({
       id: newOrderId(),
-      tipo: "cotizacion",
+      tipo: documentType,
       clienteId: "",
       cliente: "",
       fecha: new Date().toISOString().split("T")[0],
@@ -3489,12 +3492,17 @@ function CotizacionesSection({ orders, setOrders, clientes, setClientes, product
   return (
     <>
       <Topbar
-        title="Cotizaciones"
-        subtitle="Gestión de cotizaciones y órdenes de venta."
+        title={type === "venta" ? "Facturas" : "Cotizaciones y facturas"}
+        subtitle="Crea cotizaciones o facturas comerciales con productos del catálogo y datos de clientes registrados o eventuales."
         action={
-          <button type="button" className={styles.primaryBtn} onClick={openCreate}>
-            <Plus size={16} /> Nueva cotización
-          </button>
+          <div className={styles.topbarActions}>
+            <button type="button" className={styles.ghostBtn} onClick={() => openCreate("cotizacion")}>
+              <Plus size={16} /> Nueva cotización
+            </button>
+            <button type="button" className={styles.primaryBtn} onClick={() => openCreate("venta")}>
+              <Plus size={16} /> Nueva factura
+            </button>
+          </div>
         }
         session={session}
         workers={workers}
@@ -3576,7 +3584,7 @@ function CotizacionesSection({ orders, setOrders, clientes, setClientes, product
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>Cotización</th>
+                  <th>Documento</th>
                   <th>Cliente</th>
                   <th>Tipo</th>
                   <th>Fecha</th>
@@ -3588,7 +3596,7 @@ function CotizacionesSection({ orders, setOrders, clientes, setClientes, product
               <tbody>
                 {filtered.map((order) => (
                   <tr key={order.id}>
-                    <td data-label="Cotización" className={styles.cellMain}><code>{order.id}</code></td>
+                    <td data-label="Documento" className={styles.cellMain}><code>{order.id}</code></td>
                     <td data-label="Cliente">
                       <div className={styles.person}>
                         <span className={styles.avatar}>{initialsCliente(order.cliente)}</span>
@@ -3642,11 +3650,11 @@ function CotizacionesSection({ orders, setOrders, clientes, setClientes, product
             {!filtered.length && (
               <div className={styles.empty}>
                 <span className={styles.emptyIcon}><FileText size={22} /></span>
-                <strong>Sin cotizaciones</strong>
+                <strong>{type === "venta" ? "Sin facturas" : "Sin cotizaciones"}</strong>
                 <p>
                   {hasFilters
                     ? "No hay resultados con esos filtros. Prueba ajustarlos."
-                    : "Aún no has creado cotizaciones. Crea la primera."}
+                    : type === "venta" ? "Aún no has creado facturas comerciales." : "Aún no has creado cotizaciones. Crea la primera."}
                 </p>
               </div>
             )}
@@ -3662,11 +3670,11 @@ function CotizacionesSection({ orders, setOrders, clientes, setClientes, product
             if (event.target === event.currentTarget) closeModal();
           }}
         >
-          <div className={styles.modal} role="dialog" aria-modal="true" aria-label={editingId ? "Editar cotización" : "Nueva cotización"}>
+          <div className={styles.modal} role="dialog" aria-modal="true" aria-label={editingId ? "Editar documento" : draft.tipo === "venta" ? "Nueva factura comercial" : "Nueva cotización"}>
             <header className={styles.modalHead}>
               <div>
                 <p className={styles.eyebrow}>{editingId ? "Editar" : "Nueva"}</p>
-                <h2>{editingId ? "Editar cotización" : "Crear cotización"}</h2>
+                <h2>{editingId ? "Editar documento" : draft.tipo === "venta" ? "Crear factura comercial" : "Crear cotización"}</h2>
               </div>
               <button type="button" className={styles.iconBtn} onClick={closeModal} aria-label="Cerrar">
                 <X size={18} />
@@ -3748,14 +3756,14 @@ function CotizacionesSection({ orders, setOrders, clientes, setClientes, product
                     <button type="button" className={styles.clearBtn} onClick={() => setDraft((prev) => ({ ...prev, items: prev.items.filter((_, lineIndex) => lineIndex !== index) }))}>Quitar</button>
                   </div>)}
                   <button type="button" className={styles.ghostBtn} onClick={addCatalogItem} disabled={!products.some((item) => item.estado === "activo")}>Añadir producto real del catálogo</button>
-                  <small>El total se calcula con el precio actual del catálogo. Impuestos y condiciones se confirmarán en la propuesta.</small>
+                  <small>El total se calcula con los precios de catálogo. Configura impuestos y condiciones antes de emitir; una factura comercial no sustituye un comprobante fiscal autorizado.</small>
                 </div>
                 <label className={`${styles.field} ${styles.spanFull}`}>
                   Notas
                   <textarea
                     value={draft.notas}
                     onChange={(event) => changeField("notas", event.target.value)}
-                    placeholder="Detalles de la cotización..."
+                    placeholder={draft.tipo === "venta" ? "Condiciones de pago, entrega y observaciones..." : "Detalles de la cotización..."}
                     rows={3}
                   />
                 </label>
@@ -3767,7 +3775,7 @@ function CotizacionesSection({ orders, setOrders, clientes, setClientes, product
                   Cancelar
                 </button>
                 <button type="submit" className={styles.submit}>
-                  {editingId ? "Guardar cambios" : "Crear cotización"}
+                  {editingId ? "Guardar cambios" : draft.tipo === "venta" ? "Crear factura comercial" : "Crear cotización"}
                 </button>
               </footer>
             </form>
