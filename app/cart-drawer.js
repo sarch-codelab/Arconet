@@ -18,9 +18,9 @@ import {
 import { buildCartMessage, useCart } from "./cart-context";
 import { sileo } from "./toaster";
 import styles from "./cart.module.css";
+import { CONTACT_EMAIL } from "../lib/contact";
 
 const WHATSAPP_NUMBER = (process.env.NEXT_PUBLIC_WHATSAPP || "").replace(/\D/g, "");
-const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL || "";
 const SUBJECT = "Solicitud de cotización — Arconet";
 
 export default function CartDrawer() {
@@ -127,7 +127,7 @@ export default function CartDrawer() {
 
                   <div className={styles.itemBody}>
                     <div className={styles.itemHead}>
-                      <Link className={styles.itemTitle} href={`/catalogo/${item.slug}`} onClick={close}>
+                      <Link className={styles.itemTitle} href={item.href} onClick={close}>
                         {item.title}
                       </Link>
                       <button

@@ -19,6 +19,7 @@ import {
   X,
 } from "lucide-react";
 import styles from "./cliente-experience.module.css";
+import { CONTACT_EMAIL, CONTACT_PHONE, CONTACT_PHONE_HREF } from "../../lib/contact";
 
 const CLIENT_SESSION_KEY = "arconet-client-session";
 
@@ -382,18 +383,18 @@ function ClientDashboard({ session, onLogout }) {
                     <h3>Contacto rápido</h3>
                     <p>¿Necesitas ayuda inmediata? Contáctanos.</p>
                     <div className={styles.contactMethods}>
-                      <a href="mailto:soporte@arconet.com" className={styles.contactCard}>
+                      <a href={`mailto:${CONTACT_EMAIL}`} className={styles.contactCard}>
                         <span className={styles.contactIcon}>📧</span>
                         <div>
                           <strong>Email</strong>
-                          <p>soporte@arconet.com</p>
+                          <p>{CONTACT_EMAIL}</p>
                         </div>
                       </a>
-                      <a href="tel:+50425000000" className={styles.contactCard}>
+                      <a href={CONTACT_PHONE_HREF} className={styles.contactCard}>
                         <span className={styles.contactIcon}>📞</span>
                         <div>
                           <strong>Teléfono</strong>
-                          <p>+504 2500-0000</p>
+                          <p>{CONTACT_PHONE}</p>
                         </div>
                       </a>
                     </div>

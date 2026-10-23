@@ -143,6 +143,7 @@ export default function ProductDetail({ slug }) {
     addItem(
       {
         slug: family.slug,
+        href: `/catalogo/${family.slug}`,
         title: family.title,
         category: family.category,
         index: family.index,

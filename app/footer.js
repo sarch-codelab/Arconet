@@ -5,10 +5,7 @@ import Link from "next/link";
 import { ArrowUp, Mail, MapPin, Phone } from "lucide-react";
 import { FAMILIES } from "./catalogo/catalogo-data";
 import styles from "./footer.module.css";
-
-const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL || "contacto@arconet.hn";
-const CONTACT_PHONE = "+504 2237-0000";
-const CONTACT_PHONE_HREF = "tel:+50422370000";
+import { CONTACT_EMAIL, CONTACT_PHONE, CONTACT_PHONE_HREF } from "../lib/contact";
 
 const COMPANY_LINKS = [
   { href: "/", label: "Inicio" },

@@ -19,16 +19,23 @@ function readStoredItems() {
     if (!Array.isArray(parsed)) return [];
     return parsed
       .filter((item) => item && item.slug && Number(item.quantity) > 0)
-      .map((item) => ({
-        key: item.key || itemKey(item.slug, item.presentation || "Estándar"),
-        slug: item.slug,
-        title: item.title || item.slug,
-        category: item.category || "",
-        index: item.index || "",
-        image: item.image || null,
-        presentation: item.presentation || "Estándar",
-        quantity: Math.max(1, Math.floor(Number(item.quantity) || 1)),
-      }));
+      .map((item) => {
+        const slug = String(item.slug);
+        const detailHref = item.href || (slug.startsWith("p-")
+          ? `/catalogo/producto/${encodeURIComponent(slug)}`
+          : "/catalogo");
+        return {
+          key: item.key || itemKey(slug, item.presentation || "Estándar"),
+          slug,
+          href: detailHref,
+          title: item.title || slug,
+          category: item.category || "",
+          index: item.index || "",
+          image: item.image || null,
+          presentation: item.presentation || "Estándar",
+          quantity: Math.max(1, Math.floor(Number(item.quantity) || 1)),
+        };
+      });
   } catch {
     return [];
   }
@@ -69,6 +76,7 @@ export function CartProvider({ children }) {
         {
           key,
           slug: entry.slug,
+          href: entry.href || "/catalogo",
           title: entry.title || entry.slug,
           category: entry.category || "",
           index: entry.index || "",

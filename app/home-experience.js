@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import styles from "./page.module.css";
 import Footer from "./footer";
+import { CONTACT_PHONE } from "../lib/contact";
 
 const NAVIGATION = [
   { id: "inicio", label: "Inicio", href: "#inicio", mega: false },
@@ -137,7 +138,7 @@ const STORY_FACTS = [
     label: "Sede principal",
     value: "4 Calle 11 Avenida, Barrio Guamilito, San Pedro Sula, Cortés.",
   },
-  { value: "2552-0085", label: "Atención al cliente" },
+  { value: CONTACT_PHONE, label: "Atención al cliente" },
   { value: "Lun–Vie 8:00–17:00 · Sáb 8:00–12:00", label: "Horario de atención" },
   { value: "San Pedro Sula y Tegucigalpa", label: "Sedes y puntos de atención" },
   { value: "Todo Honduras", label: "Cobertura de entrega" },
@@ -518,7 +519,7 @@ useEffect(() => {
       {/* Dock de navegación secundaria: aparece al superar el hero */}
       <header
         ref={topbarRef}
-        className={`${styles.topbar} ${
+        className={`${styles.topbar}${menuOpen ? ` ${styles.topbarMenuOpen}` : ""} ${
           scrolledPastHero || menuOpen ? styles.topbarVisible : styles.topbarHidden
         }`}
         aria-hidden={!(scrolledPastHero || menuOpen)}

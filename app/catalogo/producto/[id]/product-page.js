@@ -109,6 +109,7 @@ export default function ProductPage({ product }) {
     addItem(
       {
         slug: product.id,
+        href: `/catalogo/producto/${product.id}`,
         title: product.nombre,
         category: product.categoria,
         image: product.foto || "",

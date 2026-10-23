@@ -17,6 +17,7 @@ import {
 import styles from "./contact-experience.module.css";
 import Footer from "../footer";
 import { sileo } from "../toaster";
+import { CONTACT_EMAIL } from "../../lib/contact";
 
 const NAVIGATION = [
   { href: "/", label: "Inicio" },
@@ -123,9 +124,8 @@ export default function ContactExperience() {
       "Proyecto:",
       form.get("message"),
     ].join("\n");
-    const recipient = process.env.NEXT_PUBLIC_CONTACT_EMAIL || "";
-    window.location.href = `mailto:${recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    const hasRecipient = Boolean(process.env.NEXT_PUBLIC_CONTACT_EMAIL);
+    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const hasRecipient = Boolean(CONTACT_EMAIL);
     sileo.show({
       type: "info",
       title: hasRecipient

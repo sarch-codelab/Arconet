@@ -43,7 +43,7 @@ export const FAMILIES = [
     index: "01",
     category: "Soluciones de Preconectorizado",
     title: "Soluciones de Preconectorizado",
-    badge: "Línea disponible",
+    badge: "Catálogo de soluciones",
     price: 120,
     stock: 1200,
     summary:
@@ -83,7 +83,7 @@ export const FAMILIES = [
     index: "02",
     category: "Herrajes",
     title: "Herrajes",
-    badge: "Línea disponible",
+    badge: "Catálogo de soluciones",
     price: 85,
     stock: 800,
     summary:
@@ -124,7 +124,7 @@ export const FAMILIES = [
     index: "03",
     category: "Gabinetes y Racks",
     title: "Gabinetes y Racks",
-    badge: "Línea disponible",
+    badge: "Catálogo de soluciones",
     price: 320,
     compareAtPrice: 399,
     stock: 79,
@@ -166,7 +166,7 @@ export const FAMILIES = [
     index: "04",
     category: "Cajas de Distribución y Emplazamiento",
     title: "Cajas de Distribución y Emplazamiento",
-    badge: "Línea disponible",
+    badge: "Catálogo de soluciones",
     price: 450,
     stock: 260,
     summary:
@@ -207,7 +207,7 @@ export const FAMILIES = [
     index: "05",
     category: "Soluciones activas y Accesorios FTTH",
     title: "Soluciones activas y Accesorios FTTH",
-    badge: "Línea disponible",
+    badge: "Catálogo de soluciones",
     price: 1890,
     stock: 40,
     summary:
@@ -248,7 +248,7 @@ export const FAMILIES = [
     index: "06",
     category: "Herramientas y kits",
     title: "Herramientas y kits",
-    badge: "Línea disponible",
+    badge: "Catálogo de soluciones",
     price: 1850,
     stock: 60,
     summary:
@@ -288,7 +288,7 @@ export const FAMILIES = [
     index: "07",
     category: "Escaleras",
     title: "Escaleras",
-    badge: "Línea disponible",
+    badge: "Catálogo de soluciones",
     price: 3200,
     stock: 18,
     summary:
@@ -328,7 +328,7 @@ export const FAMILIES = [
     index: "08",
     category: "Optical Distribution Frame - ODF",
     title: "Optical Distribution Frame - ODF",
-    badge: "Línea disponible",
+    badge: "Catálogo de soluciones",
     price: 4800,
     stock: 12,
     summary:
@@ -369,7 +369,7 @@ export const FAMILIES = [
     index: "09",
     category: "Instrumentos de medición óptica",
     title: "Instrumentos de medición óptica",
-    badge: "A consulta",
+    badge: "Catálogo de soluciones",
     price: 4300,
     stock: 14,
     summary:
@@ -411,7 +411,7 @@ export const FAMILIES = [
     index: "10",
     category: "Componentes pasivos",
     title: "Componentes pasivos",
-    badge: "Línea disponible",
+    badge: "Catálogo de soluciones",
     price: 850,
     stock: 5342,
     bestSeller: true,
@@ -453,7 +453,7 @@ export const FAMILIES = [
     index: "11",
     category: "Microcables y Microproductos",
     title: "Microcables y Microproductos",
-    badge: "Línea disponible",
+    badge: "Catálogo de soluciones",
     price: 45,
     stock: 8600,
     summary:

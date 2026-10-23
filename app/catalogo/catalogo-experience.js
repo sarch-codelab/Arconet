@@ -163,6 +163,7 @@ export default function CatalogoExperience() {
   const addProductToQuote = (product) => {
     addItem({
       slug: product.id,
+      href: `/catalogo/producto/${product.id}`,
       title: product.nombre,
       category: product.categoria,
       image: product.foto || "",
@@ -394,7 +395,12 @@ export default function CatalogoExperience() {
   return (
     <main className={styles.catalog}>
       {gateOpen ? (
-        <section className={styles.branchGate} aria-label="Selecciona tu sucursal">
+        <section
+          className={styles.branchGate}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Selecciona tu sucursal"
+        >
           <div className={styles.branchGateMedia} aria-hidden="true">
             <Image
               src="/catalogo/bodeg.avifa.avif"
@@ -455,6 +461,7 @@ export default function CatalogoExperience() {
         </section>
       ) : null}
 
+      <div aria-hidden={gateOpen} inert={gateOpen}>
       <header
         ref={topbarRef}
         className={`${styles.topbar} ${scrolledPastHero ? styles.topbarVisible : styles.topbarHidden}`}
@@ -876,6 +883,7 @@ export default function CatalogoExperience() {
       </section>
 
       <Footer />
+      </div>
     </main>
   );
 }

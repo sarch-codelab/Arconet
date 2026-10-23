@@ -36,124 +36,136 @@ const TRUCKS_DATA = [
   {
     id: "trk-1",
     plate: "#A-BB84964",
-    title: "Carga hospitalaria 860kg",
+    title: "Splitter óptico 1x8 PLC · 860 kg",
     containerId: "#YMLU 654383",
     type: "TRK200924 Carga",
     status: "Activo",
-    location: "Depósito Southgate",
+    location: "Sucursal San Pedro Sula",
     inTransit: "3 días",
-    driver: "Ethan Carter",
+    driver: "Carlos Discua",
     truckId: "TRK-318",
     dock: "Muelle #3",
     started: "10:30",
-    originCode: "NY",
-    originCity: "New York",
-    destCode: "AU",
-    destCity: "Australia",
+    originCode: "SPS",
+    originCity: "San Pedro Sula",
+    destCode: "LCE",
+    destCity: "La Ceiba",
     currentLoad: "8.5 t",
     maxCapacity: "12.4 t",
     weightPercent: 68,
     pallets: "18/24",
     freeSpace: "25%",
     temperature: "4°C",
-    fuelNeeded: "40.32 gal",
+    fuelNeeded: "152.6 L",
     leftSide: "52%",
     rightSide: "48%",
-    efficiency: "15%",
-    avgDelay: "52%",
+    efficiency: "92%",
+    avgDelay: "0.4 h",
     riskOfTilt: "Bajo"
   },
   {
     id: "trk-2",
     plate: "#A-BB84963",
-    title: "Material clínico 760kg",
+    title: "Material de red FTTH · 760 kg",
     containerId: "#YMLU 654383",
     type: "TRK200924 Carga",
     status: "Activo",
-    location: "Depósito Southgate",
+    location: "Sucursal San Pedro Sula",
     inTransit: "3 días",
-    driver: "Ethan Carter",
+    driver: "Carlos Discua",
     truckId: "TRK-318",
     dock: "Muelle #3",
     started: "10:30",
-    originCode: "NY",
-    originCity: "New York",
-    destCode: "AU",
-    destCity: "Australia",
+    originCode: "SPS",
+    originCity: "San Pedro Sula",
+    destCode: "LCE",
+    destCity: "La Ceiba",
     currentLoad: "8.5 t",
     maxCapacity: "12.4 t",
     weightPercent: 68,
     pallets: "18/24",
     freeSpace: "25%",
     temperature: "4°C",
-    fuelNeeded: "40.32 gal",
+    fuelNeeded: "152.6 L",
     leftSide: "52%",
     rightSide: "48%",
-    efficiency: "15%",
-    avgDelay: "52%",
+    efficiency: "92%",
+    avgDelay: "0.4 h",
     riskOfTilt: "Bajo"
   },
   {
     id: "trk-3",
     plate: "#A-BB84965",
-    title: "Productos de bienestar 640kg",
+    title: "Cable ADSS y accesorios · 640 kg",
     containerId: "#WNL-492104",
     type: "TRK200924 Exprés",
     status: "Activo",
-    location: "Depósito central",
+    location: "Sucursal La Ceiba",
     inTransit: "2 días",
     driver: "Camila Rojas",
     truckId: "TRK-210",
     dock: "Muelle #1",
     started: "08:15",
-    originCode: "CHI",
-    originCity: "Chicago",
-    destCode: "MIA",
-    destCity: "Miami",
+    originCode: "LCE",
+    originCity: "La Ceiba",
+    destCode: "SPS",
+    destCity: "San Pedro Sula",
     currentLoad: "6.4 t",
     maxCapacity: "12.0 t",
     weightPercent: 54,
     pallets: "14/24",
     freeSpace: "42%",
     temperature: "6°C",
-    fuelNeeded: "28.50 gal",
+    fuelNeeded: "107.9 L",
     leftSide: "50%",
     rightSide: "50%",
-    efficiency: "19%",
-    avgDelay: "38%",
+    efficiency: "90%",
+    avgDelay: "0.7 h",
     riskOfTilt: "Mínimo"
   },
   {
     id: "trk-4",
     plate: "#A-BB84962",
-    title: "Equipamiento deportivo 580kg",
+    title: "Gabinetes de telecomunicaciones · 580 kg",
     containerId: "#FTG-881230",
     type: "TRK200924 Reforzado",
     status: "Activo",
-    location: "Centro Westside",
+    location: "Sucursal San Pedro Sula",
     inTransit: "4 días",
     driver: "Marta Silva",
     truckId: "TRK-504",
     dock: "Muelle #5",
     started: "06:45",
-    originCode: "LAX",
-    originCity: "Los Angeles",
-    destCode: "SEA",
-    destCity: "Seattle",
+    originCode: "SPS",
+    originCity: "San Pedro Sula",
+    destCode: "TGU",
+    destCity: "Tegucigalpa",
     currentLoad: "9.2 t",
     maxCapacity: "14.0 t",
     weightPercent: 65,
     pallets: "16/24",
     freeSpace: "33%",
     temperature: "18°C",
-    fuelNeeded: "34.20 gal",
+    fuelNeeded: "129.4 L",
     leftSide: "51%",
     rightSide: "49%",
-    efficiency: "17%",
-    avgDelay: "45%",
+    efficiency: "94%",
+    avgDelay: "0.5 h",
     riskOfTilt: "Bajo"
   }
 ];
+
+const UNIQUE_TRUCKS = [...new Map(TRUCKS_DATA.map((truck) => [truck.truckId, truck])).values()];
+
+const FLEET_METRICS = {
+  active: UNIQUE_TRUCKS.filter((truck) => truck.status === "Activo").length,
+  maintenance: UNIQUE_TRUCKS.filter((truck) => truck.status === "En mantenimiento").length,
+  onTimeAverage: Math.round(
+    UNIQUE_TRUCKS.reduce((sum, truck) => sum + Number.parseInt(truck.efficiency, 10), 0) /
+      UNIQUE_TRUCKS.length,
+  ),
+  inTransit: UNIQUE_TRUCKS.filter((truck) => truck.status === "Activo" && truck.inTransit).length,
+};
 
 // Genera las 24 marcas del arco radial segmentado
 function renderRadialTicks(weightPercent) {
@@ -268,7 +280,7 @@ export default function FleetSection({ onNavigate }) {
           ================================================================== */}
       <Topbar
         title="Flota"
-        subtitle="Monitoreo en vivo de vehículos, carga y rutas."
+        subtitle="Vista de demostración de vehículos y rutas; los datos no provienen de rastreo en vivo."
       />
 
       <div className={styles.fleetContent}>
@@ -286,7 +298,7 @@ export default function FleetSection({ onNavigate }) {
         <div className={styles.overviewTitleBlock}>
           <h1 className={styles.mainTitle}>Resumen operativo</h1>
           <p className={styles.subtitle}>
-            Estado de la flota en tiempo real: veh&iacute;culos activos, carga en tr&aacute;nsito y eficiencia de la flota.
+            Datos de demostración de la flota. El rastreo GPS y la telemetría aún no están conectados.
           </p>
         </div>
 
@@ -299,8 +311,8 @@ export default function FleetSection({ onNavigate }) {
             <div className={styles.kpiContent}>
               <span className={styles.kpiLabel}>Vehículos activos</span>
               <div className={styles.kpiValueRow}>
-                <span className={styles.kpiValue}>58</span>
-                <span className={styles.kpiBadgeGreen}>↑ +2.5%</span>
+                <span className={styles.kpiValue}>{FLEET_METRICS.active}</span>
+                <span className={styles.kpiBadgeGreen}>Registrados</span>
               </div>
             </div>
           </div>
@@ -313,8 +325,8 @@ export default function FleetSection({ onNavigate }) {
             <div className={styles.kpiContent}>
               <span className={styles.kpiLabel}>Vehículos en mantenimiento</span>
               <div className={styles.kpiValueRow}>
-                <span className={styles.kpiValue}>10</span>
-                <span className={styles.kpiBadgeGreen}>↑ +1.5%</span>
+                <span className={styles.kpiValue}>{FLEET_METRICS.maintenance}</span>
+                <span className={styles.kpiBadgeGreen}>Registrados</span>
               </div>
             </div>
           </div>
@@ -325,10 +337,10 @@ export default function FleetSection({ onNavigate }) {
               <Settings size={17} />
             </div>
             <div className={styles.kpiContent}>
-              <span className={styles.kpiLabel}>Eficiencia media</span>
+              <span className={styles.kpiLabel}>Puntualidad prevista</span>
               <div className={styles.kpiValueRow}>
-                <span className={styles.kpiValue}>86%</span>
-                <span className={styles.kpiBadgeRed}>↓ -3.5%</span>
+                <span className={styles.kpiValue}>{FLEET_METRICS.onTimeAverage}%</span>
+                <span className={styles.kpiBadgeGreen}>Promedio</span>
               </div>
             </div>
           </div>
@@ -341,8 +353,8 @@ export default function FleetSection({ onNavigate }) {
             <div className={styles.kpiContent}>
               <span className={styles.kpiLabel}>Carga en tránsito</span>
               <div className={styles.kpiValueRow}>
-                <span className={styles.kpiValue}>130</span>
-                <span className={styles.kpiBadgeGreen}>↑ +2.0%</span>
+                <span className={styles.kpiValue}>{FLEET_METRICS.inTransit}</span>
+                <span className={styles.kpiBadgeGreen}>Rutas registradas</span>
               </div>
             </div>
           </div>

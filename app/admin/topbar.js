@@ -9,6 +9,9 @@ import { AdminContext, NAV } from "./admin-nav";
 import { canAccessSection } from "../../lib/permisos";
 import styles from "./admin-experience.module.css";
 
+// No hay una fuente de notificaciones conectada todavía; no mostrar eventos inventados.
+const INITIAL_NOTIFICATIONS = [];
+
 /**
  * Desplaza la barra de pildoras hasta la pildora activa.
  *
@@ -66,6 +69,7 @@ export function Topbar({
   const [accountOpen, setAccountOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notificationFilter, setNotificationFilter] = useState("all");
+  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
   const accountRef = useRef(null);
   const accountButtonRef = useRef(null);
   const notificationsRef = useRef(null);
@@ -115,42 +119,12 @@ export function Topbar({
     if (msg) sileo.show({ type, title: String(msg) });
   };
 
-  // Mock notifications data
-  const notifications = useMemo(() => [
-    { id: 1, type: "nuevo_trabajador", title: "Nuevo trabajador registrado", message: "José Pérez se ha unido como Técnico en San Pedro Sula", time: "Hace 15 min", read: false },
-    { id: 2, type: "stock_bajo", title: "Stock bajo detectado", message: "Splitter óptico 1x8 PLC - Quedan 3 unidades", time: "Hace 1 hora", read: false },
-    { id: 3, type: "cotizacion", title: "Cotización aprobada", message: "Cotización #CO-2024-0145 aprobada por el cliente TelecomHN", time: "Hace 3 horas", read: true },
-    { id: 4, type: "sistema", title: "Backup completado", message: "Copia de seguridad diaria completada exitosamente", time: "Ayer", read: true },
-    { id: 5, type: "flota", title: "Vehículo en mantenimiento", message: "Camión FL-003 programado para mantenimiento preventivo", time: "Ayer", read: true },
-  ], []);
-
   const unreadCount = notifications.filter(n => !n.read).length;
   const filteredNotifications = useMemo(() => {
     if (notificationFilter === "unread") return notifications.filter(n => !n.read);
     if (notificationFilter === "read") return notifications.filter(n => n.read);
     return notifications;
   }, [notifications, notificationFilter]);
-
-  // Simulación de notificaciones en tiempo real
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (Math.random() > 0.7) {
-        const newNotif = {
-          id: Date.now(),
-          type: ["nuevo_trabajador", "stock_bajo", "cotizacion", "sistema", "flota"][Math.floor(Math.random() * 5)],
-          title: "Nueva notificación",
-          message: "Este es un mensaje de notificación en tiempo real",
-          time: "Ahora",
-          read: false,
-        };
-        notifications.unshift(newNotif);
-        showToast("Nueva notificación recibida", "info");
-      }
-    }, 30000);
-
-    return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   return (
     <header className={styles.topbarContainer}>
@@ -272,7 +246,7 @@ export function Topbar({
                   {filteredNotifications.length === 0 ? (
                     <div className={styles.notificationsEmpty}>
                       <Bell size={32} />
-                      <p>No hay notificaciones</p>
+                      <p>Aún no hay notificaciones conectadas.</p>
                     </div>
                   ) : (
                     filteredNotifications.map((notif) => {
@@ -286,7 +260,12 @@ export function Topbar({
                           type="button"
                           role="menuitem"
                           className={`${styles.notificationItem} ${!notif.read ? styles.notificationUnread : ""}`}
-                          onClick={closeNotifications}
+                          onClick={() => {
+                            setNotifications((current) => current.map((item) =>
+                              item.id === notif.id ? { ...item, read: true } : item
+                            ));
+                            closeNotifications();
+                          }}
                         >
                           <span className={styles.notificationIcon}>
                             <Icon size={16} />
@@ -307,16 +286,23 @@ export function Topbar({
                   <button
                     type="button"
                     className={styles.notificationsMarkAll}
+                      disabled={notifications.length === 0}
                     onClick={() => {
+                      setNotifications((current) => current.map((item) => ({ ...item, read: true })));
                       showToast("Todas las notificaciones marcadas como leídas", "success");
                       closeNotifications();
                     }}
                   >
                     Marcar todas como leídas
                   </button>
-                  <Link href="#" className={styles.notificationsViewAll} onClick={closeNotifications}>
+                  <button
+                    type="button"
+                    className={styles.notificationsViewAll}
+                      disabled={notifications.length === 0}
+                    onClick={() => setNotificationFilter("all")}
+                  >
                     Ver todas las notificaciones
-                  </Link>
+                  </button>
                 </div>
               </div>
             )}

@@ -130,7 +130,8 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
   const handleAddToCart = (product) => {
     addItem(
       {
-        slug: product.sku,
+        slug: product.id,
+        href: `/catalogo/producto/${product.id}`,
         title: product.nombre,
         category: product.categoria,
         index: "01",

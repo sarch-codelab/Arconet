@@ -15,7 +15,7 @@ export async function generateMetadata({ params }) {
   }
 
   return {
-    title: family.title,
+    title: `${family.title} | Arconet`,
     description: family.summary,
     alternates: { canonical: `/catalogo/${slug}` },
     openGraph: {

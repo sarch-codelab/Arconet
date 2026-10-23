@@ -63,6 +63,7 @@ import { useBodyScrollLock, useEscapeKey } from "./use-body-scroll-lock";
 import { AdminContext, NAV, SECTION_NAV_CONFIG } from "./admin-nav";
 import { SectionTabs, Topbar } from "./topbar";
 import { useAdminSmoothScroll } from "./use-smooth-scroll";
+import { CONTACT_EMAIL, CONTACT_PHONE } from "../../lib/contact";
 import {
   PERMISSION_ACTIONS,
   PERMISSION_MODULES,
@@ -1337,7 +1338,7 @@ function WorkersSection({ workers, setWorkers, roles = [], session }) {
                     type="email"
                     value={draft.correo}
                     onChange={(event) => changeField("correo", event.target.value)}
-                    placeholder="nombre@arconet.com"
+                    placeholder="nombre@arconet.hn"
                     required
                   />
                 </label>
@@ -2389,7 +2390,7 @@ function SucursalesSection({ sucursales, setSucursales, workers = [], session })
                     type="email"
                     value={draft.email}
                     onChange={(event) => changeField("email", event.target.value)}
-                    placeholder="sucursal@arconet.com"
+                    placeholder="sucursal@arconet.hn"
                   />
                 </label>
                 <label className={styles.field}>
@@ -4549,7 +4550,7 @@ function MiPerfilSection({ session, workers = [] }) {
                           <span className={styles.badge}>{branchLabel(session.sucursal)}</span>
                         ) : null}
                       </p>
-                      <p className={styles.profileEmail}>{session?.correo || "admin@arconet.com"}</p>
+                      <p className={styles.profileEmail}>{session?.correo || "admin@arconet.hn"}</p>
                       {myWorker?.telefono && <p className={styles.profileMeta}><Phone size={14} /> {myWorker.telefono}</p>}
                       {myWorker?.direccion && <p className={styles.profileMeta}><MapPin size={14} /> {myWorker.direccion}</p>}
                     </>
@@ -5045,8 +5046,8 @@ function MiPerfilSection({ session, workers = [] }) {
 function AjustesSection({ session, workers = [] }) {
   const [settings, setSettings] = useState({
     companyName: "Arconet, S.A.",
-    email: "info@arconet.com",
-    phone: "+504 2500-0000",
+    email: CONTACT_EMAIL,
+    phone: CONTACT_PHONE,
     currency: "L",
     theme: "light",
   });
@@ -5285,7 +5286,7 @@ function LoginView() {
                   name="email"
                   autoComplete="email"
                   required
-                  placeholder="usuario@arconet.com"
+                    placeholder="usuario@arconet.hn"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                 />
