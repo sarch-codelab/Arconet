@@ -154,6 +154,8 @@ export default function LoginExperience() {
               <Link href="/contacto">Solicitar acceso corporativo</Link>
               <span aria-hidden="true"> · </span>
               <Link href="/terminos">Términos de uso</Link>
+              <span aria-hidden="true"> · </span>
+              <Link href="/privacidad">Privacidad</Link>
             </p>
           </div>
         </section>

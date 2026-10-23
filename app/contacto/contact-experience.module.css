@@ -706,6 +706,13 @@
   line-height: 1.65;
 }
 
+.formSubmitRow > p a {
+  color: var(--blue);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .formSubmitRow button {
   min-height: 44px;
   display: inline-flex;

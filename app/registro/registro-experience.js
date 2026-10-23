@@ -195,11 +195,12 @@ export default function RegistroExperience() {
                   <span>
                     <Check size={11} strokeWidth={3} />
                   </span>
-                  Acepto los términos
+                  Acepto los términos y he leído el aviso de privacidad
                 </label>
                 <Link className={styles.textLink} href="/terminos">
-                  Ver términos
+                  Términos
                 </Link>
+                <Link className={styles.textLink} href="/privacidad">Privacidad</Link>
               </div>
 
               <button type="submit" className={styles.submit} disabled={submitting}>
@@ -219,6 +220,7 @@ export default function RegistroExperience() {
           <div className={styles.panelBottom}>
             <span>© 2026 Arconet, S.A.</span>
             <Link href="/terminos">Términos de uso</Link>
+            <Link href="/privacidad">Aviso de privacidad</Link>
           </div>
         </section>
       </div>

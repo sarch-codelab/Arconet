@@ -93,16 +93,10 @@ export default async function sitemap() {
       priority: 0.3,
     },
     {
-      url: `${baseUrl}/login`,
+      url: `${baseUrl}/privacidad`,
       lastModified: now,
       changeFrequency: "yearly",
-      priority: 0.2,
-    },
-    {
-      url: `${baseUrl}/registro`,
-      lastModified: now,
-      changeFrequency: "yearly",
-      priority: 0.2,
+      priority: 0.3,
     },
   ];
 }

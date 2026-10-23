@@ -3,7 +3,7 @@ import TerminosExperience from "./terminos-experience";
 export const metadata = {
   title: "Términos de uso",
   description:
-    "Términos de uso del sitio de Arconet Honduras, pendientes de revisión y aprobación.",
+    "Condiciones para usar el sitio, el catálogo y el portal de clientes de Arconet Honduras.",
   alternates: { canonical: "/terminos" },
 };
 

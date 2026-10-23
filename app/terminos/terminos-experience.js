@@ -3,79 +3,92 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ArrowDown, ArrowRight, ArrowUpRight, FileText } from "lucide-react";
+import { ArrowDown, ArrowRight, ArrowUpRight } from "lucide-react";
 import styles from "./terminos-experience.module.css";
 import Footer from "../footer";
+import { CONTACT_EMAIL, CONTACT_PHONE } from "../../lib/contact";
 
 const SECTIONS = [
   {
     id: "alcance",
     number: "01",
-    label: "Alcance del sitio",
-    title: "Un punto de partida, no un contrato.",
+    label: "Alcance y aceptación",
+    title: "Reglas claras para usar el sitio.",
     paragraphs: [
-      "Este sitio presenta información general sobre Arconet, sus líneas de producto y formas de solicitar orientación. El contenido de esta página es un borrador de trabajo y debe revisarse antes de publicarse como condición vigente.",
-      "La navegación por el sitio no crea por sí sola una relación comercial ni sustituye una propuesta, una orden de compra o un acuerdo firmado entre las partes.",
+      "Estos términos regulan el acceso y uso de arconethn.com, incluido el catálogo y el portal de clientes. Al navegar o crear una cuenta, aceptas usarlos de forma lícita y conforme a estas condiciones.",
+      "El sitio presenta información sobre Arconet y permite iniciar consultas. La navegación, por sí sola, no confirma una compra, reserva inventario ni crea un acuerdo de instalación.",
+    ],
+  },
+  {
+    id: "cuenta",
+    number: "02",
+    label: "Cuenta de cliente",
+    title: "Mantén tu información actualizada y segura.",
+    paragraphs: [
+      "Para usar el portal debes proporcionar información correcta y mantener la confidencialidad de tus credenciales. Eres responsable de la actividad realizada desde tu sesión; avisa a Arconet si sospechas que alguien más accedió a tu cuenta.",
+      "No uses el portal para suplantar a otra persona, intentar acceder a cuentas ajenas, interferir con el servicio ni enviar contenido ilegal o malicioso. Arconet puede restringir temporalmente una cuenta cuando sea necesario para proteger el servicio o a sus usuarios.",
+      `Puedes solicitar ayuda para actualizar o cerrar tu cuenta escribiendo a ${CONTACT_EMAIL} desde el correo asociado a ella.`,
     ],
   },
   {
     id: "cotizaciones",
-    number: "02",
-    label: "Consultas y cotizaciones",
-    title: "Cada proyecto merece una propuesta clara.",
+    number: "03",
+    label: "Solicitudes y cotizaciones",
+    title: "La propuesta escrita confirma los detalles.",
     paragraphs: [
-      "Las consultas que se preparan desde el sitio sirven para iniciar una conversación. No constituyen una orden de compra, una reserva de inventario ni una confirmación de disponibilidad.",
-      "Los productos, cantidades, precios, impuestos, condiciones de pago y tiempos de entrega deberán quedar confirmados por escrito en la cotización correspondiente antes de aceptar un pedido.",
+      "Una solicitud enviada desde el portal inicia una revisión comercial; no es una orden de compra ni confirma precio, disponibilidad o plazo de entrega.",
+      "La cotización aceptada o el acuerdo escrito correspondiente especificará los productos y cantidades, precio e impuestos aplicables, condiciones de pago, lugar y plazo de entrega, vigencia de la propuesta, garantía y cualquier servicio de instalación o soporte.",
+      "Si existe diferencia entre la información general del sitio y una cotización confirmada, prevalecen los detalles acordados para esa operación, sin limitar los derechos que correspondan conforme a la normativa aplicable.",
     ],
   },
   {
-    id: "informacion",
-    number: "03",
-    label: "Información de productos",
-    title: "La ficha correcta empieza con el modelo correcto.",
+    id: "productos",
+    number: "04",
+    label: "Productos e información",
+    title: "Verifica el modelo y los requisitos técnicos.",
     paragraphs: [
-      "Las descripciones del catálogo son orientativas. Las especificaciones finales, compatibilidades, accesorios incluidos y condiciones de garantía dependen del fabricante y del modelo cotizado.",
-      "Antes de comprar o instalar un equipo, confirma que sus características coinciden con los requisitos de tu red y con la documentación técnica del producto.",
+      "Las descripciones, imágenes y especificaciones del catálogo son informativas y pueden actualizarse. La disponibilidad y las características finales se confirman para el modelo indicado en la cotización.",
+      "Antes de comprar o instalar un equipo, confirma compatibilidad y requisitos con la ficha técnica del fabricante y con el equipo de Arconet cuando la decisión dependa de condiciones específicas de tu red.",
     ],
   },
   {
     id: "entregas",
-    number: "04",
-    label: "Entregas y soporte",
-    title: "Los detalles se acuerdan para cada instalación.",
+    number: "05",
+    label: "Entrega, garantías y soporte",
+    title: "Cada proyecto establece su propio alcance.",
     paragraphs: [
-      "La cobertura, el costo y el plazo estimado de entrega se confirman en cada propuesta, según el destino, la disponibilidad y el alcance del proyecto.",
-      "La asesoría técnica incluida y el soporte posterior deben detallarse en la cotización o en el acuerdo aplicable. No se deben interpretar como servicios garantizados por la sola visita a esta página.",
+      "El destino, costo y plazo estimado de entrega se detallarán en la cotización confirmada, según ubicación, disponibilidad y alcance del proyecto.",
+      "La cobertura de garantía, devoluciones, instalación y soporte se especificará para cada producto o servicio en la cotización, factura, documentación del fabricante o acuerdo aplicable. Nada en estos términos limita derechos irrenunciables que correspondan al cliente conforme a la normativa aplicable.",
     ],
   },
   {
     id: "privacidad",
-    number: "05",
-    label: "Privacidad y comunicaciones",
-    title: "Tú decides cuándo compartir tu solicitud.",
-    paragraphs: [
-      "El formulario de contacto de esta versión prepara un borrador en la aplicación de correo del visitante; este sitio no envía ni almacena la solicitud en un servidor.",
-      "Si decides enviarlo, la gestión posterior de los datos deberá describirse en una política de privacidad aprobada por Arconet. Esta maqueta no sustituye esa política.",
-    ],
-  },
-  {
-    id: "uso",
     number: "06",
-    label: "Uso del contenido",
-    title: "Información para orientar, no para sustituir asesoría.",
+    label: "Privacidad y comunicaciones",
+    title: "Consulta cómo se usan tus datos.",
     paragraphs: [
-      "Los textos, imágenes y materiales del sitio se presentan con fines informativos. No deben reproducirse o distribuirse como fichas técnicas oficiales sin autorización y verificación del fabricante.",
-      "El visitante es responsable de evaluar la información aplicable a su instalación y de solicitar confirmación técnica cuando una decisión dependa de requisitos específicos.",
+      "El formulario público de contacto prepara un mensaje en la aplicación de correo del visitante; el sitio no envía ni almacena esa consulta en su servidor. Si decides enviarlo, el mensaje se procesa con tu proveedor de correo.",
+      "El portal almacena datos de cuenta y solicitudes de cotización para operar el servicio. Consulta el Aviso de privacidad de Arconet para conocer qué datos se usan, cómo solicitar acceso, corrección o eliminación y qué información guarda tu navegador.",
     ],
   },
   {
-    id: "vigencia",
+    id: "contenido",
     number: "07",
-    label: "Cambios y revisión",
-    title: "La versión vigente debe aprobarse antes de publicarse.",
+    label: "Contenido y propiedad intelectual",
+    title: "Materiales publicados para informar.",
     paragraphs: [
-      "Arconet puede actualizar el contenido del sitio para reflejar cambios en productos, servicios y procesos. La fecha y el alcance de cada actualización deberán indicarse en la versión final.",
-      "Este texto no contiene una fecha de entrada en vigor: permanece como borrador hasta que Arconet revise y apruebe las condiciones comerciales y legales aplicables.",
+      "Los textos, marcas, fotografías, gráficos y otros materiales del sitio pertenecen a Arconet o se utilizan con autorización. No los reproduzcas, publiques ni presentes como propios sin permiso escrito, salvo los usos permitidos por ley.",
+      "Los enlaces a sitios de terceros se ofrecen para referencia. Arconet no controla sus contenidos, disponibilidad ni prácticas de privacidad.",
+    ],
+  },
+  {
+    id: "cambios",
+    number: "08",
+    label: "Cambios y contacto",
+    title: "La versión vigente se publica aquí.",
+    paragraphs: [
+      "Podemos actualizar estas condiciones para reflejar cambios en el sitio o en la forma de atender solicitudes. Indicaremos la fecha de actualización en esta página. Los cambios no modifican acuerdos comerciales ya confirmados, salvo acuerdo escrito de las partes.",
+      `Para consultas sobre estos términos, escribe a ${CONTACT_EMAIL} o llámanos al ${CONTACT_PHONE}. La última actualización de esta página es del 23 de octubre de 2026.`,
     ],
   },
 ];
@@ -193,7 +206,8 @@ export default function TerminosExperience() {
             <nav className={styles.navigation} aria-label="Navegación principal">
               <Link href="/">Inicio</Link>
               <Link href="/catalogo">Catálogo</Link>
-              <Link className={styles.navigationActive} href="#terminos">Términos</Link>
+              <Link className={styles.navigationActive} href="#terminos" aria-current="page">Términos</Link>
+              <Link href="/privacidad">Privacidad</Link>
               <Link href="/contacto">Contacto</Link>
             </nav>
             <div className={styles.headerActionTab}>
@@ -202,23 +216,18 @@ export default function TerminosExperience() {
           </header>
 
           <div className={styles.heroCopy}>
-            <p className={styles.eyebrow}><i /> Documento en revisión · Arconet Honduras</p>
+            <p className={styles.eyebrow}><i /> Términos del sitio · Arconet Honduras</p>
             <h1>Una relación clara<br />empieza por <em>hablar claro.</em></h1>
-            <p>Este borrador explica cómo se presenta la información y cómo iniciar una solicitud a través del sitio de Arconet.</p>
+            <p>Condiciones para usar el sitio, el catálogo y el portal de clientes de Arconet.</p>
             <Link className={styles.heroAction} href="#terminos">Leer el documento <span><ArrowDown size={16} /></span></Link>
           </div>
 
           <div className={styles.heroFooter}>
-            <span>BORRADOR PARA REVISIÓN LEGAL Y COMERCIAL</span>
-            <span>07 SECCIONES</span>
+            <span>CONDICIONES DEL SITIO Y PORTAL DE CLIENTES</span>
+            <span>08 SECCIONES · ACTUALIZADO 23 OCT 2026</span>
           </div>
         </section>
       </div>
-
-      <section className={styles.draftNotice}>
-        <div className={styles.noticeIcon}><FileText size={19} /></div>
-        <p><strong>Versión de prueba.</strong> Este contenido no constituye términos vigentes ni asesoría legal. Requiere revisión y aprobación de Arconet antes de publicarse como política oficial.</p>
-      </section>
 
       <div id="terminos" className={styles.documentLayout}>
         <aside className={styles.contentsAside}>
@@ -241,7 +250,7 @@ export default function TerminosExperience() {
         <article className={styles.termsArticle}>
           <div className={styles.documentMeta}>
             <span>ARCONET · TÉRMINOS DE USO</span>
-            <span>BORRADOR / 2026</span>
+            <span>ÚLTIMA ACTUALIZACIÓN · 23.10.2026</span>
           </div>
           {SECTIONS.map((section) => (
             <section id={section.id} className={styles.termSection} key={section.id} data-reveal>
@@ -254,8 +263,11 @@ export default function TerminosExperience() {
             </section>
           ))}
           <div className={styles.documentEnd}>
-            <span>FIN DEL BORRADOR</span>
-            <Link href="/contacto">Consultar con Arconet <ArrowRight size={15} /></Link>
+            <span>ARCONET, S.A. · SAN PEDRO SULA, HONDURAS</span>
+            <div>
+              <Link href="/privacidad">Aviso de privacidad</Link>
+              <Link href="/contacto">Consultar con Arconet <ArrowRight size={15} /></Link>
+            </div>
           </div>
         </article>
       </div>

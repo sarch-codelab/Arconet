@@ -282,7 +282,7 @@ export default function ContactExperience() {
             <label className={styles.formFull}>Cuéntanos sobre tu proyecto<textarea name="message" rows={4} required placeholder="¿Qué necesitas instalar, ampliar o conectar?" /></label>
           </div>
           <div className={styles.formSubmitRow}>
-            <p>Al continuar se abrirá un borrador en tu aplicación de correo. No almacenamos tus datos en esta página.</p>
+            <p>Al continuar se abrirá un borrador en tu aplicación de correo. Esta página no guarda los datos. Consulta nuestro <a href="/privacidad">aviso de privacidad</a>.</p>
             <button type="submit">Preparar correo <ArrowUpRight size={16} /></button>
           </div>
         </form>

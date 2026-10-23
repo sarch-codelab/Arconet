@@ -13,6 +13,7 @@ const COMPANY_LINKS = [
   { href: "/catalogo", label: "Catálogo" },
   { href: "/contacto", label: "Contacto" },
   { href: "/terminos", label: "Términos de uso" },
+  { href: "/privacidad", label: "Aviso de privacidad" },
 ];
 
 const SOCIAL = [
@@ -120,6 +121,7 @@ export default function Footer() {
         <span className={styles.copyright}>© 2026 Arconet, S.A. · Honduras</span>
         <div className={styles.legal}>
           <Link href="/terminos">Términos de uso</Link>
+          <Link href="/privacidad">Privacidad</Link>
           <Link href="/contacto">Contacto</Link>
         </div>
       </div>
