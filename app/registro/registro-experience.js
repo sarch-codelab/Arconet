@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Eye, EyeOff } from "lucide-react";
 import styles from "../login/login-experience.module.css";
@@ -9,11 +10,14 @@ import scroll from "./registro-experience.module.css";
 import { sileo } from "../toaster";
 
 export default function RegistroExperience() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [accepted, setAccepted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    if (submitting) return;
     const form = new FormData(event.currentTarget);
     const password = String(form.get("password") || "");
     const confirm = String(form.get("confirm") || "");
@@ -26,7 +30,33 @@ export default function RegistroExperience() {
       sileo.error({ title: "Acepta los términos para crear tu cuenta." });
       return;
     }
-    sileo.info({ title: "Datos listos. Conecta el servicio de registro para habilitar la cuenta." });
+    if (password.length < 12) {
+      sileo.error({ title: "La contraseña debe tener al menos 12 caracteres." });
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const response = await fetch("/api/cliente-auth/registro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre: form.get("name"),
+          empresa: form.get("company"),
+          correo: form.get("email"),
+          password,
+          aceptaTerminos: accepted,
+          recordarme: true,
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "No se pudo crear la cuenta.");
+      sileo.success({ title: "Cuenta creada. Bienvenido a Arconet." });
+      router.push("/cliente");
+    } catch (error) {
+      sileo.error({ title: error.message || "No se pudo crear la cuenta." });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -130,6 +160,7 @@ export default function RegistroExperience() {
                     name="password"
                     autoComplete="new-password"
                     required
+                    minLength={12}
                     placeholder="Crea una contraseña"
                   />
                   <button
@@ -171,8 +202,8 @@ export default function RegistroExperience() {
                 </Link>
               </div>
 
-              <button type="submit" className={styles.submit}>
-                Crear mi cuenta <span><ArrowRight size={15} /></span>
+              <button type="submit" className={styles.submit} disabled={submitting}>
+                {submitting ? "Creando cuenta..." : "Crear mi cuenta"} <span><ArrowRight size={15} /></span>
               </button>
             </form>
 

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyToken, SESSION_COOKIE } from "./lib/session";
+import { verifyToken, SESSION_COOKIE, CLIENT_SESSION_COOKIE } from "./lib/session";
 import { checkRateLimit, getClientIp } from "./lib/rate-limit";
 
 const PROTECTED_PAGES = "/panel-administrativo";
@@ -117,7 +117,19 @@ export default async function proxy(request) {
   }
 
   if (isProtectedApi(pathname)) {
-    if (!session) {
+    let authorizedSession = session;
+    if (
+      !authorizedSession &&
+      pathname === "/api/ordenes" &&
+      (method === "GET" || method === "POST")
+    ) {
+      const clientToken = request.cookies.get(CLIENT_SESSION_COOKIE)?.value;
+      const clientSession = await verifyToken(clientToken);
+      if (clientSession?.tipo === "cliente" && clientSession.clienteId) {
+        authorizedSession = clientSession;
+      }
+    }
+    if (!authorizedSession) {
       const res = Response.json({ code: "unauthenticated", message: "No autenticado." }, { status: 401 });
       res.headers.set("X-Request-Id", requestId);
       return res;

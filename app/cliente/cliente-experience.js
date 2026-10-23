@@ -20,61 +20,66 @@ import {
 } from "lucide-react";
 import styles from "./cliente-experience.module.css";
 import { CONTACT_EMAIL, CONTACT_PHONE, CONTACT_PHONE_HREF } from "../../lib/contact";
-
-const CLIENT_SESSION_KEY = "arconet-client-session";
-
-function loadClientSession() {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(CLIENT_SESSION_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch (error) {
-    console.warn("Error cargando sesión de cliente", error);
-  }
-  return null;
-}
-
-function clearClientSession() {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.removeItem(CLIENT_SESSION_KEY);
-  } catch (error) {
-    console.warn("Error limpiando sesión de cliente", error);
-  }
-}
+import { sileo } from "../toaster";
 
 export default function ClientExperience() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
-    const sessionData = loadClientSession();
-    if (!sessionData) {
-      router.push("/login");
-      return;
+    let active = true;
+    async function loadPortal() {
+      try {
+        const sessionResponse = await fetch("/api/cliente-auth/session", { cache: "no-store" });
+        if (sessionResponse.status === 401) {
+          router.replace("/login");
+          return;
+        }
+        const sessionData = await sessionResponse.json().catch(() => ({}));
+        if (!sessionResponse.ok) throw new Error(sessionData.error || "No se pudo verificar la cuenta.");
+
+        const ordersResponse = await fetch("/api/ordenes", { cache: "no-store" });
+        const ordersData = await ordersResponse.json().catch(() => ({}));
+        if (!ordersResponse.ok) throw new Error(ordersData.error || "No se pudieron cargar tus solicitudes.");
+        if (!active) return;
+        setSession(sessionData);
+        setOrders(Array.isArray(ordersData) ? ordersData : []);
+        setLoadError("");
+        setReady(true);
+      } catch (error) {
+        if (!active) return;
+        setLoadError(error.message || "No se pudieron cargar los datos de la cuenta.");
+      }
     }
-    setSession(sessionData);
-    setReady(true);
+    loadPortal();
+    return () => { active = false; };
   }, [router]);
 
-  const handleLogout = () => {
-    clearClientSession();
-    router.push("/login");
+  const handleLogout = async () => {
+    await fetch("/api/cliente-auth/logout", { method: "POST" }).catch(() => {});
+    router.replace("/login");
   };
 
   if (!ready) {
-    return <main className={styles.clientDashboard} aria-busy="true" />;
+    return (
+      <main className={styles.clientDashboard} aria-busy={!loadError}>
+        {loadError ? <p role="alert">{loadError}</p> : null}
+      </main>
+    );
   }
 
-  return <ClientDashboard session={session} onLogout={handleLogout} />;
+  return <ClientDashboard session={session} orders={orders} setOrders={setOrders} onLogout={handleLogout} />;
 }
 
-function ClientDashboard({ session, onLogout }) {
+function ClientDashboard({ session, orders, setOrders, onLogout }) {
   const [navOpen, setNavOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [requestModalOpen, setRequestModalOpen] = useState(false);
+  const [requestSaving, setRequestSaving] = useState(false);
   const [requestForm, setRequestForm] = useState({
     tipo: "cotizacion",
     proyecto: "",
@@ -83,43 +88,8 @@ function ClientDashboard({ session, onLogout }) {
     urgencia: "normal",
   });
 
-  const MOCK_ORDERS = [
-    {
-      id: "o-1",
-      tipo: "cotizacion",
-      fecha: "2026-10-14",
-      monto: 45000,
-      estado: "pendiente",
-      notas: "Proyecto de instalación zona norte",
-      items: [
-        { nombre: "Cable óptico 12 hilos", cantidad: 500, precio: 50 },
-        { nombre: "Splitter 1x8", cantidad: 20, precio: 1250 },
-      ],
-    },
-    {
-      id: "o-2",
-      tipo: "venta",
-      fecha: "2026-10-12",
-      monto: 12500,
-      estado: "completada",
-      notas: "Entrega en sucursal SPS",
-      items: [
-        { nombre: "Caja terminal FTTH", cantidad: 50, precio: 250 },
-      ],
-    },
-    {
-      id: "o-3",
-      tipo: "cotizacion",
-      fecha: "2026-10-08",
-      monto: 87500,
-      estado: "aprobada",
-      notas: "Infraestructura completa hotel",
-      items: [
-        { nombre: "Cable óptico 12 hilos", cantidad: 1000, precio: 50 },
-        { nombre: "Conector SC/APC", cantidad: 200, precio: 35 },
-      ],
-    },
-  ];
+  const quoteOrders = orders.filter((order) => order.tipo === "cotizacion");
+  const projectOrders = orders.filter((order) => ["aprobada", "en_proceso", "completada"].includes(order.estado));
 
   const handleViewOrder = (order) => {
     setSelectedOrder(order);
@@ -130,16 +100,26 @@ function ClientDashboard({ session, onLogout }) {
     setRequestModalOpen(true);
   };
 
-  const handleSubmitRequest = (e) => {
+  const handleSubmitRequest = async (e) => {
     e.preventDefault();
-    setRequestModalOpen(false);
-    setRequestForm({
-      tipo: "cotizacion",
-      proyecto: "",
-      descripcion: "",
-      presupuesto: "",
-      urgencia: "normal",
-    });
+    if (requestSaving) return;
+    setRequestSaving(true);
+    try {
+      const response = await fetch("/api/ordenes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestForm),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "No se pudo guardar la solicitud.");
+      setOrders((current) => [payload, ...current]);
+      setRequestModalOpen(false);
+      setRequestForm({ tipo: "cotizacion", proyecto: "", descripcion: "", presupuesto: "", urgencia: "normal" });
+    } catch (error) {
+      sileo.error({ title: error.message || "No se pudo guardar la solicitud." });
+    } finally {
+      setRequestSaving(false);
+    }
   };
 
   return (
@@ -266,20 +246,20 @@ function ClientDashboard({ session, onLogout }) {
                 <section className={styles.statsGrid}>
                   <article className={styles.statCard}>
                     <span className={styles.statIcon}><FileText size={20} /></span>
-                    <strong className={styles.statValue}>{MOCK_ORDERS.length}</strong>
+                    <strong className={styles.statValue}>{quoteOrders.length}</strong>
                     <span className={styles.statLabel}>Cotizaciones</span>
                   </article>
                   <article className={styles.statCard}>
                     <span className={styles.statIcon}><Check size={20} /></span>
                     <strong className={styles.statValue}>
-                      {MOCK_ORDERS.filter((o) => o.estado === "completada").length}
+                      {orders.filter((order) => order.estado === "completada").length}
                     </strong>
                     <span className={styles.statLabel}>Completadas</span>
                   </article>
                   <article className={styles.statCard}>
                     <span className={styles.statIcon}><Package size={20} /></span>
                     <strong className={styles.statValue}>
-                      {MOCK_ORDERS.reduce((sum, o) => sum + o.monto, 0).toLocaleString()} L
+                      {orders.reduce((sum, order) => sum + order.monto, 0).toLocaleString("es-HN")} L
                     </strong>
                     <span className={styles.statLabel}>Total</span>
                   </article>
@@ -288,7 +268,7 @@ function ClientDashboard({ session, onLogout }) {
                 <section className={styles.recentOrders}>
                   <h3>Cotizaciones recientes</h3>
                   <div className={styles.orderList}>
-                    {MOCK_ORDERS.map((order) => (
+                    {quoteOrders.length === 0 ? <p>Aún no tienes cotizaciones registradas.</p> : quoteOrders.map((order) => (
                       <div key={order.id} className={styles.orderCard} onClick={() => handleViewOrder(order)}>
                         <div className={styles.orderHeader}>
                           <strong>{order.id}</strong>
@@ -315,7 +295,7 @@ function ClientDashboard({ session, onLogout }) {
               <div className={styles.ordersPage}>
                 <h2>Mis cotizaciones</h2>
                 <div className={styles.orderList}>
-                  {MOCK_ORDERS.map((order) => (
+                  {quoteOrders.length === 0 ? <p>Aún no tienes cotizaciones registradas.</p> : quoteOrders.map((order) => (
                     <div key={order.id} className={styles.orderCard} onClick={() => handleViewOrder(order)}>
                       <div className={styles.orderHeader}>
                         <strong>{order.id}</strong>
@@ -341,36 +321,24 @@ function ClientDashboard({ session, onLogout }) {
               <div className={styles.projectsPage}>
                 <h2>Mis proyectos</h2>
                 <div className={styles.projectGrid}>
-                  <div className={styles.projectCard}>
-                    <div className={styles.projectHeader}>
-                      <span className={styles.projectType}>Instalación</span>
-                      <span className={`${styles.projectStatus} ${styles.status_en_proceso}`}>En proceso</span>
-                    </div>
-                    <h3>Infraestructura Zona Norte</h3>
-                    <p>Proyecto de instalación de fibra óptica para zona residencial norte.</p>
-                    <div className={styles.projectMeta}>
-                      <span><Clock size={14} /> Inicio: 14 Oct 2026</span>
-                      <span><Package size={14} /> 5/10 entregas</span>
-                    </div>
-                    <div className={styles.progressBar}>
-                      <div className={styles.progressFill} style={{ width: "50%" }}></div>
-                    </div>
-                  </div>
-                  <div className={styles.projectCard}>
-                    <div className={styles.projectHeader}>
-                      <span className={styles.projectType}>Mantenimiento</span>
-                      <span className={`${styles.projectStatus} ${styles.status_pendiente}`}>Pendiente</span>
-                    </div>
-                    <h3>Actualización CATV Centro</h3>
-                    <p>Actualización de infraestructura de televisión por cable centro.</p>
-                    <div className={styles.projectMeta}>
-                      <span><Clock size={14} /> Programado: 20 Oct 2026</span>
-                      <span><Package size={14} /> 0/5 entregas</span>
-                    </div>
-                    <div className={styles.progressBar}>
-                      <div className={styles.progressFill} style={{ width: "0%" }}></div>
-                    </div>
-                  </div>
+                  {projectOrders.length === 0 ? (
+                    <p>Los proyectos confirmados aparecerán aquí cuando una cotización sea aprobada.</p>
+                  ) : projectOrders.map((order) => (
+                    <article key={order.id} className={styles.projectCard}>
+                      <div className={styles.projectHeader}>
+                        <span className={styles.projectType}>Proyecto</span>
+                        <span className={`${styles.projectStatus} ${styles[`status_${order.estado}`]}`}>
+                          {order.estado.replaceAll("_", " ")}
+                        </span>
+                      </div>
+                      <h3>{order.notas.split("\n")[0]?.replace(/^Proyecto: /, "") || order.id}</h3>
+                      <p>{order.notas}</p>
+                      <div className={styles.projectMeta}>
+                        <span><Clock size={14} /> {order.fecha}</span>
+                        <span><FileText size={14} /> {order.id}</span>
+                      </div>
+                    </article>
+                  ))}
                 </div>
               </div>
             )}
@@ -400,51 +368,16 @@ function ClientDashboard({ session, onLogout }) {
                     </div>
                   </div>
                   <div className={styles.ticketForm}>
-                    <h3>Crear ticket de soporte</h3>
-                    <form className={styles.form}>
-                      <label className={styles.field}>
-                        Asunto
-                        <input type="text" placeholder="Describe tu problema" />
-                      </label>
-                      <label className={styles.field}>
-                        Prioridad
-                        <select>
-                          <option value="baja">Baja</option>
-                          <option value="normal">Normal</option>
-                          <option value="alta">Alta</option>
-                          <option value="urgente">Urgente</option>
-                        </select>
-                      </label>
-                      <label className={styles.field}>
-                        Descripción
-                        <textarea rows={4} placeholder="Detalla tu solicitud..." />
-                      </label>
-                      <button type="submit" className={styles.submit}>
-                        <Send size={16} /> Enviar ticket
-                      </button>
-                    </form>
+                    <h3>¿Necesitas ayuda?</h3>
+                    <p>Escríbenos y el equipo de Arconet dará seguimiento a tu solicitud.</p>
+                    <a className={styles.submit} href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("Solicitud de soporte Arconet")}`}>
+                      <Send size={16} /> Contactar soporte
+                    </a>
                   </div>
                 </div>
                 <div className={styles.recentTickets}>
-                  <h3>Tickets recientes</h3>
-                  <div className={styles.ticketList}>
-                    <div className={styles.ticketCard}>
-                      <div className={styles.ticketHeader}>
-                        <strong>#TKT-001</strong>
-                        <span className={`${styles.ticketStatus} ${styles.status_abierto}`}>Abierto</span>
-                      </div>
-                      <p>Problema con conexión en edificio central</p>
-                      <span className={styles.ticketDate}>14 Oct 2026</span>
-                    </div>
-                    <div className={styles.ticketCard}>
-                      <div className={styles.ticketHeader}>
-                        <strong>#TKT-002</strong>
-                        <span className={`${styles.ticketStatus} ${styles.status_resuelto}`}>Resuelto</span>
-                      </div>
-                      <p>Solicitud de cambio de dirección de facturación</p>
-                      <span className={styles.ticketDate}>10 Oct 2026</span>
-                    </div>
-                  </div>
+                  <h3>Seguimiento</h3>
+                  <p>Las solicitudes de soporte se gestionan por correo o teléfono.</p>
                 </div>
               </div>
             )}
@@ -452,52 +385,7 @@ function ClientDashboard({ session, onLogout }) {
             {activeTab === "documentos" && (
               <div className={styles.documentsPage}>
                 <h2>Documentos</h2>
-                <div className={styles.docGrid}>
-                  <div className={styles.docCard}>
-                    <span className={styles.docIcon}>📄</span>
-                    <div className={styles.docInfo}>
-                      <strong>Factura Octubre 2026</strong>
-                      <p>FAC-2026-10-001</p>
-                      <span className={styles.docDate}>14 Oct 2026</span>
-                    </div>
-                    <button type="button" className={styles.downloadBtn}>
-                      <Download size={16} />
-                    </button>
-                  </div>
-                  <div className={styles.docCard}>
-                    <span className={styles.docIcon}>📋</span>
-                    <div className={styles.docInfo}>
-                      <strong>Cotización #o-1</strong>
-                      <p>Proyecto instalación zona norte</p>
-                      <span className={styles.docDate}>14 Oct 2026</span>
-                    </div>
-                    <button type="button" className={styles.downloadBtn}>
-                      <Download size={16} />
-                    </button>
-                  </div>
-                  <div className={styles.docCard}>
-                    <span className={styles.docIcon}>📑</span>
-                    <div className={styles.docInfo}>
-                      <strong>Contrato de servicio</strong>
-                      <p>Contrato anual fibra óptica</p>
-                      <span className={styles.docDate}>01 Ene 2026</span>
-                    </div>
-                    <button type="button" className={styles.downloadBtn}>
-                      <Download size={16} />
-                    </button>
-                  </div>
-                  <div className={styles.docCard}>
-                    <span className={styles.docIcon}>📊</span>
-                    <div className={styles.docInfo}>
-                      <strong>Reporte mensual Sept</strong>
-                      <p>Resumen de consumo y actividad</p>
-                      <span className={styles.docDate}>30 Sep 2026</span>
-                    </div>
-                    <button type="button" className={styles.downloadBtn}>
-                      <Download size={16} />
-                    </button>
-                  </div>
-                </div>
+                <p>Los documentos asociados a tu cuenta aparecerán aquí cuando Arconet los comparta.</p>
               </div>
             )}
 
@@ -588,14 +476,13 @@ function ClientDashboard({ session, onLogout }) {
                   </div>
                 </div>
                 <div className={styles.orderActions}>
-                  <button type="button" className={styles.primaryBtn}>
-                    <Download size={16} /> Descargar PDF
-                  </button>
-                  {selectedOrder.estado === "pendiente" && (
-                    <button type="button" className={styles.secondaryBtn}>
-                      <Send size={16} /> Aprobar cotización
-                    </button>
-                  )}
+                  <a
+                    className={styles.primaryBtn}
+                    href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`Consulta sobre ${selectedOrder.id}`)}`}
+                    style={{ textDecoration: "none" }}
+                  >
+                    <Send size={16} /> Consultar esta solicitud
+                  </a>
                 </div>
               </div>
             )}

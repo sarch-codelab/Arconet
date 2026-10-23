@@ -30,11 +30,27 @@ export async function PATCH(request, { params }) {
   if (errors.length) return Response.json({ error: errors[0], errors }, { status: 400 });
 
   try {
-    const cliente = await prisma.cliente.update({ where: { id }, data });
+    const cliente = await prisma.$transaction(async (tx) => {
+      const updated = await tx.cliente.update({ where: { id }, data });
+      if (Object.prototype.hasOwnProperty.call(data, "correo")) {
+        if (data.correo) {
+          await tx.clienteCuenta.updateMany({
+            where: { clienteId: id },
+            data: { correo: data.correo.toLowerCase(), activo: true },
+          });
+        } else {
+          await tx.clienteCuenta.updateMany({ where: { clienteId: id }, data: { activo: false } });
+        }
+      }
+      return updated;
+    });
     return Response.json(toCliente(cliente));
   } catch (error) {
     if (error?.code === "P2025") {
       return Response.json({ error: "Cliente no encontrado." }, { status: 404 });
+    }
+    if (error?.code === "P2002" || error?.code === "23505") {
+      return Response.json({ error: "Ese correo ya está asociado a otra cuenta." }, { status: 409 });
     }
     console.error("PATCH /api/clientes/[id]", error);
     return Response.json({ error: "No se pudo actualizar el cliente." }, { status: 500 });

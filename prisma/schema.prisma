@@ -136,12 +136,26 @@ model Cliente {
   updatedAt     DateTime @updatedAt
   foto          String?
   ordenes       Orden[]
+  cuenta        ClienteCuenta?
 
   @@index([estado])
   @@index([fechaRegistro])
   @@index([nombre])
   @@index([rtn])
   @@index([ciudad])
+}
+
+model ClienteCuenta {
+  id           String   @id
+  clienteId    String   @unique
+  correo       String   @unique
+  passwordHash String
+  activo       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  cliente      Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+
+  @@index([activo])
 }
 
 model Orden {

@@ -2,13 +2,36 @@ import { prisma } from "../../../lib/prisma";
 import { newOrderId, parseOrden } from "../../../lib/ordenes";
 import { toOrden } from "../../../lib/serialize";
 import { requirePermission, requireSession } from "../../../lib/dal";
+import { getClientSession } from "../../../lib/client-session";
+import { writeLog } from "../../../lib/logs";
+import { checkRateLimit } from "../../../lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+async function clientSessionIsActive(session) {
+  const account = await prisma.clienteCuenta.findUnique({
+    where: { clienteId: session.clienteId },
+    select: { activo: true, cliente: { select: { estado: true } } },
+  });
+  return Boolean(account?.activo && account.cliente.estado !== "inactivo");
+}
+
 export async function GET(request) {
-  const guard = await requireSession();
-  if (guard.response) return guard.response;
+  const clientSession = await getClientSession();
+  if (clientSession) {
+    try {
+      if (!(await clientSessionIsActive(clientSession))) {
+        return Response.json({ error: "La cuenta está desactivada." }, { status: 401 });
+      }
+    } catch (error) {
+      console.error("GET /api/ordenes client auth", error?.message);
+      return Response.json({ error: "No se pudo verificar la cuenta." }, { status: 503 });
+    }
+  } else {
+    const guard = await requireSession();
+    if (guard.response) return guard.response;
+  }
   const { searchParams } = new URL(request.url);
   const tipo = searchParams.get("tipo");
   const estado = searchParams.get("estado");
@@ -19,7 +42,8 @@ export async function GET(request) {
   const where = {};
   if (tipo) where.tipo = tipo;
   if (estado) where.estado = estado;
-  if (clienteId) where.clienteId = clienteId;
+  if (clientSession) where.clienteId = clientSession.clienteId;
+  else if (clienteId) where.clienteId = clienteId;
 
   try {
     const ordenes = await prisma.orden.findMany({
@@ -42,14 +66,79 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const guard = await requirePermission("ordenes:write");
-  if (guard.response) return guard.response;
+  const clientSession = await getClientSession();
   let body;
   try {
     body = await request.json();
   } catch {
     return Response.json({ error: "JSON inválido." }, { status: 400 });
   }
+
+  if (clientSession) {
+    const limit = checkRateLimit(`client-order:${clientSession.clienteId}`, { max: 10, windowMs: 60 * 60_000 });
+    if (limit.limited) {
+      return Response.json({ error: "Alcanzaste el límite de solicitudes por ahora. Intenta más tarde." }, { status: 429 });
+    }
+    try {
+      if (!(await clientSessionIsActive(clientSession))) {
+        return Response.json({ error: "La cuenta está desactivada." }, { status: 401 });
+      }
+    } catch (error) {
+      console.error("POST /api/ordenes client auth", error?.message);
+      return Response.json({ error: "No se pudo verificar la cuenta." }, { status: 503 });
+    }
+
+    const proyecto = typeof body?.proyecto === "string" ? body.proyecto.trim().slice(0, 180) : "";
+    const descripcion = typeof body?.descripcion === "string" ? body.descripcion.trim().slice(0, 3000) : "";
+    const tipoSolicitud = ["cotizacion", "proyecto", "mantenimiento"].includes(body?.tipo)
+      ? body.tipo
+      : "";
+    const urgencia = ["baja", "normal", "alta", "urgente"].includes(body?.urgencia)
+      ? body.urgencia
+      : "";
+    const presupuesto = body?.presupuesto === "" || body?.presupuesto == null
+      ? null
+      : Number(body.presupuesto);
+    if (!proyecto || !descripcion || !tipoSolicitud || !urgencia) {
+      return Response.json({ error: "Completa el proyecto, la descripción y los detalles de la solicitud." }, { status: 400 });
+    }
+    if (presupuesto !== null && (!Number.isFinite(presupuesto) || presupuesto < 0)) {
+      return Response.json({ error: "El presupuesto estimado no es válido." }, { status: 400 });
+    }
+
+    const notes = [
+      `Proyecto: ${proyecto}`,
+      `Tipo de solicitud: ${tipoSolicitud}`,
+      `Urgencia: ${urgencia}`,
+      `Descripción: ${descripcion}`,
+      presupuesto === null ? "" : `Presupuesto estimado: L ${presupuesto.toLocaleString("es-HN")}`,
+    ].filter(Boolean).join("\n");
+    try {
+      const order = await prisma.orden.create({
+        data: {
+          id: newOrderId(),
+          tipo: "cotizacion",
+          clienteId: clientSession.clienteId,
+          monto: 0,
+          estado: "pendiente",
+          notas: notes,
+        },
+        include: { cliente: true, items: true },
+      });
+      await writeLog("panel", `Nueva solicitud de cotización: ${order.id}`, {
+        actor: clientSession.correo,
+        ruta: "/api/ordenes",
+        detalle: { orderId: order.id, tipoSolicitud },
+      });
+      return Response.json(toOrden(order), { status: 201 });
+    } catch (error) {
+      console.error("POST /api/ordenes client request", error?.message);
+      return Response.json({ error: "No se pudo guardar la solicitud." }, { status: 503 });
+    }
+  }
+
+  const guard = await requirePermission("ordenes:write");
+  if (guard.response) return guard.response;
 
   const { data, errors } = parseOrden(body);
   if (errors.length) return Response.json({ error: errors[0], errors }, { status: 400 });
