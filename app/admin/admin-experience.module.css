@@ -1404,6 +1404,8 @@
 
 .body {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   gap: 22px;
   padding: clamp(18px, 3vw, 32px);
 }
@@ -1538,6 +1540,8 @@
 }
 
 .select {
+  min-width: 0;
+  max-width: 100%;
   min-height: 42px;
   padding: 0 36px 0 16px;
   border: 1px solid var(--border);

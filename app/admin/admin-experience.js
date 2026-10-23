@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, lazy, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -886,11 +886,16 @@ function WorkersSection({ workers, setWorkers, roles = [], session }) {
   const [draft, setDraft] = useState(EMPTY_WORKER);
   const [confirmWorker, setConfirmWorker] = useState(null);
   const { show } = useToast();
+  const { goTo } = useContext(AdminContext);
 
   useEscapeKey(modalOpen, () => closeModal());
   useBodyScrollLock(modalOpen);
 
   const handleTabChange = (tabId) => {
+    if (tabId === "roles") {
+      goTo("roles");
+      return;
+    }
     setActiveTab(tabId);
     if (tabId === "all") {
       setStatus("all");
@@ -908,7 +913,7 @@ function WorkersSection({ workers, setWorkers, roles = [], session }) {
       setBranch("ceiba");
       setStatus("all");
       setRole("all");
-    } else if (tabId === "roles") {
+    } else if (tabId === "gerencia") {
       setRole("gerente");
       setStatus("all");
       setBranch("all");
