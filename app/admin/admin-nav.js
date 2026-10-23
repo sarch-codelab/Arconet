@@ -8,6 +8,7 @@ import {
   Bell,
   Building2,
   Check,
+  ClipboardList,
   Clock,
   Database,
   FileText,
@@ -28,10 +29,8 @@ import {
 } from "lucide-react";
 
 /**
- * Contexto compartido del panel administrativo.
- * Vive en su propio modulo para que la cabecera (`topbar.js`) y la seccion
- * de flota puedan consumirlo sin importar el monolito `admin-experience.js`
- * (que a su vez carga `flota.js` de forma perezosa).
+ * Contexto compartido del panel administrativo, separado para que la
+ * cabecera pueda acceder a navegación y sesión sin importar el monolito.
  */
 export const AdminContext = createContext({
   section: "trabajadores",
@@ -49,7 +48,7 @@ export const NAV = [
   { id: "sucursales", label: "Sucursales", icon: Building2 },
   { id: "clientes", label: "Clientes", icon: User },
   { id: "cotizaciones", label: "Cotizaciones", icon: FileText },
-  { id: "flota", label: "Flota", icon: Truck },
+  { id: "solicitudes", label: "Órdenes internas", icon: ClipboardList },
   { id: "monitoreo", label: "Monitoreo", icon: Activity },
   { id: "logs", label: "Logs", icon: ScrollText },
   { id: "resumen", label: "Resumen", icon: LayoutDashboard },
@@ -131,16 +130,6 @@ export const SECTION_NAV_CONFIG = {
       { id: "balance", label: "Balance", icon: BarChart3, title: "Balance de ventas" },
     ],
   },
-  flota: {
-    brandName: "Flota",
-    tabs: [
-      { id: "dashboard", label: "Panel", icon: Layers, title: "Panel de flota" },
-      { id: "vehicles", label: "Vehículos", icon: Truck, title: "Lista de camiones" },
-      { id: "map", label: "Rastreo GPS", icon: MapPin, title: "Mapa satelital" },
-      { id: "orders", label: "Manifiestos", icon: FileText, title: "Órdenes de despacho" },
-      { id: "analytics", label: "Analítica", icon: TrendingUp, title: "Telemetría y combustible" },
-    ],
-  },
   resumen: {
     brandName: "Resumen",
     tabs: [
@@ -148,7 +137,6 @@ export const SECTION_NAV_CONFIG = {
       { id: "sales", label: "Ventas", icon: TrendingUp, title: "Cotizaciones e ingresos" },
       { id: "stock", label: "Stock", icon: Package, title: "Inventario" },
       { id: "team", label: "Equipo", icon: Users, title: "Personal" },
-      { id: "fleet", label: "Flota", icon: Truck, title: "Flota y camiones" },
     ],
   },
   monitoreo: {

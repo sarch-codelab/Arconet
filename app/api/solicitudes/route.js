@@ -1,0 +1,76 @@
+import { prisma } from "../../../lib/prisma";
+import { requirePermission } from "../../../lib/dal";
+import { AREAS_SOLICITUD, canSeeAllSolicitudes, newSolicitudId, PRIORIDADES_SOLICITUD, rolesForArea, createSolicitudNotifications } from "../../../lib/solicitudes-internas";
+import { writeLog } from "../../../lib/logs";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+export async function GET() {
+  const guard = await requirePermission("solicitudes:read");
+  if (guard.response) return guard.response;
+  const email = guard.session.correo.toLowerCase();
+  const areas = Object.entries(AREAS_SOLICITUD)
+    .filter(([, config]) => config.roles.includes(guard.session.rol))
+    .map(([area]) => area);
+  const where = canSeeAllSolicitudes(guard.session)
+    ? {}
+    : { OR: [{ solicitanteCorreo: { equals: email, mode: "insensitive" } }, { responsableCorreo: { equals: email, mode: "insensitive" } }, ...(areas.length ? [{ area: { in: areas } }] : [])] };
+  try {
+    const requests = await prisma.solicitudInterna.findMany({
+      where,
+      orderBy: { updatedAt: "desc" },
+      take: 250,
+      include: { comentarios: { orderBy: { createdAt: "asc" } } },
+    });
+    return Response.json(requests);
+  } catch (error) {
+    console.error("GET /api/solicitudes", error?.message);
+    return Response.json({ error: "No se pudieron cargar las órdenes internas." }, { status: 503 });
+  }
+}
+
+export async function POST(request) {
+  const guard = await requirePermission("solicitudes:write");
+  if (guard.response) return guard.response;
+  let body;
+  try { body = await request.json(); } catch {
+    return Response.json({ error: "Solicitud inválida." }, { status: 400 });
+  }
+  const titulo = typeof body?.titulo === "string" ? body.titulo.trim().slice(0, 140) : "";
+  const descripcion = typeof body?.descripcion === "string" ? body.descripcion.trim().slice(0, 4000) : "";
+  const area = typeof body?.area === "string" ? body.area : "";
+  const prioridad = typeof body?.prioridad === "string" ? body.prioridad : "normal";
+  if (!titulo || !descripcion || !AREAS_SOLICITUD[area] || !PRIORIDADES_SOLICITUD.includes(prioridad)) {
+    return Response.json({ error: "Completa el asunto, el detalle, el área responsable y la prioridad." }, { status: 400 });
+  }
+  const solicitudId = newSolicitudId();
+  const session = guard.session;
+  try {
+    const solicitud = await prisma.solicitudInterna.create({
+      data: {
+        id: solicitudId,
+        titulo,
+        descripcion,
+        area,
+        prioridad,
+        solicitanteCorreo: session.correo,
+        solicitanteNombre: session.nombre || session.correo,
+        solicitanteRol: session.rol,
+      },
+      include: { comentarios: true },
+    });
+    await createSolicitudNotifications(prisma, {
+      solicitudId,
+      area,
+      actorEmail: session.correo,
+      title: `Nueva orden para ${AREAS_SOLICITUD[area].label}`,
+      message: `${session.nombre || session.correo}: ${titulo}`,
+    });
+    await writeLog("panel", `Nueva orden interna: ${solicitudId}`, { actor: session.correo, ruta: "/api/solicitudes", detalle: { area, prioridad } });
+    return Response.json(solicitud, { status: 201 });
+  } catch (error) {
+    console.error("POST /api/solicitudes", error?.message);
+    return Response.json({ error: "No se pudo crear la orden interna." }, { status: 503 });
+  }
+}

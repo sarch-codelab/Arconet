@@ -111,7 +111,8 @@
   min-height: 100svh;
   display: flex;
   padding: 8px;
-  overflow: clip;
+  overflow-x: clip;
+  overflow-y: auto;
   background: var(--paper);
   color: var(--ink);
 }
@@ -132,6 +133,7 @@
   /* Fallback para navegadores sin svh */
   min-height: calc(100vh - 16px);
   min-height: calc(100svh - 16px);
+  height: auto;
   display: grid;
   grid-template-columns: 1.06fr 0.94fr;
   overflow: hidden;
@@ -291,6 +293,7 @@
 
 .loginPanelBody {
   flex: 1;
+  min-height: 0;
   width: min(420px, 100%);
   display: flex;
   flex-direction: column;
@@ -769,9 +772,48 @@
 
 .searchInput:focus {
   width: 240px;
-  border-color: var(--orange);
-  box-shadow: 0 0 0 3px var(--orange-glow);
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px var(--blue-soft);
 }
+
+.globalSearchResults {
+  position: absolute;
+  top: calc(100% + 9px);
+  right: 0;
+  z-index: 60;
+  width: min(390px, calc(100vw - 32px));
+  max-height: min(60vh, 440px);
+  overflow: auto;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-elevated);
+}
+
+.globalSearchResults button {
+  width: 100%;
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-main);
+  text-align: left;
+  cursor: pointer;
+}
+
+.globalSearchResults button:hover,
+.globalSearchResults button:focus-visible {
+  outline: 0;
+  background: var(--blue-soft);
+}
+
+.globalSearchResults button strong { font-size: 12px; }
+.globalSearchResults button span { color: var(--text-muted); font-size: 10px; }
+.globalSearchResults button small { color: var(--blue); font-size: 9px; font-weight: 700; }
+.globalSearchEmpty { margin: 0; padding: 14px 12px; color: var(--text-muted); font-size: 11px; }
 
 .notifBtn {
   /* Touch target mínimo 44px */
@@ -1550,8 +1592,8 @@
 }
 
 .search:focus-within {
-  border-color: var(--orange);
-  box-shadow: 0 0 0 3px var(--orange-glow);
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px var(--blue-soft);
 }
 
 .select {
@@ -2644,7 +2686,7 @@
 
   .loginPanelBody {
     width: 100%;
-    padding: 40px clamp(20px, 6vw, 40px);
+    padding: clamp(24px, 5vh, 40px) clamp(20px, 6vw, 40px);
   }
 
   /* Los paneles de notificaciones y cuenta en móvil se convierten en

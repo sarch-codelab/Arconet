@@ -4,9 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, Check, Eye, EyeOff } from "lucide-react";
-import styles from "../login/login-experience.module.css";
-import scroll from "./registro-experience.module.css";
+import { ArrowRight, Check, Eye, EyeOff } from "lucide-react";
+import styles from "../admin/admin-experience.module.css";
+import registration from "./registro-experience.module.css";
 import { sileo } from "../toaster";
 
 export default function RegistroExperience() {
@@ -14,6 +14,7 @@ export default function RegistroExperience() {
   const [showPassword, setShowPassword] = useState(false);
   const [accepted, setAccepted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState("");
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -23,17 +24,21 @@ export default function RegistroExperience() {
     const confirm = String(form.get("confirm") || "");
     if (!form.get("name") || !form.get("email") || !password) return;
     if (password !== confirm) {
+      setFormError("Las contraseñas no coinciden.");
       sileo.error({ title: "Las contraseñas no coinciden." });
       return;
     }
     if (!accepted) {
+      setFormError("Acepta los términos y confirma que leíste el aviso de privacidad.");
       sileo.error({ title: "Acepta los términos para crear tu cuenta." });
       return;
     }
     if (password.length < 12) {
+      setFormError("La contraseña debe tener al menos 12 caracteres.");
       sileo.error({ title: "La contraseña debe tener al menos 12 caracteres." });
       return;
     }
+    setFormError("");
     setSubmitting(true);
     try {
       const response = await fetch("/api/cliente-auth/registro", {
@@ -50,10 +55,18 @@ export default function RegistroExperience() {
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || "No se pudo crear la cuenta.");
-      sileo.success({ title: "Cuenta creada. Bienvenido a Arconet." });
+      sileo.success({
+        title: "Tu cuenta está lista",
+        description: "Bienvenido al portal de clientes de Arconet.",
+      });
       router.push("/cliente");
     } catch (error) {
-      sileo.error({ title: error.message || "No se pudo crear la cuenta." });
+      setFormError(error.message || "No se pudo crear la cuenta.");
+      sileo.error({
+        title: "No se pudo crear la cuenta",
+        description: error.message || "Intenta de nuevo en unos minutos.",
+        duration: 6500,
+      });
     } finally {
       setSubmitting(false);
     }
@@ -62,23 +75,23 @@ export default function RegistroExperience() {
   return (
     <main className={styles.loginPage}>
       <div className={styles.loginCard}>
-        <div className={styles.visual}>
+        <div className={styles.loginVisual}>
           <Image
             src="/catalogo/infraestructura.jpg"
             alt=""
             fill
             priority
-            className={styles.visualImage}
+            className={styles.loginVisualImg}
             sizes="(max-width: 900px) 100vw, 53vw"
           />
-          <div className={styles.visualOverlay} />
+          <div className={styles.loginVisualOverlay} />
 
           <Link className={styles.logoTab} href="/" aria-label="Arconet, inicio">
             <Image src="/arconet.png" alt="Arconet" width={2172} height={362} priority />
           </Link>
 
-          <div className={styles.visualCopy}>
-            <p className={styles.eyebrow}>Registro de clientes · Arconet</p>
+          <div className={styles.loginVisualCopy}>
+            <p className={styles.eyebrow}><i /> Portal de clientes · Arconet</p>
             <h1>
               Crea tu cuenta
               <br />
@@ -90,7 +103,7 @@ export default function RegistroExperience() {
             </p>
           </div>
 
-          <div className={styles.visualFooter}>
+          <div className={styles.loginVisualFooter}>
             <span>FIBRA ÓPTICA · CATV · TELECOMUNICACIONES</span>
             <Link href="/contacto">
               ¿Necesitas ayuda? Escríbenos <ArrowRight size={14} />
@@ -98,28 +111,24 @@ export default function RegistroExperience() {
           </div>
         </div>
 
-        <section className={styles.panel} aria-label="Formulario de registro">
-          <div className={styles.panelTop}>
-            <Link className={styles.backLink} href="/">
-              <ArrowLeft size={15} /> Volver al inicio
-            </Link>
-            <span>HN · 2026</span>
-          </div>
-
-          <div className={`${styles.panelBody} ${scroll.body}`}>
-            <header className={styles.panelHeader}>
+        <section className={styles.loginPanel} aria-label="Formulario de registro">
+          <div className={`${styles.loginPanelBody} ${registration.registrationBody}`}>
+            <header>
               <p className={styles.sectionLabel}>Crear cuenta</p>
               <h2>
                 Nueva
                 <br />
                 <em>cuenta.</em>
               </h2>
-              <p className={styles.panelIntro}>
+              <p className={styles.loginIntro}>
                 Completa tus datos para crear tu cuenta de cliente Arconet.
+              </p>
+              <p className={registration.accountHint}>
+                ¿Tu correo ya está registrado como cliente? <Link href="/contacto">Solicita que habilitemos tu acceso.</Link>
               </p>
             </header>
 
-            <form className={styles.loginForm} onSubmit={handleSubmit}>
+            <form className={styles.form} onSubmit={handleSubmit}>
               <label className={styles.field}>
                 Nombre completo
                 <input
@@ -173,6 +182,7 @@ export default function RegistroExperience() {
                   </button>
                 </span>
               </label>
+              <p className={registration.fieldHint}>Usa al menos 12 caracteres. Tu contraseña se guarda cifrada.</p>
 
               <label className={styles.field}>
                 Confirmar contraseña
@@ -185,42 +195,46 @@ export default function RegistroExperience() {
                 />
               </label>
 
-              <div className={styles.formRow}>
+              <div className={`${styles.formRow} ${registration.consentRow}`}>
                 <label className={styles.checkbox}>
                   <input
                     type="checkbox"
+                    name="acceptTerms"
+                    required
                     checked={accepted}
-                    onChange={(event) => setAccepted(event.target.checked)}
+                    onChange={(event) => {
+                      setAccepted(event.target.checked);
+                      if (event.target.checked) setFormError("");
+                    }}
                   />
                   <span>
                     <Check size={11} strokeWidth={3} />
                   </span>
                   Acepto los términos y he leído el aviso de privacidad
                 </label>
-                <Link className={styles.textLink} href="/terminos">
-                  Términos
-                </Link>
-                <Link className={styles.textLink} href="/privacidad">Privacidad</Link>
+                <span className={registration.consentLinks}>
+                  <Link href="/terminos">Términos</Link>
+                  <Link href="/privacidad">Aviso de privacidad</Link>
+                </span>
               </div>
+
+              {formError ? <p className={registration.formError} role="alert">{formError}</p> : null}
 
               <button type="submit" className={styles.submit} disabled={submitting}>
                 {submitting ? "Creando cuenta..." : "Crear mi cuenta"} <span><ArrowRight size={15} /></span>
               </button>
             </form>
 
-            <div className={styles.divider}>
-              <span>o</span>
-            </div>
-
-            <p className={styles.panelFooter}>
+            <p className={styles.loginFooter}>
               ¿Ya tienes cuenta? <Link href="/login">Inicia sesión</Link>
             </p>
-          </div>
-
-          <div className={styles.panelBottom}>
-            <span>© 2026 Arconet, S.A.</span>
-            <Link href="/terminos">Términos de uso</Link>
-            <Link href="/privacidad">Aviso de privacidad</Link>
+            <p className={styles.loginFooter}>
+              <Link href="/">Volver al inicio</Link>
+              <span aria-hidden="true"> · </span>
+              <Link href="/terminos">Términos</Link>
+              <span aria-hidden="true"> · </span>
+              <Link href="/privacidad">Privacidad</Link>
+            </p>
           </div>
         </section>
       </div>

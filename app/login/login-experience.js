@@ -7,6 +7,7 @@ import { useState } from "react";
 import { ArrowRight, Check, Eye, EyeOff } from "lucide-react";
 import styles from "../admin/admin-experience.module.css";
 import { sileo } from "../toaster";
+import { CONTACT_EMAIL } from "../../lib/contact";
 
 export default function LoginExperience() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function LoginExperience() {
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const recoveryHref = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("Ayuda para recuperar acceso al portal")}`;
 
   async function submit(event) {
     event.preventDefault();
@@ -28,9 +30,17 @@ export default function LoginExperience() {
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || "No se pudo iniciar sesión.");
+      sileo.success({
+        title: "Sesión iniciada",
+        description: "Abriendo tu portal de clientes.",
+      });
       router.push("/cliente");
     } catch (error) {
-      sileo.error({ title: error.message || "No se pudo iniciar sesión." });
+      sileo.error({
+        title: "No se pudo iniciar sesión",
+        description: error.message || "Revisa tus datos e intenta de nuevo.",
+        duration: 6500,
+      });
     } finally {
       setSubmitting(false);
     }
@@ -138,7 +148,7 @@ export default function LoginExperience() {
                   </span>
                   Recordarme
                 </label>
-                <Link href="/contacto">¿Olvidaste tu contraseña?</Link>
+                <a href={recoveryHref}>¿Necesitas recuperar tu acceso?</a>
               </div>
 
               <button type="submit" className={styles.submit} disabled={submitting}>
@@ -156,6 +166,8 @@ export default function LoginExperience() {
               <Link href="/terminos">Términos de uso</Link>
               <span aria-hidden="true"> · </span>
               <Link href="/privacidad">Privacidad</Link>
+              <span aria-hidden="true"> · </span>
+              <Link href="/ayuda">Ayuda</Link>
             </p>
           </div>
         </section>

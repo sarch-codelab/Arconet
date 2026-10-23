@@ -7,6 +7,8 @@ export { sileo };
 
 const DEFAULT_OPTIONS = {
   roundness: 14,
+  duration: 4600,
+  autopilot: { expand: 2500, collapse: 4200 },
 };
 
 function readTheme() {
@@ -33,9 +35,14 @@ export default function AppToaster() {
 
   return (
     <Toaster
-      position="top-right"
+      position="bottom-right"
       theme={theme}
-      offset={{ top: 18, right: 18, bottom: 18, left: 18 }}
+      offset={{
+        top: "max(16px, env(safe-area-inset-top))",
+        right: "max(16px, env(safe-area-inset-right))",
+        bottom: "max(20px, env(safe-area-inset-bottom))",
+        left: "max(16px, env(safe-area-inset-left))",
+      }}
       options={DEFAULT_OPTIONS}
     />
   );

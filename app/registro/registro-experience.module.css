@@ -1,6 +1,92 @@
-.body {
+.registrationBody {
   flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  min-height: 100%;
+}
+
+.accountHint {
+  margin-top: 12px;
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.accountHint a,
+.consentLinks a {
+  color: #1544b5;
+  text-decoration: underline !important;
+  text-underline-offset: 3px;
+}
+
+.fieldHint {
+  margin-top: -14px;
+  color: #777f8d;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.consentRow {
+  align-items: flex-start !important;
+  gap: 12px !important;
+  flex-wrap: wrap;
+}
+
+.consentRow > label {
+  flex: 1 1 240px;
+  line-height: 1.5;
+}
+
+.consentLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 11px;
+}
+
+.formError {
+  margin: -7px 0 0;
+  padding: 10px 12px;
+  border: 1px solid #e6b9b9;
+  border-radius: 8px;
+  background: #fff3f2;
+  color: #982f2b;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+:global(html[data-theme="dark"]) .accountHint,
+:global(html[data-theme="dark"]) .fieldHint {
+  color: #b5bdcb;
+}
+
+:global(html[data-theme="dark"]) .accountHint a,
+:global(html[data-theme="dark"]) .consentLinks a {
+  color: #9bb6ff;
+}
+
+:global(html[data-theme="dark"]) .formError {
+  border-color: #74413f;
+  background: #351d20;
+  color: #ffc4bf;
+}
+
+@media (max-width: 640px) {
+  .consentRow {
+    flex-direction: column;
+  }
+}
+
+.registrationBody :global(.checkbox) {
+  position: relative;
+}
+
+.registrationBody :global(.checkbox) input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
 }

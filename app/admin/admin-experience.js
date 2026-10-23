@@ -62,6 +62,7 @@ import { sileo } from "../toaster";
 import { useBodyScrollLock, useEscapeKey } from "./use-body-scroll-lock";
 import { AdminContext, NAV, SECTION_NAV_CONFIG } from "./admin-nav";
 import { SectionTabs, Topbar } from "./topbar";
+const SolicitudesPanel = lazy(() => import("./solicitudes-panel"));
 import { useAdminSmoothScroll } from "./use-smooth-scroll";
 import { CONTACT_EMAIL, CONTACT_PHONE } from "../../lib/contact";
 import {
@@ -146,7 +147,6 @@ import {
   initialsCliente,
 } from "./clientes-store";
 
-const FleetSection = lazy(() => import("./flota"));
 
 export const EMPTY_WORKER = {
   id: "",
@@ -389,6 +389,10 @@ function AdminShell({ session, onLogout, initialSection }) {
               workers={workers}
               session={session}
             />
+          ) : section === "solicitudes" ? (
+            <Suspense fallback={<div className={styles.body}>Cargando órdenes internas…</div>}>
+              <SolicitudesPanel session={session} />
+            </Suspense>
           ) : section === "resumen" ? (
             <ResumenSection
               workers={workers}
@@ -412,12 +416,6 @@ function AdminShell({ session, onLogout, initialSection }) {
             <MonitoreoSection session={session} workers={workers} />
           ) : section === "logs" ? (
             <LogsSection session={session} workers={workers} />
-          ) : section === "flota" ? (
-            <Suspense fallback={null}>
-              <FleetSection
-                onNavigate={goTo}
-              />
-            </Suspense>
           ) : null}
         </div>
       </div>
@@ -4662,64 +4660,10 @@ function MiPerfilSection({ session, workers = [] }) {
           <section className={styles.card} aria-label="Mi actividad">
             <header className={styles.cardHeader}>
               <h3><Activity size={18} /> Actividad reciente</h3>
-              <div className={styles.activityFilters}>
-                <button type="button" className={`${styles.activityFilter} ${styles.activityFilterActive}`}>Todas</button>
-                <button type="button" className={styles.activityFilter}>Sesiones</button>
-                <button type="button" className={styles.activityFilter}>Cambios</button>
-                <button type="button" className={styles.activityFilter}>Sistema</button>
-              </div>
             </header>
             <div className={styles.activityList}>
-              <article className={styles.activityItem}>
-                <div className={styles.activityIcon}><Activity size={16} /></div>
-                <div className={styles.activityContent}>
-                  <p><strong>Inició sesión</strong> en el panel administrativo</p>
-                  <time dateTime={new Date().toISOString()}>{new Date().toLocaleString("es-ES")}</time>
-                </div>
-                <span className={styles.activityBadge}>Sesión</span>
-              </article>
-              <article className={styles.activityItem}>
-                <div className={styles.activityIcon}><User size={16} /></div>
-                <div className={styles.activityContent}>
-                  <p><strong>Actualizó su perfil</strong> (nombre y foto)</p>
-                  <time dateTime={new Date(Date.now()-86400000).toISOString()}>{new Date(Date.now()-86400000).toLocaleString("es-ES")}</time>
-                </div>
-                <span className={styles.activityBadge}>Perfil</span>
-              </article>
-              <article className={styles.activityItem}>
-                <div className={styles.activityIcon}><Settings size={16} /></div>
-                <div className={styles.activityContent}>
-                  <p><strong>Cambió preferencias</strong> de notificaciones</p>
-                  <time dateTime={new Date(Date.now()-172800000).toISOString()}>{new Date(Date.now()-172800000).toLocaleString("es-ES")}</time>
-                </div>
-                <span className={styles.activityBadge}>Configuración</span>
-              </article>
-              <article className={styles.activityItem}>
-                <div className={styles.activityIcon}><Truck size={16} /></div>
-                <div className={styles.activityContent}>
-                  <p><strong>Accedió a la Flota</strong> - Panel de monitoreo</p>
-                  <time dateTime={new Date(Date.now()-259200000).toISOString()}>{new Date(Date.now()-259200000).toLocaleString("es-ES")}</time>
-                </div>
-                <span className={styles.activityBadge}>Flota</span>
-              </article>
-              <article className={styles.activityItem}>
-                <div className={styles.activityIcon}><FileText size={16} /></div>
-                <div className={styles.activityContent}>
-                  <p><strong>Generó reporte</strong> de ventas mensual</p>
-                  <time dateTime={new Date(Date.now()-345600000).toISOString()}>{new Date(Date.now()-345600000).toLocaleString("es-ES")}</time>
-                </div>
-                <span className={styles.activityBadge}>Reporte</span>
-              </article>
-              <article className={styles.activityItem}>
-                <div className={styles.activityIcon}><Building2 size={16} /></div>
-                <div className={styles.activityContent}>
-                  <p><strong>Modificó sucursal</strong> San Pedro Sula → La Ceiba</p>
-                  <time dateTime={new Date(Date.now()-432000000).toISOString()}>{new Date(Date.now()-432000000).toLocaleString("es-ES")}</time>
-                </div>
-                <span className={styles.activityBadge}>Cambios</span>
-              </article>
+              <p className={styles.activityNote}>El historial personal todavía no está conectado a los registros del sistema.</p>
             </div>
-            <p className={styles.activityNote}>Próximamente: historial completo sincronizado con <code>/api/logs?actor=yo</code>.</p>
           </section>
         )}
 
@@ -4731,7 +4675,7 @@ function MiPerfilSection({ session, workers = [] }) {
             <div className={styles.securityGrid}>
               <div className={styles.securityCard}>
                 <h4><Lock size={16} /> Contraseña</h4>
-                <p>Cambia tu contraseña para mantener tu cuenta segura. Última actualización: hace 45 días.</p>
+                <p>Cambia tu contraseña para mantener tu cuenta segura.</p>
                 <button type="button" className={styles.ghostBtn} onClick={() => openSecurityModal("password")}>
                   <RotateCw size={14} /> Cambiar contraseña
                 </button>
@@ -4739,21 +4683,21 @@ function MiPerfilSection({ session, workers = [] }) {
               <div className={styles.securityCard}>
                 <h4><ShieldCheck size={16} /> Autenticación de dos factores (2FA)</h4>
                 <p>Añade una capa extra de seguridad usando una app de autenticación (Google Authenticator, Authy, etc.).</p>
-                <button type="button" className={styles.ghostBtn} onClick={() => openSecurityModal("twofa")}>
-                  <ShieldCheck size={14} /> {myWorker?.twofa ? "Gestionar 2FA" : "Activar 2FA"}
+                <button type="button" className={styles.ghostBtn} disabled title="La autenticación de dos factores aún no está implementada.">
+                  <ShieldCheck size={14} /> Autenticación de dos factores no disponible
                 </button>
               </div>
               <div className={styles.securityCard}>
                 <h4><Users size={16} /> Sesiones activas</h4>
-                <p>Revisa y cierra sesiones en otros dispositivos.</p>
-                <button type="button" className={styles.ghostBtn} onClick={() => openSecurityModal("sessions")}>
-                  <Users size={14} /> Ver sesiones (3 activas)
+                <p>La administración de sesiones de otros dispositivos todavía no está habilitada.</p>
+                <button type="button" className={styles.ghostBtn} disabled>
+                  <Users size={14} /> Administración de sesiones no disponible
                 </button>
               </div>
               <div className={styles.securityCard}>
                 <h4><Trash2 size={16} style={{color:"var(--red)"}} /> Eliminar cuenta</h4>
-                <p className={styles.dangerText}>Esta acción es irreversible. Se eliminarán todos tus datos permanentemente.</p>
-                <button type="button" className={styles.dangerBtn} onClick={() => show("Función no disponible en demo.", "warn")}>
+                <p className={styles.dangerText}>Para solicitar la eliminación de tu cuenta, comunícate con un administrador.</p>
+                <button type="button" className={styles.dangerBtn} disabled title="Contacta a un administrador para solicitar la eliminación de tu cuenta.">
                   <Trash2 size={14} /> Eliminar mi cuenta
                 </button>
               </div>
@@ -4766,50 +4710,7 @@ function MiPerfilSection({ session, workers = [] }) {
             <header className={styles.cardHeader}>
               <h3><Bell size={18} /> Notificaciones</h3>
             </header>
-            <div className={styles.prefGrid}>
-              <label className={styles.prefItem}>
-                <div className={styles.prefInfo}>
-                  <span className={styles.prefTitle}>Notificaciones por correo</span>
-                  <span className={styles.prefDesc}>Recibe alertas importantes en tu bandeja de entrada</span>
-                </div>
-                <input type="checkbox" defaultChecked />
-              </label>
-              <label className={styles.prefItem}>
-                <div className={styles.prefInfo}>
-                  <span className={styles.prefTitle}>Notificaciones en la app</span>
-                  <span className={styles.prefDesc}>Alertas emergentes dentro del panel administrativo</span>
-                </div>
-                <input type="checkbox" defaultChecked />
-              </label>
-              <label className={styles.prefItem}>
-                <div className={styles.prefInfo}>
-                  <span className={styles.prefTitle}>Recordatorios de tareas</span>
-                  <span className={styles.prefDesc}>Avisos de vencimientos y seguimientos</span>
-                </div>
-                <input type="checkbox" defaultChecked />
-              </label>
-              <label className={styles.prefItem}>
-                <div className={styles.prefInfo}>
-                  <span className={styles.prefTitle}>Reportes semanales</span>
-                  <span className={styles.prefDesc}>Resumen de actividad cada lunes</span>
-                </div>
-                <input type="checkbox" />
-              </label>
-              <label className={styles.prefItem}>
-                <div className={styles.prefInfo}>
-                  <span className={styles.prefTitle}>Alertas de seguridad</span>
-                  <span className={styles.prefDesc}>Intentos de acceso, cambios de contraseña, 2FA</span>
-                </div>
-                <input type="checkbox" defaultChecked />
-              </label>
-              <label className={styles.prefItem}>
-                <div className={styles.prefInfo}>
-                  <span className={styles.prefTitle}>Actualizaciones del sistema</span>
-                  <span className={styles.prefDesc}>Novedades, mantenimiento, nuevas funciones</span>
-                </div>
-                <input type="checkbox" />
-              </label>
-            </div>
+            <p className={styles.apiNote}>Las notificaciones internas de órdenes están activas y aparecen en la campana del panel. Las alertas por correo y los recordatorios todavía no están habilitados.</p>
           </section>
         )}
 
@@ -4818,36 +4719,7 @@ function MiPerfilSection({ session, workers = [] }) {
             <header className={styles.cardHeader}>
               <h3><ShieldCheck size={18} /> Privacidad</h3>
             </header>
-            <div className={styles.prefGrid}>
-              <label className={styles.prefItem}>
-                <div className={styles.prefInfo}>
-                  <span className={styles.prefTitle}>Perfil visible para otros</span>
-                  <span className={styles.prefDesc}>Permite que otros usuarios vean tu información básica</span>
-                </div>
-                <input type="checkbox" defaultChecked />
-              </label>
-              <label className={styles.prefItem}>
-                <div className={styles.prefInfo}>
-                  <span className={styles.prefTitle}>Mostrar actividad reciente</span>
-                  <span className={styles.prefDesc}>Permite que otros vean tu actividad en el sistema</span>
-                </div>
-                <input type="checkbox" defaultChecked />
-              </label>
-              <label className={styles.prefItem}>
-                <div className={styles.prefInfo}>
-                  <span className={styles.prefTitle}>Permitir análisis de uso</span>
-                  <span className={styles.prefDesc}>Ayuda a mejorar el sistema con datos anónimos</span>
-                </div>
-                <input type="checkbox" defaultChecked />
-              </label>
-              <label className={styles.prefItem}>
-                <div className={styles.prefInfo}>
-                  <span className={styles.prefTitle}>Historial de ubicación</span>
-                  <span className={styles.prefDesc}>Guarda tu ubicación para reportes de flota</span>
-                </div>
-                <input type="checkbox" />
-              </label>
-            </div>
+            <p className={styles.apiNote}>La cuenta usa los permisos de su rol y no comparte actividad personal. Las opciones de privacidad personalizadas aún no están disponibles.</p>
           </section>
         )}
 
@@ -4920,32 +4792,7 @@ function MiPerfilSection({ session, workers = [] }) {
             <header className={styles.cardHeader}>
               <h3><Key size={18} /> Claves de API</h3>
             </header>
-            <p className={styles.apiNote}>Genera claves para integraciones externas (webhooks, scripts, apps móviles).</p>
-            <div className={styles.apiList}>
-              <article className={styles.apiItem}>
-                <div className={styles.apiInfo}>
-                  <strong>App móvil Arconet</strong>
-                  <span>Creada: 12/03/2026 · Último uso: hace 2 horas · Permisos: lectura/escritura</span>
-                </div>
-                <div className={styles.apiActions}>
-                  <button className={styles.ghostBtn}><Copy size={14} /> Copiar</button>
-                  <button className={styles.ghostBtn}><Edit size={14} /> Editar</button>
-                  <button className={styles.dangerBtn}><Trash2 size={14} /> Revocar</button>
-                </div>
-              </article>
-              <article className={styles.apiItem}>
-                <div className={styles.apiInfo}>
-                  <strong>Webhook ERP externo</strong>
-                  <span>Creada: 05/01/2026 · Último uso: hace 3 días · Permisos: solo lectura</span>
-                </div>
-                <div className={styles.apiActions}>
-                  <button className={styles.ghostBtn}><Copy size={14} /> Copiar</button>
-                  <button className={styles.ghostBtn}><Edit size={14} /> Editar</button>
-                  <button className={styles.dangerBtn}><Trash2 size={14} /> Revocar</button>
-                </div>
-              </article>
-            </div>
-            <button type="button" className={styles.primaryBtn} style={{marginTop:"16px"}}><Plus size={16} /> Nueva clave de API</button>
+            <p className={styles.apiNote}>La gestión de claves de integración aún no está habilitada para esta cuenta.</p>
           </section>
         )}
 
@@ -4976,68 +4823,6 @@ function MiPerfilSection({ session, workers = [] }) {
           </div>
         )}
 
-        {securityModals.twofa && (
-          <div className={styles.overlay} onClick={() => closeSecurityModal("twofa")} role="presentation">
-            <div className={styles.modal} role="dialog" aria-modal="true" aria-label="Autenticación de dos factores" onClick={(e) => e.stopPropagation()}>
-              <h3><ShieldCheck size={20} /> {myWorker?.twofa ? "Gestionar 2FA" : "Activar 2FA"}</h3>
-              {myWorker?.twofa ? (
-                <div className={styles.twofaActive}>
-                  <p>2FA está <strong>activado</strong> con app de autenticación.</p>
-                  <div className={styles.modalActions}>
-                    <button className={styles.ghostBtn} onClick={() => show("Códigos de respaldo generados.", "info")}><FileText size={14} /> Ver códigos de respaldo</button>
-                    <button className={styles.dangerBtn} onClick={() => { show("2FA desactivado.", "warn"); closeSecurityModal("twofa"); }}>Desactivar 2FA</button>
-                  </div>
-                </div>
-              ) : (
-                <div className={styles.twofaSetup}>
-                  <p>Escanea este código QR con tu app de autenticación:</p>
-                  <div className={styles.qrPlaceholder} aria-label="Código QR para 2FA">[QR CODE]</div>
-                  <p className={styles.twofaNote}>Ingresa el código de 6 dígitos de tu app:</p>
-                  <input type="text" maxLength={6} placeholder="000000" className={styles.twofaInput} />
-                  <div className={styles.modalActions}>
-                    <button className={styles.ghostBtn} onClick={() => closeSecurityModal("twofa")}>Cancelar</button>
-                    <button className={styles.submit} onClick={() => { show("2FA activado correctamente."); closeSecurityModal("twofa"); }}>Activar</button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {securityModals.sessions && (
-          <div className={styles.overlay} onClick={() => closeSecurityModal("sessions")} role="presentation">
-            <div className={styles.modal} role="dialog" aria-modal="true" aria-label="Sesiones activas" onClick={(e) => e.stopPropagation()}>
-              <h3><Users size={20} /> Sesiones activas</h3>
-              <div className={styles.sessionList}>
-                <article className={styles.sessionItem}>
-                  <div className={styles.sessionInfo}>
-                    <strong>Esta sesión</strong>
-                    <span>Chrome en Windows · San Pedro Sula, HN · Activa ahora</span>
-                  </div>
-                  <span className={styles.badge}>Actual</span>
-                </article>
-                <article className={styles.sessionItem}>
-                  <div className={styles.sessionInfo}>
-                    <strong>App móvil</strong>
-                    <span>iOS · La Ceiba, HN · Hace 2 horas</span>
-                  </div>
-                  <button className={styles.ghostBtn} style={{padding:"6px 10px",fontSize:"12px"}}>Cerrar</button>
-                </article>
-                <article className={styles.sessionItem}>
-                  <div className={styles.sessionInfo}>
-                    <strong>Chrome en Mac</strong>
-                    <span>Tegucigalpa, HN · Hace 1 día</span>
-                  </div>
-                  <button className={styles.ghostBtn} style={{padding:"6px 10px",fontSize:"12px"}}>Cerrar</button>
-                </article>
-              </div>
-              <div className={styles.modalActions}>
-                <button className={styles.ghostBtn} onClick={() => closeSecurityModal("sessions")}>Cerrar</button>
-                <button className={styles.dangerBtn} onClick={() => { show("Todas las demás sesiones cerradas."); closeSecurityModal("sessions"); }}>Cerrar todas las demás</button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </>
   );

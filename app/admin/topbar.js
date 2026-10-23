@@ -9,9 +9,6 @@ import { AdminContext, NAV } from "./admin-nav";
 import { canAccessSection } from "../../lib/permisos";
 import styles from "./admin-experience.module.css";
 
-// No hay una fuente de notificaciones conectada todavía; no mostrar eventos inventados.
-const INITIAL_NOTIFICATIONS = [];
-
 /**
  * Desplaza la barra de pildoras hasta la pildora activa.
  *
@@ -66,14 +63,57 @@ export function Topbar({
   }, [workers, currentSession?.correo]);
 
   const [searchVal, setSearchVal] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notificationFilter, setNotificationFilter] = useState("all");
-  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState([]);
   const accountRef = useRef(null);
   const accountButtonRef = useRef(null);
   const notificationsRef = useRef(null);
   const notificationsButtonRef = useRef(null);
+
+  useEffect(() => {
+    if (searchVal.trim().length < 2) {
+      setSearchResults([]);
+      setSearchOpen(false);
+      return undefined;
+    }
+    let cancelled = false;
+    setSearchLoading(true);
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/admin/search?q=${encodeURIComponent(searchVal.trim())}`, { cache: "no-store" });
+        const payload = await response.json().catch(() => []);
+        if (!cancelled) {
+          setSearchResults(Array.isArray(payload) ? payload : []);
+          setSearchOpen(true);
+        }
+      } catch {
+        if (!cancelled) setSearchResults([]);
+      } finally {
+        if (!cancelled) setSearchLoading(false);
+      }
+    }, 240);
+    return () => { cancelled = true; window.clearTimeout(timer); };
+  }, [searchVal]);
+
+  useEffect(() => {
+    if (!currentSession?.correo) return undefined;
+    let active = true;
+    const loadNotifications = async () => {
+      try {
+        const response = await fetch("/api/notificaciones", { cache: "no-store" });
+        const data = await response.json().catch(() => []);
+        if (active && response.ok) setNotifications(Array.isArray(data) ? data : []);
+      } catch {}
+    };
+    loadNotifications();
+    const timer = window.setInterval(loadNotifications, 30000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [currentSession?.correo]);
 
   // El menu de cuenta se cierra al pulsar fuera, al pulsar Escape y al
   // cambiar de seccion.
@@ -125,6 +165,19 @@ export function Topbar({
     if (notificationFilter === "read") return notifications.filter(n => n.read);
     return notifications;
   }, [notifications, notificationFilter]);
+
+  const markNotificationRead = async (notification) => {
+    setNotifications((current) => current.map((item) => item.id === notification.id ? { ...item, read: true } : item));
+    await fetch("/api/notificaciones", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: notification.id }) }).catch(() => {});
+    closeNotifications();
+    if (notification.solicitudId) adminCtx?.goTo?.("solicitudes");
+  };
+
+  const markAllNotificationsRead = async () => {
+    setNotifications((current) => current.map((item) => ({ ...item, read: true })));
+    await fetch("/api/notificaciones", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ all: true }) }).catch(() => {});
+    showToast("Notificaciones marcadas como leídas", "success");
+  };
 
   return (
     <header className={styles.topbarContainer}>
@@ -182,13 +235,26 @@ export function Topbar({
               value={searchVal}
               onChange={(e) => setSearchVal(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && searchVal.trim()) {
-                  showToast(`Buscando "${searchVal.trim()}" en ${title}...`);
-                }
+                if (e.key === "Enter" && searchResults[0]) {
+                  adminCtx?.goTo?.(searchResults[0].section);
+                  setSearchOpen(false);
+                } else if (e.key === "Escape") setSearchOpen(false);
               }}
+              onFocus={() => { if (searchVal.trim().length >= 2) setSearchOpen(true); }}
+              aria-expanded={searchOpen}
+              aria-controls="admin-global-search-results"
               className={styles.searchInput}
               aria-label={`Buscar en ${title}`}
             />
+            {searchOpen && (
+              <div className={styles.globalSearchResults} id="admin-global-search-results" role="listbox" aria-label="Resultados de búsqueda">
+                {searchLoading ? <p className={styles.globalSearchEmpty}>Buscando en tus datos…</p> : searchResults.length ? searchResults.map((result) => (
+                  <button key={`${result.section}-${result.id}`} type="button" role="option" aria-selected="false" onClick={() => { adminCtx?.goTo?.(result.section); setSearchOpen(false); }}>
+                    <strong>{result.title}</strong><span>{result.detail}</span><small>{result.sectionLabel}</small>
+                  </button>
+                )) : <p className={styles.globalSearchEmpty}>No se encontraron resultados con acceso para tu rol.</p>}
+              </div>
+            )}
           </div>
           <div className={styles.notificationsMenu} ref={notificationsRef}>
             <button
@@ -246,26 +312,18 @@ export function Topbar({
                   {filteredNotifications.length === 0 ? (
                     <div className={styles.notificationsEmpty}>
                       <Bell size={32} />
-                      <p>Aún no hay notificaciones conectadas.</p>
+                      <p>Aún no tienes notificaciones.</p>
                     </div>
                   ) : (
                     filteredNotifications.map((notif) => {
-                      const Icon = notif.type === "nuevo_trabajador" ? User :
-                                   notif.type === "stock_bajo" ? AlertTriangle :
-                                   notif.type === "cotizacion" ? MessageSquare :
-                                   notif.type === "flota" ? AlertTriangle : CheckCircle;
+                      const Icon = notif.type === "solicitud" ? MessageSquare : CheckCircle;
                       return (
                         <button
                           key={notif.id}
                           type="button"
                           role="menuitem"
                           className={`${styles.notificationItem} ${!notif.read ? styles.notificationUnread : ""}`}
-                          onClick={() => {
-                            setNotifications((current) => current.map((item) =>
-                              item.id === notif.id ? { ...item, read: true } : item
-                            ));
-                            closeNotifications();
-                          }}
+                          onClick={() => markNotificationRead(notif)}
                         >
                           <span className={styles.notificationIcon}>
                             <Icon size={16} />
@@ -273,7 +331,7 @@ export function Topbar({
                           <div className={styles.notificationContent}>
                             <p className={styles.notificationTitle}>{notif.title}</p>
                             <p className={styles.notificationMessage}>{notif.message}</p>
-                            <time className={styles.notificationTime}>{notif.time}</time>
+                            <time className={styles.notificationTime}>{new Date(notif.createdAt).toLocaleString("es-HN", { dateStyle: "short", timeStyle: "short" })}</time>
                           </div>
                           {!notif.read && <span className={styles.notificationDot} />}
                         </button>
@@ -286,12 +344,8 @@ export function Topbar({
                   <button
                     type="button"
                     className={styles.notificationsMarkAll}
-                      disabled={notifications.length === 0}
-                    onClick={() => {
-                      setNotifications((current) => current.map((item) => ({ ...item, read: true })));
-                      showToast("Todas las notificaciones marcadas como leídas", "success");
-                      closeNotifications();
-                    }}
+                    disabled={unreadCount === 0}
+                    onClick={markAllNotificationsRead}
                   >
                     Marcar todas como leídas
                   </button>

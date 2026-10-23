@@ -9,6 +9,12 @@ import ThemeInit from "./theme-init";
 
 export const metadata = {
   metadataBase: new URL("https://arconethn.com"),
+  applicationName: "Arconet",
+  appleWebApp: {
+    capable: true,
+    title: "Arconet",
+    statusBarStyle: "default",
+  },
   title: {
     default: "Arconet | Fibra óptica y telecomunicaciones en Honduras",
     template: "%s | Arconet",
@@ -49,15 +55,14 @@ export const metadata = {
       "Soluciones de fibra óptica, CATV y telecomunicaciones en San Pedro Sula y toda Honduras.",
     images: ["/arconet.png"],
   },
-  icons: {
-    icon: "/icon.png",
-  },
+  manifest: "/manifest.webmanifest",
 };
 
 export const viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  themeColor: "#1544b5",
 };
 
 const inter = Inter({

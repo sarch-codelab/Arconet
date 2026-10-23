@@ -205,3 +205,52 @@ model Log {
   @@index([nivel])
   @@index([createdAt])
 }
+
+model SolicitudInterna {
+  id                 String                 @id
+  titulo             String
+  descripcion        String
+  area               String
+  prioridad          String                 @default("normal")
+  estado             String                 @default("pendiente")
+  solicitanteCorreo  String
+  solicitanteNombre  String
+  solicitanteRol     String
+  responsableCorreo  String?
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+  comentarios        ComentarioSolicitud[]
+  notificaciones     Notificacion[]
+
+  @@index([area, estado, createdAt])
+  @@index([solicitanteCorreo, createdAt])
+  @@index([responsableCorreo])
+}
+
+model ComentarioSolicitud {
+  id                String           @id @default(cuid())
+  solicitudId       String
+  autorCorreo       String
+  autorNombre       String
+  autorRol          String
+  mensaje           String
+  createdAt         DateTime         @default(now())
+  solicitud         SolicitudInterna @relation(fields: [solicitudId], references: [id], onDelete: Cascade)
+
+  @@index([solicitudId, createdAt])
+}
+
+model Notificacion {
+  id            String            @id @default(cuid())
+  recipient     String
+  title         String
+  message       String
+  type          String            @default("solicitud")
+  solicitudId   String?
+  readAt        DateTime?
+  createdAt     DateTime          @default(now())
+  solicitud     SolicitudInterna? @relation(fields: [solicitudId], references: [id], onDelete: Cascade)
+
+  @@index([recipient, readAt, createdAt])
+  @@index([solicitudId])
+}

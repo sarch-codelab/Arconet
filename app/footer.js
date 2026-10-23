@@ -12,6 +12,7 @@ const COMPANY_LINKS = [
   { href: "/#empresa", label: "La empresa" },
   { href: "/catalogo", label: "Catálogo" },
   { href: "/contacto", label: "Contacto" },
+  { href: "/ayuda", label: "Ayuda y preguntas frecuentes" },
   { href: "/terminos", label: "Términos de uso" },
   { href: "/privacidad", label: "Aviso de privacidad" },
 ];
