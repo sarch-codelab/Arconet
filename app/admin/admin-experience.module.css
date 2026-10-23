@@ -1641,7 +1641,7 @@
 /* ---- Tablas responsive: en pantallas estrechas cada fila se convierte
         en una tarjeta apilada usando el atributo data-label ---- */
 
-@media (max-width: 760px) {
+@media (max-width: 900px) {
   .tableCard {
     border-radius: 16px;
     background: transparent;
@@ -2762,6 +2762,10 @@
 @media (max-width: 480px) {
   /* Pantallas muy estrechas: apilar todo el topbar y hacer pills de ancho completo */
   .globalTopBar {
+    /* Sin redefinir las columnas, las areas de una sola columna se colocaban
+       en la primera pista del grid de 2 columnas heredado y el topbar quedaba
+       dividido en dos anchos distintos. */
+    grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
       "brand"
       "pills"
@@ -2776,12 +2780,15 @@
 
   .centerPillNav {
     width: 100%;
-    justify-content: center;
+    /* La fila de pildoras se desplaza horizontalmente. Centrarlas cuando no
+       caben empuja la primera (la seccion activa) fuera del area visible. */
+    justify-content: flex-start;
   }
 
   .pillItem {
-    flex: 1 1 auto;
-    min-width: 0;
+    /* La pildora activa lleva el nombre de la seccion: con flex-shrink se
+       comprimia hasta cortar el texto y desbordar sobre las demas. */
+    flex: 0 0 auto;
     padding: 8px 10px;
     font-size: 11.5px;
   }
@@ -2820,9 +2827,11 @@
   .statCard {
     grid-template-columns: 1fr;
     grid-template-areas:
+      "icon"
       "value"
       "label"
       "badge";
+    justify-items: center;
     text-align: center;
     padding: 12px;
   }
@@ -3095,7 +3104,7 @@
   margin-top: 8px;
 }
 
-.statCard {
+.profileStatCard {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -3106,13 +3115,13 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.statCard:hover {
+.profileStatCard:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-card);
   border-color: var(--border);
 }
 
-.statIcon {
+.profileStatIcon {
   width: 40px;
   height: 40px;
   display: flex;
@@ -3131,14 +3140,14 @@
   min-width: 0;
 }
 
-.statValue {
+.profileStatValue {
   font-size: 20px;
   font-weight: 700;
   color: var(--text-main);
   line-height: 1;
 }
 
-.statLabel {
+.profileStatLabel {
   font-size: 11px;
   font-weight: 500;
   color: var(--text-muted);

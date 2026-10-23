@@ -521,14 +521,20 @@
 
 .carouselTrack {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  /* `minmax(0, 1fr)` evita el ancho minimo del contenido (matricula + imagen),
+     que en pantallas estrechas empujaba la tira fuera del contenedor. */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
-  width: 100%;
+  /* La tira debe ocupar solo el espacio libre entre las flechas del carrusel:
+     con `width: 100%` se sumaba al ancho de las flechas y desbordaba. */
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
 }
 
 @media (max-width: 900px) {
   .carouselTrack {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -543,6 +549,9 @@
   cursor: pointer;
   transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
   text-align: left;
+  /* Permite que la tarjeta se encoja dentro de su columna del carrusel. */
+  min-width: 0;
+  overflow: hidden;
 }
 
 .truckCardMini:hover {
@@ -559,6 +568,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 .truckMiniPlate {
@@ -566,6 +576,11 @@
   font-weight: 800;
   color: var(--text-main);
   letter-spacing: -0.01em;
+  /* En movil la tarjeta mide ~137px: si la matricula es larga se recorta con
+     puntos suspensivos en vez de cortarse en seco. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .truckMiniDesc {

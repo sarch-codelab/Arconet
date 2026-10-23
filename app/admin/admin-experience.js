@@ -4506,40 +4506,40 @@ function MiPerfilSection({ session, workers = [] }) {
               {!editMode && (
                 <>
                   <div className={styles.statsGrid}>
-                    <div className={styles.statCard}>
-                      <div className={styles.statIcon}>
+                    <div className={styles.profileStatCard}>
+                      <div className={styles.profileStatIcon}>
                         <Activity size={20} />
                       </div>
                       <div className={styles.statContent}>
-                        <span className={styles.statValue}>{userStats.tasksCompleted}</span>
-                        <span className={styles.statLabel}>Tareas completadas</span>
+                        <span className={styles.profileStatValue}>{userStats.tasksCompleted}</span>
+                        <span className={styles.profileStatLabel}>Tareas completadas</span>
                       </div>
                     </div>
-                    <div className={styles.statCard}>
-                      <div className={styles.statIcon}>
+                    <div className={styles.profileStatCard}>
+                      <div className={styles.profileStatIcon}>
                         <Calendar size={20} />
                       </div>
                       <div className={styles.statContent}>
-                        <span className={styles.statValue}>{userStats.daysActive}</span>
-                        <span className={styles.statLabel}>Días activo</span>
+                        <span className={styles.profileStatValue}>{userStats.daysActive}</span>
+                        <span className={styles.profileStatLabel}>Días activo</span>
                       </div>
                     </div>
-                    <div className={styles.statCard}>
-                      <div className={styles.statIcon}>
+                    <div className={styles.profileStatCard}>
+                      <div className={styles.profileStatIcon}>
                         <LogIn size={20} />
                       </div>
                       <div className={styles.statContent}>
-                        <span className={styles.statValue}>{userStats.loginsThisMonth}</span>
-                        <span className={styles.statLabel}>Sesiones este mes</span>
+                        <span className={styles.profileStatValue}>{userStats.loginsThisMonth}</span>
+                        <span className={styles.profileStatLabel}>Sesiones este mes</span>
                       </div>
                     </div>
-                    <div className={styles.statCard}>
-                      <div className={styles.statIcon}>
+                    <div className={styles.profileStatCard}>
+                      <div className={styles.profileStatIcon}>
                         <Star size={20} />
                       </div>
                       <div className={styles.statContent}>
-                        <span className={styles.statValue}>{userStats.rating}</span>
-                        <span className={styles.statLabel}>Calificación</span>
+                        <span className={styles.profileStatValue}>{userStats.rating}</span>
+                        <span className={styles.profileStatLabel}>Calificación</span>
                       </div>
                     </div>
                   </div>

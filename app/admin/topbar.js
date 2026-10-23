@@ -10,6 +10,30 @@ import { roleLabel } from "./workers-store";
 import styles from "./admin-experience.module.css";
 
 /**
+ * Desplaza la barra de pildoras hasta la pildora activa.
+ *
+ * En celular y tableta no caben todas las secciones, asi que la barra hace
+ * scroll horizontal; sin este ajuste la pestana activa podia quedar fuera de
+ * la vista y el usuario no sabia donde estaba. Respeta `prefers-reduced-motion`.
+ */
+function useActivePillIntoView(activeKey) {
+  const navRef = useRef(null);
+
+  useEffect(() => {
+    const active = navRef.current?.querySelector('[aria-current]');
+    if (!active) return;
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    active.scrollIntoView({
+      inline: "center",
+      block: "nearest",
+      behavior: reduce ? "auto" : "smooth",
+    });
+  }, [activeKey]);
+
+  return navRef;
+}
+
+/**
  * Cabecera global del panel administrativo.
  *
  * Se comparte entre todas las secciones (incluida Flota) para que la
@@ -28,6 +52,7 @@ export function Topbar({
 }) {
   const adminCtx = useContext(AdminContext);
   const activeSection = adminCtx?.section || "trabajadores";
+  const pillNavRef = useActivePillIntoView(activeSection);
   const ctxSession = adminCtx?.session;
 
   const currentSession = session || ctxSession;
@@ -148,7 +173,11 @@ export function Topbar({
             (Trabajadores, Productos, Flota, etc.) para cambiar de pagina sin
             salir de la cabecera. La activa muestra icono + texto y las
             hermanas solo icono, para no saturarla. */}
-        <nav className={styles.centerPillNav} aria-label="Secciones del panel">
+        <nav
+          className={styles.centerPillNav}
+          aria-label="Secciones del panel"
+          ref={pillNavRef}
+        >
           {NAV.map((item) => {
             const Icon = item.icon;
             const isActive = item.id === activeSection;
@@ -429,10 +458,12 @@ export function Topbar({
  * de pildoras de la cabecera para que la transicion se sienta continua.
  */
 export function SectionTabs({ tabs, activeTab, onTabChange, label = "Filtros de la sección" }) {
+  const tabsRef = useActivePillIntoView(activeTab);
+
   if (!tabs?.length) return null;
 
   return (
-    <nav className={styles.sectionTabs} aria-label={label}>
+    <nav className={styles.sectionTabs} aria-label={label} ref={tabsRef}>
       {tabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = tab.id === activeTab;
