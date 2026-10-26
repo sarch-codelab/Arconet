@@ -5,7 +5,7 @@ import { AlertTriangle, Check, Package, Pencil, Plus, Search, Tags, Trash2, X } 
 import styles from "./admin-experience.module.css";
 import { Avatar, useToast, notifyError, ConfirmDialog } from "./admin-ui";
 import { compressImage } from "./image-utils";
-import { categorySlug, createCategoria, deleteCategoria, updateCategoria } from "./categories-store";
+import { CATEGORY_STATUSES, categorySlug, createCategoria, deleteCategoria, updateCategoria } from "./categories-store";
 import { formatPrice } from "./products-store";
 import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
 import { Topbar, SectionTabs } from "./topbar";

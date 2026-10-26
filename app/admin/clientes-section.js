@@ -11,6 +11,7 @@ import {
   newClienteId,
   updateCliente,
   clientStatusLabel,
+  CLIENT_STATUSES,
 } from "./clientes-store";
 import { formatDate } from "./workers-store";
 import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";

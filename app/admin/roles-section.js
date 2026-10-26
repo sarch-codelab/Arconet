@@ -9,7 +9,7 @@ import {
   PERMISSION_MODULES,
   SUPER_ROLE,
 } from "../../lib/permisos";
-import { rolSlug, createRol, deleteRol, updateRol } from "./roles-store";
+import { ROLE_STATUSES, rolSlug, createRol, deleteRol, updateRol } from "./roles-store";
 import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
 import { Topbar, SectionTabs } from "./topbar";
 import { SECTION_NAV_CONFIG, NAV } from "./admin-nav";

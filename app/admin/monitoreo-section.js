@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Activity, AlertTriangle, Cpu, Database, HardDrive, RefreshCw, Server, Monitor } from "lucide-react";
 import styles from "./admin-experience.module.css";
+import { formatTimestamp } from "./log-utils";
 import { Topbar, SectionTabs } from "./topbar";
 import { SECTION_NAV_CONFIG } from "./admin-nav";
 
