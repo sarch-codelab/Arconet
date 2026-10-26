@@ -67,7 +67,7 @@ export default function CatalogoProducts({ products, title = "Productos disponib
           <li key={product.id}>
             <div>
               {product.foto ? (
-                <Image src={product.foto} alt={product.nombre} width={64} height={64} />
+                <Image src={product.foto} alt={product.nombre} width={64} height={64} unoptimized={String(product.foto).startsWith("data:")} />
               ) : (
                 <span aria-hidden="true">{product.nombre.charAt(0)}</span>
               )}

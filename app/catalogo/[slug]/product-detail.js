@@ -64,6 +64,7 @@ function ProductVisual({ item, className, priority = false }) {
       alt={item.alt}
       fill
       priority={priority}
+      unoptimized={String(item.src).startsWith("data:")}
       sizes="(max-width: 900px) 92vw, 46vw"
       className={`${styles.galleryImage} ${item.fit === "contain" ? styles.fitContain : styles.fitCover} ${className || ""}`}
     />
@@ -248,6 +249,7 @@ export default function ProductDetail({ slug }) {
                     src={item.src}
                     alt=""
                     fill
+                    unoptimized={String(item.src).startsWith("data:")}
                     sizes="84px"
                     className={`${styles.galleryImage} ${item.fit === "contain" ? styles.fitContain : styles.fitCover}`}
                   />
@@ -492,6 +494,7 @@ export default function ProductDetail({ slug }) {
                       src={item.image}
                       alt={item.imageAlt}
                       fill
+                      unoptimized={String(item.image).startsWith("data:")}
                       sizes="(max-width: 700px) 90vw, 30vw"
                       className={`${styles.galleryImage} ${item.visual === "photoVisual" ? styles.fitCover : styles.fitContain}`}
                     />

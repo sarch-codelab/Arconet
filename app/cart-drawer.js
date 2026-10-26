@@ -126,7 +126,7 @@ export default function CartDrawer() {
                 <li key={item.key} className={styles.item}>
                   <span className={styles.thumb}>
                     {item.image ? (
-                      <Image src={item.image} alt="" fill sizes="76px" className={styles.thumbImage} />
+                      <Image src={item.image} alt="" fill sizes="76px" unoptimized={String(item.image).startsWith("data:")} className={styles.thumbImage} />
                     ) : (
                       <span className={styles.thumbFallback} aria-hidden="true">
                         <ShoppingCart size={18} />
