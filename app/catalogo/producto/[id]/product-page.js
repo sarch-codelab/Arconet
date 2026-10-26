@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import LocomotiveScroll from "locomotive-scroll";
 import {
   ArrowRight,
@@ -56,6 +56,17 @@ const TRUST = [
 
 export default function ProductPage({ product }) {
   const [quantity, setQuantity] = useState(1);
+  // Portada + galería en un solo carrusel: al tocar una miniatura cambia la
+  // imagen grande. Antes las imágenes adicionales se listaban aparte y no se
+  // podían abrir, así que parecía que solo existía la principal.
+  const images = useMemo(() => {
+    const all = [product.foto, ...(Array.isArray(product.fotos) ? product.fotos : [])]
+      .filter((image) => typeof image === "string" && image.trim())
+      .map((image) => image.trim());
+    return [...new Set(all)];
+  }, [product.foto, product.fotos]);
+  const [activeImage, setActiveImage] = useState(0);
+  const currentImage = images[activeImage] || "";
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const { addItem, open: openCart, count: cartCount } = useCart();
   const { products } = useCatalogProducts();
@@ -185,13 +196,14 @@ export default function ProductPage({ product }) {
       </div>
 
       <section className={styles.product}>
-        <div className={`${styles.media} ${product.foto ? styles.mediaPhoto : ""}`}>
-          {product.foto ? (
+        <div className={`${styles.media} ${currentImage ? styles.mediaPhoto : ""}`}>
+          {currentImage ? (
             <Image
-              src={product.foto}
-              alt={product.nombre}
+              src={currentImage}
+              alt={`${product.nombre}${images.length > 1 ? ` — imagen ${activeImage + 1} de ${images.length}` : ""}`}
               fill
               priority
+              unoptimized={String(currentImage).startsWith("data:")}
               sizes="(max-width: 900px) 92vw, 46vw"
               className={styles.mediaImage}
             />
@@ -209,19 +221,27 @@ export default function ProductPage({ product }) {
           ) : null}
         </div>
 
-        {product.fotos && product.fotos.length > 0 && (
-          <div className={styles.gallery} aria-label="Galería de imágenes del producto">
-            {product.fotos.map((img, idx) => (
-              <Image
+        {images.length > 1 && (
+          <div className={styles.gallery} role="group" aria-label="Galería de imágenes del producto">
+            {images.map((img, idx) => (
+              <button
                 key={idx}
-                src={img}
-                alt={`${product.nombre} - Imagen ${idx + 1}`}
-                width={120}
-                height={120}
-                unoptimized={String(img).startsWith("data:")}
-                sizes="120px"
-                className={styles.galleryImage}
-              />
+                type="button"
+                className={`${styles.galleryThumb} ${idx === activeImage ? styles.galleryThumbActive : ""}`}
+                onClick={() => setActiveImage(idx)}
+                aria-pressed={idx === activeImage}
+                aria-label={`Ver imagen ${idx + 1} de ${images.length}`}
+              >
+                <Image
+                  src={img}
+                  alt=""
+                  width={120}
+                  height={120}
+                  unoptimized={String(img).startsWith("data:")}
+                  sizes="120px"
+                  className={styles.galleryImage}
+                />
+              </button>
             ))}
           </div>
         )}

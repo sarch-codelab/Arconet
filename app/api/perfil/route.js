@@ -34,7 +34,8 @@ export async function GET() {
       rolNombre: role?.nombre || account.rol,
       twoFactorEnabled: account.twoFactorEnabled,
       sucursal: worker?.sucursal?.nombre || account.sucursalId || "",
-      trabajador: worker ? { id: worker.id, telefono: worker.telefono || "", foto: worker.foto || "", puesto: worker.puesto || "", estado: worker.estado, ingreso: worker.ingreso, sucursalId: worker.sucursalId } : { telefono: account.telefono || "", foto: account.foto || "" },
+      foto: account.foto || worker?.foto || "",
+      trabajador: worker ? { id: worker.id, telefono: worker.telefono || "", foto: worker.foto || account.foto || "", puesto: worker.puesto || "", estado: worker.estado, ingreso: worker.ingreso, sucursalId: worker.sucursalId } : { telefono: account.telefono || "", foto: account.foto || "" },
       stats: { completedOrders: completed, daysOnPlatform: Math.max(0, Math.floor(elapsed / 86400000)), loginsThisMonth },
       activity: activity.map((log) => ({ id: log.id, message: log.mensaje, category: log.categoria, createdAt: log.createdAt, route: log.ruta })),
     }, { headers: { "Cache-Control": "no-store" } });

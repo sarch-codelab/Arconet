@@ -10,6 +10,7 @@ async function getProduct(id) {
     const producto = await prisma.producto.findFirst({
       where: {
         estado: "activo",
+        archivado: false,
         OR: [{ id }, { sku: id }],
       },
     });
@@ -23,9 +24,12 @@ async function getProduct(id) {
       categoria: producto.categoria,
       marca: producto.marca || "",
       unidad: producto.unidad || "Unidad",
+      descripcion: producto.descripcion || "",
+      codigoBarras: producto.codigoBarras || "",
       precio: Number(producto.precio),
       stock: producto.stock,
       foto: producto.foto || "",
+      fotos: Array.isArray(producto.fotos) ? producto.fotos : [],
       actualizado: producto.updatedAt ? new Date(producto.updatedAt).toISOString() : null,
     };
   } catch (error) {

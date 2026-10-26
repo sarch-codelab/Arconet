@@ -976,7 +976,9 @@
     gap: 12px;
   }
 
-  .qty { min-height: 48px; }
+  /* Área táctil mínima de 44px en los botones de cantidad (accesibilidad). */
+  .qty { min-height: 52px; }
+  .qty button { width: 44px; height: 44px; }
   .primary { min-height: 50px; white-space: normal; text-align: center; justify-content: center; }
   .secondary { min-height: 46px; justify-content: center; }
   .whatsappLink { width: 100%; }
@@ -1074,10 +1076,37 @@
   border-radius: 999px;
 }
 
+/* Miniatura pulsable: 120px de imagen + 44px de área táctil real. */
+.galleryThumb {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.galleryThumbActive .galleryImage {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 2px var(--blue);
+}
+
+.galleryThumb:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+
 .galleryImage {
   flex: 0 0 auto;
   width: 120px;
   height: 120px;
+  min-width: 44px;
+  min-height: 44px;
+  display: block;
   object-fit: cover;
   border-radius: 10px;
   border: 1px solid var(--line);

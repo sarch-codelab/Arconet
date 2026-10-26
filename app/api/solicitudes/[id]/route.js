@@ -104,3 +104,53 @@ export async function PATCH(request, { params }) {
     return Response.json({ error: "No se pudo actualizar la orden." }, { status: 503 });
   }
 }
+
+/**
+ * Elimina una orden interna con sus comentarios, adjuntos y eventos.
+ *
+ * Puede hacerlo quien la creó o un coordinador (administrador/gerente); las
+ * órdenes ya completadas también se pueden borrar porque no bloquean
+ * inventario ni facturación. Queda registrado en el log del sistema.
+ */
+export async function DELETE(_request, { params }) {
+  const guard = await requirePermission("solicitudes:write");
+  if (guard.response) return guard.response;
+  const { id } = await params;
+
+  try {
+    const orden = await prisma.solicitudInterna.findUnique({
+      where: { id },
+      select: { id: true, titulo: true, area: true, estado: true, solicitanteCorreo: true },
+    });
+    if (!orden) return Response.json({ error: "No se encontró la orden." }, { status: 404 });
+
+    const session = guard.session;
+    const isOwner = orden.solicitanteCorreo?.toLowerCase() === session.correo?.toLowerCase();
+    if (!isOwner && !canSeeAllSolicitudes(session)) {
+      return Response.json(
+        { error: "Solo quien creó la orden o un coordinador puede eliminarla." },
+        { status: 403 },
+      );
+    }
+
+    await prisma.solicitudInterna.delete({ where: { id } });
+    await writeLog("panel", `Orden interna eliminada: ${orden.titulo} (${id})`, {
+      nivel: "warn",
+      actor: session.correo,
+      ruta: `/api/solicitudes/${id}`,
+      detalle: { estado: orden.estado, area: orden.area },
+    });
+    return Response.json({ ok: true });
+  } catch (error) {
+    if (error?.code === "P2025") {
+      return Response.json({ error: "No se encontró la orden." }, { status: 404 });
+    }
+    console.error("DELETE /api/solicitudes/[id]", error?.message);
+    await writeLog("db", `Error al eliminar la orden ${id}: ${error?.message}`, {
+      nivel: "error",
+      actor: guard.session?.correo,
+      ruta: `/api/solicitudes/${id}`,
+    });
+    return Response.json({ error: "No se pudo eliminar la orden." }, { status: 500 });
+  }
+}

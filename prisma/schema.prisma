@@ -94,6 +94,7 @@ model Producto {
   id          String      @id
   nombre      String
   sku         String      @unique
+  codigoBarras String? // Código de barras del fabricante (EAN/UPC), opcional
   categoria   String
   marca       String?
   unidad      String      @default("Unidad")
@@ -105,6 +106,8 @@ model Producto {
   ubicacion   String? // Ubicación física en bodega
   peso        Decimal?    @db.Decimal(10, 3) // Peso en kilogramos (logística)
   estado      String      @default("activo")
+  archivado   Boolean     @default(false) // Baja definitiva conservando el historial
+  archivadoAt DateTime?
   foto        String? // Imagen principal/portada
   fotos       String[]    @default([]) // Galería de imágenes adicionales
   createdBy   String? // Correo del usuario que creó el registro
@@ -125,6 +128,8 @@ model Producto {
   @@index([createdAt])
   @@index([updatedAt])
   @@index([nombre])
+  @@index([codigoBarras])
+  @@index([archivado])
 }
 
 model Categoria {

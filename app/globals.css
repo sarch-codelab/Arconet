@@ -120,6 +120,10 @@ textarea {
     bottom: max(56px, calc(env(safe-area-inset-bottom) + 44px));
     width: 44px;
     height: 44px;
+    /* En pantallas chicas el botón quedaba encima de los controles del borde
+       derecho (por ejemplo el "+" de cantidad del catálogo) y les robaba el
+       toque: el tema se cambia desde el menú de hamburguesa. */
+    display: none;
   }
 }
 

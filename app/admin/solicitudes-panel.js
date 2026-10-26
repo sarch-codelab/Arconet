@@ -36,6 +36,7 @@ export default function SolicitudesPanel({ session }) {
   const [draft, setDraft] = useState({ titulo: "", descripcion: "", area: "", prioridad: "normal" });
   const [areaDraft, setAreaDraft] = useState(EMPTY_AREA);
   const [editingArea, setEditingArea] = useState(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const canManageAreas = ["administrador", "gerente"].includes(session?.rol);
 
   const load = useCallback(async (quiet = false) => {
@@ -107,6 +108,21 @@ export default function SolicitudesPanel({ session }) {
       sileo.success({ title: "Estado actualizado", description: `La orden ahora está ${STATUS_LABELS[estado].toLocaleLowerCase("es-HN")}.` });
     } catch (error) {
       sileo.error({ title: "No se pudo actualizar", description: error.message });
+    } finally { setSaving(false); }
+  };
+
+  const removeOrder = async () => {
+    if (!selected || saving) return;
+    setSaving(true);
+    try {
+      await request(`/api/solicitudes/${encodeURIComponent(selected.id)}`, { method: "DELETE" });
+      const rest = items.filter((item) => item.id !== selected.id);
+      setItems(rest);
+      setSelectedId(rest[0]?.id || "");
+      setConfirmingDelete(false);
+      sileo.success({ title: "Orden eliminada" });
+    } catch (error) {
+      sileo.error({ title: "No se pudo eliminar la orden", description: error.message });
     } finally { setSaving(false); }
   };
 
@@ -228,6 +244,17 @@ export default function SolicitudesPanel({ session }) {
               {!selected ? <div className={styles.empty}><ArrowRight size={20} /><span>Selecciona una orden para revisar el detalle y conversar con el área responsable.</span></div> : <>
                 <div className={styles.detailHead}><span className={styles.eyebrow}>{areaName(selected.area)} · {selected.id}</span><h3>{selected.titulo}</h3><span className={`${styles.status} ${styles[`status_${selected.estado}`]}`}>{STATUS_LABELS[selected.estado]}</span><p>{selected.descripcion}</p><div className={styles.meta}><span>Solicitó <strong>{selected.solicitanteNombre}</strong></span><span>Prioridad <strong>{PRIORITY_LABELS[selected.prioridad]}</strong></span><span>Actualizada <strong>{new Date(selected.updatedAt).toLocaleString("es-HN", { dateStyle: "medium", timeStyle: "short" })}</strong></span>{selected.responsableCorreo && <span>Responsable <strong>{selected.responsableCorreo}</strong></span>}</div></div>
                 {canProcess && actions.length > 0 && <div className={styles.actions}>{actions.map(([estado, label]) => <button key={estado} type="button" className={estado === "rechazada" ? styles.rejectButton : adminStyles.primaryBtn} disabled={saving} onClick={() => updateStatus(estado)}>{estado === "aprobada" || estado === "completada" ? <Check size={15} /> : <ArrowRight size={15} />}{label}</button>)}</div>}
+                <div className={styles.orderDanger}>
+                  {confirmingDelete ? (
+                    <>
+                      <span>¿Eliminar esta orden con sus comentarios y adjuntos?</span>
+                      <button type="button" className={adminStyles.dangerBtn} disabled={saving} onClick={removeOrder}>{saving ? "Eliminando…" : "Sí, eliminar"}</button>
+                      <button type="button" className={adminStyles.ghostBtn} disabled={saving} onClick={() => setConfirmingDelete(false)}>Cancelar</button>
+                    </>
+                  ) : (
+                    <button type="button" className={styles.deleteOrder} onClick={() => setConfirmingDelete(true)}>Eliminar orden</button>
+                  )}
+                </div>
                 <div className={styles.thread}><h4>Comentarios y seguimiento</h4><div className={styles.messages}>{selected.comentarios?.length ? selected.comentarios.map((entry) => <article key={entry.id} className={styles.message}><div><strong>{entry.autorNombre}</strong><span>{entry.autorRol}</span><time>{new Date(entry.createdAt).toLocaleString("es-HN", { dateStyle: "short", timeStyle: "short" })}</time></div><p>{entry.mensaje}</p></article>) : <p className={styles.noMessages}>Aún no hay comentarios. Usa este espacio para aclarar o actualizar la solicitud.</p>}</div><form className={styles.commentForm} onSubmit={sendComment}><textarea rows={3} maxLength={3000} value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Escribe una actualización o pregunta para el equipo…" aria-label="Nuevo comentario" required /><button type="submit" className={adminStyles.primaryBtn} disabled={saving || !comment.trim()}><Send size={15} /> Enviar comentario</button></form></div>
               </>}
             </section>

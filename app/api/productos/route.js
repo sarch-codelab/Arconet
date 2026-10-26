@@ -19,7 +19,8 @@ export async function GET(request) {
   const take = Math.min(Math.max(Number(searchParams.get("take")) || 100, 1), 500);
   const skip = Math.max(Number(searchParams.get("skip")) || 0, 0);
 
-  const where = {};
+  // Los productos dados de baja definitiva no vuelven a listarse.
+  const where = { archivado: false };
   if (categoria) where.categoria = categoria;
   if (estado) where.estado = estado;
   if (q) {
@@ -27,6 +28,7 @@ export async function GET(request) {
       { nombre: { contains: q, mode: "insensitive" } },
       { sku: { contains: q, mode: "insensitive" } },
       { marca: { contains: q, mode: "insensitive" } },
+      { codigoBarras: { contains: q, mode: "insensitive" } },
     ];
   }
 
@@ -37,9 +39,9 @@ export async function GET(request) {
       take,
       skip,
       select: {
-        id: true, nombre: true, sku: true, categoria: true, marca: true,
+        id: true, nombre: true, sku: true, codigoBarras: true, categoria: true, marca: true,
         unidad: true, descripcion: true, precio: true, costo: true, stock: true,
-        stockMinimo: true, ubicacion: true, peso: true, estado: true, foto: true, updatedAt: true,
+        stockMinimo: true, ubicacion: true, peso: true, estado: true, foto: true, fotos: true, updatedAt: true,
       },
     });
 

@@ -25,14 +25,17 @@ export default async function PanelAdministrativoPage({ searchParams }) {
     prisma.rol.findUnique({ where: { slug: session.rol ?? "" }, select: { nombre: true } }),
   ]);
 
-  // Solo se abre una seccion que el rol del usuario puede ver; si no, la
-  // primera permitida (Mi perfil siempre lo esta).
+  // Al entrar (o volver a entrar) el panel abre el Resumen, porque cada rol ve
+  // ahí sus propios indicadores. Si el rol no tiene reportes, se abre la
+  // primera seccion permitida (Mi perfil siempre lo esta).
   const params = (await searchParams) || {};
   const requested = typeof params.section === "string" ? params.section.trim() : "";
   const initialSection = canAccessSection(permisos, requested)
     ? requested
-    : PERMISSION_MODULES.map((module) => module.section).find((id) => canAccessSection(permisos, id)) ||
-      "mi-perfil";
+    : canAccessSection(permisos, "resumen")
+      ? "resumen"
+      : PERMISSION_MODULES.map((module) => module.section).find((id) => canAccessSection(permisos, id)) ||
+        "mi-perfil";
 
   return (
     <AdminPanel

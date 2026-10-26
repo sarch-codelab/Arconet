@@ -23,7 +23,7 @@ async function loadDynamicEntries() {
           select: { slug: true, updatedAt: true },
         }),
         prisma.producto.findMany({
-          where: { estado: "activo" },
+          where: { estado: "activo", archivado: false },
           select: { id: true, updatedAt: true },
           orderBy: { updatedAt: "desc" },
           take: 5000,

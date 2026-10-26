@@ -31,7 +31,9 @@
   top: 0;
   right: 0;
   height: 100%;
-  width: min(440px, 100vw);
+  /* 100% y no 100vw: el viewport unit incluye el ancho de la barra de
+     scroll, así que en pantallas angostas el cajón se salía por la izquierda. */
+  width: min(440px, 100%);
   display: flex;
   flex-direction: column;
   background: var(--paper);

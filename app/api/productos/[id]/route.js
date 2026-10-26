@@ -125,21 +125,32 @@ export async function DELETE(_request, { params }) {
       return Response.json({ error: "Producto no encontrado." }, { status: 404 });
     }
 
-    // Un producto con historial no se elimina: rompería el kardex y las
-    // facturas. Se desactiva en su lugar.
+    // Si el producto ya tiene historial (kardex, órdenes o facturas) borrarlo
+    // rompería la trazabilidad contable. En ese caso se archiva: desaparece de
+    // todos los listados y del catálogo, pero su historial queda intacto.
     const [movimientos, enOrdenes, enFacturas] = await Promise.all([
       prisma.movimientoKardex.count({ where: { productoId: id } }),
       prisma.ordenItem.count({ where: { productoId: id } }),
       prisma.documentoFiscalItem.count({ where: { productoId: id } }),
     ]);
+
     if (movimientos || enOrdenes || enFacturas) {
-      return Response.json(
-        {
-          error:
-            "Este producto tiene movimientos, ventas o facturas asociadas. Cámbialo a estado inactivo en lugar de eliminarlo.",
+      await prisma.producto.update({
+        where: { id },
+        data: {
+          archivado: true,
+          archivadoAt: new Date(),
+          estado: "inactivo",
+          updatedBy: guard.session?.correo ?? null,
         },
-        { status: 409 },
-      );
+      });
+      await writeLog("panel", `Producto archivado (tenía historial): ${producto.nombre} (${producto.sku})`, {
+        nivel: "warn",
+        actor: guard.session?.correo,
+        ruta: `/api/productos/${id}`,
+        detalle: { movimientos, enOrdenes, enFacturas },
+      });
+      return Response.json({ ok: true, archivado: true });
     }
 
     await prisma.producto.delete({ where: { id } });
@@ -148,7 +159,7 @@ export async function DELETE(_request, { params }) {
       actor: guard.session?.correo,
       ruta: `/api/productos/${id}`,
     });
-    return Response.json({ ok: true });
+    return Response.json({ ok: true, archivado: false });
   } catch (error) {
     if (error?.code === "P2025") {
       return Response.json({ error: "Producto no encontrado." }, { status: 404 });

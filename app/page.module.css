@@ -729,6 +729,22 @@
 }
 
 /* Chevron del disparador del mega menú */
+.megaTrigger {
+  position: relative;
+}
+
+/* Puente de hover: mantiene abierto el menú mientras el cursor baja desde
+   "Soluciones" hasta las opciones. Sin él el menú se cerraba solo a mitad
+   del recorrido. */
+.megaTrigger::before {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: -10px;
+  right: -10px;
+  height: 34px;
+}
+
 .megaTrigger::after {
   content: "";
   width: 6px;

@@ -15,7 +15,7 @@ export async function GET(request) {
     const contains = (field) => ({ [field]: { contains: query, mode: "insensitive" } });
     const results = [];
     const jobs = [];
-    if (permissions.includes("productos:read")) jobs.push(prisma.producto.findMany({ where: { OR: [contains("nombre"), contains("sku"), contains("marca"), contains("categoria")] }, take: 5, select: { id: true, nombre: true, sku: true, categoria: true } }).then((items) => {
+    if (permissions.includes("productos:read")) jobs.push(prisma.producto.findMany({ where: { archivado: false, OR: [contains("nombre"), contains("sku"), contains("marca"), contains("codigoBarras"), contains("categoria")] }, take: 5, select: { id: true, nombre: true, sku: true, categoria: true } }).then((items) => {
       results.push(...items.map((item) => ({ id: item.id, title: item.nombre, detail: `${item.sku} · ${item.categoria}`, section: "productos", sectionLabel: "Productos" })));
     }));
     if (permissions.includes("clientes:read")) jobs.push(prisma.cliente.findMany({ where: { OR: [contains("nombre"), contains("correo"), contains("contacto"), contains("rtn")] }, take: 5, select: { id: true, nombre: true, correo: true, rtn: true } }).then((items) => {

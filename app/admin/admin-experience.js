@@ -59,6 +59,8 @@ import {
 } from "lucide-react";
 import styles from "./admin-experience.module.css";
 import { compressImage } from "./image-utils";
+import BarcodeScanner from "./barcode-scan";
+import { setThemeMode } from "../theme-toggle";
 import { sileo } from "../toaster";
 import { useBodyScrollLock, useEscapeKey } from "./use-body-scroll-lock";
 import { AdminContext, NAV, SECTION_NAV_CONFIG } from "./admin-nav";
@@ -171,6 +173,7 @@ const EMPTY_PRODUCT = {
   id: "",
   nombre: "",
   sku: "",
+  codigoBarras: "",
   categoria: "Soluciones de Preconectorizado",
   marca: "",
   unidad: "Unidad",
@@ -1506,6 +1509,44 @@ function ProductsSection({ products, setProducts, categorias = [], workers = [],
   useEscapeKey(modalOpen, () => closeModal());
   useBodyScrollLock(modalOpen);
 
+  // Sugerencias para escribir rápido: las marcas y ubicaciones ya usadas se
+  // ofrecen mientras se teclea, y también los nombres de bodega registrados.
+  const marcaOptions = useMemo(() => {
+    const set = new Set();
+    products.forEach((product) => {
+      const value = String(product.marca || "").trim();
+      if (value) set.add(value);
+    });
+    return [...set].sort((a, b) => a.localeCompare(b, "es"));
+  }, [products]);
+
+  const [bodegaOptions, setBodegaOptions] = useState([]);
+  useEffect(() => {
+    let active = true;
+    fetch("/api/bodegas", { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : []))
+      .then((data) => {
+        if (!active) return;
+        setBodegaOptions(
+          (Array.isArray(data) ? data : [])
+            .map((item) => String(item?.nombre || "").trim())
+            .filter(Boolean),
+        );
+      })
+      .catch(() => {});
+    return () => { active = false; };
+  }, []);
+
+  const ubicacionOptions = useMemo(() => {
+    const set = new Set();
+    products.forEach((product) => {
+      const value = String(product.ubicacion || "").trim();
+      if (value) set.add(value);
+    });
+    bodegaOptions.forEach((value) => set.add(value));
+    return [...set].sort((a, b) => a.localeCompare(b, "es"));
+  }, [products, bodegaOptions]);
+
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
     if (tabId === "all") {
@@ -1539,7 +1580,7 @@ function ProductsSection({ products, setProducts, categorias = [], workers = [],
       if (stockOnly === "out" && Number(product.stock) > 0) return false;
       if (stockOnly === "in" && Number(product.stock) === 0) return false;
       if (!q) return true;
-      return [product.nombre, product.sku, product.marca]
+      return [product.nombre, product.sku, product.marca, product.codigoBarras]
         .join(" ")
         .toLowerCase()
         .includes(q);
@@ -1582,6 +1623,7 @@ function ProductsSection({ products, setProducts, categorias = [], workers = [],
       peso: product.peso == null ? "" : product.peso,
       stockMinimo: product.stockMinimo == null ? "" : product.stockMinimo,
       ubicacion: product.ubicacion ?? "",
+      codigoBarras: product.codigoBarras ?? "",
       descripcion: product.descripcion ?? "",
     });
     setEditingId(product.id);
@@ -1639,12 +1681,18 @@ function ProductsSection({ products, setProducts, categorias = [], workers = [],
       notifyError("El nombre del producto es obligatorio.");
       return;
     }
+    const precioNumero = Number(draft.precio);
+    if (!Number.isFinite(precioNumero) || precioNumero < 1) {
+      notifyError("El precio mínimo es L 1.00. Un producto no puede regalarse.");
+      return;
+    }
     const payload = {
       ...draft,
       nombre: draft.nombre.trim(),
       sku: String(draft.sku || "").trim().toUpperCase(),
+      codigoBarras: String(draft.codigoBarras || "").trim(),
       marca: String(draft.marca || "").trim(),
-      precio: Number(draft.precio) || 0,
+      precio: precioNumero,
       costo: draft.costo === "" || draft.costo == null ? null : Number(draft.costo) || 0,
       stock: Math.max(0, Math.floor(Number(draft.stock) || 0)),
       stockMinimo: Math.max(0, Math.floor(Number(draft.stockMinimo) || 0)),
@@ -1941,14 +1989,39 @@ function ProductsSection({ products, setProducts, categorias = [], workers = [],
                     placeholder="Ej. SP-1X8"
                   />
                 </label>
+                <label className={`${styles.field} ${styles.spanFull}`}>
+                  Código de barras (del fabricante)
+                  <div className={styles.barcodeRow}>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="off"
+                      value={draft.codigoBarras}
+                      onChange={(event) => changeField("codigoBarras", event.target.value)}
+                      placeholder="Ej. 7501234567890"
+                    />
+                    <BarcodeScanner
+                      onDetect={(code) => changeField("codigoBarras", String(code).trim())}
+                    />
+                  </div>
+                  <small className={styles.fieldHint}>
+                    Opcional: solo si la caja trae código EAN/UPC impreso. Puedes escanearlo con la cámara.
+                  </small>
+                </label>
                 <label className={styles.field}>
                   Marca
                   <input
                     type="text"
+                    list="producto-marcas"
+                    autoComplete="off"
                     value={draft.marca}
                     onChange={(event) => changeField("marca", event.target.value)}
                     placeholder="Ej. Fiberhome"
                   />
+                  <datalist id="producto-marcas">
+                    {marcaOptions.map((value) => <option key={value} value={value} />)}
+                  </datalist>
+                  <small className={styles.fieldHint}>Escribe y elige una marca ya registrada.</small>
                 </label>
                 <label className={styles.field}>
                   Categoría
@@ -1971,12 +2044,14 @@ function ProductsSection({ products, setProducts, categorias = [], workers = [],
                   Precio (L)
                   <input
                     type="number"
-                    min="0"
+                    min="1"
                     step="0.01"
+                    required
                     value={draft.precio}
                     onChange={(event) => changeField("precio", event.target.value)}
-                    placeholder="0.00"
+                    placeholder="1.00"
                   />
+                  <small className={styles.fieldHint}>Mínimo L 1.00: el sistema no permite productos a L 0.</small>
                 </label>
                 <label className={styles.field}>
                   Costo (L)
@@ -2017,10 +2092,16 @@ function ProductsSection({ products, setProducts, categorias = [], workers = [],
                   Ubicación en bodega
                   <input
                     type="text"
+                    list="producto-ubicaciones"
+                    autoComplete="off"
                     value={draft.ubicacion}
                     onChange={(event) => changeField("ubicacion", event.target.value)}
                     placeholder="Ej. Pasillo 3 · Estante B"
                   />
+                  <datalist id="producto-ubicaciones">
+                    {ubicacionOptions.map((value) => <option key={value} value={value} />)}
+                  </datalist>
+                  <small className={styles.fieldHint}>Autocompleta con ubicaciones y bodegas ya registradas.</small>
                 </label>
                 <label className={styles.field}>
                   Peso (kg)
@@ -2071,18 +2152,23 @@ function ProductsSection({ products, setProducts, categorias = [], workers = [],
           title="Eliminar producto"
           message={
             <>
-              ¿Seguro que deseas eliminar <strong>{confirmProduct.nombre}</strong>? Esta
-              acción no se puede deshacer.
+              ¿Seguro que deseas eliminar <strong>{confirmProduct.nombre}</strong>? Dejará de
+              aparecer en el catálogo y en el inventario. Si ya tiene movimientos o facturas, se
+              archiva para no perder el historial.
             </>
           }
           onCancel={() => setConfirmProduct(null)}
           onConfirm={async () => {
             try {
-              await deleteProduct(confirmProduct.id);
+              const result = await deleteProduct(confirmProduct.id);
               setProducts((current) =>
                 current.filter((product) => product.id !== confirmProduct.id),
               );
-              show("Producto eliminado.");
+              show(
+                result?.archivado
+                  ? "Producto eliminado. Se archivó su historial de inventario y facturas."
+                  : "Producto eliminado.",
+              );
             } catch (error) {
               show(error.message || "No se pudo eliminar el producto.", "error");
             }
@@ -4516,6 +4602,8 @@ function MiPerfilSection({ session, workers = [] }) {
       setEditMode(false);
       setPhotoPreview(null);
       await refreshProfile();
+      // La cabecera (avatar) escucha este evento y recarga la foto guardada.
+      window.dispatchEvent(new Event("arconet:profile-updated"));
       show("Perfil actualizado correctamente.");
     } catch (error) {
       show(error.message || "No se pudo guardar el perfil.", "error");
@@ -4894,21 +4982,21 @@ function AjustesSection({ session, workers = [] }) {
     return () => { active = false; };
   }, []);
 
-  useEffect(() => {
-    if (!settings?.theme || typeof document === "undefined") return;
-    const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
-    document.documentElement.dataset.theme = settings.theme === "system" ? (prefersDark ? "dark" : "light") : settings.theme;
-  }, [settings?.theme]);
-
   async function handleSave(event) {
     event.preventDefault();
     if (!settings || saving) return;
+    const previousTheme = settings.theme;
     setSaving(true);
     try {
       const response = await fetch("/api/configuracion", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(settings) });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || "No se pudo guardar la configuración.");
       setSettings(data);
+      // El tema solo se aplica cuando el usuario lo cambia y guarda: antes se
+      // imponía al abrir la sección y el sitio cambiaba de color "de la nada".
+      if (data.theme && data.theme !== previousTheme) {
+        setThemeMode(data.theme === "system" ? "auto" : data.theme === "dark" ? "dark" : "light");
+      }
       show("Configuración guardada.");
     } catch (saveError) { show(saveError.message, "error"); }
     finally { setSaving(false); }
@@ -4979,8 +5067,11 @@ function AjustesSection({ session, workers = [] }) {
                 <select value={settings.theme} onChange={(event) => changeField("theme", event.target.value)}>
                   <option value="light">Claro</option>
                   <option value="dark">Oscuro</option>
-                  <option value="system">Sistema</option>
+                  <option value="system">Automático (según la hora)</option>
                 </select>
+                <small className={styles.fieldHint}>
+                  Se aplica al sitio público al guardar. "Automático" cambia entre claro y oscuro según la hora.
+                </small>
               </label>
             </div>
 

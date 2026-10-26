@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
+import { useThemeMode } from "./theme-toggle";
 import styles from "./mobile-site-menu.module.css";
 
 const LINKS = [
@@ -19,6 +20,10 @@ export default function MobileSiteMenu({ floating = false }) {
   const [open, setOpen] = useState(false);
   const [panelStyle, setPanelStyle] = useState(null);
   const toggleRef = useRef(null);
+  // En pantallas chicas el botón flotante de tema se oculta porque se montaba
+  // encima de los controles de la página (por ejemplo el "+" de cantidad), así
+  // que el tema se cambia desde aquí.
+  const { label: themeLabel, Icon: ThemeIcon, cycle: cycleTheme } = useThemeMode();
 
   // El botón no siempre queda pegado al borde derecho (topbar del producto,
   // pestañas de acción con el botón "Hablemos" al lado), así que el panel se
@@ -28,7 +33,10 @@ export default function MobileSiteMenu({ floating = false }) {
     const rect = toggleRef.current?.getBoundingClientRect();
     if (!rect) return;
     const viewport = document.documentElement.clientWidth;
-    const width = Math.min(340, viewport - 28);
+    // En tableta el panel crece: una columna de 340px se veía diminuta y
+    // desconectada del resto del sitio.
+    const maxWidth = viewport >= 720 ? 420 : 340;
+    const width = Math.min(maxWidth, viewport - 28);
     const minRight = 14;
     const maxRight = Math.max(minRight, viewport - width - minRight);
     const right = Math.min(Math.max(viewport - rect.right, minRight), maxRight);
@@ -71,6 +79,10 @@ export default function MobileSiteMenu({ floating = false }) {
         <nav className={styles.panel} style={panelStyle || undefined} aria-label="Navegación principal">
           <span className={styles.label}>ARCONET · NAVEGACIÓN</span>
           {LINKS.map(([label, href]) => <Link key={label} href={href} onClick={() => setOpen(false)}>{label}<span aria-hidden="true">↗</span></Link>)}
+          <button type="button" className={styles.themeRow} onClick={cycleTheme} aria-label={`Tema: ${themeLabel}. Cambiar tema`}>
+            <span>Tema: {themeLabel}</span>
+            <ThemeIcon size={18} aria-hidden="true" />
+          </button>
           <div className={styles.legal}><Link href="/terminos" onClick={() => setOpen(false)}>Términos</Link><Link href="/privacidad" onClick={() => setOpen(false)}>Privacidad</Link></div>
         </nav>
       </>, document.body)}

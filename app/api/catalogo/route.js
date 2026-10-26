@@ -1,12 +1,14 @@
 import { prisma } from "../../../lib/prisma";
 
 export const runtime = "nodejs";
-export const revalidate = 60; // cache catalog for 60s
+// El catálogo se cachea muy poco: con 60 s un producto recién creado tardaba
+// hasta un minuto en aparecer y parecía que el guardado no había funcionado.
+export const revalidate = 5;
 
 export async function GET() {
   try {
     const productos = await prisma.producto.findMany({
-      where: { estado: "activo" },
+      where: { estado: "activo", archivado: false },
       orderBy: { nombre: "asc" },
       select: {
         id: true,
@@ -19,6 +21,7 @@ export async function GET() {
         precio: true,
         stock: true,
         foto: true,
+        fotos: true,
       },
     });
 
@@ -33,10 +36,11 @@ export async function GET() {
       precio: Number(producto.precio),
       stock: producto.stock,
       foto: producto.foto || "",
+      fotos: Array.isArray(producto.fotos) ? producto.fotos : [],
     }));
 
     return Response.json(items, {
-      headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
+      headers: { "Cache-Control": "public, s-maxage=5, stale-while-revalidate=25" },
     });
   } catch (error) {
     console.error("GET /api/catalogo", error);

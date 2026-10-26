@@ -1,9 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Bell, ExternalLink, HelpCircle, LogOut, Search, User, MessageSquare, AlertTriangle, CheckCircle } from "lucide-react";
+import { Bell, ExternalLink, HelpCircle, LogOut, Search, User, MessageSquare, AlertTriangle, CheckCircle, X } from "lucide-react";
 import { sileo } from "../toaster";
 import { AdminContext, NAV } from "./admin-nav";
 import { canAccessSection } from "../../lib/permisos";
@@ -68,8 +67,12 @@ export function Topbar({
   const [searchLoading, setSearchLoading] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [notificationFilter, setNotificationFilter] = useState("all");
   const [notifications, setNotifications] = useState([]);
+  const [photo, setPhoto] = useState("");
+  const [photoFailed, setPhotoFailed] = useState(false);
+  const mobileSearchInputRef = useRef(null);
   const accountRef = useRef(null);
   const accountButtonRef = useRef(null);
   const notificationsRef = useRef(null);
@@ -114,6 +117,33 @@ export function Topbar({
     const timer = window.setInterval(loadNotifications, 30000);
     return () => { active = false; window.clearInterval(timer); };
   }, [currentSession?.correo]);
+
+  // La foto del perfil se lee del servidor para que la cabecera muestre la
+  // última guardada, sin depender de la lista de trabajadores cargada al
+  // iniciar. Se refresca al guardar «Mi perfil».
+  useEffect(() => {
+    if (!currentSession?.correo) return undefined;
+    let active = true;
+    const loadPhoto = async () => {
+      try {
+        const response = await fetch("/api/perfil", { cache: "no-store" });
+        if (!response.ok) return;
+        const data = await response.json();
+        if (!active) return;
+        setPhoto(data?.trabajador?.foto || data?.foto || "");
+        setPhotoFailed(false);
+      } catch {}
+    };
+    loadPhoto();
+    const onUpdated = () => loadPhoto();
+    window.addEventListener("arconet:profile-updated", onUpdated);
+    return () => {
+      active = false;
+      window.removeEventListener("arconet:profile-updated", onUpdated);
+    };
+  }, [currentSession?.correo]);
+
+  const avatarSrc = !photoFailed ? photo || myWorker?.foto || "" : "";
 
   // El menu de cuenta se cierra al pulsar fuera, al pulsar Escape y al
   // cambiar de seccion.
@@ -173,6 +203,19 @@ export function Topbar({
     if (notification.solicitudId) adminCtx?.goTo?.("solicitudes");
   };
 
+  // Contenido compartido por el buscador de escritorio y el de móvil.
+  const searchResultsContent = searchLoading ? (
+    <p className={styles.globalSearchEmpty}>Buscando en tus datos…</p>
+  ) : searchResults.length ? (
+    searchResults.map((result) => (
+      <button key={`${result.section}-${result.id}`} type="button" role="option" aria-selected="false" onClick={() => { adminCtx?.goTo?.(result.section); setSearchOpen(false); setMobileSearchOpen(false); }}>
+        <strong>{result.title}</strong><span>{result.detail}</span><small>{result.sectionLabel}</small>
+      </button>
+    ))
+  ) : (
+    <p className={styles.globalSearchEmpty}>No se encontraron resultados con acceso para tu rol.</p>
+  );
+
   const markAllNotificationsRead = async () => {
     setNotifications((current) => current.map((item) => ({ ...item, read: true })));
     await fetch("/api/notificaciones", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ all: true }) }).catch(() => {});
@@ -227,6 +270,24 @@ export function Topbar({
 
         {/* Buscador, notificaciones y perfil */}
         <div className={styles.rightActions}>
+          {/* En pantallas pequeñas el buscador no cabe: se abre con este botón
+              y la barra aparece debajo de la fila de secciones. */}
+          <button
+            type="button"
+            className={styles.searchToggle}
+            onClick={() => {
+              setMobileSearchOpen((open) => {
+                if (!open) window.setTimeout(() => mobileSearchInputRef.current?.focus(), 40);
+                return !open;
+              });
+            }}
+            aria-label={mobileSearchOpen ? "Cerrar buscador" : "Abrir buscador"}
+            aria-expanded={mobileSearchOpen}
+            aria-controls="admin-mobile-search"
+            title="Buscar"
+          >
+            <Search size={17} />
+          </button>
           <div className={styles.searchPill}>
             <Search size={15} className={styles.searchIcon} />
             <input
@@ -248,11 +309,7 @@ export function Topbar({
             />
             {searchOpen && (
               <div className={styles.globalSearchResults} id="admin-global-search-results" role="listbox" aria-label="Resultados de búsqueda">
-                {searchLoading ? <p className={styles.globalSearchEmpty}>Buscando en tus datos…</p> : searchResults.length ? searchResults.map((result) => (
-                  <button key={`${result.section}-${result.id}`} type="button" role="option" aria-selected="false" onClick={() => { adminCtx?.goTo?.(result.section); setSearchOpen(false); }}>
-                    <strong>{result.title}</strong><span>{result.detail}</span><small>{result.sectionLabel}</small>
-                  </button>
-                )) : <p className={styles.globalSearchEmpty}>No se encontraron resultados con acceso para tu rol.</p>}
+                {searchResultsContent}
               </div>
             )}
           </div>
@@ -373,13 +430,14 @@ export function Topbar({
               aria-expanded={accountOpen}
               aria-controls="panel-account-menu"
             >
-              {myWorker?.foto ? (
-                <Image
-                  src={myWorker.foto}
+              {avatarSrc ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={avatarSrc}
                   alt=""
                   width={40}
                   height={40}
-                  priority
+                  onError={() => setPhotoFailed(true)}
                 />
               ) : (
                 <span className={styles.avatarFallback}>{currentSession?.nombre ? currentSession.nombre.charAt(0).toUpperCase() : "A"}</span>
@@ -395,13 +453,14 @@ export function Topbar({
               >
                 <div className={styles.accountHead}>
                   <span className={styles.accountAvatar}>
-                    {myWorker?.foto ? (
-                      <Image
-                        src={myWorker.foto}
+                    {avatarSrc ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={avatarSrc}
                         alt=""
                         width={44}
                         height={44}
-                        priority
+                        onError={() => setPhotoFailed(true)}
                       />
                     ) : (
                       <span className={styles.avatarFallback}>{currentSession?.nombre ? currentSession.nombre.charAt(0).toUpperCase() : "A"}</span>
@@ -469,6 +528,56 @@ export function Topbar({
           </div>
         </div>
       </div>
+
+      {/* Velo para las hojas de cuenta/notificaciones en el teléfono: cierra al
+          tocar fuera y evita que la página se lea por detrás. */}
+      {(accountOpen || notificationsOpen) && (
+        <button
+          type="button"
+          className={styles.sheetBackdrop}
+          aria-label="Cerrar menú"
+          onClick={() => { setAccountOpen(false); setNotificationsOpen(false); }}
+        />
+      )}
+
+      {mobileSearchOpen && (
+        <div className={styles.mobileSearch} id="admin-mobile-search">
+          <div className={styles.mobileSearchField}>
+            <Search size={16} className={styles.searchIcon} aria-hidden="true" />
+            <input
+              ref={mobileSearchInputRef}
+              type="search"
+              placeholder="Buscar productos, clientes, órdenes…"
+              value={searchVal}
+              onChange={(event) => setSearchVal(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && searchResults[0]) {
+                  adminCtx?.goTo?.(searchResults[0].section);
+                  setSearchOpen(false);
+                  setMobileSearchOpen(false);
+                } else if (event.key === "Escape") {
+                  setSearchOpen(false);
+                  setMobileSearchOpen(false);
+                }
+              }}
+              aria-label="Buscar en el panel"
+            />
+            <button
+              type="button"
+              className={styles.mobileSearchClose}
+              onClick={() => { setMobileSearchOpen(false); setSearchOpen(false); }}
+              aria-label="Cerrar buscador"
+            >
+              <X size={16} />
+            </button>
+          </div>
+          {searchOpen && (
+            <div className={styles.globalSearchResults} role="listbox" aria-label="Resultados de búsqueda">
+              {searchResultsContent}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ==============================================================
           2. SUB-BARRA DE SECCION (Titulo, subtitulo y accion)
