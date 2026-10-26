@@ -34,8 +34,10 @@ import {
   Monitor,
   Moon,
   Package,
+  Pause,
   Pencil,
   Phone,
+  Play,
   Plus,
   Printer,
   RefreshCw,
@@ -65,6 +67,7 @@ import { sileo } from "../toaster";
 import { useBodyScrollLock, useEscapeKey } from "./use-body-scroll-lock";
 import { AdminContext, NAV, SECTION_NAV_CONFIG } from "./admin-nav";
 import { SectionTabs, Topbar } from "./topbar";
+import { formatTimestamp } from "./log-utils";
 const SolicitudesPanel = lazy(() => import("./solicitudes-panel"));
 const InventarioPanel = lazy(() => import("./inventario-panel"));
 const FacturacionPanel = lazy(() => import("./facturacion-panel"));
@@ -4081,20 +4084,8 @@ function formatUptime(seconds) {
   return `${minutes}m`;
 }
 
-function formatTimestamp(value) {
-  if (!value) return "—";
-  try {
-    return new Date(value).toLocaleString("es-HN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch {
-    return String(value);
-  }
-}
+
+
 
 function MonitoreoSection({ session, workers = [] }) {
   const [status, setStatus] = useState(null);
@@ -4356,6 +4347,11 @@ const LOG_CATEGORY_LABELS = {
   panel: "Panel",
 };
 
+/** Tamano de pagina del listado de logs (Fase 2: paginacion). */
+const LOG_PAGE_SIZE = 50;
+/** Intervalo de auto-actualizacion cuando la pausa esta desactivada. */
+const LOG_REFRESH_MS = 30_000;
+
 function LogsSection({ session, workers = [] }) {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -4363,6 +4359,8 @@ function LogsSection({ session, workers = [] }) {
   const [error, setError] = useState("");
   const [tab, setTab] = useState("all");
   const [nivel, setNivel] = useState("todos");
+  const [page, setPage] = useState(1);
+  const [paused, setPaused] = useState(false);
 
   const loadLogs = useCallback(
     async (categoria = "todas", filtroNivel = "todos") => {
@@ -4392,12 +4390,22 @@ function LogsSection({ session, workers = [] }) {
     [],
   );
 
+  // Al cambiar filtros se vuelve a la primera pagina.
+  useEffect(() => {
+    setPage(1);
+  }, [tab, nivel]);
+
   useEffect(() => {
     setRefreshing(true);
     loadLogs(tab, nivel);
-    const timer = setInterval(() => loadLogs(tab, nivel), 30000);
+    if (paused) return () => setRefreshing(false);
+    const timer = setInterval(() => loadLogs(tab, nivel), LOG_REFRESH_MS);
     return () => clearInterval(timer);
-  }, [loadLogs, tab, nivel]);
+  }, [loadLogs, tab, nivel, paused]);
+
+  const totalPages = Math.max(1, Math.ceil(logs.length / LOG_PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const visibleLogs = logs.slice((safePage - 1) * LOG_PAGE_SIZE, safePage * LOG_PAGE_SIZE);
 
   return (
     <>
@@ -4405,18 +4413,30 @@ function LogsSection({ session, workers = [] }) {
         title="Logs del sistema"
         subtitle="Registro de actividad de autenticación, API, base de datos y panel."
         action={
-          <button
-            type="button"
-            className={styles.ghostBtn}
-            onClick={() => {
-              setRefreshing(true);
-              loadLogs(tab, nivel);
-            }}
-            disabled={refreshing}
-          >
-            <RefreshCw size={15} className={refreshing ? styles.spinning : undefined} />
-            {refreshing ? "Actualizando..." : "Actualizar"}
-          </button>
+          <div className={styles.logsActions}>
+            <button
+              type="button"
+              className={styles.ghostBtn}
+              onClick={() => setPaused((prev) => !prev)}
+              aria-pressed={paused}
+              title={paused ? "Reanudar actualizacion automatica" : "Pausar actualizacion automatica"}
+            >
+              {paused ? <Play size={15} /> : <Pause size={15} />}
+              {paused ? "Reanudar" : "Pausar"}
+            </button>
+            <button
+              type="button"
+              className={styles.ghostBtn}
+              onClick={() => {
+                setRefreshing(true);
+                loadLogs(tab, nivel);
+              }}
+              disabled={refreshing}
+            >
+              <RefreshCw size={15} className={refreshing ? styles.spinning : undefined} />
+              {refreshing ? "Actualizando..." : "Actualizar"}
+            </button>
+          </div>
         }
         session={session}
         workers={workers}
@@ -4454,7 +4474,7 @@ function LogsSection({ session, workers = [] }) {
               <span className={styles.logsCount}>
                 {loading
                   ? "Cargando registros..."
-                  : `${logs.length} registro${logs.length === 1 ? "" : "s"}`}
+                  : `${logs.length} registro${logs.length === 1 ? "" : "s"}${paused ? " · auto-refresh en pausa" : ""}`}
               </span>
             </div>
           </div>
@@ -4476,38 +4496,64 @@ function LogsSection({ session, workers = [] }) {
                 No hay registros para los filtros seleccionados.
               </p>
             ) : (
-              <ul className={styles.logsList}>
-                {logs.map((log) => {
-                  const level = LOG_LEVELS[log.nivel] || LOG_LEVELS.info;
-                  const LevelIcon = level.icon;
-                  return (
-                    <li key={log.id} className={styles.logItem}>
-                      <div className={styles.logHeader}>
-                        <span
-                          className={`${styles.logLevel} ${styles[`logLevel_${log.nivel}`] || ""}`}
-                        >
-                          <LevelIcon size={12} />
-                          {level.label}
-                        </span>
-                        <span className={styles.logCategory}>
-                          {LOG_CATEGORY_LABELS[log.categoria] || log.categoria}
-                        </span>
-                        <span className={styles.logTime}>
-                          {formatTimestamp(log.createdAt)}
-                        </span>
-                      </div>
-                      <p className={styles.logMessage}>{log.mensaje}</p>
-                      {(log.actor || log.ruta) && (
-                        <small className={styles.logActor}>
-                          {log.actor ? `Por: ${log.actor}` : ""}
-                          {log.actor && log.ruta ? " · " : ""}
-                          {log.ruta || ""}
-                        </small>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
+              <>
+                <ul className={styles.logsList}>
+                  {visibleLogs.map((log) => {
+                    const level = LOG_LEVELS[log.nivel] || LOG_LEVELS.info;
+                    const LevelIcon = level.icon;
+                    return (
+                      <li key={log.id} className={styles.logItem}>
+                        <div className={styles.logHeader}>
+                          <span
+                            className={`${styles.logLevel} ${styles[`logLevel_${log.nivel}`] || ""}`}
+                          >
+                            <LevelIcon size={12} />
+                            {level.label}
+                          </span>
+                          <span className={styles.logCategory}>
+                            {LOG_CATEGORY_LABELS[log.categoria] || log.categoria}
+                          </span>
+                          <span className={styles.logTime}>
+                            {formatTimestamp(log.createdAt)}
+                          </span>
+                        </div>
+                        <p className={styles.logMessage}>{log.mensaje}</p>
+                        {(log.actor || log.ruta) && (
+                          <small className={styles.logActor}>
+                            {log.actor ? `Por: ${log.actor}` : ""}
+                            {log.actor && log.ruta ? " · " : ""}
+                            {log.ruta || ""}
+                          </small>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+
+                {totalPages > 1 && (
+                  <nav className={styles.pagination} aria-label="Paginacion de registros">
+                    <button
+                      type="button"
+                      className={styles.ghostBtn}
+                      onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                      disabled={safePage <= 1}
+                    >
+                      <ArrowLeft size={15} /> Anterior
+                    </button>
+                    <span className={styles.pageInfo}>
+                      Pagina {safePage} de {totalPages}
+                    </span>
+                    <button
+                      type="button"
+                      className={styles.ghostBtn}
+                      onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+                      disabled={safePage >= totalPages}
+                    >
+                      Siguiente <ArrowRight size={15} />
+                    </button>
+                  </nav>
+                )}
+              </>
             )}
           </div>
         </section>

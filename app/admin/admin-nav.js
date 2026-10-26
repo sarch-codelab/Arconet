@@ -21,6 +21,7 @@ import {
   Receipt,
   Server,
   Settings,
+  ShoppingCart,
   ShieldCheck,
   ScrollText,
   Tags,

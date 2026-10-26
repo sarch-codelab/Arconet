@@ -17,7 +17,9 @@ export const dynamic = "force-dynamic";
 export default async function PanelAdministrativoPage({ searchParams }) {
   const session = await getSession();
   if (!session) {
-    redirect("/admin");
+    // Sin sesion no hay panel: se envia al login interno (que a su vez redirige
+    // al panel si la sesion reaparece). Nunca a /admin como pagina muerta.
+    redirect("/login");
   }
 
   const [permisos, rol] = await Promise.all([

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Camera, ScanLine, X } from "lucide-react";
+import { Camera, ImageUp, ScanLine, X } from "lucide-react";
 import styles from "./barcode-scan.module.css";
 
 /**
@@ -45,6 +45,12 @@ export default function BarcodeScanner({ onDetect, disabled = false }) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("idle");
+  // En escritorio "environment" no existe: se lista el dispositivo frontal y
+  // se ofrece un boton para levantar la webcam del equipo (Fase 2).
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent),
+  );
+  const fileInputRef = useRef(null);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const frameRef = useRef(0);
@@ -93,7 +99,7 @@ export default function BarcodeScanner({ onDetect, disabled = false }) {
       if (!navigator.mediaDevices?.getUserMedia || !window.isSecureContext) {
         setError(
           window.isSecureContext
-            ? "Este navegador no permite abrir la cámara desde la página. Escribe el código a mano."
+            ? "Este navegador no permite abrir la cámara desde la página. Escribe el código a mano o sube una foto."
             : "La cámara solo funciona sobre HTTPS. Abre el sitio con https:// o escribe el código a mano.",
         );
         setStatus("error");
@@ -240,6 +246,54 @@ export default function BarcodeScanner({ onDetect, disabled = false }) {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [open, close]);
 
+  // Escaneo de respaldo por imagen: funciona en cualquier equipo (webcam que
+  // no levanta permisos, sin camara, o codigo impreso fotografiable). Usa el
+  // decodificador ZXing sobre un frame estatico.
+  const decodeFromImageFile = useCallback(async (file) => {
+    if (!file) return;
+    try {
+      setError("");
+      setStatus("starting");
+      const { library } = await loadZxing();
+      const url = URL.createObjectURL(file);
+      try {
+        const image = new window.Image();
+        image.src = url;
+        await image.decode();
+        const hints = new Map();
+        hints.set(library.DecodeHintType.POSSIBLE_FORMATS, [
+          library.BarcodeFormat.EAN_13,
+          library.BarcodeFormat.EAN_8,
+          library.BarcodeFormat.UPC_A,
+          library.BarcodeFormat.UPC_E,
+          library.BarcodeFormat.CODE_128,
+          library.BarcodeFormat.CODE_39,
+          library.BarcodeFormat.ITF,
+          library.BarcodeFormat.CODABAR,
+          library.BarcodeFormat.QR_CODE,
+        ]);
+        hints.set(library.DecodeHintType.TRY_HARDER, true);
+        const reader = new library.MultiFormatReader();
+        const luminance = new library.HTMLCanvasElementLuminanceSource(image);
+        const binarizer = new library.HybridBinarizer(luminance);
+        const result = reader.decode(new library.BinaryBitmap(binarizer), hints);
+        const value = result?.text?.trim();
+        if (value) {
+          onDetectRef.current?.(value);
+          close();
+        } else {
+          setError("No se encontro un codigo en la imagen. Prueba con otra foto mas nitida.");
+          setStatus("error");
+        }
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    } catch {
+      setError("No se pudo leer la imagen. Escribe el codigo a mano.");
+      setStatus("error");
+    }
+  }, [close]);
+
   return (
     <>
       <button
@@ -273,7 +327,9 @@ export default function BarcodeScanner({ onDetect, disabled = false }) {
               <span className={styles.reticle} aria-hidden="true" />
               {status !== "scanning" && (
                 <p className={styles.hint}>
-                  {status === "error" ? error : "Apunta la cámara al código de barras del fabricante…"}
+                  {status === "error" ? error : isMobile
+                    ? "Apunta la cámara al código de barras del fabricante…"
+                    : "Coloca el código frente a la webcam o sube una foto."}
                 </p>
               )}
             </div>
@@ -281,6 +337,27 @@ export default function BarcodeScanner({ onDetect, disabled = false }) {
             {error && status === "error" ? null : (
               <p className={styles.hint}>Alinea el código dentro del recuadro. Se detecta solo.</p>
             )}
+
+            <footer className={styles.actions}>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  event.target.value = "";
+                  decodeFromImageFile(file);
+                }}
+              />
+              <button
+                type="button"
+                className={styles.secondaryAction}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <ImageUp size={15} aria-hidden="true" /> Leer desde imagen
+              </button>
+            </footer>
           </div>
         </div>,
         document.body,
