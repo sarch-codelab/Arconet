@@ -364,6 +364,7 @@ export default function ProductDetail({ slug }) {
                         src={product.foto}
                         alt={product.nombre}
                         fill
+                        unoptimized={String(product.foto).startsWith("data:")}
                         sizes="(max-width: 700px) 90vw, 30vw"
                         className={styles.productCardImage}
                       />

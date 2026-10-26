@@ -348,6 +348,7 @@ export default function ProductPage({ product }) {
                       src={item.foto}
                       alt={item.nombre}
                       fill
+                      unoptimized={String(item.foto).startsWith("data:")}
                       sizes="(max-width: 700px) 46vw, 22vw"
                       className={styles.relatedImage}
                     />

@@ -828,7 +828,7 @@ export default function CatalogoExperience() {
 
         <div className={styles.supportMedia} data-reveal>
           <Image
-            src="/neto-mañana.png"
+            src="/neto-manana.png"
             alt="Neto, representante de Arconet"
             fill
             sizes="(max-width: 900px) 92vw, 42vw"

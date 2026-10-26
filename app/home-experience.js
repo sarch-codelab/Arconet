@@ -258,7 +258,7 @@ const COMMITMENTS = [
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 
 const TIME_IMAGES = {
-  manana: "/neto-mañana.png",
+  manana: "/neto-manana.png",
   tarde: "/neto-tarde.png",
   noche: "/neto-noche.png",
 };
