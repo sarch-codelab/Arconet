@@ -50,3 +50,12 @@ next-env.d.ts
 
 # amp orb portals
 .amp/portals/*
+
+# agentes / herramientas de IA (no versionar)
+.agents/
+.amp/
+.freebuff/
+
+# capturas y volcados locales de depuración
+/*.png
+ops/backups/*.jsonl.gz

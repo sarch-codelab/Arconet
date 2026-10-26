@@ -1,4 +1,4 @@
-const baseUrl = "https://arconethn.com";
+const baseUrl = process.env.APP_ORIGIN || "https://arconethn.com";
 
 export default function robots() {
   return {

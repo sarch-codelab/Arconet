@@ -1,4 +1,4 @@
-const baseUrl = "https://arconethn.com";
+const baseUrl = process.env.APP_ORIGIN || "https://arconethn.com";
 
 import { FAMILIES } from "./catalogo/catalogo-data";
 import { prisma } from "../lib/prisma";

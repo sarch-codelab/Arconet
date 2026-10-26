@@ -8,7 +8,7 @@ import AppToaster from "./toaster";
 import ThemeInit from "./theme-init";
 
 export const metadata = {
-  metadataBase: new URL("https://arconethn.com"),
+  metadataBase: new URL(process.env.APP_ORIGIN || "https://arconethn.com"),
   applicationName: "Arconet",
   appleWebApp: {
     capable: true,
@@ -34,7 +34,7 @@ export const metadata = {
   openGraph: {
     type: "website",
     locale: "es_HN",
-    url: "https://arconethn.com",
+    url: process.env.APP_ORIGIN || "https://arconethn.com",
     siteName: "Arconet",
     title: "Arconet | Fibra óptica y telecomunicaciones en Honduras",
     description:

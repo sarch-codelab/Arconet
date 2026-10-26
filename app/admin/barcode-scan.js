@@ -8,24 +8,36 @@ import styles from "./barcode-scan.module.css";
 /**
  * Botón + overlay para leer el código de barras con la cámara del teléfono.
  *
- * Usa la API nativa `BarcodeDetector` (Chrome/Edge/Android). Si el navegador no
- * la soporta se avisa en el propio panel y el código se puede teclear a mano,
- * de modo que el campo nunca queda bloqueado.
+ * Estrategia de decodificación (por orden de preferencia):
+ *  1. `BarcodeDetector` nativo cuando existe (Chrome/Edge Android y escritorio).
+ *     Es lo más rápido y no añade peso a la descarga.
+ *  2. ZXing como respaldo universal: funciona en Safari/iOS, Firefox y
+ *     cualquier navegador que exponga `getUserMedia`, que es justo donde el
+ *     detector nativo NO está disponible. Sin esto, el lector simplemente no
+ *     arrancaba en iPhone/iPad ni en Firefox.
+ *
+ * La cámara requiere un contexto seguro (HTTPS o localhost); si falta, se
+ * avisa con un mensaje claro y el código siempre puede teclearse a mano.
  */
 
-const FORMATS = [
-  "ean_13",
-  "ean_8",
-  "upc_a",
-  "upc_e",
-  "code_128",
-  "code_39",
-  "itf",
-  "codabar",
-  "qr_code",
-];
+let zxingPromise = null;
+function loadZxing() {
+  // Carga diferida: solo baja el decodificador cuando el escáner se abre y
+  // el navegador no trae BarcodeDetector nativo.
+  if (!zxingPromise) {
+    zxingPromise = Promise.all([
+      import("@zxing/browser"),
+      import("@zxing/library"),
+    ]).then(([browser, library]) => ({
+      browser,
+      library,
+      reader: new browser.BrowserMultiFormatReader(),
+    }));
+  }
+  return zxingPromise;
+}
 
-function supportsScanner() {
+function supportsNativeScanner() {
   return typeof window !== "undefined" && "BarcodeDetector" in window;
 }
 
@@ -36,6 +48,8 @@ export default function BarcodeScanner({ onDetect, disabled = false }) {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const frameRef = useRef(0);
+  const controlsRef = useRef(null);
+  const cancelledRef = useRef(false);
   // El callback cambia en cada render del formulario; guardarlo en un ref
   // evita reiniciar la cámara cada vez que el padre se vuelve a pintar.
   const onDetectRef = useRef(onDetect);
@@ -45,6 +59,15 @@ export default function BarcodeScanner({ onDetect, disabled = false }) {
     if (frameRef.current) {
       window.clearTimeout(frameRef.current);
       frameRef.current = 0;
+    }
+    const controls = controlsRef.current;
+    controlsRef.current = null;
+    if (controls) {
+      try {
+        controls.stop();
+      } catch {
+        /* ya estaba detenido */
+      }
     }
     const stream = streamRef.current;
     if (stream) {
@@ -64,15 +87,15 @@ export default function BarcodeScanner({ onDetect, disabled = false }) {
     if (!open) return undefined;
 
     let cancelled = false;
+    cancelledRef.current = false;
 
     const start = async () => {
-      if (!navigator.mediaDevices?.getUserMedia) {
-        setError("Este navegador no permite abrir la cámara desde la página. Escribe el código a mano.");
-        setStatus("error");
-        return;
-      }
-      if (!supportsScanner()) {
-        setError("Este navegador no incluye lector de códigos. Usa Chrome en Android o escribe el código a mano.");
+      if (!navigator.mediaDevices?.getUserMedia || !window.isSecureContext) {
+        setError(
+          window.isSecureContext
+            ? "Este navegador no permite abrir la cámara desde la página. Escribe el código a mano."
+            : "La cámara solo funciona sobre HTTPS. Abre el sitio con https:// o escribe el código a mano.",
+        );
         setStatus("error");
         return;
       }
@@ -80,7 +103,11 @@ export default function BarcodeScanner({ onDetect, disabled = false }) {
       try {
         setStatus("starting");
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+          video: {
+            facingMode: { ideal: "environment" },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          },
           audio: false,
         });
         if (cancelled) {
@@ -94,38 +121,103 @@ export default function BarcodeScanner({ onDetect, disabled = false }) {
           await video.play().catch(() => {});
         }
 
-        let detector;
-        try {
-          detector = new window.BarcodeDetector({ formats: FORMATS });
-        } catch {
-          detector = new window.BarcodeDetector();
+        if (supportsNativeScanner()) {
+          let detector;
+          try {
+            detector = new window.BarcodeDetector({
+              formats: [
+                "ean_13",
+                "ean_8",
+                "upc_a",
+                "upc_e",
+                "code_128",
+                "code_39",
+                "itf",
+                "codabar",
+                "qr_code",
+              ],
+            });
+          } catch {
+            detector = new window.BarcodeDetector();
+          }
+
+          setStatus("scanning");
+
+          const tick = async () => {
+            if (cancelled || !videoRef.current) return;
+            try {
+              const codes = await detector.detect(videoRef.current);
+              const value = codes?.[0]?.rawValue?.trim();
+              if (value) {
+                onDetectRef.current?.(value);
+                close();
+                return;
+              }
+            } catch {
+              // Un fotograma ilegible no debe cortar el escaneo.
+            }
+            frameRef.current = window.setTimeout(tick, 220);
+          };
+          frameRef.current = window.setTimeout(tick, 300);
+          return;
         }
 
+        // Respaldo universal (Safari/iOS, Firefox, etc.) con ZXing.
+        const { browser: zxing, library, reader } = await loadZxing();
+        if (cancelled) return;
         setStatus("scanning");
 
-        const tick = async () => {
-          if (cancelled || !videoRef.current) return;
-          try {
-            const codes = await detector.detect(videoRef.current);
-            const value = codes?.[0]?.rawValue?.trim();
+        const hints = new Map();
+        hints.set(library.DecodeHintType.POSSIBLE_FORMATS, [
+          zxing.BarcodeFormat.EAN_13,
+          zxing.BarcodeFormat.EAN_8,
+          zxing.BarcodeFormat.UPC_A,
+          zxing.BarcodeFormat.UPC_E,
+          zxing.BarcodeFormat.CODE_128,
+          zxing.BarcodeFormat.CODE_39,
+          zxing.BarcodeFormat.ITF,
+          zxing.BarcodeFormat.CODABAR,
+          zxing.BarcodeFormat.QR_CODE,
+        ]);
+        hints.set(library.DecodeHintType.TRY_HARDER, true);
+
+        const controls = await reader.decodeFromVideoDevice(
+          undefined, // deja que el navegador elija: en móvil suele priorizar la cámara trasera
+          videoRef.current,
+          (result, err, ctrls) => {
+            if (cancelled) return;
+            const value = result?.text?.trim();
             if (value) {
+              ctrls.stop();
               onDetectRef.current?.(value);
               close();
-              return;
             }
+          },
+          hints,
+        );
+        if (cancelled) {
+          try {
+            controls.stop();
           } catch {
-            // Un fotograma ilegible no debe cortar el escaneo.
+            /* noop */
           }
-          frameRef.current = window.setTimeout(tick, 220);
-        };
-        frameRef.current = window.setTimeout(tick, 300);
+          return;
+        }
+        controlsRef.current = controls;
       } catch (err) {
         if (cancelled) return;
-        const denied = err?.name === "NotAllowedError" || err?.name === "SecurityError";
+        const denied =
+          err?.name === "NotAllowedError" ||
+          err?.name === "SecurityError" ||
+          err?.name === "PermissionDeniedError";
+        const noCamera =
+          err?.name === "NotFoundError" || err?.name === "OverconstrainedError";
         setError(
           denied
             ? "No diste permiso para usar la cámara. Habilítalo en el navegador o escribe el código a mano."
-            : "No se pudo abrir la cámara. Revisa que no la esté usando otra aplicación.",
+            : noCamera
+              ? "No encontramos una cámara disponible en este dispositivo. Escribe el código a mano."
+              : "No se pudo abrir la cámara. Revisa que no la esté usando otra aplicación.",
         );
         setStatus("error");
       }

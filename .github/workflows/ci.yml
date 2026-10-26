@@ -30,6 +30,15 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
+      - name: Lint (bloquea solo errores)
+        run: npx eslint . --quiet
+
+      - name: Validar esquema Prisma
+        run: npx prisma validate
+
+      - name: Tests
+        run: npm test
+
       - name: Compilar
         env:
           # Todas las rutas son force-dynamic, el build no consulta la BD;

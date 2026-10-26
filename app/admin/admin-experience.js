@@ -5070,7 +5070,7 @@ function AjustesSection({ session, workers = [] }) {
                   <option value="system">Automático (según la hora)</option>
                 </select>
                 <small className={styles.fieldHint}>
-                  Se aplica al sitio público al guardar. "Automático" cambia entre claro y oscuro según la hora.
+                  Se aplica al sitio público al guardar. &quot;Automático&quot; cambia entre claro y oscuro según la hora.
                 </small>
               </label>
             </div>
