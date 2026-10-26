@@ -3,6 +3,7 @@ import { newProductoId, parseProducto } from "../../../lib/productos";
 import { toProducto } from "../../../lib/serialize";
 import { requirePermission, requireSession } from "../../../lib/dal";
 import { writeLog } from "../../../lib/logs";
+import { aplicarMovimiento, bodegaPrincipal } from "../../../lib/inventario";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -65,9 +66,30 @@ export async function POST(request) {
   }
 
   try {
-    const producto = await prisma.producto.create({
-      data: { id: newProductoId(), ...data, createdBy: guard.session?.correo ?? null },
-    });
+    const { stock = 0, ...resto } = data;
+    const producto = await prisma.$transaction(
+      async (tx) => {
+        const creado = await tx.producto.create({
+          data: { id: newProductoId(), ...resto, stock: 0, createdBy: guard.session?.correo ?? null },
+        });
+        // El stock inicial entra por kardex: así el producto nace con saldo
+        // trazable en la bodega principal y no como un número suelto.
+        if (Number(stock) > 0) {
+          const bodega = await bodegaPrincipal(tx);
+          await aplicarMovimiento(tx, {
+            tipo: "ajuste",
+            productoId: creado.id,
+            bodegaId: bodega.id,
+            cantidad: Number(stock),
+            motivo: "Stock inicial del producto",
+            referencia: "inicial",
+            actor: guard.session?.correo ?? null,
+          });
+        }
+        return tx.producto.findUnique({ where: { id: creado.id } });
+      },
+      { timeout: 20_000 },
+    );
     await writeLog("panel", `Producto creado: ${producto.nombre} (${producto.sku})`, {
       actor: guard.session?.correo,
       ruta: "/api/productos",
@@ -75,6 +97,7 @@ export async function POST(request) {
     });
     return Response.json(toProducto(producto), { status: 201 });
   } catch (error) {
+    if (error?.status) return Response.json({ error: error.message }, { status: error.status });
     if (error?.code === "P2002") {
       return Response.json({ error: "Ya existe un producto con ese SKU." }, { status: 409 });
     }

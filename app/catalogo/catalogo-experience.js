@@ -33,6 +33,7 @@ import { useCart } from "../cart-context";
 import { useCatalogProducts } from "./catalogo-products";
 import { useCategorias } from "./categorias-store";
 import Footer from "../footer";
+import MobileSiteMenu from "../mobile-site-menu";
 
 const NAVIGATION = [
   { id: "inicio", label: "Inicio", mega: false, href: "/" },
@@ -541,6 +542,11 @@ export default function CatalogoExperience() {
                   <a key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)}>{item.label}</a>
                 )
               )}
+              <div className={styles.mobileMenuLegal}>
+                <Link href="/terminos" onClick={() => setMobileMenuOpen(false)}>Términos</Link>
+                <Link href="/privacidad" onClick={() => setMobileMenuOpen(false)}>Privacidad</Link>
+                <Link href="/ayuda" onClick={() => setMobileMenuOpen(false)}>Ayuda</Link>
+              </div>
             </div>
           )}
         </div>
@@ -578,6 +584,7 @@ export default function CatalogoExperience() {
               ))}
             </nav>
             <div className={styles.heroActionTab}>
+              <MobileSiteMenu />
               <button
                 type="button"
                 className={styles.contactButton}

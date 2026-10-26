@@ -24,6 +24,49 @@
   line-height: 1.5;
 }
 
+.strength {
+  display: grid;
+  gap: 7px;
+  margin-top: -10px;
+}
+
+.strengthBars {
+  display: flex;
+  gap: 4px;
+}
+
+.strengthBars i {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: #e5e7eb;
+  transition: background 160ms ease;
+}
+
+.strengthBars i.on {
+  background: #2563eb;
+}
+
+.strength[data-level="1"] .strengthBars i.on {
+  background: #dc2626;
+}
+
+.strength[data-level="2"] .strengthBars i.on {
+  background: #d97706;
+}
+
+.strength[data-level="4"] .strengthBars i.on {
+  background: #059669;
+}
+
+.strength .fieldHint {
+  margin-top: 0;
+}
+
+:global(html[data-theme="dark"]) .strengthBars i {
+  background: #333b47;
+}
+
 .consentRow {
   align-items: flex-start !important;
   gap: 12px !important;

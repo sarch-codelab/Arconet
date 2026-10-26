@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
@@ -10,16 +11,22 @@ import {
   Clock,
   Download,
   FileText,
+  Lock,
   LogOut,
+  MailWarning,
   Package,
   Plus,
   Send,
+  ShieldCheck,
   User,
   X,
 } from "lucide-react";
 import styles from "./cliente-experience.module.css";
 import { CONTACT_EMAIL, CONTACT_PHONE, CONTACT_PHONE_HREF } from "../../lib/contact";
+import { fuerzaPassword, validarPassword } from "../../lib/seguridad";
 import { sileo } from "../toaster";
+
+const FUERZA_LABEL = ["Muy débil", "Débil", "Aceptable", "Fuerte", "Muy fuerte"];
 
 export default function ClientExperience() {
   const router = useRouter();
@@ -178,6 +185,17 @@ function ClientDashboard({ session, orders, setOrders, onLogout }) {
           </header>
 
           <div className={styles.dashboardBody}>
+            {session.verificado === false && (
+              <div className={styles.verifyBanner} role="status">
+                <MailWarning size={16} />
+                <p>
+                  Verifica <strong>{session.correo}</strong> para recibir avisos de tus
+                  cotizaciones y entregas.
+                </p>
+                <Link href="/verificar">Verificar ahora</Link>
+              </div>
+            )}
+
             {activeTab === "dashboard" && (
               <div className={styles.dashboardGrid}>
                 <section className={styles.welcomeCard}>
@@ -365,6 +383,8 @@ function ClientDashboard({ session, orders, setOrders, onLogout }) {
                     </div>
                   </div>
                 </div>
+
+                <SecurityCard session={session} />
               </div>
             )}
 
@@ -531,5 +551,123 @@ function ClientDashboard({ session, orders, setOrders, onLogout }) {
         )}
       </div>
     </main>
+  );
+}
+
+function SecurityCard({ session }) {
+  const [form, setForm] = useState({ actual: "", nueva: "", confirmar: "" });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const fuerza = fuerzaPassword(form.nueva);
+
+  const update = (campo) => (event) => {
+    setForm((current) => ({ ...current, [campo]: event.target.value }));
+    if (error) setError("");
+  };
+
+  async function submit(event) {
+    event.preventDefault();
+    if (saving) return;
+    setError("");
+    if (form.nueva !== form.confirmar) {
+      setError("Las contraseñas no coinciden.");
+      return;
+    }
+    const policy = validarPassword(form.nueva, { contexto: session.correo });
+    if (!policy.ok) {
+      setError(policy.error);
+      return;
+    }
+    setSaving(true);
+    try {
+      const response = await fetch("/api/cliente-auth/password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ actual: form.actual, nueva: form.nueva }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "No se pudo actualizar la contraseña.");
+      setForm({ actual: "", nueva: "", confirmar: "" });
+      sileo.success({ title: "Contraseña actualizada", description: "Usa la nueva en tu próximo inicio de sesión." });
+    } catch (err) {
+      setError(err.message || "No se pudo actualizar la contraseña.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <section className={styles.securityCard} aria-label="Seguridad de la cuenta">
+      <header className={styles.securityHead}>
+        <span className={styles.securityIcon}><ShieldCheck size={18} /></span>
+        <div>
+          <h3>Seguridad</h3>
+          <p>Tu correo y tu contraseña de acceso al portal.</p>
+        </div>
+      </header>
+
+      <div className={styles.securityStatus}>
+        <span className={session.verificado ? styles.statusOk : styles.statusPending}>
+          {session.verificado ? <Check size={14} /> : <MailWarning size={14} />}
+          {session.verificado ? "Correo verificado" : "Correo sin verificar"}
+        </span>
+        <strong>{session.correo}</strong>
+        {!session.verificado && <Link href="/verificar">Verificar ahora</Link>}
+      </div>
+
+      <form className={styles.securityForm} onSubmit={submit} noValidate>
+        <p className={styles.securityLabel}><Lock size={14} /> Cambiar contraseña</p>
+
+        <label className={styles.field}>
+          Contraseña actual
+          <input
+            type="password"
+            autoComplete="current-password"
+            required
+            value={form.actual}
+            onChange={update("actual")}
+          />
+        </label>
+
+        <label className={styles.field}>
+          Nueva contraseña
+          <input
+            type="password"
+            autoComplete="new-password"
+            required
+            minLength={12}
+            placeholder="Mínimo 12 caracteres"
+            value={form.nueva}
+            onChange={update("nueva")}
+          />
+        </label>
+
+        <div className={styles.strength} data-level={fuerza} aria-live="polite">
+          <span className={styles.strengthBars} aria-hidden="true">
+            {[1, 2, 3, 4].map((level) => (
+              <i key={level} className={level <= fuerza ? styles.on : ""} />
+            ))}
+          </span>
+          <small>{form.nueva ? FUERZA_LABEL[fuerza] : "Usa números o símbolos además de letras."}</small>
+        </div>
+
+        <label className={styles.field}>
+          Confirmar contraseña
+          <input
+            type="password"
+            autoComplete="new-password"
+            required
+            value={form.confirmar}
+            onChange={update("confirmar")}
+          />
+        </label>
+
+        {error ? <p className={styles.securityError} role="alert">{error}</p> : null}
+
+        <button type="submit" className={styles.submit} disabled={saving}>
+          <Lock size={15} /> {saving ? "Guardando..." : "Actualizar contraseña"}
+        </button>
+      </form>
+    </section>
   );
 }

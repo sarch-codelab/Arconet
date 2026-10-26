@@ -13,6 +13,7 @@ export async function GET() {
       where: { clienteId: session.clienteId },
       select: {
         activo: true,
+        verificadoAt: true,
         cliente: {
           select: {
             id: true,
@@ -42,6 +43,7 @@ export async function GET() {
       rtn: account.cliente.rtn || "",
       ciudad: account.cliente.ciudad || "",
       direccion: account.cliente.direccion || "",
+      verificado: Boolean(account.verificadoAt),
     });
   } catch (error) {
     console.error("GET /api/cliente-auth/session", error?.message);

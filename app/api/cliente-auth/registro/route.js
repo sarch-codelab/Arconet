@@ -3,6 +3,8 @@ import { prisma } from "../../../../lib/prisma";
 import { hashPassword } from "../../../../lib/auth";
 import { createClientSession } from "../../../../lib/client-session";
 import { checkRateLimit, getClientIp } from "../../../../lib/rate-limit";
+import { validarPassword } from "../../../../lib/seguridad";
+import { enviarCodigoVerificacion } from "../../../../lib/cuenta";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,8 +32,9 @@ export async function POST(request) {
   if (!nombre || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
     return Response.json({ error: "Ingresa tu nombre y un correo válido." }, { status: 400 });
   }
-  if (password.length < 12 || password.length > 128) {
-    return Response.json({ error: "La contraseña debe tener entre 12 y 128 caracteres." }, { status: 400 });
+  const policy = validarPassword(password, { contexto: correo });
+  if (!policy.ok) {
+    return Response.json({ error: policy.error }, { status: 400 });
   }
   if (body?.aceptaTerminos !== true) {
     return Response.json({ error: "Acepta los términos para crear tu cuenta." }, { status: 400 });
@@ -84,7 +87,27 @@ export async function POST(request) {
       direccion: cliente.direccion || "",
     };
     await createClientSession(session, body?.recordarme !== false);
-    return Response.json(session, { status: 201 });
+
+    // El código de verificación es best-effort: si el SMTP falla, la cuenta ya
+    // está creada y el cliente puede pedir otro código desde el portal.
+    let verificacionEnviada = false;
+    try {
+      const resultado = await enviarCodigoVerificacion(
+        {
+          tipo: "cliente",
+          id: cliente.id,
+          nombre: session.nombre,
+          correo,
+          verificadoAt: null,
+        },
+        { ip },
+      );
+      verificacionEnviada = Boolean(resultado?.enviado);
+    } catch (error) {
+      console.error("POST /api/cliente-auth/registro verificación", error?.message);
+    }
+
+    return Response.json({ ...session, verificacionEnviada }, { status: 201 });
   } catch (error) {
     if (error?.status === 409 || error?.code === "P2002" || error?.code === "23505") {
       return Response.json(

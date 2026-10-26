@@ -5,6 +5,7 @@ import { requirePermission, requireSession } from "../../../lib/dal";
 import { getClientSession } from "../../../lib/client-session";
 import { writeLog } from "../../../lib/logs";
 import { checkRateLimit } from "../../../lib/rate-limit";
+import { descontarStock } from "../../../lib/stock-ventas";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -145,19 +146,45 @@ export async function POST(request) {
 
   const { items, ...ordenData } = data;
   try {
-    const orden = await prisma.orden.create({
-      data: {
-        id: newOrderId(),
-        ...ordenData,
-        monto: ordenData.monto ?? 0,
-        items: items?.length ? { create: items } : undefined,
+    const orden = await prisma.$transaction(
+      async (tx) => {
+        const creada = await tx.orden.create({
+          data: {
+            id: newOrderId(),
+            ...ordenData,
+            monto: ordenData.monto ?? 0,
+            items: items?.length ? { create: items } : undefined,
+          },
+          include: { cliente: true, items: true },
+        });
+
+        // Una venta descuenta inventario al emitirse; una cotización no toca
+        // existencias. El descuento comparte transacción con la orden: si no
+        // hay stock suficiente, la venta no se crea.
+        if (creada.tipo === "venta" && creada.items.length) {
+          await descontarStock(tx, {
+            referencia: `venta:${creada.id}`,
+            items: creada.items,
+            ordenId: creada.id,
+            actor: guard.session?.correo ?? null,
+            motivo: `Salida por venta ${creada.id}`,
+          });
+        }
+
+        return creada;
       },
-      include: { cliente: true, items: true },
+      { timeout: 20_000 },
+    );
+    await writeLog("panel", `Venta creada con inventario descontado: ${orden.id}`, {
+      actor: guard.session?.correo,
+      ruta: "/api/ordenes",
+      detalle: { ordenId: orden.id, tipo: orden.tipo, monto: String(orden.monto) },
     });
     return Response.json(toOrden(orden), { status: 201 });
   } catch (error) {
+    if (error?.status) return Response.json({ error: error.message }, { status: error.status });
     if (error?.code === "P2003") {
-      return Response.json({ error: "El cliente indicado no existe." }, { status: 400 });
+      return Response.json({ error: "El cliente o el producto indicado no existe." }, { status: 400 });
     }
     console.error("POST /api/ordenes", error);
     return Response.json({ error: "No se pudo crear la orden." }, { status: 500 });

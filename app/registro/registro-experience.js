@@ -8,7 +8,10 @@ import { ArrowRight, Check, Eye, EyeOff } from "lucide-react";
 import styles from "../admin/admin-experience.module.css";
 import registration from "./registro-experience.module.css";
 import { sileo } from "../toaster";
+import { fuerzaPassword, validarPassword } from "../../lib/seguridad";
 import MobileSiteMenu from "../mobile-site-menu";
+
+const FUERZA_LABEL = ["Muy débil", "Débil", "Aceptable", "Fuerte", "Muy fuerte"];
 
 export default function RegistroExperience() {
   const router = useRouter();
@@ -16,6 +19,8 @@ export default function RegistroExperience() {
   const [accepted, setAccepted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
+  const [passwordValue, setPasswordValue] = useState("");
+  const fuerza = fuerzaPassword(passwordValue);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -34,9 +39,10 @@ export default function RegistroExperience() {
       sileo.error({ title: "Acepta los términos para crear tu cuenta." });
       return;
     }
-    if (password.length < 12) {
-      setFormError("La contraseña debe tener al menos 12 caracteres.");
-      sileo.error({ title: "La contraseña debe tener al menos 12 caracteres." });
+    const policy = validarPassword(password);
+    if (!policy.ok) {
+      setFormError(policy.error);
+      sileo.error({ title: policy.error });
       return;
     }
     setFormError("");
@@ -58,9 +64,12 @@ export default function RegistroExperience() {
       if (!response.ok) throw new Error(payload.error || "No se pudo crear la cuenta.");
       sileo.success({
         title: "Tu cuenta está lista",
-        description: "Bienvenido al portal de clientes de Arconet.",
+        description: payload.verificacionEnviada
+          ? "Te enviamos un código para verificar tu correo."
+          : "Puedes pedir el código de verificación desde tu portal.",
+        duration: 7000,
       });
-      router.push("/cliente");
+      router.push("/verificar");
     } catch (error) {
       setFormError(error.message || "No se pudo crear la cuenta.");
       sileo.error({
@@ -171,8 +180,9 @@ export default function RegistroExperience() {
                     name="password"
                     autoComplete="new-password"
                     required
-                    minLength={12}
                     placeholder="Crea una contraseña"
+                    value={passwordValue}
+                    onChange={(event) => setPasswordValue(event.target.value)}
                   />
                   <button
                     type="button"
@@ -184,7 +194,18 @@ export default function RegistroExperience() {
                   </button>
                 </span>
               </label>
-              <p className={registration.fieldHint}>Usa al menos 12 caracteres. Tu contraseña se guarda cifrada.</p>
+              <div className={registration.strength} data-level={fuerza} aria-live="polite">
+                <span className={registration.strengthBars} aria-hidden="true">
+                  {[1, 2, 3, 4].map((level) => (
+                    <i key={level} className={level <= fuerza ? registration.on : ""} />
+                  ))}
+                </span>
+                <p className={registration.fieldHint}>
+                  {passwordValue
+                    ? `${FUERZA_LABEL[fuerza]} · mínimo 12 caracteres, con números o símbolos.`
+                    : "Usa al menos 12 caracteres. Tu contraseña se guarda cifrada."}
+                </p>
+              </div>
 
               <label className={styles.field}>
                 Confirmar contraseña

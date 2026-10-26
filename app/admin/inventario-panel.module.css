@@ -1,0 +1,84 @@
+.splitGrid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  align-items: start;
+}
+
+.error {
+  padding: 11px 14px;
+  border: 1px solid #f0c9c9;
+  border-radius: 10px;
+  background: #fdf3f3;
+  color: #982f2b;
+  font-size: 12.5px;
+}
+
+.tipoBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3730a3;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.tipoBadge[data-tipo="entrada"] {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.tipoBadge[data-tipo="salida"] {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.tipoBadge[data-tipo="ajuste"] {
+  background: #fff7ed;
+  color: #b45309;
+}
+
+.tipoBadge[data-tipo="transferencia"] {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.tipoBadge[data-tipo="devolucion"] {
+  background: #f5f3ff;
+  color: #6d28d9;
+}
+
+.movimientoItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #eef0f3;
+}
+
+.movimientoItem:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.movimientoItem > div {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.movimientoItem strong {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.movimientoItem small {
+  color: #6a7480;
+  font-size: 11px;
+}

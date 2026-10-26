@@ -697,6 +697,11 @@ useEffect(() => {
                   )
                 )}
               </div>
+              <div className={styles.mobileMenuLegal}>
+                <a href="/terminos" onClick={() => setMenuOpen(false)}>Términos</a>
+                <a href="/privacidad" onClick={() => setMenuOpen(false)}>Privacidad</a>
+                <a href="/ayuda" onClick={() => setMenuOpen(false)}>Ayuda</a>
+              </div>
             </nav>
           )}
         </div>

@@ -1244,6 +1244,29 @@
     border-top: 1px solid rgba(20, 30, 55, 0.07);
   }
 
+  .mobileMenuLegal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    margin-top: 6px;
+    padding: 12px 4px 2px;
+    border-top: 1px solid rgba(20, 30, 55, 0.07);
+  }
+
+  .mobileMenuLegal a {
+    padding: 6px 0;
+    color: #667085;
+    font-size: 12.5px;
+    font-weight: 600;
+    transition: color 180ms ease;
+  }
+
+  .mobileMenuLegal a:hover,
+  .mobileMenuLegal a:focus-visible {
+    color: var(--blue);
+    outline: none;
+  }
+
   .mobileMenuLink,
   .mobileMenuGroupTitle {
     display: flex;
@@ -3509,6 +3532,19 @@
 
 :global(html[data-theme="dark"]) .mobileMenuLinks {
   border-top-color: #ffffff12;
+}
+
+:global(html[data-theme="dark"]) .mobileMenuLegal {
+  border-top-color: #ffffff12;
+}
+
+:global(html[data-theme="dark"]) .mobileMenuLegal a {
+  color: #aab5c7;
+}
+
+:global(html[data-theme="dark"]) .mobileMenuLegal a:hover,
+:global(html[data-theme="dark"]) .mobileMenuLegal a:focus-visible {
+  color: #a8c2ff;
 }
 
 :global(html[data-theme="dark"]) .mobileMenuLogin {

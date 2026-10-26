@@ -64,6 +64,8 @@ import { useBodyScrollLock, useEscapeKey } from "./use-body-scroll-lock";
 import { AdminContext, NAV, SECTION_NAV_CONFIG } from "./admin-nav";
 import { SectionTabs, Topbar } from "./topbar";
 const SolicitudesPanel = lazy(() => import("./solicitudes-panel"));
+const InventarioPanel = lazy(() => import("./inventario-panel"));
+const FacturacionPanel = lazy(() => import("./facturacion-panel"));
 import { useAdminSmoothScroll } from "./use-smooth-scroll";
 import { CONTACT_EMAIL, CONTACT_PHONE } from "../../lib/contact";
 import {
@@ -391,6 +393,14 @@ function AdminShell({ session, onLogout, initialSection }) {
               workers={workers}
               session={session}
             />
+          ) : section === "inventario" ? (
+            <Suspense fallback={<div className={styles.body}>Cargando inventario…</div>}>
+              <InventarioPanel session={session} productos={products} />
+            </Suspense>
+          ) : section === "facturacion" ? (
+            <Suspense fallback={<div className={styles.body}>Cargando facturación…</div>}>
+              <FacturacionPanel session={session} productos={products} />
+            </Suspense>
           ) : section === "solicitudes" ? (
             <Suspense fallback={<div className={styles.body}>Cargando órdenes internas…</div>}>
               <SolicitudesPanel session={session} />
@@ -3492,15 +3502,15 @@ function CotizacionesSection({ orders, setOrders, clientes, setClientes, product
   return (
     <>
       <Topbar
-        title={type === "venta" ? "Facturas" : "Cotizaciones y facturas"}
-        subtitle="Crea cotizaciones o facturas comerciales con productos del catálogo y datos de clientes registrados o eventuales."
+        title={type === "venta" ? "Ventas" : "Cotizaciones y ventas"}
+        subtitle="Crea cotizaciones o ventas comerciales con productos del catálogo. Las ventas descuentan inventario; las facturas fiscales se emiten en la sección Facturación."
         action={
           <div className={styles.topbarActions}>
             <button type="button" className={styles.ghostBtn} onClick={() => openCreate("cotizacion")}>
               <Plus size={16} /> Nueva cotización
             </button>
             <button type="button" className={styles.primaryBtn} onClick={() => openCreate("venta")}>
-              <Plus size={16} /> Nueva factura
+              <Plus size={16} /> Nueva venta
             </button>
           </div>
         }
@@ -3650,11 +3660,11 @@ function CotizacionesSection({ orders, setOrders, clientes, setClientes, product
             {!filtered.length && (
               <div className={styles.empty}>
                 <span className={styles.emptyIcon}><FileText size={22} /></span>
-                <strong>{type === "venta" ? "Sin facturas" : "Sin cotizaciones"}</strong>
+                <strong>{type === "venta" ? "Sin ventas" : "Sin cotizaciones"}</strong>
                 <p>
                   {hasFilters
                     ? "No hay resultados con esos filtros. Prueba ajustarlos."
-                    : type === "venta" ? "Aún no has creado facturas comerciales." : "Aún no has creado cotizaciones. Crea la primera."}
+                    : type === "venta" ? "Aún no has creado ventas comerciales." : "Aún no has creado cotizaciones. Crea la primera."}
                 </p>
               </div>
             )}
@@ -3670,11 +3680,11 @@ function CotizacionesSection({ orders, setOrders, clientes, setClientes, product
             if (event.target === event.currentTarget) closeModal();
           }}
         >
-          <div className={styles.modal} role="dialog" aria-modal="true" aria-label={editingId ? "Editar documento" : draft.tipo === "venta" ? "Nueva factura comercial" : "Nueva cotización"}>
+          <div className={styles.modal} role="dialog" aria-modal="true" aria-label={editingId ? "Editar documento" : draft.tipo === "venta" ? "Nueva venta comercial" : "Nueva cotización"}>
             <header className={styles.modalHead}>
               <div>
                 <p className={styles.eyebrow}>{editingId ? "Editar" : "Nueva"}</p>
-                <h2>{editingId ? "Editar documento" : draft.tipo === "venta" ? "Crear factura comercial" : "Crear cotización"}</h2>
+                <h2>{editingId ? "Editar documento" : draft.tipo === "venta" ? "Crear venta comercial" : "Crear cotización"}</h2>
               </div>
               <button type="button" className={styles.iconBtn} onClick={closeModal} aria-label="Cerrar">
                 <X size={18} />
@@ -3756,7 +3766,7 @@ function CotizacionesSection({ orders, setOrders, clientes, setClientes, product
                     <button type="button" className={styles.clearBtn} onClick={() => setDraft((prev) => ({ ...prev, items: prev.items.filter((_, lineIndex) => lineIndex !== index) }))}>Quitar</button>
                   </div>)}
                   <button type="button" className={styles.ghostBtn} onClick={addCatalogItem} disabled={!products.some((item) => item.estado === "activo")}>Añadir producto real del catálogo</button>
-                  <small>El total se calcula con los precios de catálogo. Configura impuestos y condiciones antes de emitir; una factura comercial no sustituye un comprobante fiscal autorizado.</small>
+                  <small>El total se calcula con los precios de catálogo. Al guardar una venta se descuenta el inventario; una venta comercial no sustituye el comprobante fiscal autorizado, que se emite en Facturación.</small>
                 </div>
                 <label className={`${styles.field} ${styles.spanFull}`}>
                   Notas
@@ -3775,7 +3785,7 @@ function CotizacionesSection({ orders, setOrders, clientes, setClientes, product
                   Cancelar
                 </button>
                 <button type="submit" className={styles.submit}>
-                  {editingId ? "Guardar cambios" : draft.tipo === "venta" ? "Crear factura comercial" : "Crear cotización"}
+                  {editingId ? "Guardar cambios" : draft.tipo === "venta" ? "Crear venta comercial" : "Crear cotización"}
                 </button>
               </footer>
             </form>
@@ -5169,6 +5179,7 @@ function LoginView() {
                   </span>
                   Recordarme
                 </label>
+                <a href="/recuperar">¿Olvidaste tu contraseña?</a>
               </div>
 
               <button type="submit" className={styles.submit} disabled={submitting}>

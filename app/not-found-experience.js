@@ -4,6 +4,7 @@ import Image from "next/image";
 import { ArrowRight, ArrowUpRight, Compass, Home, LifeBuoy } from "lucide-react";
 import styles from "./not-found-experience.module.css";
 import Footer from "./footer";
+import MobileSiteMenu from "./mobile-site-menu";
 
 const NAVIGATION = [
   { href: "/", label: "Inicio" },
@@ -45,6 +46,7 @@ export default function NotFoundExperience() {
               ))}
             </nav>
             <div className={styles.headerActionTab}>
+              <MobileSiteMenu />
               <a className={styles.headerAction} href="/">Ir al inicio <span><ArrowUpRight size={15} /></span></a>
             </div>
           </header>

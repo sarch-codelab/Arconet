@@ -87,6 +87,25 @@ schtasks /run /tn "ArconetStop"
 schtasks /run /tn "ArconetApp"
 ```
 
+## Correo transaccional
+
+Los códigos de recuperación de contraseña y de verificación de correo salen
+por SMTP. Se configuran en el `.env` del servidor:
+
+| Variable      | Ejemplo                    | Uso                                   |
+|---------------|----------------------------|---------------------------------------|
+| `SMTP_HOST`   | `smtp.gmail.com`           | Servidor SMTP del relé                |
+| `SMTP_PORT`   | `587`                      | `465` activa TLS directo               |
+| `SMTP_USER`   | `no-reply@arconet.hn`      | Usuario autenticado                   |
+| `SMTP_PASS`   | *(contraseña de aplicación)* | Clave o token del proveedor         |
+| `EMAIL_FROM`  | `Arconet <no-reply@arconet.hn>` | Remitente visible                |
+| `APP_ORIGIN`  | `https://arconet.hn`       | Enlaces dentro de los correos         |
+
+Sin `SMTP_HOST`/`SMTP_USER`/`SMTP_PASS` la app funciona en **modo consola**:
+no envía nada y registra el asunto y el cuerpo (incluido el código) en la
+bitácora del panel (`Logs → Sistema`, nivel *aviso*). Sirve para probar el
+flujo, pero en producción el correo debe estar configurado.
+
 ## Notas importantes (bugs ya corregidos)
 
 * **No usar `Start-Process -FilePath "npm"`.** En Windows `npm` resuelve a

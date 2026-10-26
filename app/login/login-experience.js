@@ -7,7 +7,6 @@ import { useState } from "react";
 import { ArrowRight, Check, Eye, EyeOff } from "lucide-react";
 import styles from "../admin/admin-experience.module.css";
 import { sileo } from "../toaster";
-import { CONTACT_EMAIL } from "../../lib/contact";
 import MobileSiteMenu from "../mobile-site-menu";
 
 export default function LoginExperience() {
@@ -17,7 +16,6 @@ export default function LoginExperience() {
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const recoveryHref = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("Ayuda para recuperar acceso al portal")}`;
 
   async function submit(event) {
     event.preventDefault();
@@ -150,7 +148,7 @@ export default function LoginExperience() {
                   </span>
                   Recordarme
                 </label>
-                <a href={recoveryHref}>¿Necesitas recuperar tu acceso?</a>
+                <Link href="/recuperar">¿Olvidaste tu contraseña?</Link>
               </div>
 
               <button type="submit" className={styles.submit} disabled={submitting}>

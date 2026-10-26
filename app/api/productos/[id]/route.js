@@ -3,6 +3,7 @@ import { parseProducto } from "../../../../lib/productos";
 import { toProducto } from "../../../../lib/serialize";
 import { requirePermission, requireSession } from "../../../../lib/dal";
 import { writeLog } from "../../../../lib/logs";
+import { aplicarMovimiento, bodegaPrincipal, sincronizarStockInicial } from "../../../../lib/inventario";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,11 +36,57 @@ export async function PATCH(request, { params }) {
     return Response.json({ error: errors[0], errors }, { status: 400 });
   }
 
+  // El stock editable se traduce a un ajuste de kardex: nunca se escribe el
+  // total a mano, porque la suma de bodegas es la fuente de verdad.
+  const { stock, ...resto } = data;
+
   try {
-    const producto = await prisma.producto.update({
-      where: { id },
-      data: { ...data, updatedBy: guard.session?.correo ?? null },
-    });
+    const producto = await prisma.$transaction(
+      async (tx) => {
+        const actual = await tx.producto.findUnique({
+          where: { id },
+          select: { id: true, stock: true },
+        });
+        if (!actual) {
+          const error = new Error("Producto no encontrado.");
+          error.status = 404;
+          throw error;
+        }
+
+        if (stock === undefined) {
+          return tx.producto.update({
+            where: { id },
+            data: { ...resto, updatedBy: guard.session?.correo ?? null },
+          });
+        }
+
+        if (Number(stock) !== actual.stock) {
+          // Si el producto venía de antes de existir bodegas, primero se
+          // registra su saldo inicial y después el ajuste pedido.
+          const filas = await tx.productoStock.count({ where: { productoId: id } });
+          if (!filas && actual.stock > 0) {
+            await sincronizarStockInicial(tx, { actor: guard.session?.correo ?? null });
+          }
+          const bodega = await bodegaPrincipal(tx);
+          await aplicarMovimiento(tx, {
+            tipo: "ajuste",
+            productoId: id,
+            bodegaId: bodega.id,
+            cantidad: Number(stock) - actual.stock,
+            motivo: "Ajuste desde la ficha del producto",
+            referencia: "ajuste-manual",
+            actor: guard.session?.correo ?? null,
+          });
+        }
+
+        return tx.producto.update({
+          where: { id },
+          data: { ...resto, updatedBy: guard.session?.correo ?? null },
+        });
+      },
+      { timeout: 20_000 },
+    );
+
     await writeLog("panel", `Producto actualizado: ${producto.nombre} (${producto.sku})`, {
       actor: guard.session?.correo,
       ruta: `/api/productos/${id}`,
@@ -47,6 +94,7 @@ export async function PATCH(request, { params }) {
     });
     return Response.json(toProducto(producto));
   } catch (error) {
+    if (error?.status) return Response.json({ error: error.message }, { status: error.status });
     if (error?.code === "P2025") {
       return Response.json({ error: "Producto no encontrado." }, { status: 404 });
     }
@@ -69,7 +117,32 @@ export async function DELETE(_request, { params }) {
   const { id } = await params;
 
   try {
-    const producto = await prisma.producto.delete({ where: { id } });
+    const producto = await prisma.producto.findUnique({
+      where: { id },
+      select: { id: true, nombre: true, sku: true },
+    });
+    if (!producto) {
+      return Response.json({ error: "Producto no encontrado." }, { status: 404 });
+    }
+
+    // Un producto con historial no se elimina: rompería el kardex y las
+    // facturas. Se desactiva en su lugar.
+    const [movimientos, enOrdenes, enFacturas] = await Promise.all([
+      prisma.movimientoKardex.count({ where: { productoId: id } }),
+      prisma.ordenItem.count({ where: { productoId: id } }),
+      prisma.documentoFiscalItem.count({ where: { productoId: id } }),
+    ]);
+    if (movimientos || enOrdenes || enFacturas) {
+      return Response.json(
+        {
+          error:
+            "Este producto tiene movimientos, ventas o facturas asociadas. Cámbialo a estado inactivo en lugar de eliminarlo.",
+        },
+        { status: 409 },
+      );
+    }
+
+    await prisma.producto.delete({ where: { id } });
     await writeLog("panel", `Producto eliminado: ${producto.nombre} (${producto.sku})`, {
       nivel: "warn",
       actor: guard.session?.correo,

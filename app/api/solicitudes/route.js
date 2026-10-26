@@ -1,6 +1,6 @@
 import { prisma } from "../../../lib/prisma";
 import { requirePermission } from "../../../lib/dal";
-import { canSeeAllSolicitudes, newSolicitudId, PRIORIDADES_SOLICITUD, createSolicitudNotifications } from "../../../lib/solicitudes-internas";
+import { canSeeAllSolicitudes, fechaLimiteSLA, newSolicitudId, PRIORIDADES_SOLICITUD, createSolicitudNotifications, registrarEventoSolicitud } from "../../../lib/solicitudes-internas";
 import { writeLog } from "../../../lib/logs";
 
 export const runtime = "nodejs";
@@ -22,7 +22,10 @@ export async function GET() {
       where,
       orderBy: { updatedAt: "desc" },
       take: 250,
-      include: { comentarios: { orderBy: { createdAt: "asc" } } },
+      include: {
+        comentarios: { orderBy: { createdAt: "asc" } },
+        adjuntos: { select: { id: true, nombre: true, tipo: true, tamano: true, autorCorreo: true, createdAt: true } },
+      },
     });
     return Response.json(requests);
   } catch (error) {
@@ -50,18 +53,30 @@ export async function POST(request) {
   try {
     const areaConfig = await prisma.areaSolicitud.findUnique({ where: { slug: area } });
     if (!areaConfig?.activa) return Response.json({ error: "El área seleccionada ya no está disponible." }, { status: 400 });
-    const solicitud = await prisma.solicitudInterna.create({
-      data: {
-        id: solicitudId,
-        titulo,
-        descripcion,
-        area,
-        prioridad,
-        solicitanteCorreo: session.correo,
-        solicitanteNombre: session.nombre || session.correo,
-        solicitanteRol: session.rol,
-      },
-      include: { comentarios: true },
+    const solicitud = await prisma.$transaction(async (tx) => {
+      const creada = await tx.solicitudInterna.create({
+        data: {
+          id: solicitudId,
+          titulo,
+          descripcion,
+          area,
+          prioridad,
+          fechaLimite: fechaLimiteSLA(prioridad),
+          solicitanteCorreo: session.correo,
+          solicitanteNombre: session.nombre || session.correo,
+          solicitanteRol: session.rol,
+        },
+        include: { comentarios: true },
+      });
+      await registrarEventoSolicitud(tx, {
+        solicitudId,
+        tipo: "creada",
+        a: "pendiente",
+        mensaje: `Prioridad ${prioridad} · SLA ${fechaLimiteSLA(prioridad).toLocaleString("es-HN")}`,
+        actorCorreo: session.correo,
+        actorNombre: session.nombre || session.correo,
+      });
+      return creada;
     });
     await createSolicitudNotifications(prisma, {
       solicitudId,

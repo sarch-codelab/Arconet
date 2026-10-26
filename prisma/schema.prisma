@@ -21,6 +21,7 @@ model Sucursal {
   updatedAt    DateTime     @updatedAt
   trabajadores Trabajador[]
   usuarios     Usuario[]
+  bodegas      Bodega[]
 }
 
 model Trabajador {
@@ -54,6 +55,11 @@ model Usuario {
   rol          String    @default("administrador")
   sucursalId   String?
   activo       Boolean   @default(true)
+  verificadoAt DateTime? // Verificación de correo
+  consentimientoAt DateTime? // Aceptación de términos y privacidad
+  ultimoAccesoAt    DateTime?
+  intentosFallidos  Int      @default(0)
+  bloqueadoHasta    DateTime?
   twoFactorSecret  String?
   twoFactorEnabled Boolean   @default(false)
   createdAt    DateTime  @default(now())
@@ -106,6 +112,10 @@ model Producto {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   items       OrdenItem[]
+  stockPorBodega ProductoStock[]
+  movimientos MovimientoKardex[]
+  ordenCompraItems OrdenCompraItem[]
+  documentoItems DocumentoFiscalItem[]
 
   @@index([categoria])
   @@index([estado])
@@ -155,12 +165,15 @@ model Cliente {
   direccion     String?
   ciudad        String?
   estado        String   @default("activo")
+  segmento      String? // Segmentación comercial (ej. mayorista, integrador, gobierno)
+  etiquetas     String[] @default([])
   fechaRegistro DateTime @default(now())
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   foto          String?
   ordenes       Orden[]
   cuenta        ClienteCuenta?
+  documentos    DocumentoFiscal[]
 
   @@index([estado])
   @@index([fechaRegistro])
@@ -175,30 +188,43 @@ model ClienteCuenta {
   correo       String   @unique
   passwordHash String
   activo       Boolean  @default(true)
+  estado       String   @default("pendiente") // pendiente | aprobado | rechazado (aprobación de cuentas)
+  aprobadoPor  String?
+  aprobadoAt   DateTime?
+  verificadoAt DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   cliente      Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
 
   @@index([activo])
+  @@index([estado])
 }
 
 model Orden {
-  id        String      @id
-  tipo      String
-  clienteId String
-  fecha     DateTime    @default(now())
-  monto     Decimal     @db.Decimal(12, 2)
-  estado    String      @default("pendiente")
-  notas     String?
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  cliente   Cliente     @relation(fields: [clienteId], references: [id])
-  items     OrdenItem[]
+  id               String      @id
+  tipo             String
+  clienteId        String
+  fecha            DateTime    @default(now())
+  monto            Decimal     @db.Decimal(12, 2)
+  estado           String      @default("pendiente")
+  notas            String?
+  fechaVencimiento DateTime? // Vencimiento de la cotización/venta
+  descuento        Decimal     @default(0) @db.Decimal(12, 2)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  cliente          Cliente     @relation(fields: [clienteId], references: [id])
+  items            OrdenItem[]
+  pagos            Pago[]
+  eventos          OrdenEvento[]
+  entregas         Entrega[]
+  devoluciones     Devolucion[]
+  documentos       DocumentoFiscal[]
 
   @@index([clienteId])
   @@index([tipo])
   @@index([estado])
   @@index([fecha])
+  @@index([fechaVencimiento])
 }
 
 model OrdenItem {
@@ -241,14 +267,19 @@ model SolicitudInterna {
   solicitanteNombre  String
   solicitanteRol     String
   responsableCorreo  String?
+  fechaLimite        DateTime? // SLA según prioridad
+  cerradaAt          DateTime?
   createdAt          DateTime               @default(now())
   updatedAt          DateTime               @updatedAt
   comentarios        ComentarioSolicitud[]
   notificaciones     Notificacion[]
+  adjuntos           SolicitudAdjunto[]
+  eventos            SolicitudEvento[]
 
   @@index([area, estado, createdAt])
   @@index([solicitanteCorreo, createdAt])
   @@index([responsableCorreo])
+  @@index([fechaLimite])
 }
 
 model AreaSolicitud {
@@ -289,4 +320,307 @@ model Notificacion {
 
   @@index([recipient, readAt, createdAt])
   @@index([solicitudId])
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// Fase A · Inventario y compras
+// ─────────────────────────────────────────────────────────────────────
+
+model Bodega {
+  id          String   @id @default(cuid())
+  nombre      String
+  codigo      String   @unique
+  sucursalId  String?
+  direccion   String?
+  esPrincipal Boolean  @default(false)
+  estado      String   @default("activo")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  sucursal    Sucursal? @relation(fields: [sucursalId], references: [id])
+  stock       ProductoStock[]
+  movimientos MovimientoKardex[]
+
+  @@index([estado])
+  @@index([sucursalId])
+}
+
+model ProductoStock {
+  id         String   @id @default(cuid())
+  productoId String
+  bodegaId   String
+  cantidad   Int      @default(0)
+  updatedAt  DateTime @updatedAt
+  producto   Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  bodega     Bodega   @relation(fields: [bodegaId], references: [id], onDelete: Cascade)
+
+  @@unique([productoId, bodegaId])
+  @@index([bodegaId])
+}
+
+model MovimientoKardex {
+  id              String    @id @default(cuid())
+  fecha           DateTime  @default(now())
+  tipo            String // entrada | salida | ajuste | transferencia | devolucion
+  productoId      String
+  bodegaId        String
+  bodegaDestinoId String? // Solo para transferencias entre bodegas
+  cantidad        Int
+  saldoAnterior   Int
+  saldoDespues    Int
+  costoUnitario   Decimal?  @db.Decimal(12, 2)
+  referencia      String? // oc:<id>, orden:<id>, manual, devolucion:<id>
+  motivo          String?
+  actor           String?
+  ordenCompraId   String?
+  ordenId         String?
+  createdAt       DateTime  @default(now())
+  producto        Producto  @relation(fields: [productoId], references: [id])
+  bodega          Bodega    @relation(fields: [bodegaId], references: [id])
+
+  @@index([productoId, fecha])
+  @@index([bodegaId, fecha])
+  @@index([tipo, fecha])
+  @@index([ordenCompraId])
+}
+
+model Proveedor {
+  id        String        @id @default(cuid())
+  nombre    String
+  rtn       String?
+  contacto  String?
+  telefono  String?
+  email     String?
+  direccion String?
+  notas     String?
+  estado    String        @default("activo")
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  ordenes   OrdenCompra[]
+
+  @@index([estado])
+  @@index([nombre])
+}
+
+model OrdenCompra {
+  id             String            @id @default(cuid())
+  numero         String            @unique // OC-2026-0001
+  proveedorId    String
+  estado         String            @default("borrador") // borrador | enviada | parcial | recibida | cancelada
+  fecha          DateTime          @default(now())
+  fechaEsperada  DateTime?
+  fechaRecepcion DateTime?
+  subtotal       Decimal           @default(0) @db.Decimal(12, 2)
+  total          Decimal           @default(0) @db.Decimal(12, 2)
+  notas          String?
+  createdBy      String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  proveedor      Proveedor         @relation(fields: [proveedorId], references: [id])
+  items          OrdenCompraItem[]
+
+  @@index([proveedorId])
+  @@index([estado])
+  @@index([fecha])
+}
+
+model OrdenCompraItem {
+  id                String       @id @default(cuid())
+  ordenCompraId     String
+  productoId        String?
+  nombre            String
+  cantidad          Int
+  cantidadRecibida  Int          @default(0)
+  costoUnitario     Decimal      @db.Decimal(12, 2)
+  ordenCompra       OrdenCompra  @relation(fields: [ordenCompraId], references: [id], onDelete: Cascade)
+  producto          Producto?    @relation(fields: [productoId], references: [id])
+
+  @@index([ordenCompraId])
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// Fase A · Ventas: pagos, historial, entregas y devoluciones
+// ─────────────────────────────────────────────────────────────────────
+
+model Pago {
+  id            String   @id @default(cuid())
+  ordenId       String
+  fecha          DateTime @default(now())
+  monto          Decimal  @db.Decimal(12, 2)
+  metodo         String   @default("efectivo") // efectivo | transferencia | tarjeta | cheque | otro
+  referencia     String?
+  estado         String   @default("confirmado") // pendiente | confirmado | anulado
+  registradoPor  String?
+  notas          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  orden          Orden    @relation(fields: [ordenId], references: [id], onDelete: Cascade)
+
+  @@index([ordenId, estado])
+  @@index([fecha])
+}
+
+model OrdenEvento {
+  id        String   @id @default(cuid())
+  ordenId   String
+  fecha     DateTime @default(now())
+  tipo      String   // estado | pago | entrega | devolucion | edicion | nota
+  deEstado  String?
+  aEstado   String?
+  mensaje   String?
+  actor     String?
+  orden     Orden    @relation(fields: [ordenId], references: [id], onDelete: Cascade)
+
+  @@index([ordenId, fecha])
+}
+
+model Entrega {
+  id              String   @id @default(cuid())
+  ordenId         String
+  tipo            String   @default("entrega") // despacho | entrega
+  estado          String   @default("programada") // programada | en_camino | entregada | fallida
+  fechaProgramada DateTime?
+  fechaReal       DateTime?
+  transportista   String?
+  guia            String?
+  notas           String?
+  registradoPor   String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  orden           Orden    @relation(fields: [ordenId], references: [id], onDelete: Cascade)
+
+  @@index([ordenId, estado])
+}
+
+model Devolucion {
+  id            String            @id @default(cuid())
+  ordenId       String
+  fecha         DateTime          @default(now())
+  estado        String            @default("pendiente") // pendiente | aceptada | rechazada | reembolsada
+  motivo        String
+  monto         Decimal           @default(0) @db.Decimal(12, 2)
+  registradoPor String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  orden         Orden             @relation(fields: [ordenId], references: [id], onDelete: Cascade)
+  items         DevolucionItem[]
+
+  @@index([ordenId, estado])
+}
+
+model DevolucionItem {
+  id           String      @id @default(cuid())
+  devolucionId String
+  ordenItemId  String?
+  nombre       String
+  cantidad     Int
+  precio       Decimal     @db.Decimal(12, 2)
+  devolucion   Devolucion  @relation(fields: [devolucionId], references: [id], onDelete: Cascade)
+
+  @@index([devolucionId])
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// Fase B · Facturación (estructura lista para CAI cuando se reciban los
+// rangos autorizados: serie, correlativo y CAI quedan opcionales por ahora)
+// ─────────────────────────────────────────────────────────────────────
+
+model DocumentoFiscal {
+  id              String              @id @default(cuid())
+  tipo            String // factura | nota_credito | nota_debito
+  cai             String? // CAI autorizado (pendiente)
+  serie           String? // Rango/serie autorizado (pendiente)
+  correlativo     String? // Correlativo fiscal (pendiente)
+  fecha           DateTime            @default(now())
+  clienteId       String
+  ordenId         String?
+  estado          String              @default("emitido") // emitido | anulado
+  subtotal        Decimal             @db.Decimal(12, 2)
+  descuento       Decimal             @default(0) @db.Decimal(12, 2)
+  impuesto        Decimal             @db.Decimal(12, 2)
+  total           Decimal             @db.Decimal(12, 2)
+  moneda          String              @default("HNL")
+  referenciaId    String? // Documento relacionado (anulación o nota)
+  pdfHash         String? // Huella SHA-256 del PDF para garantizar inmutabilidad
+  emitidoPor      String?
+  motivoAnulacion String?
+  anuladoPor      String?
+  anuladoAt       DateTime?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  cliente         Cliente             @relation(fields: [clienteId], references: [id])
+  orden           Orden?              @relation(fields: [ordenId], references: [id])
+  items           DocumentoFiscalItem[]
+
+  @@index([tipo, estado])
+  @@index([clienteId])
+  @@index([fecha])
+  @@index([ordenId])
+}
+
+model DocumentoFiscalItem {
+  id                String         @id @default(cuid())
+  documentoId       String
+  productoId        String? // Producto del catálogo (null en conceptos libres)
+  descripcion       String
+  cantidad          Decimal        @db.Decimal(12, 3)
+  precio            Decimal        @db.Decimal(12, 2)
+  descuento         Decimal        @default(0) @db.Decimal(12, 2)
+  impuestoPorcentaje Decimal       @default(15) @db.Decimal(5, 2)
+  subtotal          Decimal        @db.Decimal(12, 2)
+  documento         DocumentoFiscal @relation(fields: [documentoId], references: [id], onDelete: Cascade)
+  producto          Producto?      @relation(fields: [productoId], references: [id])
+
+  @@index([documentoId])
+  @@index([productoId])
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// Fase C · Operación interna: SLA, historial y adjuntos
+// ─────────────────────────────────────────────────────────────────────
+
+model SolicitudAdjunto {
+  id           String           @id @default(cuid())
+  solicitudId  String
+  nombre       String
+  tipo         String // mime
+  tamano       Int // bytes
+  contenido    String // base64 (máx. ~2 MB por archivo)
+  autorCorreo  String
+  createdAt    DateTime         @default(now())
+  solicitud    SolicitudInterna @relation(fields: [solicitudId], references: [id], onDelete: Cascade)
+
+  @@index([solicitudId])
+}
+
+model SolicitudEvento {
+  id            String           @id @default(cuid())
+  solicitudId   String
+  fecha         DateTime         @default(now())
+  tipo          String // estado | responsable | prioridad | sla | adjunto | nota
+  de            String?
+  a             String?
+  mensaje       String?
+  actorCorreo   String
+  actorNombre   String?
+  solicitud     SolicitudInterna @relation(fields: [solicitudId], references: [id], onDelete: Cascade)
+
+  @@index([solicitudId, fecha])
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// Fase D · Recuperación de contraseña y verificación de correo
+// ─────────────────────────────────────────────────────────────────────
+
+model TokenAcceso {
+  id         String   @id @default(cuid())
+  correo     String
+  codigoHash String // scrypt del código de un solo uso
+  tipo       String // recuperacion | verificacion
+  expiraAt   DateTime
+  usadoAt    DateTime?
+  ip         String?
+  createdAt  DateTime @default(now())
+
+  @@index([correo, tipo, usadoAt])
+  @@index([expiraAt])
 }
