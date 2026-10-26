@@ -388,15 +388,20 @@
 }
 
 .passwordWrap input {
-  padding-right: 30px;
+  padding-right: 40px;
 }
 
 .reveal {
   position: absolute;
-  right: 0;
-  bottom: 11px;
+  /* Centrado vertical real del icono dentro del input (antes bottom fijo que
+   lo dejaba desalineado en pantallas táctiles y zoom de iOS). */
+  top: 50%;
+  transform: translateY(-50%);
+  right: 2px;
   display: grid;
   place-items: center;
+  width: 38px;
+  height: 38px;
   padding: 0;
   border: 0;
   background: none;
@@ -929,8 +934,11 @@
 
 .notifBadge {
   position: absolute;
-  top: 6px;
-  right: 6px;
+  /* Centrado sobre el borde superior-derecho del boton (antes top/right fijos
+   que hacian que el badge quedara desalineado en tablets y pantallas densas). */
+  top: -2px;
+  right: -2px;
+  z-index: 1;
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
@@ -953,17 +961,6 @@
   50% {
     transform: scale(1.1);
   }
-}
-
-.notifDot {
-  position: absolute;
-  top: 9px;
-  right: 9px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--orange);
-  border: 1.5px solid var(--bg-card);
 }
 
 .profileAvatar {
@@ -2771,6 +2768,13 @@
 
   .searchToggle {
     display: inline-flex;
+  }
+
+  /* overflow-x: clip del shell recortaba el badge de notificaciones que
+     sobresale (-2px) del boton de la campana: parecia "perdido" o cortado
+     en celulares/tablets. Se permite reborde en la zona de acciones. */
+  .rightActions {
+    overflow: visible;
   }
 
   .mobileSearch {
