@@ -2986,9 +2986,12 @@
   }
 
   /* Con el botón de búsqueda, la campana y el avatar, la marca debe encoger
-     para que todo quepa en 320px sin desbordar. */
+     para que todo quepa en 320px sin desbordar (antes se montaba sobre la
+     lupa). */
   .topbarBrandImg {
-    height: 20px;
+    height: auto;
+    max-height: 20px;
+    max-width: 100%;
   }
 
   .rightActions {

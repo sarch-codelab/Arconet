@@ -145,6 +145,17 @@ export function Topbar({
 
   const avatarSrc = !photoFailed ? photo || myWorker?.foto || "" : "";
 
+  // En el teléfono las hojas son modales: se bloquea el scroll de la página
+  // de fondo para que no se mueva detrás del dedo.
+  useEffect(() => {
+    if (!accountOpen && !notificationsOpen) return undefined;
+    if (typeof window === "undefined") return undefined;
+    if (!window.matchMedia?.("(max-width: 900px)")?.matches) return undefined;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previous; };
+  }, [accountOpen, notificationsOpen]);
+
   // El menu de cuenta se cierra al pulsar fuera, al pulsar Escape y al
   // cambiar de seccion.
   useEffect(() => {
