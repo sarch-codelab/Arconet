@@ -94,17 +94,23 @@ por SMTP. Se configuran en el `.env` del servidor:
 
 | Variable      | Ejemplo                    | Uso                                   |
 |---------------|----------------------------|---------------------------------------|
-| `SMTP_HOST`   | `smtp.gmail.com`           | Servidor SMTP del relé                |
-| `SMTP_PORT`   | `587`                      | `465` activa TLS directo               |
-| `SMTP_USER`   | `no-reply@arconet.hn`      | Usuario autenticado                   |
+| `SMTP_HOST`   | `smtpout.secureserver.net` | Servidor SMTP del relé                |
+| `SMTP_PORT`   | `465`                      | `465` activa TLS directo               |
+| `SMTP_USER`   | `no-reply@arconethn.com`   | Usuario autenticado                   |
 | `SMTP_PASS`   | *(contraseña de aplicación)* | Clave o token del proveedor         |
-| `EMAIL_FROM`  | `Arconet <no-reply@arconet.hn>` | Remitente visible                |
-| `APP_ORIGIN`  | `https://arconet.hn`       | Enlaces dentro de los correos         |
+| `EMAIL_FROM`  | `Arconet <no-reply@arconethn.com>` | Remitente visible            |
+| `APP_ORIGIN`  | `https://arconethn.com`    | Enlaces dentro de los correos         |
 
 Sin `SMTP_HOST`/`SMTP_USER`/`SMTP_PASS` la app funciona en **modo consola**:
 no envía nada y registra el asunto y el cuerpo (incluido el código) en la
 bitácora del panel (`Logs → Sistema`, nivel *aviso*). Sirve para probar el
 flujo, pero en producción el correo debe estar configurado.
+
+**Estado actual (26/10/2026):** el dominio `arconethn.com` está registrado en
+GoDaddy, pero todavía no hay buzón corporativo contratado, así que la app
+opera en modo consola. Cuando se contrate el buzón, agregar estas variables
+al `.env` del servidor y reiniciar la app. Mientras tanto, los clientes que
+olviden su contraseña deben contactar a Arconet por teléfono.
 
 ## Notas importantes (bugs ya corregidos)
 

@@ -1348,7 +1348,7 @@ function WorkersSection({ workers, setWorkers, roles = [], session }) {
                     type="email"
                     value={draft.correo}
                     onChange={(event) => changeField("correo", event.target.value)}
-                    placeholder="nombre@arconet.hn"
+                    placeholder="nombre@arconethn.com"
                     required
                   />
                 </label>
@@ -2400,7 +2400,7 @@ function SucursalesSection({ sucursales, setSucursales, workers = [], session })
                     type="email"
                     value={draft.email}
                     onChange={(event) => changeField("email", event.target.value)}
-                    placeholder="sucursal@arconet.hn"
+                    placeholder="sucursal@arconethn.com"
                   />
                 </label>
                 <label className={styles.field}>
@@ -5132,7 +5132,7 @@ function LoginView() {
                   name="email"
                   autoComplete="email"
                   required
-                    placeholder="usuario@arconet.hn"
+                    placeholder="usuario@arconethn.com"
                   value={email}
                   onChange={(event) => { setEmail(event.target.value); setTwoFactorRequired(false); setVerificationCode(""); }}
                 />
