@@ -15,7 +15,10 @@ inventario, facturación, órdenes y escáner de códigos de barras.
 
 ## Requisitos
 
-- Node.js **24** (la CI usa 24; el servidor también)
+- Node.js **24** es el objetivo (la CI y el servidor de producción usan 24).
+  El proyecto también compila y corre con **Node 22** (verificado: build, lint y
+  tests en verde), así que una máquina de desarrollo con 22 sirve; para
+  producción usar 24, que es lo que realmente corre `arconethn.com`.
 - PostgreSQL accesible (local o remoto)
 - PowerShell/PM2 solo para el servidor Windows de producción (`ops/`, `deploy.ps1`, `ecosystem.config.js`)
 
@@ -36,7 +39,10 @@ npm run db:migrate
 npm run db:seed
 
 # 5. Desarrollo
-npm run dev               # http://localhost:3000
+npm run dev               # http://localhost:3000 (puerto por defecto de `next dev`)
+
+# ¿El 3000 ya está ocupado? Se cambia con PORT:
+PORT=3001 npm run dev     # http://localhost:3001
 ```
 
 Producción local: `npm run build && npm start`.
@@ -49,7 +55,7 @@ Producción local: `npm run build && npm start`.
 | `npm run build` | `prisma generate` + `next build` |
 | `npm start` | Servidor de producción |
 | `npm run lint` | ESLint (next/core-web-vitals) |
-| `npm run test` | Tests con Node:test (`node --test`) |
+| `npm run test` | Tests con **vitest** (`vitest run`); los archivos viven junto al código como `*.test.js` |
 | `npm run db:generate` | Regenera el cliente Prisma |
 | `npm run db:migrate` | Aplica migraciones pendientes |
 | `npm run db:seed` | Carga datos semilla (`prisma/seed.ts`) |
