@@ -86,7 +86,7 @@
 
 .headerAction {
   justify-self: end;
-  min-height: 40px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   gap: 11px;

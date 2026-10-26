@@ -15,6 +15,9 @@ const COMPANY_LINKS = [
   { href: "/ayuda", label: "Ayuda y preguntas frecuentes" },
   { href: "/terminos", label: "Términos de uso" },
   { href: "/privacidad", label: "Aviso de privacidad" },
+  { href: "/cookies", label: "Política de cookies" },
+  { href: "/aviso-legal", label: "Aviso legal" },
+  { href: "/garantias", label: "Garantías y devoluciones" },
 ];
 
 const SOCIAL = [
@@ -123,6 +126,9 @@ export default function Footer() {
         <div className={styles.legal}>
           <Link href="/terminos">Términos de uso</Link>
           <Link href="/privacidad">Privacidad</Link>
+          <Link href="/cookies">Cookies</Link>
+          <Link href="/aviso-legal">Aviso legal</Link>
+          <Link href="/garantias">Garantías</Link>
           <Link href="/contacto">Contacto</Link>
         </div>
       </div>

@@ -376,7 +376,7 @@
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  min-height: 42px;
+  min-height: 44px;
   padding: 0 16px;
   border: 1px solid var(--line);
   border-radius: 999px;
