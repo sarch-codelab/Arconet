@@ -4,6 +4,47 @@ import { descontarStock, revertirStock } from "../../../../../lib/stock-ventas";
 import { requirePermission } from "../../../../../lib/dal";
 import { writeLog } from "../../../../../lib/logs";
 
+// Etiqueta legible para avisos al cliente.
+const ESTADO_LABEL = {
+  pendiente: "Pendiente",
+  en_proceso: "En proceso",
+  aprobada: "Aprobada",
+  rechazada: "Rechazada",
+  en_preparacion: "En preparación",
+  despachada: "Despachada",
+  entregada: "Entregada",
+  completada: "Completada",
+  vencida: "Vencida",
+  cancelada: "Cancelada",
+};
+
+/**
+ * Notifica al portal del cliente (recipient "cliente:<id>") y deja un
+ * evento visible en el historial de la orden. Best-effort: nunca rompe
+ * la transición si el aviso falla.
+ */
+async function notificarCliente(tx, orden, estadoNuevo) {
+  try {
+    if (!orden.clienteId) return;
+    const label = ESTADO_LABEL[estadoNuevo] || estadoNuevo;
+    await tx.notificacion.create({
+      data: {
+        recipient: `cliente:${orden.clienteId}`,
+        title: `Actualización de tu solicitud ${orden.id}`,
+        message: `Tu solicitud cambió de estado a "${label}".`,
+        type: "orden",
+      },
+    });
+    await registrarEvento(tx, orden.id, {
+      tipo: "nota",
+      mensaje: `Se notificó al cliente: estado actual "${label}".`,
+      actor: "sistema",
+    });
+  } catch (error) {
+    console.error("notificarCliente", error?.message);
+  }
+}
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -38,7 +79,7 @@ export async function POST(request, { params }) {
     const resultado = await prisma.$transaction(async (tx) => {
       const orden = await tx.orden.findUnique({
         where: { id },
-        select: { id: true, estado: true, tipo: true, items: { select: { productoId: true, cantidad: true, precio: true } } },
+        select: { id: true, estado: true, tipo: true, clienteId: true, items: { select: { productoId: true, cantidad: true, precio: true } } },
       });
       if (!orden) {
         const error = new Error("Orden no encontrada.");
@@ -88,6 +129,7 @@ export async function POST(request, { params }) {
         mensaje: nota,
         actor: guard.session.correo,
       });
+      await notificarCliente(tx, orden, estado);
       return { anterior: orden.estado, orden: actualizada };
     });
 

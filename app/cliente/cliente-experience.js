@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
   ArrowLeft,
+  Bell,
   Building2,
   Check,
   ChevronRight,
@@ -18,6 +19,7 @@ import {
   Plus,
   Send,
   ShieldCheck,
+  Ticket,
   User,
   X,
 } from "lucide-react";
@@ -93,8 +95,30 @@ function ClientDashboard({ session, orders, setOrders, onLogout }) {
     urgencia: "normal",
   });
 
-  const quoteOrders = orders.filter((order) => order.tipo === "cotizacion");
+  const quoteOrders = orders.filter((order) => order.tipo === "cotizacion" && !order.id.startsWith("t-"));
   const projectOrders = orders.filter((order) => ["aprobada", "en_proceso", "completada"].includes(order.estado));
+  // Total acumulado: solo cotizaciones aprobadas/en ejecución/completadas.
+  // Excluye pendientes, rechazadas y canceladas (fix del bug del dashboard).
+  const totalActivo = orders
+    .filter((order) => ["aprobada", "en_proceso", "en_preparacion", "despachada", "entregada", "completada"].includes(order.estado))
+    .reduce((sum, order) => sum + order.monto, 0);
+
+  async function handleOrderAction(id, accion) {
+    const response = await fetch(`/api/cliente-portal/ordenes/${id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ accion }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      sileo.error({ title: payload.error || "No se pudo registrar la acción." });
+      return;
+    }
+    setOrders((current) => current.map((order) => (order.id === id ? { ...order, estado: payload.estado } : order)));
+    setSelectedOrder((current) => (current && current.id === id ? { ...current, estado: payload.estado } : current));
+    const labels = { aprobar: "Cotización aprobada", rechazar: "Cotización rechazada", cancelar: "Solicitud cancelada" };
+    sileo.success({ title: labels[accion] || "Acción registrada" });
+  }
 
   const handleViewOrder = (order) => {
     setSelectedOrder(order);
@@ -177,6 +201,7 @@ function ClientDashboard({ session, orders, setOrders, onLogout }) {
                   <Plus size={16} /> Nueva solicitud
                 </button>
               )}
+              <NotificationsBell />
               <button type="button" className={styles.accountButton} onClick={onLogout} aria-label="Cerrar sesión" title={`Cerrar sesión de ${session.nombre}`}>
                 <span className={styles.userAvatar}>{session.nombre[0]}</span>
                 <LogOut size={15} />
@@ -218,10 +243,8 @@ function ClientDashboard({ session, orders, setOrders, onLogout }) {
                   </article>
                   <article className={styles.statCard}>
                     <span className={styles.statIcon}><Package size={20} /></span>
-                    <strong className={styles.statValue}>
-                      {orders.reduce((sum, order) => sum + order.monto, 0).toLocaleString("es-HN")} L
-                    </strong>
-                    <span className={styles.statLabel}>Total</span>
+                    <strong className={styles.statValue}>{totalActivo.toLocaleString("es-HN")} L</strong>
+                    <span className={styles.statLabel}>Total activo</span>
                   </article>
                 </section>
 
@@ -304,88 +327,15 @@ function ClientDashboard({ session, orders, setOrders, onLogout }) {
             )}
 
             {activeTab === "soporte" && (
-              <div className={styles.supportPage}>
-                <h2>Soporte técnico</h2>
-                <div className={styles.supportGrid}>
-                  <div className={styles.quickContact}>
-                    <h3>Contacto rápido</h3>
-                    <p>¿Necesitas ayuda inmediata? Contáctanos.</p>
-                    <div className={styles.contactMethods}>
-                      <a href={`mailto:${CONTACT_EMAIL}`} className={styles.contactCard}>
-                        <span className={styles.contactIcon}>📧</span>
-                        <div>
-                          <strong>Email</strong>
-                          <p>{CONTACT_EMAIL}</p>
-                        </div>
-                      </a>
-                      <a href={CONTACT_PHONE_HREF} className={styles.contactCard}>
-                        <span className={styles.contactIcon}>📞</span>
-                        <div>
-                          <strong>Teléfono</strong>
-                          <p>{CONTACT_PHONE}</p>
-                        </div>
-                      </a>
-                    </div>
-                  </div>
-                  <div className={styles.ticketForm}>
-                    <h3>¿Necesitas ayuda?</h3>
-                    <p>Escríbenos y el equipo de Arconet dará seguimiento a tu solicitud.</p>
-                    <a className={styles.submit} href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("Solicitud de soporte Arconet")}`}>
-                      <Send size={16} /> Contactar soporte
-                    </a>
-                  </div>
-                </div>
-                <div className={styles.recentTickets}>
-                  <h3>Seguimiento</h3>
-                  <p>Las solicitudes de soporte se gestionan por correo o teléfono.</p>
-                </div>
-              </div>
+              <SupportPage session={session} />
             )}
 
             {activeTab === "documentos" && (
-              <div className={styles.documentsPage}>
-                <h2>Documentos</h2>
-                <p>Los documentos asociados a tu cuenta aparecerán aquí cuando Arconet los comparta.</p>
-              </div>
+              <DocumentsPage />
             )}
 
             {activeTab === "perfil" && (
-              <div className={styles.profilePage}>
-                <h2>Mi perfil</h2>
-                <div className={styles.profileCard}>
-                  <div className={styles.profileHeader}>
-                    <span className={styles.profileAvatar}>{session.nombre[0]}</span>
-                    <div>
-                      <strong>{session.nombre}</strong>
-                      <p>{session.correo}</p>
-                    </div>
-                  </div>
-                  <div className={styles.profileDetails}>
-                    <div className={styles.detailRow}>
-                      <span>RTN</span>
-                      <strong>{session.rtn || "—"}</strong>
-                    </div>
-                    <div className={styles.detailRow}>
-                      <span>Contacto</span>
-                      <strong>{session.contacto || "—"}</strong>
-                    </div>
-                    <div className={styles.detailRow}>
-                      <span>Teléfono</span>
-                      <strong>{session.telefono || "—"}</strong>
-                    </div>
-                    <div className={styles.detailRow}>
-                      <span>Ciudad</span>
-                      <strong>{session.ciudad || "—"}</strong>
-                    </div>
-                    <div className={styles.detailRow}>
-                      <span>Dirección</span>
-                      <strong>{session.direccion || "—"}</strong>
-                    </div>
-                  </div>
-                </div>
-
-                <SecurityCard session={session} />
-              </div>
+              <ProfilePage session={session} onSessionUpdate={setSession} />
             )}
 
             {activeTab === "orden-detalle" && selectedOrder && (
@@ -438,6 +388,19 @@ function ClientDashboard({ session, orders, setOrders, onLogout }) {
                   </div>
                 </div>
                 <div className={styles.orderActions}>
+                  {selectedOrder.tipo === "cotizacion" && (selectedOrder.estado === "pendiente" || selectedOrder.estado === "en_proceso") && (
+                    <>
+                      <button type="button" className={styles.submit} onClick={() => handleOrderAction(selectedOrder.id, "aprobar")}>
+                        <Check size={16} /> Aprobar cotización
+                      </button>
+                      <button type="button" className={styles.dangerBtn} onClick={() => handleOrderAction(selectedOrder.id, "rechazar")}>
+                        <X size={16} /> Rechazar
+                      </button>
+                      <button type="button" className={styles.ghostBtn} onClick={() => handleOrderAction(selectedOrder.id, "cancelar")}>
+                        Cancelar solicitud
+                      </button>
+                    </>
+                  )}
                   <a
                     className={styles.primaryBtn}
                     href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`Consulta sobre ${selectedOrder.id}`)}`}
@@ -551,6 +514,378 @@ function ClientDashboard({ session, orders, setOrders, onLogout }) {
         )}
       </div>
     </main>
+  );
+}
+
+const TICKET_ESTADO_LABEL = {
+  pendiente: "Abierto",
+  en_proceso: "En proceso",
+  completada: "Resuelto",
+  cancelada: "Cerrado",
+};
+
+function SupportPage() {
+  const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [form, setForm] = useState({ asunto: "", mensaje: "" });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/cliente-portal/soporte", { cache: "no-store" })
+      .then((response) => response.json())
+      .then((data) => { if (active && Array.isArray(data)) setTickets(data); })
+      .catch(() => {})
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
+
+  async function submitTicket(event) {
+    event.preventDefault();
+    if (saving) return;
+    setSaving(true);
+    try {
+      const response = await fetch("/api/cliente-portal/soporte", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "No se pudo crear el ticket.");
+      setTickets((current) => [payload, ...current]);
+      setForm({ asunto: "", mensaje: "" });
+      sileo.success({ title: "Ticket creado", description: `Seguimiento disponible con el número ${payload.id}.` });
+    } catch (error) {
+      sileo.error({ title: error.message || "No se pudo crear el ticket." });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className={styles.supportPage}>
+      <h2>Soporte técnico</h2>
+      <div className={styles.supportGrid}>
+        <div className={styles.quickContact}>
+          <h3>Contacto rápido</h3>
+          <p>¿Necesitas ayuda inmediata? Contáctanos.</p>
+          <div className={styles.contactMethods}>
+            <a href={`mailto:${CONTACT_EMAIL}`} className={styles.contactCard}>
+              <span className={styles.contactIcon}>📧</span>
+              <div>
+                <strong>Email</strong>
+                <p>{CONTACT_EMAIL}</p>
+              </div>
+            </a>
+            <a href={CONTACT_PHONE_HREF} className={styles.contactCard}>
+              <span className={styles.contactIcon}>📞</span>
+              <div>
+                <strong>Teléfono</strong>
+                <p>{CONTACT_PHONE}</p>
+              </div>
+            </a>
+          </div>
+        </div>
+        <div className={styles.ticketForm}>
+          <h3>Abrir un ticket</h3>
+          <p>Describe tu problema y el equipo de Arconet dará seguimiento desde aquí.</p>
+          <form onSubmit={submitTicket}>
+            <label className={styles.field}>
+              Asunto
+              <input
+                type="text"
+                value={form.asunto}
+                onChange={(event) => setForm({ ...form, asunto: event.target.value })}
+                placeholder="Ej. Problema con la entrega del proyecto X"
+                maxLength={150}
+                required
+              />
+            </label>
+            <label className={styles.field}>
+              Descripción
+              <textarea
+                value={form.mensaje}
+                onChange={(event) => setForm({ ...form, mensaje: event.target.value })}
+                placeholder="Cuéntanos qué ocurrió, cuándo y qué esperabas."
+                rows={4}
+                maxLength={2000}
+                required
+              />
+            </label>
+            <button type="submit" className={styles.submit} disabled={saving}>
+              <Ticket size={16} /> {saving ? "Creando ticket..." : "Crear ticket"}
+            </button>
+          </form>
+        </div>
+      </div>
+      <div className={styles.recentTickets}>
+        <h3>Mis tickets</h3>
+        {loading ? <p>Cargando tickets...</p> : tickets.length === 0 ? (
+          <p>Aún no tienes tickets. Los que abras aparecerán aquí con su seguimiento.</p>
+        ) : (
+          <div className={styles.orderList}>
+            {tickets.map((ticket) => (
+              <article key={ticket.id} className={styles.orderCard}>
+                <div className={styles.orderHeader}>
+                  <strong>{ticket.id}</strong>
+                  <span className={`${styles.orderStatus} ${styles[`status_${ticket.estado}`] || ""}`}>
+                    {TICKET_ESTADO_LABEL[ticket.estado] || ticket.estado}
+                  </span>
+                </div>
+                <p>{ticket.detalle}</p>
+                <div className={styles.orderMeta}>
+                  <span>{new Date(ticket.fecha).toLocaleDateString("es-HN")}</span>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DocumentsPage() {
+  const [docs, setDocs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/cliente-portal/documentos", { cache: "no-store" })
+      .then((response) => response.json().then((data) => ({ response, data })))
+      .then(({ response, data }) => {
+        if (!active) return;
+        if (!response.ok) throw new Error(data?.error || "No se pudieron cargar los documentos.");
+        setDocs(Array.isArray(data) ? data : []);
+      })
+      .catch((err) => { if (active) setError(err.message || "No se pudieron cargar los documentos."); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
+
+  return (
+    <div className={styles.documentsPage}>
+      <h2>Documentos</h2>
+      {error ? <p role="alert">{error}</p> : null}
+      {loading ? <p>Cargando documentos...</p> : docs.length === 0 ? (
+        <p>Aún no tienes documentos disponibles. Aquí verás tus cotizaciones aprobadas y facturas en cuanto existan.</p>
+      ) : (
+        <div className={styles.orderList}>
+          {docs.map((doc) => (
+            <article key={doc.id} className={styles.orderCard}>
+              <div className={styles.orderHeader}>
+                <strong><FileText size={14} style={{ verticalAlign: -2 }} /> {doc.nombre}</strong>
+                <span className={`${styles.orderStatus} ${styles[`status_${doc.estado}`] || ""}`}>
+                  {doc.tipo === "factura" ? "Factura" : "Cotización"}
+                </span>
+              </div>
+              <div className={styles.orderMeta}>
+                <span>{new Date(doc.fecha).toLocaleDateString("es-HN")}</span>
+                <strong>{doc.monto.toLocaleString("es-HN")} L</strong>
+              </div>
+              <a
+                className={styles.viewBtn}
+                href={doc.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ textDecoration: "none", display: "inline-block" }}
+              >
+                <Download size={14} /> Ver / descargar PDF
+              </a>
+            </article>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ProfilePage({ session, onSessionUpdate }) {
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({
+    contacto: session.contacto || "",
+    telefono: session.telefono || "",
+    ciudad: session.ciudad || "",
+    direccion: session.direccion || "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const update = (campo) => (event) => {
+    setForm((current) => ({ ...current, [campo]: event.target.value }));
+    if (error) setError("");
+  };
+
+  async function save(event) {
+    event.preventDefault();
+    if (saving) return;
+    setSaving(true);
+    setError("");
+    try {
+      const response = await fetch("/api/cliente-portal/perfil", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "No se pudo guardar el perfil.");
+      onSessionUpdate((current) => ({ ...current, ...payload }));
+      setEditing(false);
+      sileo.success({ title: "Perfil actualizado" });
+    } catch (err) {
+      setError(err.message || "No se pudo guardar el perfil.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className={styles.profilePage}>
+      <h2>Mi perfil</h2>
+      <div className={styles.profileCard}>
+        <div className={styles.profileHeader}>
+          <span className={styles.profileAvatar}>{session.nombre[0]}</span>
+          <div>
+            <strong>{session.nombre}</strong>
+            <p>{session.correo}</p>
+          </div>
+          {!editing && (
+            <button type="button" className={styles.ghostBtn} onClick={() => setEditing(true)} style={{ marginLeft: "auto" }}>
+              Editar
+            </button>
+          )}
+        </div>
+
+        {editing ? (
+          <form className={styles.securityForm} onSubmit={save} noValidate>
+            <label className={styles.field}>
+              Nombre de contacto
+              <input type="text" value={form.contacto} onChange={update("contacto")} maxLength={120} />
+            </label>
+            <label className={styles.field}>
+              Teléfono
+              <input type="tel" value={form.telefono} onChange={update("telefono")} maxLength={120} />
+            </label>
+            <label className={styles.field}>
+              Ciudad
+              <input type="text" value={form.ciudad} onChange={update("ciudad")} maxLength={120} />
+            </label>
+            <label className={styles.field}>
+              Dirección
+              <input type="text" value={form.direccion} onChange={update("direccion")} maxLength={400} />
+            </label>
+            {error ? <p className={styles.securityError} role="alert">{error}</p> : null}
+            <div className={styles.modalActions}>
+              <button type="button" className={styles.ghostBtn} onClick={() => { setEditing(false); setError(""); }}>
+                Cancelar
+              </button>
+              <button type="submit" className={styles.submit} disabled={saving}>
+                {saving ? "Guardando..." : "Guardar cambios"}
+              </button>
+            </div>
+          </form>
+        ) : (
+          <div className={styles.profileDetails}>
+            <div className={styles.detailRow}>
+              <span>Empresa</span>
+              <strong>{session.empresa || session.nombre}</strong>
+            </div>
+            <div className={styles.detailRow}>
+              <span>RTN</span>
+              <strong>{session.rtn || "—"}</strong>
+            </div>
+            <div className={styles.detailRow}>
+              <span>Contacto</span>
+              <strong>{session.contacto || session.nombre || "—"}</strong>
+            </div>
+            <div className={styles.detailRow}>
+              <span>Teléfono</span>
+              <strong>{session.telefono || "—"}</strong>
+            </div>
+            <div className={styles.detailRow}>
+              <span>Ciudad</span>
+              <strong>{session.ciudad || "—"}</strong>
+            </div>
+            <div className={styles.detailRow}>
+              <span>Dirección</span>
+              <strong>{session.direccion || "—"}</strong>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <SecurityCard session={session} />
+    </div>
+  );
+}
+
+function NotificationsBell() {
+  const [items, setItems] = useState([]);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      try {
+        const response = await fetch("/api/cliente-portal/notificaciones", { cache: "no-store" });
+        if (!response.ok) return;
+        const data = await response.json();
+        if (active && Array.isArray(data)) setItems(data);
+      } catch { /* silencioso */ }
+    }
+    load();
+    const timer = setInterval(load, 60_000);
+    return () => { active = false; clearInterval(timer); };
+  }, []);
+
+  const unread = items.filter((item) => !item.read).length;
+
+  async function markAllRead() {
+    setItems((current) => current.map((item) => ({ ...item, read: true })));
+    await fetch("/api/cliente-portal/notificaciones", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ all: true }),
+    }).catch(() => {});
+  }
+
+  return (
+    <div className={styles.bellWrap}>
+      <button
+        type="button"
+        className={styles.bellBtn}
+        onClick={() => setOpen((value) => !value)}
+        aria-label={`Notificaciones${unread ? `, ${unread} sin leer` : ""}`}
+        aria-expanded={open}
+      >
+        <Bell size={16} />
+        {unread > 0 && <span className={styles.bellBadge}>{unread > 9 ? "9+" : unread}</span>}
+      </button>
+      {open && (
+        <div className={styles.bellPanel} role="dialog" aria-label="Notificaciones">
+          <header className={styles.bellHead}>
+            <strong>Notificaciones</strong>
+            {unread > 0 && (
+              <button type="button" className={styles.linkBtn} onClick={markAllRead}>Marcar todas leídas</button>
+            )}
+          </header>
+          {items.length === 0 ? (
+            <p className={styles.bellEmpty}>No tienes notificaciones todavía.</p>
+          ) : (
+            <ul className={styles.bellList}>
+              {items.slice(0, 20).map((item) => (
+                <li key={item.id} className={item.read ? "" : styles.bellUnread}>
+                  <strong>{item.title}</strong>
+                  <p>{item.message}</p>
+                  <small>{new Date(item.createdAt).toLocaleString("es-HN")}</small>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
