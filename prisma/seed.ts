@@ -121,7 +121,37 @@ const CATEGORIAS = [
   ["cat-microcables", "Microcables y Microproductos", "microcables-y-microproductos", "Microcables, microductos y accesorios compactos para instalaciones FTTH de alta densidad.", "/catalogo/prod-adss.jpg", 11],
 ];
 
+const MIN_PASSWORD_LENGTH = 12;
+
+// Se valida ANTES de abrir nada contra la base: si falta la contraseña, el
+// seed aborta sin dejar la base a medio sembrar (sin usuario de admin).
+function validarEntorno() {
+  const password = process.env.SEED_ADMIN_PASSWORD;
+  if (!password || password.trim() === "") {
+    throw new Error(
+      [
+        "Falta la variable SEED_ADMIN_PASSWORD (contraseña inicial del usuario admin).",
+        `- Definí SEED_ADMIN_PASSWORD en tu archivo .env con al menos ${MIN_PASSWORD_LENGTH} caracteres.`,
+        "- Si no tenés .env, partí del ejemplo: cp .env.example .env",
+        "- No se escribió nada en la base de datos.",
+      ].join("\n"),
+    );
+  }
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    throw new Error(
+      [
+        `SEED_ADMIN_PASSWORD es demasiado corta (${password.length} caracteres, mínimo ${MIN_PASSWORD_LENGTH}).`,
+        "- Usá una contraseña de al menos 12 caracteres en tu archivo .env (ver .env.example).",
+        "- No se escribió nada en la base de datos.",
+      ].join("\n"),
+    );
+  }
+  return password;
+}
+
 async function main() {
+  const seedPassword = validarEntorno();
+
   for (const s of SUCURSALES) {
     await prisma.sucursal.upsert({ where: { id: s.id }, update: s, create: s });
   }
@@ -166,10 +196,6 @@ async function main() {
     }
   }
 
-  const seedPassword = process.env.SEED_ADMIN_PASSWORD;
-  if (!seedPassword || seedPassword.length < 12) {
-    throw new Error("SEED_ADMIN_PASSWORD must be set (min 12 chars).");
-  }
   const usuarios = [
     ["u-admin", "Sofía Aguilar", "sofia.aguilar@arconet.com", hashPassword(seedPassword), "administrador", "sps"],
     ["u-demo", "Sofía Aguilar", "admin@arconet.com", hashPassword(seedPassword), "administrador", "sps"],
