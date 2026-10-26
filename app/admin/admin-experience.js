@@ -959,8 +959,28 @@ function WorkersSection({ workers, setWorkers, roles = [], session }) {
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState(EMPTY_WORKER);
   const [confirmWorker, setConfirmWorker] = useState(null);
+  const [busyId, setBusyId] = useState(null);
   const { show } = useToast();
   const { goTo } = useContext(AdminContext);
+
+  const canWriteWorkers = (session?.permisos || []).includes("trabajadores:write");
+
+  // Accion rapida: alternar activo/inactivo sin abrir el modal.
+  async function toggleWorkerState(worker) {
+    const nextEstado = worker.estado === "activo" ? "inactivo" : "activo";
+    setBusyId(worker.id);
+    try {
+      const saved = await updateWorker(worker.id, { ...worker, estado: nextEstado });
+      setWorkers((current) =>
+        current.map((item) => (item.id === worker.id ? saved : item)),
+      );
+      show(`${worker.nombre} ahora esta ${statusLabel(saved?.estado || nextEstado)}.`);
+    } catch (error) {
+      notifyError(error.message || "No se pudo cambiar el estado del trabajador.");
+    } finally {
+      setBusyId(null);
+    }
+  }
 
   useEscapeKey(modalOpen, () => closeModal());
   useBodyScrollLock(modalOpen);
@@ -1249,6 +1269,21 @@ function WorkersSection({ workers, setWorkers, roles = [], session }) {
                     <td data-label="Ingreso">{formatDate(worker.ingreso)}</td>
                     <td data-label="Acciones">
                       <div className={styles.rowActions}>
+                        {canWriteWorkers && (
+                          <button
+                            type="button"
+                            onClick={() => toggleWorkerState(worker)}
+                            disabled={busyId === worker.id}
+                            aria-label={
+                              worker.estado === "activo"
+                                ? `Desactivar a ${worker.nombre}`
+                                : `Activar a ${worker.nombre}`
+                            }
+                            title={worker.estado === "activo" ? "Marcar inactivo" : "Marcar activo"}
+                          >
+                            <RotateCw size={15} className={busyId === worker.id ? styles.spinning : undefined} />
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => openEdit(worker)}
@@ -1508,6 +1543,26 @@ function ProductsSection({ products, setProducts, categorias = [], workers = [],
     }
     return activeCategoryNames;
   }, [activeCategoryNames, draft.categoria]);
+
+  const canWriteProducts = (session?.permisos || []).includes("productos:write");
+  const [busyProduct, setBusyProduct] = useState(null);
+
+  // Accion rapida: activar/inactivar un producto desde la tabla.
+  async function toggleProductState(product) {
+    const nextEstado = product.estado === "activo" ? "inactivo" : "activo";
+    setBusyProduct(product.id);
+    try {
+      const saved = await updateProduct(product.id, { ...product, estado: nextEstado });
+      setProducts((current) =>
+        current.map((item) => (item.id === product.id ? saved : item)),
+      );
+      show(`${product.nombre} ahora esta ${nextEstado}.`);
+    } catch (error) {
+      notifyError(error.message || "No se pudo cambiar el estado del producto.");
+    } finally {
+      setBusyProduct(null);
+    }
+  }
 
   useEscapeKey(modalOpen, () => closeModal());
   useBodyScrollLock(modalOpen);
@@ -1848,6 +1903,21 @@ function ProductsSection({ products, setProducts, categorias = [], workers = [],
                     </td>
                     <td data-label="Acciones">
                       <div className={styles.rowActions}>
+                        {canWriteProducts && (
+                          <button
+                            type="button"
+                            onClick={() => toggleProductState(product)}
+                            disabled={busyProduct === product.id}
+                            aria-label={
+                              product.estado === "activo"
+                                ? `Desactivar ${product.nombre}`
+                                : `Activar ${product.nombre}`
+                            }
+                            title={product.estado === "activo" ? "Marcar inactivo" : "Marcar activo"}
+                          >
+                            <RotateCw size={15} className={busyProduct === product.id ? styles.spinning : undefined} />
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => openEdit(product)}
