@@ -28,12 +28,22 @@ jobs:
           cache: npm
 
       - name: Instalar dependencias
-        run: npm ci
+        # --ignore-scripts: en npm >= 11.6 los scripts de instalacion se
+        # bloquean por defecto y "npm ci" falla al ejecutar el preinstall de
+        # prisma (y el postinstall de @prisma/engines). No los necesitamos
+        # aqui: el paso "Compilar" corre "prisma generate" explicitamente
+        # (script build de package.json) y las binarias nativas de esbuild
+        # se instalan como dependencias opcionales, sin scripts.
+        run: npm ci --ignore-scripts
 
       - name: Lint (bloquea solo errores)
         run: npx eslint . --quiet
 
       - name: Validar esquema Prisma
+        env:
+          # prisma.config.ts resuelve env("DATABASE_URL") al cargar; sin este
+          # valor el comando falla con "Cannot resolve environment variable".
+          DATABASE_URL: 'postgresql://ci:ci@localhost:5432/ci?schema=public'
         run: npx prisma validate
 
       - name: Tests
