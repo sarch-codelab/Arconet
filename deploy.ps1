@@ -25,6 +25,9 @@ $LogFile = "C:\arconet\deploy.log"
 $NpmCmd  = "C:\Program Files\nodejs\npm.cmd"
 $BootStart = "C:\arconet\boot\start-arconet.ps1"
 $BootStop  = "C:\arconet\boot\stop-arconet.ps1"
+$BuildDir = Join-Path $AppPath ".next"
+$BuildPrevious = Join-Path $AppPath ".next-previous"
+$script:AppWasStopped = $false
 
 function Write-Log {
     param([string]$Message, [string]$Level = "INFO")
@@ -49,11 +52,33 @@ function Invoke-Npm {
     }
 }
 
+# Restaura el build que estaba activo antes del deploy. Se usa cuando el
+# build nuevo falla o no arranca, para no dejar el sitio con un .next roto.
+function Restore-PreviousBuild {
+    param([string]$Reason = "")
+    if (-not (Test-Path $BuildPrevious)) { return $false }
+    Write-Log "Restaurando build anterior... $Reason" "WARN"
+    try {
+        if (Test-Path $BuildDir) {
+            Remove-Item -Path $BuildDir -Recurse -Force -ErrorAction Stop
+        }
+        Move-Item -Path $BuildPrevious -Destination $BuildDir -Force -ErrorAction Stop
+        return $true
+    } catch {
+        Write-Log "No se pudo restaurar el build anterior: $($_.Exception.Message)" "ERROR"
+        return $false
+    }
+}
+
 # Si algo falla, intenta dejar el sitio en pie en vez de dejarlo caido hasta
 # que el watchdog reaccione (paso el 22/10 con el fallo de npm ci).
 function Fail {
     param([string]$Message)
     Write-Log $Message "ERROR"
+    if ($script:AppWasStopped) {
+        try { & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $BootStop | Out-Null } catch { }
+    }
+    [void](Restore-PreviousBuild "por fallo del deploy")
     Write-Log "Intentando levantar la app para no dejar el sitio caido..." "WARN"
     try {
         & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $BootStart
@@ -74,6 +99,16 @@ try {
     Set-Location $AppPath
     Write-Log "Working in: $AppPath"
 
+    # Respaldo de un deploy anterior que no se pudo limpiar. Si el build
+    # activo esta roto, se recupera el respaldo; si esta sano, se descarta.
+    if (Test-Path $BuildPrevious) {
+        if (Test-Path (Join-Path $BuildDir "BUILD_ID")) {
+            Remove-Item -Path $BuildPrevious -Recurse -Force -ErrorAction SilentlyContinue
+        } else {
+            [void](Restore-PreviousBuild "al inicio del deploy")
+        }
+    }
+
     # 2. Pull latest code
     Write-Log "Pulling latest code from git..."
     $gitStatus = git status --porcelain 2>&1
@@ -89,7 +124,12 @@ try {
 
     # 3. Stop the app BEFORE touching node_modules (npm ci needs exclusive access)
     Write-Log "Stopping application..."
-    & "$BootStop"
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $BootStop
+    $stopCode = $LASTEXITCODE
+    if ($stopCode -ne 0) {
+        Fail "No se pudo detener la app (exit code $stopCode)"
+    }
+    $script:AppWasStopped = $true
     Start-Sleep -Seconds 2
     Write-Log "Application stopped"
 
@@ -131,6 +171,21 @@ try {
 
     # 6. Build Next.js app
     if (-not $SkipBuild) {
+        # Mover el build activo en vez de copiarlo: es instantaneo y permite
+        # restaurarlo tal cual si el build nuevo falla.
+        if (Test-Path $BuildDir) {
+            if (Test-Path (Join-Path $BuildDir "BUILD_ID")) {
+                if (Test-Path $BuildPrevious) {
+                    Remove-Item -Path $BuildPrevious -Recurse -Force -ErrorAction SilentlyContinue
+                }
+                Move-Item -Path $BuildDir -Destination $BuildPrevious -Force -ErrorAction Stop
+                Write-Log "Build anterior preservado en $BuildPrevious"
+            } else {
+                Write-Log "El build actual no tiene BUILD_ID; se descarta" "WARN"
+                Remove-Item -Path $BuildDir -Recurse -Force -ErrorAction SilentlyContinue
+            }
+        }
+
         Write-Log "Building Next.js app..."
         $env:NODE_ENV = "production"
         $code = Invoke-Npm @('run', 'build')
@@ -144,7 +199,15 @@ try {
     $startCode = $LASTEXITCODE
     if ($startCode -ne 0) {
         Write-Log "The application failed to start (exit code $startCode)" "ERROR"
-        exit 1
+        try { & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $BootStop | Out-Null } catch { }
+        $restored = Restore-PreviousBuild "por fallo de arranque"
+        & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $BootStart
+        $startCode = $LASTEXITCODE
+        if ($startCode -ne 0) { Fail "The application failed to start with the previous build too" }
+        if ($restored) {
+            Write-Log "El build nuevo no arranco; se dejo el build anterior. Deploy marcado como fallido." "ERROR"
+            exit 1
+        }
     }
     Write-Log "Application started and responding"
 
@@ -155,13 +218,15 @@ try {
         if ($response.StatusCode -eq 200) {
             Write-Log "Health check PASSED - App is responding"
         } else {
-            Write-Log "Health check WARNING - Status: $($response.StatusCode)" "WARN"
+            Fail "Health check failed with status $($response.StatusCode)"
         }
     } catch {
-        Write-Log "Health check FAILED - $($_.Exception.Message)" "ERROR"
-        exit 1
+        Fail "Health check FAILED - $($_.Exception.Message)"
     }
 
+    if (Test-Path $BuildPrevious) {
+        Remove-Item -Path $BuildPrevious -Recurse -Force -ErrorAction SilentlyContinue
+    }
     Write-Log "=== DEPLOY COMPLETED SUCCESSFULLY ==="
     exit 0
 
