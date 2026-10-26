@@ -9,6 +9,8 @@ const eslintConfig = [
       "node_modules/**",
       "ops/backups/**",
       "prisma/migrations/**",
+      // Cliente generado por Prisma: no es código propio, no debe ensuciar el lint.
+      "generated/**",
     ],
   },
   ...next,
