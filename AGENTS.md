@@ -14,3 +14,20 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Do not put required homepage animations exclusively behind `@media (prefers-reduced-motion: no-preference)`. If reduced motion is handled, keep the requested effects working and make sure content never stays hidden when an animation or animation event does not run.
 - After changing animations, verify both `prefers-reduced-motion: reduce` and `no-preference` in a browser. Confirm the relevant elements have a non-`none` computed `animation-name`, become visible, and that the page has no horizontal overflow. Also run `npm run build`.
 - Do not assume a successful build proves browser animations work. If Brave is available, verify the homepage at `http://localhost:3000/` in Brave as well.
+
+## Aviso conocido de dependencias: `eslint@10` + `eslint-plugin-react`
+
+`npm install` muestra un warning de peer dependency:
+
+```
+npm warn ERESOLVE overriding peer dependency
+npm warn peer eslint@"^3 || ... || ^9.7" from eslint-plugin-react@7.37.5
+```
+
+`eslint-plugin-react` (dependencia transitiva de `eslint-config-next`) todavía
+no publica ninguna versión que declare soporte para `eslint@10`: la última
+publicada es 7.37.5 y su peer sigue siendo `^9.7` como máximo. Por eso **no se
+cambian versiones**: bajar `eslint` a 9 rompería el resto, y no existe todavía
+una combinación publicada compatible. `npm run lint` funciona igual con la
+versión actual (verificado en verde). Cuando `eslint-plugin-react` publique una
+versión con peer `^10`, se actualiza y se quita este aviso.
