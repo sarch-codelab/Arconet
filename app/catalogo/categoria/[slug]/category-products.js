@@ -77,7 +77,6 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
         imageAlt: category.nombre,
       }
     : staticFamily;
-  const hasLine = Boolean(staticFamily && (!category || staticFamily.category === category.nombre));
   const pageRef = useRef(null);
   const [searchTerm, setSearchTerm] = useState("");
   const { addItem, open: openCart, count: cartCount } = useCart();
@@ -238,9 +237,7 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
             ))}
           </ul>
 
-          <Link className={styles.primaryButton} href={hasLine ? `/catalogo/${family.slug}` : "/catalogo#catalogo-items"}>
-            {hasLine ? "Ver línea completa" : "Ver catálogo completo"} <ArrowUpRight size={16} />
-          </Link>
+          {/* El boton "Ver linea completa" se quito por pedido del cliente. */}
         </div>
       </section>
 

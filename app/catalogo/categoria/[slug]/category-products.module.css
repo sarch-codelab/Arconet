@@ -169,11 +169,19 @@
 
 .hero {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* minmax(0,1fr) en vez de 1fr a secas: sin el 0 minimo, la columna puede
+     crecer mas alla del ancho disponible (min-content de la imagen/grid) y
+     provoca scroll horizontal en toda la pagina. */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: clamp(32px, 5vw, 64px);
   padding: clamp(40px, 8vw, 80px) clamp(20px, 6vw, 92px);
   min-height: 60vh;
   align-items: center;
+}
+
+/* La caja visual tampoco debe forzar el ancho minimo de su contenido. */
+.heroVisual {
+  min-width: 0;
 }
 
 /* EL MARCO: .heroVisual tenia border-radius + background propio. Cuando la
