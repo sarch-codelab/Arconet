@@ -8,33 +8,19 @@ import {
   ArrowDown,
   ArrowRight,
   ArrowUpRight,
-  Boxes,
-  Cable,
-  Gauge,
   Handshake,
-  Layers,
   MapPin,
   Network,
   PackageCheck,
-  Radio,
-  Ruler,
-  Search,
-  Server,
   ShieldCheck,
   ShoppingCart,
-  SlidersHorizontal,
   Truck,
-  Wrench,
   X,
 } from "lucide-react";
 import styles from "./catalogo-experience.module.css";
 
-// Las fotos de la BD llegan como data: URLs; next/image con el loader por defecto
-// las envia a /_next/image y falla. Loader interno: usa la src tal cual.
-const directLoader = ({ src }) => src;
-import { FAMILIES, findFamily, formatPrice } from "./catalogo-data";
+import { FAMILIES, findFamily } from "./catalogo-data";
 import { useCart } from "../cart-context";
-import { useCatalogProducts } from "./catalogo-products";
 import { useCategorias } from "./categorias-store";
 import Footer from "../footer";
 import MobileSiteMenu from "../mobile-site-menu";
@@ -75,21 +61,6 @@ const TRUST = [
 ];
 
 const BRANCH_KEY = "arconet-branch";
-
-// Ícono de respaldo para las tarjetas de producto sin foto, según su categoría.
-const PRODUCT_ICONS = {
-  "Soluciones de Preconectorizado": Cable,
-  Herrajes: SlidersHorizontal,
-  "Gabinetes y Racks": Network,
-  "Cajas de Distribución y Emplazamiento": Boxes,
-  "Soluciones activas y Accesorios FTTH": Radio,
-  "Herramientas y kits": Wrench,
-  Escaleras: Ruler,
-  "Optical Distribution Frame - ODF": Server,
-  "Instrumentos de medición óptica": Gauge,
-  "Componentes pasivos": Layers,
-  "Microcables y Microproductos": Cable,
-};
 
 const BRANCHES = [
   { id: "sps", label: "San Pedro Sula" },
@@ -132,8 +103,6 @@ const FALLBACK_CATEGORIES = FAMILIES.map((family) => ({
 }));
 
 export default function CatalogoExperience() {
-  const [activeCategory, setActiveCategory] = useState("Todas");
-  const [searchTerm, setSearchTerm] = useState("");
   const [activeSection, setActiveSection] = useState("");
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -145,8 +114,7 @@ export default function CatalogoExperience() {
   const heroRef = useRef(null);
   const navRef = useRef(null);
   const topbarRef = useRef(null);
-  const { count: cartCount, open: openCart, addItem } = useCart();
-  const { products, loading: productsLoading } = useCatalogProducts();
+  const { count: cartCount, open: openCart } = useCart();
   const { categorias: remoteCategories, loaded: categoriesLoaded } = useCategorias();
 
   const catalogCategories = useMemo(
@@ -167,17 +135,6 @@ export default function CatalogoExperience() {
       }),
     [catalogCategories]
   );
-
-  const addProductToQuote = (product) => {
-    addItem({
-      slug: product.id,
-      href: `/catalogo/producto/${product.id}`,
-      title: product.nombre,
-      category: product.categoria,
-      image: product.foto || "",
-      presentation: product.unidad || "Unidad",
-    });
-  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -341,31 +298,6 @@ export default function CatalogoExperience() {
     return () => observer.disconnect();
   }, []);
 
-  const visibleProducts = useMemo(() => {
-    const query = searchTerm.trim().toLocaleLowerCase("es");
-    return products.filter((product) => {
-      const matchesCategory = activeCategory === "Todas" || product.categoria === activeCategory;
-      const haystack = `${product.nombre} ${product.sku} ${product.marca || ""} ${product.categoria}`.toLocaleLowerCase("es");
-      return matchesCategory && (!query || haystack.includes(query));
-    });
-  }, [products, activeCategory, searchTerm]);
-
-  // Filtros: las categorías activas más cualquier categoría nueva que exista en la BD.
-  const productCategories = useMemo(() => {
-    const names = catalogCategories.map((category) => category.nombre);
-    const extra = [...new Set(products.map((product) => product.categoria))].filter(
-      (category) => category && !names.includes(category)
-    );
-    return ["Todas", ...names, ...extra];
-  }, [catalogCategories, products]);
-
-  const resetFilters = () => {
-    setActiveCategory("Todas");
-    setSearchTerm("");
-  };
-
-  const hasFilters = activeCategory !== "Todas" || searchTerm.trim().length > 0;
-
   const megaItems = NAVIGATION.filter((item) => item.mega);
   const megaMenu = megaItems.length > 0 ? (
     <div className={styles.megaMenuCatalogo}>
@@ -390,8 +322,8 @@ export default function CatalogoExperience() {
       ))}
       <div className={styles.megaMenuFooter}>
         <span>Compra por sucursal con asesoría técnica directa</span>
-        <a href="#catalogo-items">
-          Ver productos
+        <a href="#familias">
+          Ver soluciones
           <ArrowRight size={14} aria-hidden="true" />
         </a>
       </div>
@@ -614,8 +546,8 @@ export default function CatalogoExperience() {
               Fibra óptica, CATV, satélite e infraestructura. Explora el catálogo y cotiza con una persona de nuestro equipo, aquí en San Pedro Sula.
             </p>
             <div className={styles.heroActions}>
-              <a className={styles.primaryButton} href="#catalogo-items">
-                Ver productos <ArrowDown size={15} />
+              <a className={styles.primaryButton} href="#familias">
+                Ver soluciones <ArrowDown size={15} />
               </a>
               <a className={styles.ghostButton} href="/#contacto">
                 Pedir asesoría <ArrowRight size={15} />
@@ -681,147 +613,6 @@ export default function CatalogoExperience() {
               </div>
             </Link>
           ))}
-        </div>
-      </section>
-
-      <section id="catalogo-items" className={styles.catalogSection}>
-        <div className={styles.catalogHeading} data-reveal>
-          <div>
-            <p className={styles.sectionEyebrow}><i /> Encuentra tu solución</p>
-            <h2>Productos</h2>
-          </div>
-          <span className={styles.resultCount}>
-            {String(visibleProducts.length).padStart(2, "0")} de {String(products.length).padStart(2, "0")} productos
-          </span>
-        </div>
-
-        <div className={styles.catalogControls}>
-          <div className={styles.categoryFilters} role="group" aria-label="Filtrar por categoría">
-            {productCategories.map((category) => (
-              <button
-                type="button"
-                key={category}
-                className={activeCategory === category ? styles.categoryActive : ""}
-                aria-pressed={activeCategory === category}
-                onClick={() => setActiveCategory(category)}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-          <label className={styles.searchBox}>
-            <Search size={17} aria-hidden="true" />
-            <input
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="¿Qué necesitas? Ej. splitter"
-              aria-label="Buscar en el catálogo"
-            />
-            {searchTerm && (
-              <button type="button" aria-label="Limpiar búsqueda" onClick={() => setSearchTerm("")}>
-                <X size={16} />
-              </button>
-            )}
-          </label>
-        </div>
-
-        <div className={styles.familyGrid}>
-          {productsLoading ? (
-            <div className={styles.emptyState}>
-              <Search size={24} strokeWidth={1.4} aria-hidden="true" />
-              <p>Cargando productos…</p>
-            </div>
-          ) : visibleProducts.length ? (
-            visibleProducts.map((product, index) => {
-              const stock = Number(product.stock) || 0;
-              const soldOut = stock <= 0;
-              const lowStock = stock > 0 && stock <= 5;
-              const stockState = soldOut ? "out" : lowStock ? "low" : "ok";
-              const Icon = PRODUCT_ICONS[product.categoria] || SlidersHorizontal;
-              const code = String(index + 1).padStart(2, "0");
-              return (
-                <article className={styles.familyCard} key={product.id}>
-                  <div className={`${styles.familyVisual} ${product.foto ? styles.photoVisual : styles.graphicVisual}`}>
-                    {product.foto ? (
-                      <Image
-                        src={product.foto}
-                        alt={product.nombre}
-                        fill
-                        loader={directLoader}
-                        unoptimized
-                        sizes="(max-width: 700px) 92vw, (max-width: 1080px) 46vw, 30vw"
-                        className={styles.familyImage}
-                      />
-                    ) : (
-                      <div className={styles.familyGraphic} aria-hidden="true">
-                        <div className={styles.graphicOrbit}><i /><i /><i /></div>
-                        <Icon size={58} strokeWidth={1.1} />
-                        <span>AR / {product.sku}</span>
-                      </div>
-                    )}
-                    <span className={styles.familyIndex}>{code}</span>
-                    {stockState !== "ok" ? (
-                      <div className={styles.familyFlags}>
-                        <span className={`${styles.familyFlag} ${soldOut ? styles.flag_soldout : styles.flag_low}`}>
-                          {soldOut ? "Agotado" : "Ãšltimas unidades"}
-                        </span>
-                      </div>
-                    ) : null}
-                  </div>
-
-                  <div className={styles.familyCopy}>
-                    <p className={styles.familyCategory}>{product.categoria}</p>
-                    <h3>{product.nombre}</h3>
-                    <p className={styles.familySummary}>
-                      SKU {product.sku}
-                      {product.marca ? ` · ${product.marca}` : ""} · {product.unidad}
-                    </p>
-
-                    <div className={styles.familyMeta}>
-                      <div className={styles.metaCell}>
-                        <span className={styles.metaLabel}>Precio</span>
-                        <span className={styles.metaPrice}>
-                          <strong>{formatPrice(product.precio)}</strong>
-                        </span>
-                      </div>
-                      <div className={styles.metaCell}>
-                        <span className={styles.metaLabel}>Existencias</span>
-                        <span className={`${styles.metaStock} ${styles[`stock_${stockState}`] || ""}`}>
-                          <i aria-hidden="true" />
-                          {soldOut
-                            ? "Agotado"
-                            : `${stock.toLocaleString("es-HN")} pzs disponibles`}
-                        </span>
-                      </div>
-                    </div>
-
-                    <Link className={styles.familyLink} href={`/catalogo/producto/${product.id}`}>
-                      Ver detalle y cotizar <ArrowUpRight size={16} />
-                    </Link>
-
-                    <button
-                      type="button"
-                      className={styles.familyQuoteButton}
-                      onClick={() => addProductToQuote(product)}
-                      aria-label={`Añadir ${product.nombre} a la cotización`}
-                    >
-                      Añadir a cotización
-                      <span><ShoppingCart size={15} aria-hidden="true" /></span>
-                    </button>
-                  </div>
-                </article>
-              );
-            })
-          ) : (
-            <div className={styles.emptyState}>
-              <Search size={24} strokeWidth={1.4} aria-hidden="true" />
-              <p>No encontramos ese producto todavía, pero podemos conseguirlo para ti.</p>
-              <div>
-                <button type="button" onClick={resetFilters}>Ver todo el catálogo</button>
-                <a href="/#contacto">Escribir al equipo <ArrowRight size={15} /></a>
-              </div>
-            </div>
-          )}
         </div>
       </section>
 
