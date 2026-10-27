@@ -94,7 +94,7 @@ async function request(url, options) {
   return data;
 }
 
-export default function FacturacionPanel({ session, productos: productosIniciales = [], hideTopbar = false, tabs, activeTab: controlledTab, onTabChange }) {
+export default function FacturacionPanel({ session, productos: productosIniciales = [], hideTopbar = false, chromeOnly = false, tabs, activeTab: controlledTab, onTabChange }) {
   const [innerTab, setInnerTab] = useState("documentos");
   // El tab real solo puede ser uno de los internos; si viene un id externo
   // (p. ej. "facturas" desde la sección Ventas) se traduce con el mapa.
@@ -346,6 +346,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
     <>
       {!hideTopbar && (
         <Topbar
+          chromeOnly={chromeOnly}
           title="Facturación"
           subtitle="Emite facturas con CAI y correlativo, descuenta inventario y lleva el libro de ventas."
           action={
@@ -361,6 +362,21 @@ export default function FacturacionPanel({ session, productos: productosIniciale
         {onTabChange && tabs ? (
           <SectionTabs tabs={tabs} activeTab={controlledTab} onTabChange={setTab} label="Secciones de ventas" />
         ) : null}
+
+        {chromeOnly && hideTopbar && (
+          <div className={adminStyles.sectionSubBar}>
+            <div className={adminStyles.topbarTitle}>
+              <h1>Ventas · Facturas</h1>
+              <p>Emite facturas con CAI y correlativo, descuenta inventario y lleva el libro de ventas.</p>
+            </div>
+            <div className={adminStyles.topbarActions}>
+              <button type="button" className={adminStyles.ghostBtn} onClick={cargar}>
+                <RefreshCw size={15} /> Actualizar
+              </button>
+            </div>
+          </div>
+        )}
+
         <SectionTabs tabs={TABS} activeTab={tab} onTabChange={setTab} label="Secciones de facturación" />
 
         {error ? <p className={styles.error} role="alert">{error}</p> : null}

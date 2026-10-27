@@ -48,6 +48,7 @@ export function Topbar({
   action,
   session,
   workers = [],
+  chromeOnly = false,
 }) {
   const adminCtx = useContext(AdminContext);
   const activeSection = adminCtx?.section || "trabajadores";
@@ -592,14 +593,22 @@ export function Topbar({
 
       {/* ==============================================================
           2. SUB-BARRA DE SECCION (Titulo, subtitulo y accion)
-          ============================================================== */}
-      <div className={styles.sectionSubBar}>
-        <div className={styles.topbarTitle}>
-          <h1>{title}</h1>
-          {subtitle ? <p>{subtitle}</p> : null}
+
+          `chromeOnly` renderiza solo la barra global (logo, pildora de
+          secciones, buscador, notificaciones y perfil). Se usa en secciones
+          unificadas como Ventas, donde cada pestana interna ya aporta su
+          propio titulo/acciones dentro del cuerpo; sin esto, al pasar el
+          control de la cabecera a la seccion padre desaparecia toda la parte
+          superior del panel. */}
+      {!chromeOnly && (
+        <div className={styles.sectionSubBar}>
+          <div className={styles.topbarTitle}>
+            <h1>{title}</h1>
+            {subtitle ? <p>{subtitle}</p> : null}
+          </div>
+          {action && <div className={styles.topbarActions}>{action}</div>}
         </div>
-        {action && <div className={styles.topbarActions}>{action}</div>}
-      </div>
+      )}
 
       {/* Indicador de avance de lectura del panel */}
       <div className={styles.scrollProgress} aria-hidden="true">

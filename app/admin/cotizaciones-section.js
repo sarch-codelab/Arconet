@@ -21,7 +21,7 @@ import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
 import { Topbar, SectionTabs } from "./topbar";
 import { SECTION_NAV_CONFIG } from "./admin-nav";
 
-export default function CotizacionesSection({ orders = [], setOrders, clientes = [], setClientes, products = [], workers = [], session, hideTopbar = false, tabs, activeTab: controlledTab, onTabChange }) {
+export default function CotizacionesSection({ orders = [], setOrders, clientes = [], setClientes, products = [], workers = [], session, hideTopbar = false, chromeOnly = false, tabs, activeTab: controlledTab, onTabChange }) {
   const [innerTab, setInnerTab] = useState("cotizaciones");
   const activeTab = controlledTab ?? innerTab;
   const [query, setQuery] = useState("");
@@ -220,6 +220,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
     <>
       {!hideTopbar && (
         <Topbar
+          chromeOnly={chromeOnly}
           title="Ventas"
           subtitle="Crea cotizaciones o ventas comerciales con productos del catálogo. Las ventas descuentan inventario; las facturas fiscales se emiten en la pestaña Facturas."
           action={
@@ -238,12 +239,26 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
       )}
 
       <div className={styles.body}>
-        <SectionTabs
-          tabs={tabs ?? SECTION_NAV_CONFIG.ventas?.tabs}
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          label="Secciones de ventas"
-        />
+        {onTabChange && tabs ? (
+          <SectionTabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} label="Secciones de ventas" />
+        ) : null}
+
+        {chromeOnly && hideTopbar && (
+          <div className={styles.sectionSubBar}>
+            <div className={styles.topbarTitle}>
+              <h1>Ventas</h1>
+              <p>Crea cotizaciones o ventas comerciales con productos del catálogo. Las ventas descuentan inventario; las facturas fiscales se emiten en la pestaña Facturas.</p>
+            </div>
+            <div className={styles.topbarActions}>
+              <button type="button" className={styles.ghostBtn} onClick={() => openCreate("cotizacion")}>
+                <Plus size={16} /> Nueva cotización
+              </button>
+              <button type="button" className={styles.primaryBtn} onClick={() => openCreate("venta")}>
+                <Plus size={16} /> Nueva venta
+              </button>
+            </div>
+          </div>
+        )}
 
         <section className={styles.stats} aria-label="Resumen de cotizaciones">
           <article className={styles.statCard}>

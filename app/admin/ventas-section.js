@@ -4,6 +4,7 @@ import { useState } from "react";
 import CotizacionesSection from "./cotizaciones-section";
 import FacturacionPanel from "./facturacion-panel";
 import { SECTION_NAV_CONFIG } from "./admin-nav";
+import { Topbar } from "./topbar";
 
 /**
  * Seccion unificada de Ventas.
@@ -14,36 +15,51 @@ import { SECTION_NAV_CONFIG } from "./admin-nav";
  *  - Cotizaciones / Ventas / Pendientes / Aprobadas / Completadas / Todas:
  *    flujo comercial (CotizacionesSection).
  *  - Facturas: facturacion fiscal con CAI (FacturacionPanel).
+ *
+ * La cabecera global (logo, pildora de secciones, buscador, notificaciones y
+ * circulo de perfil) se monta aqui una sola vez con `chromeOnly`, de modo que
+ * no se duplique al cambiar de pestana y siga viendose identica que en las
+ * demas paginas del panel. Cada pestana aporta su propio titulo/acciones en
+ * el cuerpo mediante SectionTabs + sub-barra propia.
  */
 export default function VentasSection({ orders, setOrders, clientes, setClientes, products, workers, session }) {
   const [activeTab, setActiveTab] = useState("cotizaciones");
 
-  if (activeTab === "facturas") {
-    return (
-      <FacturacionPanel
-        session={session}
-        productos={products}
-        hideTopbar
-        tabs={SECTION_NAV_CONFIG.ventas?.tabs}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-      />
-    );
-  }
-
   return (
-    <CotizacionesSection
-      orders={orders}
-      setOrders={setOrders}
-      clientes={clientes}
-      setClientes={setClientes}
-      products={products}
-      workers={workers}
-      session={session}
-      hideTopbar
-      tabs={SECTION_NAV_CONFIG.ventas?.tabs}
-      activeTab={activeTab}
-      onTabChange={setActiveTab}
-    />
+    <>
+      <Topbar
+        chromeOnly
+        title="Ventas"
+        session={session}
+        workers={workers}
+      />
+
+      {activeTab === "facturas" ? (
+        <FacturacionPanel
+          session={session}
+          productos={products}
+          hideTopbar
+          chromeOnly
+          tabs={SECTION_NAV_CONFIG.ventas?.tabs}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+      ) : (
+        <CotizacionesSection
+          orders={orders}
+          setOrders={setOrders}
+          clientes={clientes}
+          setClientes={setClientes}
+          products={products}
+          workers={workers}
+          session={session}
+          hideTopbar
+          chromeOnly
+          tabs={SECTION_NAV_CONFIG.ventas?.tabs}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+      )}
+    </>
   );
 }
