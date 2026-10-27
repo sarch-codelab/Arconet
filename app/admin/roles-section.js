@@ -17,7 +17,7 @@ import { SECTION_NAV_CONFIG, NAV } from "./admin-nav";
 const EMPTY_ROLE = { nombre: "", slug: "", descripcion: "", permisos: [], estado: "activo" };
 
 
-export default function RolesSection({ roles, setRoles, workers = [], session }) {
+export default function RolesSection({ roles = [], setRoles, workers = [], session }) {
   const [activeTab, setActiveTab] = useState("all");
   const [query, setQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -173,7 +173,7 @@ export default function RolesSection({ roles, setRoles, workers = [], session })
 
       <div className={styles.body}>
         <SectionTabs
-          tabs={SECTION_NAV_CONFIG.roles.tabs}
+          tabs={SECTION_NAV_CONFIG.roles?.tabs}
           activeTab={activeTab}
           onTabChange={setActiveTab}
           label="Filtros de roles"

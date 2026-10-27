@@ -14,7 +14,7 @@ import {
   updateSucursal,
 } from "./sucursales-store";
 
-export default function SucursalesSection({ sucursales, setSucursales, workers = [], session }) {
+export default function SucursalesSection({ sucursales = [], setSucursales, workers = [], session }) {
   const [query, setQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);

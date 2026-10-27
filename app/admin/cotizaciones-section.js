@@ -21,7 +21,7 @@ import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
 import { Topbar, SectionTabs } from "./topbar";
 import { SECTION_NAV_CONFIG } from "./admin-nav";
 
-export default function CotizacionesSection({ orders, setOrders, clientes, setClientes, products, workers = [], session }) {
+export default function CotizacionesSection({ orders = [], setOrders, clientes = [], setClientes, products = [], workers = [], session }) {
   const [activeTab, setActiveTab] = useState("all");
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
@@ -220,7 +220,7 @@ export default function CotizacionesSection({ orders, setOrders, clientes, setCl
 
       <div className={styles.body}>
         <SectionTabs
-          tabs={SECTION_NAV_CONFIG.cotizaciones.tabs}
+          tabs={SECTION_NAV_CONFIG.cotizaciones?.tabs}
           activeTab={activeTab}
           onTabChange={handleTabChange}
           label="Filtros de cotizaciones"

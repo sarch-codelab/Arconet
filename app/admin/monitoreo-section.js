@@ -76,7 +76,7 @@ export default function MonitoreoSection({ session, workers = [] }) {
 
       <div className={styles.body}>
         <SectionTabs
-          tabs={SECTION_NAV_CONFIG.monitoreo.tabs}
+          tabs={SECTION_NAV_CONFIG.monitoreo?.tabs}
           activeTab={tab}
           onTabChange={setTab}
           label="Vistas de monitoreo"
@@ -124,7 +124,7 @@ export default function MonitoreoSection({ session, workers = [] }) {
             </header>
             <div className={styles.cardBody}>
               <div className={styles.alertList}>
-                {status.alerts.map((alert, index) => (
+                {(status.alerts || []).map((alert, index) => (
                   <div key={index} className={styles.alertItem}>
                     <span className={styles.alertBadge}>Aviso</span>
                     <span>{alert}</span>
@@ -140,15 +140,15 @@ export default function MonitoreoSection({ session, workers = [] }) {
             <section className={styles.stats} aria-label="Recursos del servidor">
               <article className={styles.statCard}>
                 <span className={styles.statIcon}><Cpu size={18} /></span>
-                <strong className={styles.statValue}>{status.cpu.usagePercent}%</strong>
+                <strong className={styles.statValue}>{status.cpu?.usagePercent ?? "—"}%</strong>
                 <span className={styles.statLabel}>CPU</span>
-                <small>{status.cpu.cores} núcleos</small>
+                <small>{status.cpu?.cores ?? "—"} núcleos</small>
               </article>
               <article className={styles.statCard}>
                 <span className={styles.statIcon}><Activity size={18} /></span>
-                <strong className={styles.statValue}>{status.memory.usagePercent}%</strong>
+                <strong className={styles.statValue}>{status.memory?.usagePercent ?? "—"}%</strong>
                 <span className={styles.statLabel}>Memoria RAM</span>
-                <small>{status.memory.usedGB} / {status.memory.totalGB} GB</small>
+                <small>{status.memory?.usedGB ?? "—"} / {status.memory?.totalGB ?? "—"} GB</small>
               </article>
               <article className={styles.statCard}>
                 <span className={styles.statIcon}><HardDrive size={18} /></span>
@@ -164,9 +164,9 @@ export default function MonitoreoSection({ session, workers = [] }) {
               </article>
               <article className={styles.statCard}>
                 <span className={styles.statIcon}><Server size={18} /></span>
-                <strong className={styles.statValue}>{formatUptime(status.host.uptimeSeconds)}</strong>
+                <strong className={styles.statValue}>{formatUptime(status.host?.uptimeSeconds)}</strong>
                 <span className={styles.statLabel}>Encendido</span>
-                <small>{status.host.hostname}</small>
+                <small>{status.host?.hostname ?? "—"}</small>
               </article>
             </section>
 
@@ -176,8 +176,8 @@ export default function MonitoreoSection({ session, workers = [] }) {
                   <h3><Activity size={18} /> Uso de recursos</h3>
                 </header>
                 <div className={styles.cardBody}>
-                  {meter(status.cpu.usagePercent, "CPU")}
-                  {meter(status.memory.usagePercent, "Memoria RAM")}
+                  {meter(status.cpu?.usagePercent ?? 0, "CPU")}
+                  {meter(status.memory?.usagePercent ?? 0, "Memoria RAM")}
                   {(status.disk || []).map((disk) => (
                     <div key={disk.drive}>
                       {meter(disk.usagePercent, `Disco ${disk.drive}${disk.label ? ` (${disk.label})` : ""}`)}
@@ -194,31 +194,31 @@ export default function MonitoreoSection({ session, workers = [] }) {
                   <div className={styles.list}>
                     <div className={styles.listItem}>
                       <strong>Entorno</strong>
-                      <span>{status.process.env}</span>
+                      <span>{status.process?.env ?? "—"}</span>
                     </div>
                     <div className={styles.listItem}>
                       <strong>Node</strong>
-                      <span>{status.process.nodeVersion}</span>
+                      <span>{status.process?.nodeVersion ?? "—"}</span>
                     </div>
                     <div className={styles.listItem}>
                       <strong>PID</strong>
-                      <span>{status.process.pid}</span>
+                      <span>{status.process?.pid ?? "—"}</span>
                     </div>
                     <div className={styles.listItem}>
                       <strong>Memoria del proceso</strong>
-                      <span>{status.process.rssMB} MB</span>
+                      <span>{status.process?.rssMB ?? "—"} MB</span>
                     </div>
                     <div className={styles.listItem}>
                       <strong>Uptime del proceso</strong>
-                      <span>{formatUptime(status.process.uptimeSeconds)}</span>
+                      <span>{formatUptime(status.process?.uptimeSeconds)}</span>
                     </div>
                     <div className={styles.listItem}>
                       <strong>Sistema</strong>
-                      <span>{status.host.platform} {status.host.release} ({status.host.arch})</span>
+                      <span>{status.host?.platform ?? "—"} {status.host?.release ?? ""} ({status.host?.arch ?? "—"})</span>
                     </div>
                     <div className={styles.listItem}>
                       <strong>CPU</strong>
-                      <span>{status.cpu.model || "—"}</span>
+                      <span>{status.cpu?.model || "—"}</span>
                     </div>
                   </div>
                 </div>
@@ -233,18 +233,18 @@ export default function MonitoreoSection({ session, workers = [] }) {
               <h3><Database size={18} /> Backups</h3>
             </header>
             <div className={styles.cardBody}>
-              <p className={styles.monitorHint}>Directorio: {status.backups.dir}</p>
-              {!status.backups.available ? (
+              <p className={styles.monitorHint}>Directorio: {status.backups?.dir ?? "—"}</p>
+              {!status.backups?.available ? (
                 <p className={styles.emptyText}>
-                  {status.backups.reason === "not-configured"
+                  {status.backups?.reason === "not-configured"
                     ? "No hay un directorio de backups configurado en este entorno."
                     : "No se pudo leer el directorio de backups."}
                 </p>
-              ) : status.backups.files.length === 0 ? (
+              ) : (status.backups?.files?.length ?? 0) === 0 ? (
                 <p className={styles.emptyText}>No hay copias de seguridad en el directorio.</p>
               ) : (
                 <div className={styles.list}>
-                  {status.backups.files.map((file) => (
+                  {(status.backups?.files || []).map((file) => (
                     <div key={file.name} className={styles.listItem}>
                       <div>
                         <strong>{file.name}</strong>

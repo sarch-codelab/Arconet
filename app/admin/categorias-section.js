@@ -21,7 +21,7 @@ const EMPTY_CATEGORY = {
   estado: "activo",
 };
 
-export default function CategoriasSection({ categorias, setCategorias, products, setProducts, workers = [], session }) {
+export default function CategoriasSection({ categorias = [], setCategorias, products = [], setProducts, workers = [], session }) {
   const [activeTab, setActiveTab] = useState("all");
   const [query, setQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -186,7 +186,7 @@ export default function CategoriasSection({ categorias, setCategorias, products,
 
       <div className={styles.body}>
         <SectionTabs
-          tabs={SECTION_NAV_CONFIG.categorias.tabs}
+          tabs={SECTION_NAV_CONFIG.categorias?.tabs}
           activeTab={activeTab}
           onTabChange={setActiveTab}
           label="Filtros de categorías"

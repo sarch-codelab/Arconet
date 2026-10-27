@@ -119,7 +119,7 @@ export default function LogsSection({ session, workers = [] }) {
 
       <div className={styles.body}>
         <SectionTabs
-          tabs={SECTION_NAV_CONFIG.logs.tabs}
+          tabs={SECTION_NAV_CONFIG.logs?.tabs}
           activeTab={tab}
           onTabChange={setTab}
           label="Filtros de registros"

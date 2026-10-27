@@ -7,7 +7,7 @@ import { formatDate } from "./workers-store";
 import { formatPrice, formatStock } from "./products-store";
 import { Topbar } from "./topbar";
 
-export default function ResumenSection({ workers, products, sucursales, orders, session }) {
+export default function ResumenSection({ workers = [], products = [], sucursales = [], orders = [], session }) {
   const stats = useMemo(() => {
     const workersTotal = workers.length;
     const workersActivos = workers.filter((worker) => worker.estado === "activo").length;

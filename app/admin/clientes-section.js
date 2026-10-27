@@ -17,7 +17,7 @@ import { formatDate } from "./workers-store";
 import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
 import { Topbar } from "./topbar";
 
-export default function ClientesSection({ clientes, setClientes, workers = [], session }) {
+export default function ClientesSection({ clientes = [], setClientes, workers = [], session }) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [modalOpen, setModalOpen] = useState(false);

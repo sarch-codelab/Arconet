@@ -196,7 +196,7 @@ export default function MiPerfilSection({ session, workers = [] }) {
 
       <div className={styles.body}>
         <SectionTabs
-          tabs={SECTION_NAV_CONFIG["mi-perfil"].tabs}
+          tabs={SECTION_NAV_CONFIG["mi-perfil"]?.tabs}
           activeTab={activeTab}
           onTabChange={setActiveTab}
           label="Secciones de mi perfil"

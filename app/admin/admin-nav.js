@@ -67,6 +67,9 @@ export const NAV = [
  * su etiqueta visible y el texto largo usado en tooltips y avisos.
  */
 export const SECTION_NAV_CONFIG = {
+  // Clave generica de respaldo: si una seccion no tiene config propia, las
+  // paginas usan `?.tabs` y no revientan al renderizar.
+  __fallback: { brandName: "Panel", tabs: [] },
   trabajadores: {
     brandName: "Personal",
     tabs: [

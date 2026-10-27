@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Suspense, lazy, useEffect, useState } from "react";
 import styles from "./admin-experience.module.css";
 import { AdminContext, NAV } from "./admin-nav";
+import { SectionErrorBoundary } from "./error-boundary";
 import { useAdminSmoothScroll } from "./use-smooth-scroll";
 import { canAccessSection } from "../../lib/permisos";
 import { clearSession, fetchWorkers } from "./workers-store";
@@ -163,6 +164,7 @@ function AdminShell({ session, onLogout, initialSection }) {
       <main className={styles.adminPage}>
         <div className={styles.shell}>
         <Suspense fallback={<div className={styles.body}>Cargando…</div>}>
+        <SectionErrorBoundary label={NAV.find((item) => item.id === section)?.label || "Sección"}>
         <div className={styles.content}>
           {section === "trabajadores" ? (
             <WorkersSection
@@ -249,6 +251,7 @@ function AdminShell({ session, onLogout, initialSection }) {
             <LogsSection session={session} workers={workers} />
           ) : null}
         </div>
+        </SectionErrorBoundary>
         </Suspense>
       </div>
     </main>

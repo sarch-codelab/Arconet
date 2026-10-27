@@ -37,7 +37,7 @@ const EMPTY_WORKER = {
   password: "",
 };
 
-export default function WorkersSection({ workers, setWorkers, roles = [], session }) {
+export default function WorkersSection({ workers = [], setWorkers, roles = [], session }) {
   const [activeTab, setActiveTab] = useState("all");
   const roleName = (slug) => roles.find((item) => item.slug === slug)?.nombre || slug;
   const [query, setQuery] = useState("");
@@ -235,7 +235,7 @@ export default function WorkersSection({ workers, setWorkers, roles = [], sessio
 
       <div className={styles.body}>
         <SectionTabs
-          tabs={SECTION_NAV_CONFIG.trabajadores.tabs.filter(
+          tabs={SECTION_NAV_CONFIG.trabajadores?.tabs.filter(
             (tab) => tab.id !== "roles" || canAccessSection(session?.permisos, "roles"),
           )}
           activeTab={activeTab}
