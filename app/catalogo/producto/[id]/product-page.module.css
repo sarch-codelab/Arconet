@@ -1138,13 +1138,12 @@
   border-radius: 10px;
   border: 1px solid var(--line);
   background: #f6f7fa;
-  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  transition: box-shadow 180ms ease, border-color 180ms ease;
   cursor: pointer;
 }
 
+/* Hover sutil: solo realce de borde, sin agrandar la miniatura. */
 .galleryImage:hover {
-  transform: scale(1.05);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
   border-color: var(--blue);
 }
 
