@@ -26,14 +26,21 @@ export async function GET(request, { params }) {
   const { id } = await params;
 
   try {
-    const [documento, config] = await Promise.all([
+    const [documento, config, contactoFilas] = await Promise.all([
       prisma.documentoFiscal.findUnique({
         where: { id },
         include: { cliente: true, items: true, orden: { select: { id: true } } },
       }),
       obtenerConfigFiscal(),
+      // Datos de contacto de la empresa (Ajustes del sitio) para el pie.
+      prisma.configuracionSistema.findMany({
+        where: { clave: { in: ["email", "phone"] } },
+        select: { clave: true, valor: true },
+      }),
     ]);
     if (!documento) return Response.json({ error: "Documento no encontrado." }, { status: 404 });
+
+    const contacto = Object.fromEntries(contactoFilas.map(({ clave, valor }) => [clave, valor]));
 
     const { searchParams } = new URL(request.url);
     const auto = searchParams.get("auto") === "1";
@@ -64,41 +71,54 @@ export async function GET(request, { params }) {
 <meta charset="utf-8" />
 <title>${TIPO_LABEL[documento.tipo] || "Documento"} ${esc(numero)}</title>
 <style>
-  @page { margin: 18mm 14mm; }
+  @page { size: A4; margin: 16mm 14mm; }
   * { box-sizing: border-box; }
-  body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #111827; margin: 0; }
-  .page { max-width: 800px; margin: 0 auto; padding: 28px 32px; }
-  .head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1544b5; padding-bottom: 14px; }
-  .head h1 { margin: 0; font-size: 13px; letter-spacing: .12em; color: #1544b5; }
+  body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #1b2537; margin: 0; background: #eef2f7; }
+  .sheet { max-width: 820px; min-height: 1080px; margin: 24px auto; padding: 36px 44px; background: #fff; border-radius: 10px; box-shadow: 0 10px 40px rgba(23,32,51,.12); }
+  .accent { height: 5px; margin: -36px -44px 26px; border-radius: 10px 10px 0 0; background: linear-gradient(90deg, #1544b5 0%, #2e77d6 55%, #35c2b2 100%); }
+  .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; border-bottom: 2px solid #1544b5; padding-bottom: 16px; }
   .emisor { font-size: 13px; line-height: 1.6; }
-  .emisor strong { display: block; font-size: 16px; }
+  .emisor img { display: block; width: 190px; height: auto; margin-bottom: 12px; }
+  .emisor h1 { margin: 0; font-size: 13px; letter-spacing: .12em; color: #1544b5; text-transform: uppercase; }
   .doc-box { text-align: right; font-size: 12px; line-height: 1.8; }
   .doc-box .tipo { display: inline-block; padding: 6px 14px; border-radius: 6px; background: #1544b5; color: #fff; font-weight: 700; letter-spacing: .1em; }
   .anulado { background: #b91c1c; }
   .meta { display: flex; justify-content: space-between; gap: 18px; margin: 18px 0; font-size: 13px; }
+  .panel { padding: 14px 16px; border: 1px solid #e4e9f1; border-radius: 10px; background: #f8fafd; }
   .meta div { line-height: 1.7; }
-  .meta strong { font-size: 12px; color: #6b7280; display: block; }
-  table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 8px; }
-  th, td { padding: 8px 10px; border-bottom: 1px solid #e5e7eb; text-align: left; }
-  th { background: #f3f4f6; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+  .meta strong.label { font-size: 11px; color: #667085; display: block; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 4px; }
+  table.items { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 14px; overflow: hidden; border-radius: 10px; }
+  .items thead th { background: #1544b5; color: #fff; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+  th, td { padding: 9px 11px; border-bottom: 1px solid #e5e7eb; text-align: left; }
+  tr:nth-child(even) td { background: #f6f8fc; }
   .num { text-align: right; white-space: nowrap; }
   .totals { display: flex; justify-content: flex-end; margin-top: 16px; }
-  .totals table { width: 320px; }
-  .totals td { padding: 6px 10px; }
-  .totals .grand { font-weight: 700; font-size: 14px; border-top: 2px solid #111827; }
+  .totals table { width: 320px; border-collapse: collapse; }
+  .totals td { padding: 7px 12px; border-bottom: 1px solid #eef1f6; }
+  .totals .grand td { font-weight: 800; font-size: 15px; color: #fff; background: #1544b5; border-radius: 8px; border-bottom: 0; }
   .aviso { margin-top: 14px; padding: 10px 14px; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; font-size: 12px; }
   .footer { margin-top: 28px; padding-top: 12px; border-top: 1px solid #e5e7eb; font-size: 10.5px; color: #6b7280; display: flex; justify-content: space-between; gap: 16px; }
+  .footer .contacto { color: #1544b5; font-weight: 600; }
   .footer .hash { font-family: ui-monospace, monospace; word-break: break-all; }
   .sello { margin-top: 8px; font-size: 11px; color: #b91c1c; font-weight: 600; }
-  @media print { .no-print { display: none !important; } }
+  @media print {
+    body { background: #fff; }
+    .sheet { max-width: none; min-height: 0; margin: 0; padding: 0; box-shadow: none; border-radius: 0; }
+    .accent { margin: -16px -14px 20px; border-radius: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .no-print { display: none !important; }
+    .items thead th, .totals .grand td { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    tr, .panel, .meta { break-inside: avoid; }
+  }
   .no-print { text-align: center; margin: 18px 0; }
   .no-print button { padding: 10px 22px; border: 0; border-radius: 8px; background: #1544b5; color: #fff; font-size: 14px; cursor: pointer; }
 </style>
 </head>
 <body>
-<div class="page">
+<div class="sheet">
+  <div class="accent"></div>
   <div class="head">
     <div class="emisor">
+      <img src="${new URL("/arconet.png", request.url).href}" alt="Arconet" />
       <h1>${esc(config.nombre || "ARCONET, S.A.")}</h1>
       San Pedro Sula, Cortés · Honduras<br />
       ${config.nit ? `RTN/NIT: ${esc(config.nit)}<br />` : ""}
@@ -116,20 +136,20 @@ export async function GET(request, { params }) {
   ${anulado ? `<p class="sello">DOCUMENTO ANULADO · ${esc(documento.motivoAnulacion || "")}</p>` : ""}
 
   <div class="meta">
-    <div>
-      <strong>CLIENTE</strong>
+    <div class="panel">
+      <strong class="label">CLIENTE</strong>
       ${esc(documento.cliente?.nombre || "—")}<br />
       ${documento.cliente?.rtn ? `RTN: ${esc(documento.cliente.rtn)}<br />` : ""}
       ${esc(documento.cliente?.direccion || "")}${documento.cliente?.ciudad ? ` · ${esc(documento.cliente.ciudad)}` : ""}
     </div>
-    <div style="text-align:right">
-      <strong>REFERENCIA</strong>
+    <div class="panel" style="text-align:right">
+      <strong class="label">REFERENCIA</strong>
       ${documento.ordenId ? `Orden: ${esc(documento.ordenId)}<br />` : ""}
       Emitido por: ${esc(documento.emitidoPor || "—")}
     </div>
   </div>
 
-  <table>
+  <table class="items">
     <thead>
       <tr><th>Descripción</th><th class="num">Cant.</th><th class="num">Precio</th><th class="num">Descuento</th><th class="num">ISV</th><th class="num">Subtotal</th></tr>
     </thead>
@@ -147,6 +167,7 @@ export async function GET(request, { params }) {
 
   <div class="footer">
     <div>
+      <span class="contacto">${esc(config.nombre || "Arconet, S.A.")}</span>${contacto.phone ? ` · Tel: ${esc(contacto.phone)}` : ""}${contacto.email ? ` · ${esc(contacto.email)}` : ""}<br />
       Documento generado el ${new Date().toLocaleString("es-HN")}<br />
       ${documento.ordenId ? `Origen: orden ${esc(documento.ordenId)}` : ""}
     </div>

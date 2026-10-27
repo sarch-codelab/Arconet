@@ -131,12 +131,12 @@ export const SECTION_NAV_CONFIG = {
   cotizaciones: {
     brandName: "Cotizaciones",
     tabs: [
-      { id: "all", label: "Cotizaciones", icon: FileText, title: "Todas las cotizaciones" },
-      { id: "invoices", label: "Ventas", icon: FileText, title: "Ventas comerciales (descuentan inventario)" },
-      { id: "pending", label: "Pendientes", icon: Clock, title: "En revisión" },
-      { id: "approved", label: "Aprobadas", icon: Check, title: "Aprobadas" },
-      { id: "completed", label: "Ventas", icon: TrendingUp, title: "Ventas cerradas" },
-      { id: "balance", label: "Balance", icon: BarChart3, title: "Balance de ventas" },
+      { id: "cotizaciones", label: "Cotizaciones", icon: FileText, title: "Solo cotizaciones" },
+      { id: "ventas", label: "Ventas", icon: TrendingUp, title: "Ventas comerciales (descuentan inventario)" },
+      { id: "pendientes", label: "Pendientes", icon: Clock, title: "En revisión" },
+      { id: "aprobadas", label: "Aprobadas", icon: Check, title: "Aprobadas" },
+      { id: "completadas", label: "Completadas", icon: Check, title: "Completadas" },
+      { id: "todas", label: "Todas", icon: BarChart3, title: "Cotizaciones y ventas" },
     ],
   },
   resumen: {

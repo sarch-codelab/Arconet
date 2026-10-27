@@ -22,10 +22,10 @@ import { Topbar, SectionTabs } from "./topbar";
 import { SECTION_NAV_CONFIG } from "./admin-nav";
 
 export default function CotizacionesSection({ orders = [], setOrders, clientes = [], setClientes, products = [], workers = [], session }) {
-  const [activeTab, setActiveTab] = useState("all");
+  const [activeTab, setActiveTab] = useState("cotizaciones");
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
-  const [type, setType] = useState("all");
+  const [type, setType] = useState("cotizacion");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState({
@@ -49,30 +49,35 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
-    if (tabId === "all") {
+    // Las facturas viven en la seccion Facturacion; aqui solo hay
+    // cotizaciones y ventas comerciales. Cada pestana fija su propio filtro.
+    if (tabId === "cotizaciones") {
       setStatus("all");
-      setType("all");
-    } else if (tabId === "pending") {
-      setStatus("pendiente");
-      setType("all");
-    } else if (tabId === "approved") {
-      setStatus("aprobada");
-      setType("all");
-    } else if (tabId === "completed") {
-      setStatus("completada");
-      setType("all");
-    } else if (tabId === "balance") {
-      setStatus("all");
-      setType("all");
-    } else if (tabId === "invoices") {
+      setType("cotizacion");
+    } else if (tabId === "ventas") {
       setStatus("all");
       setType("venta");
+    } else if (tabId === "pendientes") {
+      setStatus("pendiente");
+      setType("all");
+    } else if (tabId === "aprobadas") {
+      setStatus("aprobada");
+      setType("all");
+    } else if (tabId === "completadas") {
+      setStatus("completada");
+      setType("all");
+    } else {
+      // Pestana "Todas": cotizaciones y ventas, nunca facturas fiscales.
+      setStatus("all");
+      setType("all");
     }
   };
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return orders.filter((order) => {
+      // Nunca mostrar facturas fiscales aqui: pertenecen a Facturacion.
+      if (order.tipo === "factura") return false;
       if (status !== "all" && order.estado !== status) return false;
       if (type !== "all" && order.tipo !== type) return false;
       if (!q) return true;
@@ -84,10 +89,13 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
   }, [orders, query, status, type]);
 
   const stats = useMemo(() => {
-    const total = orders.length;
-    const pendientes = orders.filter((order) => order.estado === "pendiente").length;
-    const aprobadas = orders.filter((order) => order.estado === "aprobada").length;
-    const totalMonto = orders.reduce((sum, order) => sum + Number(order.monto || 0), 0);
+    // Las facturas fiscales no cuentan aqui: pertenecen a Facturacion.
+    const comerciales = orders.filter((order) => order.tipo !== "factura");
+    const cotizaciones = comerciales.filter((order) => order.tipo === "cotizacion");
+    const total = cotizaciones.length;
+    const pendientes = cotizaciones.filter((order) => order.estado === "pendiente").length;
+    const aprobadas = cotizaciones.filter((order) => order.estado === "aprobada").length;
+    const totalMonto = comerciales.reduce((sum, order) => sum + Number(order.monto || 0), 0);
     return { total, pendientes, aprobadas, totalMonto };
   }, [orders]);
 
@@ -97,7 +105,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
     setQuery("");
     setStatus("all");
     setType("all");
-    setActiveTab("all");
+    setActiveTab("todas");
   }
 
   function openCreate(documentType = "cotizacion") {
