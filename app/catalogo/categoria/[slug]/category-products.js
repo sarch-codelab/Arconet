@@ -198,10 +198,15 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
       <section className={`${styles.hero} ${styles.reveal}`}>
         <div className={styles.heroVisual}>
           {family.image ? (
+            /* Sin "fill": antes la imagen iba absoluta dentro de una caja con
+               aspect-ratio fijo + overflow:hidden (el "marco"), lo que recortaba
+               partes de la foto. Ahora se renderiza en flujo normal y crece con
+               su proporcion natural: se ve COMPLETA, sin marco que la corte. */
             <Image
               src={family.image}
               alt={family.imageAlt}
-              fill
+              width={1200}
+              height={900}
               priority
               unoptimized={String(family.image).startsWith("data:")}
               sizes="(max-width: 900px) 92vw, 50vw"

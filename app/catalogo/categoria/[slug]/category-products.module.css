@@ -5,7 +5,11 @@
   min-height: 100vh;
   color: var(--ink);
   background: var(--paper);
-  overflow: clip;
+  /* IMPORTANTE: no poner aqui overflow-x: clip/hidden. Un valor de overflow
+     distinto de visible en un ancestro convierte al elemento en "contenedor de
+     filtro": los descendientes con position:fixed dejan de anclarse al viewport
+     y se quedan pegados dentro de la pagina. Eso desalineaba el boton de
+     cotizacion, el panel lateral y los iconos de la barra superior. */
 }
 
 .category a {
@@ -172,16 +176,48 @@
   align-items: center;
 }
 
+/* El "marco" que recortaba la imagen principal era esta caja con
+   aspect-ratio fijo + overflow:hidden junto con la imagen en
+   object-fit:cover (recortaba los bordes de la foto). Se quita el recorte:
+   la caja ahora crece segun la foto y la imagen se muestra COMPLETA,
+   manteniendo su proporcion natural (sin cortes) en PC y en movil. */
 .heroVisual {
   position: relative;
-  aspect-ratio: 4/3;
+  width: 100%;
   border-radius: 16px;
-  overflow: hidden;
   background: var(--surface-2);
 }
 
 .heroImage {
-  object-fit: cover;
+  position: relative !important;
+  display: block;
+  width: 100% !important;
+  height: auto !important;
+  object-fit: contain;
+}
+
+/* Con la imagen ya sin recorte, en PC queda mejor mostrarla a la izquierda
+   ocupando algo más de espacio que el texto. */
+@media (min-width: 901px) {
+  .hero {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  }
+
+  /* En pantallas tipo PC la foto va centrada y COMPLETA (sin marco que la
+     corte), con un alto máximo para que no empuje el resto del contenido. */
+  .heroVisual {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-height: 72vh;
+  }
+
+  .heroImage {
+    width: auto !important;
+    max-width: 100%;
+    max-height: 72vh;
+    margin-inline: auto;
+  }
 }
 
 .heroGraphic {
