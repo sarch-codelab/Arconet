@@ -774,6 +774,15 @@
   color: var(--blue);
 }
 
+/* Botón flotante del menú móvil: en desktop permanece oculto (display:none
+   del propio componente), así que no interfiere con la barra superior. */
+.menuFloat {
+  position: fixed;
+  top: 20px;
+  right: clamp(14px, 2.4vw, 28px);
+  z-index: 45;
+}
+
 /* ---------------- Relacionados ---------------- */
 .related {
   padding: clamp(30px, 5vw, 62px) clamp(20px, 6vw, 96px) clamp(50px, 7vw, 96px);

@@ -153,11 +153,20 @@ export default function ProductPage({ product }) {
           <i />
         </span>
 
+        {/* El menú móvil va FUERA del shell: en desktop el shell es una grilla
+            de exactamente 3 columnas (logo | nav | acción) y este componente,
+            aunque oculta su UI con display:none en pantallas grandes, al ser
+            un div hijo ocupaba una cuarta columna y desplazaba la navegación
+            y el botón de cotización ("barra rara" en PC). Acá queda como
+            botón flotante fijo, visible solo en móvil/tableta. */}
+        <div className={styles.menuFloat}>
+          <MobileSiteMenu />
+        </div>
+
         <div className={styles.topbarShell}>
           <a className={styles.topbarBrand} href="/" aria-label="Arconet, inicio">
             <Image src="/arconet.png" alt="Arconet" width={2172} height={362} />
           </a>
-          <MobileSiteMenu />
 
           <nav className={styles.topbarNav} aria-label="Navegación del catálogo">
             {NAVIGATION.map((item) => (
