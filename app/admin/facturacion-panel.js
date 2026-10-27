@@ -26,6 +26,19 @@ const TABS = [
   { id: "config", label: "Configuración", icon: Settings2, title: "CAI, serie y datos fiscales" },
 ];
 
+// Cuando el panel vive dentro de la sección unificada "Ventas", las pills
+// externas usan ids propios ("facturas", "cotizaciones", ...). Este mapa traduce
+// esos ids al sub-tab interno equivalente para que la navegación funcione.
+const EXTERNAL_TO_INTERNAL = {
+  facturas: "documentos",
+  cotizaciones: "documentos",
+  ventas: "documentos",
+  pendientes: "documentos",
+  aprobadas: "documentos",
+  completadas: "documentos",
+  todas: "documentos",
+};
+
 const IMPUESTOS = [
   { value: "15", label: "ISV 15%" },
   { value: "18", label: "ISV 18%" },
@@ -81,8 +94,22 @@ async function request(url, options) {
   return data;
 }
 
-export default function FacturacionPanel({ session, productos: productosIniciales = [] }) {
-  const [tab, setTab] = useState("documentos");
+export default function FacturacionPanel({ session, productos: productosIniciales = [], hideTopbar = false, tabs, activeTab: controlledTab, onTabChange }) {
+  const [innerTab, setInnerTab] = useState("documentos");
+  // El tab real solo puede ser uno de los internos; si viene un id externo
+  // (p. ej. "facturas" desde la sección Ventas) se traduce con el mapa.
+  const tab = EXTERNAL_TO_INTERNAL[controlledTab] ?? innerTab;
+  const setTab = (next) => {
+    if (!EXTERNAL_TO_INTERNAL[next]) {
+      // Sub-filtro interno (documentos/nueva/libro/config): no notifica afuera
+      // para no cerrar el panel.
+      setInnerTab(next);
+      return;
+    }
+    // Pill externa: si es "facturas" muestra el panel; cualquier otra hace que
+    // VentasSection monte CotizacionesSection en su lugar.
+    onTabChange?.(next);
+  };
   const [documentos, setDocumentos] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [productos, setProductos] = useState(productosIniciales);
@@ -317,18 +344,23 @@ export default function FacturacionPanel({ session, productos: productosIniciale
 
   return (
     <>
-      <Topbar
-        title="Facturación"
-        subtitle="Emite facturas con CAI y correlativo, descuenta inventario y lleva el libro de ventas."
-        action={
-          <button type="button" className={adminStyles.ghostBtn} onClick={cargar}>
-            <RefreshCw size={15} /> Actualizar
-          </button>
-        }
-        session={session}
-      />
+      {!hideTopbar && (
+        <Topbar
+          title="Facturación"
+          subtitle="Emite facturas con CAI y correlativo, descuenta inventario y lleva el libro de ventas."
+          action={
+            <button type="button" className={adminStyles.ghostBtn} onClick={cargar}>
+              <RefreshCw size={15} /> Actualizar
+            </button>
+          }
+          session={session}
+        />
+      )}
 
       <div className={adminStyles.body}>
+        {onTabChange && tabs ? (
+          <SectionTabs tabs={tabs} activeTab={controlledTab} onTabChange={setTab} label="Secciones de ventas" />
+        ) : null}
         <SectionTabs tabs={TABS} activeTab={tab} onTabChange={setTab} label="Secciones de facturación" />
 
         {error ? <p className={styles.error} role="alert">{error}</p> : null}

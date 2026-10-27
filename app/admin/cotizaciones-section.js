@@ -21,8 +21,9 @@ import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
 import { Topbar, SectionTabs } from "./topbar";
 import { SECTION_NAV_CONFIG } from "./admin-nav";
 
-export default function CotizacionesSection({ orders = [], setOrders, clientes = [], setClientes, products = [], workers = [], session }) {
-  const [activeTab, setActiveTab] = useState("cotizaciones");
+export default function CotizacionesSection({ orders = [], setOrders, clientes = [], setClientes, products = [], workers = [], session, hideTopbar = false, tabs, activeTab: controlledTab, onTabChange }) {
+  const [innerTab, setInnerTab] = useState("cotizaciones");
+  const activeTab = controlledTab ?? innerTab;
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [type, setType] = useState("cotizacion");
@@ -48,9 +49,16 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
   useBodyScrollLock(modalOpen);
 
   const handleTabChange = (tabId) => {
-    setActiveTab(tabId);
-    // Las facturas viven en la seccion Facturacion; aqui solo hay
-    // cotizaciones y ventas comerciales. Cada pestana fija su propio filtro.
+    if (tabId === "facturas") {
+      // La pestaña "Facturas" monta el panel fiscal completo; no toca los
+      // filtros de cotizaciones ni el estado interno de esta lista.
+      onTabChange?.(tabId);
+      return;
+    }
+    setInnerTab(tabId);
+    onTabChange?.(tabId);
+    // Las facturas fiscales viven en la pestana "Facturas" de esta misma
+    // seccion; aqui solo hay cotizaciones y ventas comerciales.
     if (tabId === "cotizaciones") {
       setStatus("all");
       setType("cotizacion");
@@ -105,7 +113,8 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
     setQuery("");
     setStatus("all");
     setType("all");
-    setActiveTab("todas");
+    setInnerTab("todas");
+    onTabChange?.("todas");
   }
 
   function openCreate(documentType = "cotizacion") {
@@ -209,29 +218,31 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
 
   return (
     <>
-      <Topbar
-        title={type === "venta" ? "Ventas" : "Cotizaciones y ventas"}
-        subtitle="Crea cotizaciones o ventas comerciales con productos del catálogo. Las ventas descuentan inventario; las facturas fiscales se emiten en la sección Facturación."
-        action={
-          <div className={styles.topbarActions}>
-            <button type="button" className={styles.ghostBtn} onClick={() => openCreate("cotizacion")}>
-              <Plus size={16} /> Nueva cotización
-            </button>
-            <button type="button" className={styles.primaryBtn} onClick={() => openCreate("venta")}>
-              <Plus size={16} /> Nueva venta
-            </button>
-          </div>
-        }
-        session={session}
-        workers={workers}
-      />
+      {!hideTopbar && (
+        <Topbar
+          title="Ventas"
+          subtitle="Crea cotizaciones o ventas comerciales con productos del catálogo. Las ventas descuentan inventario; las facturas fiscales se emiten en la pestaña Facturas."
+          action={
+            <div className={styles.topbarActions}>
+              <button type="button" className={styles.ghostBtn} onClick={() => openCreate("cotizacion")}>
+                <Plus size={16} /> Nueva cotización
+              </button>
+              <button type="button" className={styles.primaryBtn} onClick={() => openCreate("venta")}>
+                <Plus size={16} /> Nueva venta
+              </button>
+            </div>
+          }
+          session={session}
+          workers={workers}
+        />
+      )}
 
       <div className={styles.body}>
         <SectionTabs
-          tabs={SECTION_NAV_CONFIG.cotizaciones?.tabs}
+          tabs={tabs ?? SECTION_NAV_CONFIG.ventas?.tabs}
           activeTab={activeTab}
           onTabChange={handleTabChange}
-          label="Filtros de cotizaciones"
+          label="Secciones de ventas"
         />
 
         <section className={styles.stats} aria-label="Resumen de cotizaciones">

@@ -21,7 +21,7 @@ const ProductsSection = lazy(() => import("./products-section"));
 const SucursalesSection = lazy(() => import("./sucursales-section"));
 const CategoriasSection = lazy(() => import("./categorias-section"));
 const ClientesSection = lazy(() => import("./clientes-section"));
-const CotizacionesSection = lazy(() => import("./cotizaciones-section"));
+const VentasSection = lazy(() => import("./ventas-section"));
 const ResumenSection = lazy(() => import("./resumen-section"));
 const MonitoreoSection = lazy(() => import("./monitoreo-section"));
 const LogsSection = lazy(() => import("./logs-section"));
@@ -29,7 +29,6 @@ const MiPerfilSection = lazy(() => import("./perfil-section"));
 const AjustesSection = lazy(() => import("./ajustes-section"));
 const SolicitudesPanel = lazy(() => import("./solicitudes-panel"));
 const InventarioPanel = lazy(() => import("./inventario-panel"));
-const FacturacionPanel = lazy(() => import("./facturacion-panel"));
 const LoginView = lazy(() => import("./login-view"));
 
 
@@ -204,23 +203,35 @@ function AdminShell({ session, onLogout, initialSection }) {
               workers={workers}
               session={session}
             />
-          ) : section === "cotizaciones" ? (
-            <CotizacionesSection
-              orders={orders}
-              setOrders={setOrders}
-              clientes={clientes}
-              setClientes={setClientes}
-              products={products}
-              workers={workers}
-              session={session}
-            />
+          ) : section === "ventas" ? (
+            <Suspense fallback={<div className={styles.body}>Cargando ventas…</div>}>
+              <VentasSection
+                orders={orders}
+                setOrders={setOrders}
+                clientes={clientes}
+                setClientes={setClientes}
+                products={products}
+                workers={workers}
+                session={session}
+              />
+            </Suspense>
           ) : section === "inventario" ? (
             <Suspense fallback={<div className={styles.body}>Cargando inventario…</div>}>
               <InventarioPanel session={session} productos={products} />
             </Suspense>
           ) : section === "facturacion" ? (
-            <Suspense fallback={<div className={styles.body}>Cargando facturación…</div>}>
-              <FacturacionPanel session={session} productos={products} />
+            // Seccion antigua unificada en "Ventas": redirige para no romper
+            // enlaces o historiales del navegador que apunten al id viejo.
+            <Suspense fallback={<div className={styles.body}>Cargando ventas…</div>}>
+              <VentasSection
+                orders={orders}
+                setOrders={setOrders}
+                clientes={clientes}
+                setClientes={setClientes}
+                products={products}
+                workers={workers}
+                session={session}
+              />
             </Suspense>
           ) : section === "solicitudes" ? (
             <Suspense fallback={<div className={styles.body}>Cargando órdenes internas…</div>}>

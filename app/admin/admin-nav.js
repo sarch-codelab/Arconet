@@ -50,8 +50,7 @@ export const NAV = [
   { id: "categorias", label: "Categorías", icon: Tags },
   { id: "sucursales", label: "Sucursales", icon: Building2 },
   { id: "clientes", label: "Clientes", icon: User },
-  { id: "cotizaciones", label: "Cotizaciones", icon: FileText },
-  { id: "facturacion", label: "Facturación", icon: Receipt },
+  { id: "ventas", label: "Ventas", icon: ShoppingCart },
   { id: "inventario", label: "Inventario", icon: Boxes },
   { id: "solicitudes", label: "Órdenes internas", icon: ClipboardList },
   { id: "monitoreo", label: "Monitoreo", icon: Activity },
@@ -128,8 +127,8 @@ export const SECTION_NAV_CONFIG = {
       { id: "growth", label: "Actividad", icon: TrendingUp, title: "Actividad comercial" },
     ],
   },
-  cotizaciones: {
-    brandName: "Cotizaciones",
+  ventas: {
+    brandName: "Ventas",
     tabs: [
       { id: "cotizaciones", label: "Cotizaciones", icon: FileText, title: "Solo cotizaciones" },
       { id: "ventas", label: "Ventas", icon: TrendingUp, title: "Ventas comerciales (descuentan inventario)" },
@@ -137,6 +136,7 @@ export const SECTION_NAV_CONFIG = {
       { id: "aprobadas", label: "Aprobadas", icon: Check, title: "Aprobadas" },
       { id: "completadas", label: "Completadas", icon: Check, title: "Completadas" },
       { id: "todas", label: "Todas", icon: BarChart3, title: "Cotizaciones y ventas" },
+      { id: "facturas", label: "Facturas", icon: Receipt, title: "Facturación fiscal: facturas con CAI, libro de ventas y configuración" },
     ],
   },
   resumen: {

@@ -25,7 +25,7 @@ export async function GET(request) {
       results.push(...items.map((item) => ({ id: item.id, title: item.nombre, detail: item.puesto || item.correo, section: "trabajadores", sectionLabel: "Personal" })));
     }));
     if (permissions.includes("ordenes:read")) jobs.push(prisma.orden.findMany({ where: { OR: [contains("id"), contains("notas")] }, take: 5, select: { id: true, cliente: { select: { nombre: true } }, estado: true } }).then((items) => {
-      results.push(...items.map((item) => ({ id: item.id, title: item.cliente.nombre, detail: `${item.id} · ${item.estado.replaceAll("_", " ")}`, section: "cotizaciones", sectionLabel: "Cotizaciones" })));
+      results.push(...items.map((item) => ({ id: item.id, title: item.cliente.nombre, detail: `${item.id} · ${item.estado.replaceAll("_", " ")}`, section: "ventas", sectionLabel: "Ventas" })));
     }));
     if (permissions.includes("solicitudes:read")) {
       const session = guard.session;
