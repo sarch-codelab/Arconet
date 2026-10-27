@@ -1,10 +1,10 @@
 ﻿.page {
-  /* IMPORTANTE: no poner aqui overflow-x: clip/hidden. Un valor de overflow
-     distinto de visible en un ancestro convierte al elemento en "contenedor de
-     filtro": los descendientes con position:fixed dejan de anclarse al viewport
-     y se quedan pegados dentro de la pagina. Eso hacia que la barra superior
-     (boton de cotizacion + icono/badge) y el panel lateral de la cotizacion
-     quedaran desalineados o cortados al hacer scroll. */
+  /* EL SCROLL LATERAL: ver explicacion en category-products.module.css.
+     Lenis (LocomotiveScroll v5) scrollea en diagonal, asi que cualquier hijo
+     que sobresalga del viewport habilita deslizar la pagina a los lados.
+     overflow-x:clip (con overflow-y visible) corta el area horizontal SIN
+     romper los position:fixed de la barra superior y el panel lateral. */
+  overflow-x: clip;
   --blue: #1544b5;
   --blue-deep: #0c2874;
   min-height: 100vh;

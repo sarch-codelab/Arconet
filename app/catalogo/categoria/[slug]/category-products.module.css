@@ -5,11 +5,19 @@
   min-height: 100vh;
   color: var(--ink);
   background: var(--paper);
-  /* IMPORTANTE: no poner aqui overflow-x: clip/hidden. Un valor de overflow
-     distinto de visible en un ancestro convierte al elemento en "contenedor de
-     filtro": los descendientes con position:fixed dejan de anclarse al viewport
-     y se quedan pegados dentro de la pagina. Eso desalineaba el boton de
-     cotizacion, el panel lateral y los iconos de la barra superior. */
+  /* EL SCROLL LATERAL: antes NO habia ningun overflow aqui (solo un comentario
+     prohibiendolo) porque overflow-x:clip convertia a .category en contenedor
+     de filtro y rompia los position:fixed (barra de progreso de lectura).
+     La causa real del deslizamiento izquierda/derecha era que Lenis
+     (LocomotiveScroll v5) hace scroll SUIZO en ambos ejes: cualquier hijo que
+     sobresiga aunque sea 1px (tarjetas elevadas en hover, sombras, animacion
+     reveal translateY(30px), radios grandes) crea area horizontal scrolleable y
+     Lenis te lleva a ella con la rueda. Solucion: overflow-x CLIP solo en el
+     eje X. overflow-y se queda VISIBLE, y segun la spec el par (clip, visible)
+     NO convierte al elemento en scroll container ni en fixed containing block,
+     asi que los position:fixed siguen anclados al viewport. Ademas se pone en
+     html/body (globals.css) como red de seguridad global. */
+  overflow-x: clip;
 }
 
 .category a {

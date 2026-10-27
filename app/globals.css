@@ -39,6 +39,18 @@ body {
   height: 100%;
 }
 
+/* Red de seguridad contra el scroll horizontal "fantasma": Lenis
+   (LocomotiveScroll v5) hace scroll diagonal en ambos ejes, asi que cualquier
+   elemento que sobresalga 1px del viewport (tarjetas elevadas en hover,
+   animaciones reveal con translateY, sombras) habilita deslizar la pagina a
+   izquierda/derecha. overflow-x:clip corta ese area SIN crear scroll container
+   ni containing block para position:fixed (overflow-y sigue visible), por lo
+   que la barra superior fija, el panel lateral y los iconos no se rompen. */
+html,
+body {
+  overflow-x: clip;
+}
+
 body {
   background-color: var(--bg);
   color: var(--ink);

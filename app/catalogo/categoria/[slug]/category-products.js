@@ -92,9 +92,21 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
       page.style.setProperty("--page-progress", pageProgress.toFixed(4));
     };
 
+    /* EL SCROLL LATERAL (la pagina se deslizaba a izquierda/derecha):
+       Lenis (motor de LocomotiveScroll v5) puede desplazar la ventana en X
+       cuando un gesto de rueda/touch tiene componente horizontal y algun
+       elemento sobresale aunque sea 1px del viewport (tarjetas elevadas en
+       hover, animaciones reveal). El overflow-x:clip del CSS ayuda con el
+       area scrolleable NATIVA, pero no impide que Lenis mueva la ventana por
+       JavaScript. Solucion en dos capas: 1) se fuerza gestureOrientation
+       ="vertical" en las opciones internas de Lenis (asi ignora deltaX), y
+       2) red de seguridad: si aun asi la ventana se moviera en X se corrige
+       de inmediato. Nada de esto toca el DOM ni rompe los position:fixed
+       (barra superior, panel lateral) ni los sticky. */
     const locomotive = new LocomotiveScroll({
       lenisOptions: {
         anchors: true,
+        gestureOrientation: "vertical",
         lerp: 0.085,
         respectReducedMotion: true,
         smoothTouch: false,
@@ -103,8 +115,18 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
       scrollCallback: updateScroll,
     });
 
+    /* Red de seguridad: si algo (Lenis, anclas, navegacion con historial,
+       etc.) moviera la pagina en X, se corrige de inmediato sin romper nada. */
+    const lockHorizontalScroll = () => {
+      if (window.scrollX !== 0) window.scrollTo(0, window.scrollY);
+    };
+    window.addEventListener("scroll", lockHorizontalScroll, { passive: true });
+
     updateScroll({ scroll: window.scrollY });
-    return () => locomotive.destroy();
+    return () => {
+      window.removeEventListener("scroll", lockHorizontalScroll);
+      locomotive.destroy();
+    };
   }, []);
 
   useEffect(() => {

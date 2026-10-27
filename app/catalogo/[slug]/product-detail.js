@@ -107,6 +107,7 @@ export default function ProductDetail({ slug }) {
     const locomotive = new LocomotiveScroll({
       lenisOptions: {
         anchors: true,
+        gestureOrientation: "vertical",
         lerp: 0.085,
         respectReducedMotion: true,
         smoothTouch: false,
