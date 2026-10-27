@@ -787,7 +787,6 @@ useEffect(() => {
                 Soluciones en telecomunicaciones, fibra óptica y CATV para conectar negocios y comunidades en Honduras.
               </p>
             </div>
-</div>
           </div>
 
           {/* Bottom Bar inside Card */}
