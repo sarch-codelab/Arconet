@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import CotizacionesSection from "./cotizaciones-section";
 import FacturacionPanel from "./facturacion-panel";
-import { SECTION_NAV_CONFIG } from "./admin-nav";
+import { AdminContext, SECTION_NAV_CONFIG } from "./admin-nav";
 import { Topbar } from "./topbar";
 
 /**
@@ -23,10 +23,23 @@ import { Topbar } from "./topbar";
  * el cuerpo mediante SectionTabs + sub-barra propia.
  */
 export default function VentasSection({ orders, setOrders, clientes, setClientes, products, workers, session }) {
-  const [activeTab, setActiveTab] = useState("cotizaciones");
+  // La pestana inicial es "Todas": al entrar a Ventas se ve el flujo completo
+  // (cotizaciones + ventas) en lugar de un subconjunto.
+  const [activeTab, setActiveTab] = useState("todas");
+
+  // El buscador global de la cabecera, al pulsar Enter aqui, filtra la lista
+  // actual en vez de solo saltar de seccion (ver topbar.js).
+  const applyVentasSearch = useCallback((term) => {
+    window.dispatchEvent(new CustomEvent("arconet:ventas-search", { detail: String(term || "") }));
+  }, []);
+
+  useEffect(() => () => {
+    // Si sale del panel con el foco/valor del buscador puesto, nada que limpiar:
+    // los listeners de las listas se desmontan solos.
+  }, []);
 
   return (
-    <>
+    <AdminContext.Provider value={{ applyVentasSearch }}>
       <Topbar
         chromeOnly
         title="Ventas"
@@ -60,6 +73,6 @@ export default function VentasSection({ orders, setOrders, clientes, setClientes
           onTabChange={setActiveTab}
         />
       )}
-    </>
+    </AdminContext.Provider>
   );
 }

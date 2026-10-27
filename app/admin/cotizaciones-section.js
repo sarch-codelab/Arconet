@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { AlertTriangle, Check, FileText, Pencil, Plus, Printer, Search, Trash2, TrendingUp, X } from "lucide-react";
 import styles from "./admin-experience.module.css";
 import { useToast, notifyError, ConfirmDialog } from "./admin-ui";
+import { AdminContext } from "./admin-nav";
 import {
   createOrder,
   deleteOrder,
@@ -22,12 +23,14 @@ import { Topbar, SectionTabs } from "./topbar";
 import { SECTION_NAV_CONFIG } from "./admin-nav";
 
 export default function CotizacionesSection({ orders = [], setOrders, clientes = [], setClientes, products = [], workers = [], session, hideTopbar = false, chromeOnly = false, tabs, activeTab: controlledTab, onTabChange }) {
-  const [innerTab, setInnerTab] = useState("cotizaciones");
+  const [innerTab, setInnerTab] = useState("todas");
   const activeTab = controlledTab ?? innerTab;
+  // Pestana inicial "Todas": sin filtro de tipo (se ven cotizaciones y ventas).
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
-  const [type, setType] = useState("cotizacion");
+  const [type, setType] = useState("all");
   const [modalOpen, setModalOpen] = useState(false);
+
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState({
     id: "",
@@ -45,8 +48,32 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
   const [newClient, setNewClient] = useState({ nombre: "", rtn: "", correo: "", telefono: "" });
   const { show } = useToast();
 
+  // El buscador global de la cabecera delega aqui (ver ventas-section.js):
+  // al pulsar Enter copia su termino al filtro de esta lista.
+  const adminCtx = useContext(AdminContext);
+  useEffect(() => {
+    // Enter en el buscador global -> filtra esta lista (seccion Ventas).
+    if (typeof adminCtx?.applyVentasSearch === "function") {
+      adminCtx.applyVentasSearch = (term) => setQuery(String(term || ""));
+    }
+    const onGlobalSearch = (event) => setQuery(String(event.detail || ""));
+    window.addEventListener("arconet:ventas-search", onGlobalSearch);
+    return () => window.removeEventListener("arconet:ventas-search", onGlobalSearch);
+  }, [adminCtx]);
+
   useEscapeKey(modalOpen, () => closeModal());
   useBodyScrollLock(modalOpen);
+
+  // Normaliza texto para buscar sin distinguir mayusculas ni tildes
+  // ("Jose" encuentra "José", "OPTICA" encuentra "óptica").
+  const normalize = (value) => String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  // Tokenizacion simple: cada palabra del query es un termino que debe
+  // aparecer en algun campo del documento (busqueda tipo AND).
+  const searchTerms = useMemo(() => normalize(query).split(/\s+/).filter(Boolean), [query]);
 
   const handleTabChange = (tabId) => {
     if (tabId === "facturas") {
@@ -59,7 +86,11 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
     onTabChange?.(tabId);
     // Las facturas fiscales viven en la pestana "Facturas" de esta misma
     // seccion; aqui solo hay cotizaciones y ventas comerciales.
-    if (tabId === "cotizaciones") {
+    if (tabId === "todas") {
+      // Pestana inicial "Todas": cotizaciones y ventas, nunca facturas fiscales.
+      setStatus("all");
+      setType("all");
+    } else if (tabId === "cotizaciones") {
       setStatus("all");
       setType("cotizacion");
     } else if (tabId === "ventas") {
@@ -71,30 +102,34 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
     } else if (tabId === "aprobadas") {
       setStatus("aprobada");
       setType("all");
-    } else if (tabId === "completadas") {
-      setStatus("completada");
-      setType("all");
     } else {
-      // Pestana "Todas": cotizaciones y ventas, nunca facturas fiscales.
-      setStatus("all");
+      setStatus("completada");
       setType("all");
     }
   };
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
     return orders.filter((order) => {
       // Nunca mostrar facturas fiscales aqui: pertenecen a Facturacion.
       if (order.tipo === "factura") return false;
       if (status !== "all" && order.estado !== status) return false;
       if (type !== "all" && order.tipo !== type) return false;
-      if (!q) return true;
-      return [order.cliente, order.notas]
-        .join(" ")
-        .toLowerCase()
-        .includes(q);
+      if (!searchTerms.length) return true;
+      // Busqueda amplia: numero de orden, cliente guardado o escrito a mano,
+      // RTN/correo/telefono del cliente, notas y productos de las lineas.
+      const haystack = normalize([
+        order.id,
+        order.cliente,
+        order.notas,
+        order.clienteObj?.nombre,
+        order.clienteObj?.rtn,
+        order.clienteObj?.correo,
+        order.clienteObj?.contacto ?? order.clienteObj?.telefono,
+        ...(order.items || []).map((item) => `${item.nombre ?? item.producto ?? ""} ${item.sku ?? ""}`),
+      ].join(" "));
+      return searchTerms.every((term) => haystack.includes(term));
     });
-  }, [orders, query, status, type]);
+  }, [orders, searchTerms, status, type]);
 
   const stats = useMemo(() => {
     // Las facturas fiscales no cuentan aqui: pertenecen a Facturacion.

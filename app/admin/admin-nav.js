@@ -40,6 +40,10 @@ export const AdminContext = createContext({
   goTo: () => {},
   onLogout: () => {},
   session: null,
+  // Búsqueda global de ventas: al pulsar Enter en el buscador de la cabecera,
+  // si estamos en la seccion Ventas se delega aqui para filtrar la lista
+  // actual (en vez de solo saltar a la primera coincidencia).
+  applyVentasSearch: () => {},
 });
 
 /** Secciones del panel, en el orden en que aparecen en la barra lateral. */
@@ -130,12 +134,13 @@ export const SECTION_NAV_CONFIG = {
   ventas: {
     brandName: "Ventas",
     tabs: [
+      // "Todas" va primero: es la pestana inicial al entrar a Ventas.
+      { id: "todas", label: "Todas", icon: BarChart3, title: "Cotizaciones y ventas" },
       { id: "cotizaciones", label: "Cotizaciones", icon: FileText, title: "Solo cotizaciones" },
       { id: "ventas", label: "Ventas", icon: TrendingUp, title: "Ventas comerciales (descuentan inventario)" },
       { id: "pendientes", label: "Pendientes", icon: Clock, title: "En revisión" },
       { id: "aprobadas", label: "Aprobadas", icon: Check, title: "Aprobadas" },
       { id: "completadas", label: "Completadas", icon: Check, title: "Completadas" },
-      { id: "todas", label: "Todas", icon: BarChart3, title: "Cotizaciones y ventas" },
       { id: "facturas", label: "Facturas", icon: Receipt, title: "Facturación fiscal: facturas con CAI, libro de ventas y configuración" },
     ],
   },
