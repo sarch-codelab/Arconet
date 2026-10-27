@@ -259,7 +259,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
           title="Ventas"
           subtitle="Crea cotizaciones o ventas comerciales con productos del catálogo. Las ventas descuentan inventario; las facturas fiscales se emiten en la pestaña Facturas."
           action={
-            <div className={styles.topbarActions}>
+            <div className={`${styles.topbarActions} ${styles.salesActions}`}>
               <button type="button" className={styles.ghostBtn} onClick={() => openCreate("cotizacion")}>
                 <Plus size={16} /> Nueva cotización
               </button>
@@ -284,7 +284,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
               <h1>Ventas</h1>
               <p>Crea cotizaciones o ventas comerciales con productos del catálogo. Las ventas descuentan inventario; las facturas fiscales se emiten en la pestaña Facturas.</p>
             </div>
-            <div className={styles.topbarActions}>
+            <div className={`${styles.topbarActions} ${styles.salesActions}`}>
               <button type="button" className={styles.ghostBtn} onClick={() => openCreate("cotizacion")}>
                 <Plus size={16} /> Nueva cotización
               </button>

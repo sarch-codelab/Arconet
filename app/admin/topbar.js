@@ -225,7 +225,7 @@ export function Topbar({
       </button>
     ))
   ) : (
-    <p className={styles.globalSearchEmpty}>No se encontraron resultados con acceso para tu rol.</p>
+    <p className={styles.globalSearchEmpty}>Sin resultados. Prueba con el nombre, SKU, RTN o correo completo del registro.</p>
   );
 
   const markAllNotificationsRead = async () => {

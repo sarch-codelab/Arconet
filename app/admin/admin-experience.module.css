@@ -1440,6 +1440,44 @@
   flex-wrap: wrap;
 }
 
+/* Botones de accion de la seccion Ventas (Nueva cotizacion / Nueva venta /
+   Nueva factura). En telefonos se apilan a lo largo para que ninguno quede
+   cortado o montado sobre el otro. */
+.salesActions {
+  width: 100%;
+}
+
+.salesActions .ghostBtn,
+.salesActions .primaryBtn {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+@media (max-width: 620px) {
+  .salesActions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .salesActions .ghostBtn,
+  .salesActions .primaryBtn {
+    width: 100%;
+    flex: none;
+  }
+}
+
+.salesActionBtn {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 620px) {
+  .salesActionBtn {
+    width: 100%;
+  }
+}
+
 .primaryBtn {
   display: inline-flex;
   align-items: center;

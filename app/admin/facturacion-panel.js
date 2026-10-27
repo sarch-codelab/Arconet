@@ -405,7 +405,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
                   aria-label="Buscar documentos"
                 />
               </label>
-              <button type="button" className={adminStyles.primaryBtn} onClick={() => setTab("nueva")}>
+              <button type="button" className={`${adminStyles.primaryBtn} ${adminStyles.salesActionBtn}`} onClick={() => setTab("nueva")}>
                 <Plus size={16} /> Nueva factura
               </button>
             </div>
