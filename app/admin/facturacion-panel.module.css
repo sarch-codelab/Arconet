@@ -29,6 +29,25 @@
   font-weight: 700;
 }
 
+/* Enlace tipo boton dentro del aviso de rango pendiente: lleva directo a la
+   pestana Configuracion sin sentirse como un error bloqueante. */
+.inlineLinkBtn {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #92400e;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.inlineLinkBtn:hover {
+  color: #7c3409;
+}
+
 .invoiceGrid {
   display: grid;
   gap: 18px;

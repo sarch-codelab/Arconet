@@ -385,9 +385,18 @@ export default function FacturacionPanel({ session, productos: productosIniciale
           <div className={styles.warning} role="status">
             <AlertTriangle size={16} />
             <p>
-              No hay rango autorizado configurado: las facturas se emiten como
-              <strong> pendientes de CAI</strong> y no llevan correlativo fiscal.
-              Configúralo en la pestaña Configuración.
+              Aún no has configurado tu rango autorizado por la DEAT (CAI, serie y
+              correlativo). Mientras tanto puedes trabajar con normalidad: las
+              facturas que emitas quedan registradas como
+              <strong> pendientes de CAI</strong> y, cuando configures el rango,
+              recibirán su numeración fiscal oficial. Puedes hacerlo aquí mismo:{" "}
+              <button
+                type="button"
+                className={styles.inlineLinkBtn}
+                onClick={() => setTab("config")}
+              >
+                Ir a Configuración →
+              </button>
             </p>
           </div>
         ) : null}

@@ -1483,19 +1483,35 @@
 }
 
 .salesActionBtn {
+  /* `flex-basis: auto` + shrink habilitado: los botones base del panel usan
+     `flex-shrink: 0`, por lo que dentro de una fila estrecha no podian
+     encoger y empujaban la pantalla hacia la derecha en el telefono. Aqui se
+     re-declara la clase para que puedan reducirse hasta el ancho disponible. */
   flex: 0 1 auto;
   min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
   /* Permite que el texto se parta si hiciera falta en lugar de desbordar. */
   white-space: normal;
   overflow-wrap: anywhere;
   text-align: center;
 }
 
-@media (max-width: 620px) {
+/* Icono dentro de estos botones: fijo, para que nunca se estire al encoger. */
+.salesActionBtn svg {
+  flex: none;
+}
+
+@media (max-width: 760px) {
+  /* En el telefono los dos botones van SIEMPRE uno debajo del otro, a lo
+     ancho completo y centrados. Antes dependian de que cupieran lado a lado;
+     con textos largos ("Nueva cotización") desbordaban el borde derecho. */
   .salesActionRow {
     flex-direction: column;
     align-items: stretch;
+    justify-content: center;
     width: 100%;
+    max-width: 100%;
     gap: 8px;
   }
 
