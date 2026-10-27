@@ -1534,27 +1534,29 @@
   pointer-events: none;
 }
 
-/* La imagen de la empresa es casi cuadrada (1360x1020), mientras que el hero
-   ocupa toda la pantalla (apaisada en PC). Con "cover" recortaba buena parte
-   de los lados, así que se adapta según la proporción del viewport:
-   - En pantallas muy anchas (PC) se muestra COMPLETA (contain) sin recortes.
-   - En pantallas más cuadradas/estrechas se mantiene cover para no dejar
-     franjas vacías arriba/abajo. */
+/* La imagen de la empresa mide 2496x1792 (proporción ~1.39:1). El hero ocupa
+   toda la pantalla, así que se adapta según la proporción del viewport:
+   - Pantallas MUY anchas (ultrawide 21:9, proporción > 1.7): se mantiene
+     "contain" para no cortar demasiado la foto.
+   - Pantallas normales (PC/laptop 16:9, tablets y móviles): se usa "cover"
+     para RELLENAR todo el hero sin dejar franjas oscuras a los lados.
+   El navegador siempre baja la calidad/escala automáticamente según el
+   tamaño de pantalla; la foto actual (2496px de ancho) cubre hasta
+   monitores 4K sin pixelarse. */
 .heroBgImg {
-  object-fit: contain;
-  object-position: center;
-  /* Sin zoom-in al cargar: con "contain" un agrandamiento cortaría los bordes
-     de la imagen en PC. */
+  object-fit: cover;
+  object-position: center 36%;
+  transform: scale(calc(1.13 - 0.13 * var(--zoom-progress, 0)));
   will-change: transform;
 }
 
-/* En pantallas más cuadradas o verticales (móvil/tablet) se usa cover para
-   llenar el hero sin dejar franjas vacías arriba/abajo. */
-@media (max-aspect-ratio: 4/3) {
+/* Solo en monitores ultrapanorámicos (más anchos que 16:9) conviene mostrar
+   la foto completa antes de recortar excesivamente sus lados. */
+@media (min-aspect-ratio: 17/10) {
   .heroBgImg {
-    object-fit: cover;
-    object-position: center 36%;
-    transform: scale(calc(1.13 - 0.13 * var(--zoom-progress, 0)));
+    object-fit: contain;
+    object-position: center;
+    transform: none;
   }
 }
 
