@@ -461,20 +461,22 @@
 
 .media {
   position: relative;
-  overflow: hidden;
+  /* Sin overflow:hidden: la caja tenia un "marco" (borde redondeado + recorte)
+     que cortaba partes de la foto. La imagen se muestra completa, sin recorte. */
+  overflow: visible;
   display: grid;
   place-items: center;
   aspect-ratio: 4 / 3;
-  border: 1px solid var(--line);
+  border: 0;
   border-radius: 26px;
-  background-color: #eef0f5;
-  background-image: linear-gradient(#1544b50a 1px, transparent 1px),
-    linear-gradient(90deg, #1544b50a 1px, transparent 1px);
-  background-size: 34px 34px;
+  background-color: transparent;
+  background-image: none;
 }
 
 .mediaPhoto {
-  background: #f6f7fa;
+  /* Sin fondo propio: cualquier color aqui se ve como un "marco" detras de la
+     foto cuando la proporcion de la imagen no coincide con la caja. */
+  background: transparent;
 }
 
 .mediaImage {
@@ -792,13 +794,17 @@
   color: var(--blue);
 }
 
-/* Botón flotante del menú móvil: en desktop permanece oculto (display:none
-   del propio componente), así que no interfiere con la barra superior. */
+/* Botón flotante del menú móvil: en PC (>760px) se oculta AQUI con
+   display:none. Antes dependía de un display:none "del propio componente",
+   pero al renderizarse el botón quedaba fijo arriba a la derecha montado
+   sobre la barra superior: ese era el icono "mal posicionado" que seguía
+   viéndose en escritorio. Ahora solo existe en pantallas <=760px. */
 .menuFloat {
   position: fixed;
   top: 20px;
   right: clamp(14px, 2.4vw, 28px);
   z-index: 45;
+  display: none;
 }
 
 /* En pantallas pequeñas el botón flotante del menú móvil convive con la
@@ -806,6 +812,7 @@
    queden iconos "mal posicionados" encima del botón de cotización. */
 @media (max-width: 760px) {
   .menuFloat {
+    display: inline-flex; /* solo en movil: vuelve a mostrarse, bajado para no pisar la cotizacion */
     top: 74px;
   }
 }
@@ -933,7 +940,8 @@
     min-width: 0;
     max-width: 520px;
     margin-inline: auto;
-    overflow: hidden;
+    /* Sin recorte ni marco tampoco en movil (ver comentario en .media base). */
+    overflow: visible;
   }
 
   .breadcrumb {

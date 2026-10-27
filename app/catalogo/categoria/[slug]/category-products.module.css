@@ -176,16 +176,18 @@
   align-items: center;
 }
 
-/* El "marco" que recortaba la imagen principal era esta caja con
-   aspect-ratio fijo + overflow:hidden junto con la imagen en
-   object-fit:cover (recortaba los bordes de la foto). Se quita el recorte:
-   la caja ahora crece segun la foto y la imagen se muestra COMPLETA,
-   manteniendo su proporcion natural (sin cortes) en PC y en movil. */
+/* EL MARCO: .heroVisual tenia border-radius + background propio. Cuando la
+   foto no llenaba exactamente la caja (proporcion distinta), ese fondo asomaba
+   detras de la imagen como un "marco" visible. Ahora la caja es totalmente
+   transparente (sin fondo, sin radio, sin borde, sin sombra): lo unico que se
+   ve es la foto, sin recortes ni marco detras. */
 .heroVisual {
   position: relative;
   width: 100%;
-  border-radius: 16px;
-  background: var(--surface-2);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .heroImage {
@@ -1010,8 +1012,10 @@
   background: var(--bg-soft);
 }
 
+/* En modo oscuro tampoco lleva fondo: si tuviera, se veria como un "marco"
+   detras de la imagen igual que en modo claro. */
 :global(html[data-theme="dark"]) .heroVisual {
-  background: var(--surface-2);
+  background: transparent;
 }
 
 :global(html[data-theme="dark"]) .headerAction {

@@ -195,7 +195,14 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
         <span>{family.category}</span>
       </div>
 
-      <section className={`${styles.hero} ${styles.reveal}`}>
+      {/* .hero NO lleva la clase reveal: el efecto de aparicion usa
+          transform:translateY(...) y, al terminar, transition + transform.
+          Mientras la transicion corre (o si IntersectionObserver no dispara),
+          el section se pinta desplazado ~30px hacia abajo y su fondo asoma por
+          encima de la foto como un "marco" gris detras de la imagen. La foto
+          ahora es elemento en flujo dentro de .heroVisual, asi que cualquier
+          offset del contenedor se ve como marco. El hero va siempre visible. */}
+      <section className={styles.hero}>
         <div className={styles.heroVisual}>
           {family.image ? (
             /* Sin "fill": antes la imagen iba absoluta dentro de una caja con
