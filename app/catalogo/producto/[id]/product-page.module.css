@@ -1,5 +1,10 @@
 ﻿.page {
-  overflow-x: clip;
+  /* IMPORTANTE: no poner aqui overflow-x: clip/hidden. Un valor de overflow
+     distinto de visible en un ancestro convierte al elemento en "contenedor de
+     filtro": los descendientes con position:fixed dejan de anclarse al viewport
+     y se quedan pegados dentro de la pagina. Eso hacia que la barra superior
+     (boton de cotizacion + icono/badge) y el panel lateral de la cotizacion
+     quedaran desalineados o cortados al hacer scroll. */
   --blue: #1544b5;
   --blue-deep: #0c2874;
   min-height: 100vh;
@@ -794,6 +799,15 @@
   top: 20px;
   right: clamp(14px, 2.4vw, 28px);
   z-index: 45;
+}
+
+/* En pantallas pequeñas el botón flotante del menú móvil convive con la
+   cápsula fija de la barra superior: lo bajamos para que no se monten ni
+   queden iconos "mal posicionados" encima del botón de cotización. */
+@media (max-width: 760px) {
+  .menuFloat {
+    top: 74px;
+  }
 }
 
 /* ---------------- Relacionados ---------------- */
