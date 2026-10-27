@@ -259,11 +259,11 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
           title="Ventas"
           subtitle="Crea cotizaciones o ventas comerciales con productos del catálogo. Las ventas descuentan inventario; las facturas fiscales se emiten en la pestaña Facturas."
           action={
-            <div className={`${styles.topbarActions} ${styles.salesActions}`}>
-              <button type="button" className={styles.ghostBtn} onClick={() => openCreate("cotizacion")}>
+            <div className={styles.salesActionRow}>
+              <button type="button" className={`${styles.ghostBtn} ${styles.salesActionBtn}`} onClick={() => openCreate("cotizacion")}>
                 <Plus size={16} /> Nueva cotización
               </button>
-              <button type="button" className={styles.primaryBtn} onClick={() => openCreate("venta")}>
+              <button type="button" className={`${styles.primaryBtn} ${styles.salesActionBtn}`} onClick={() => openCreate("venta")}>
                 <Plus size={16} /> Nueva venta
               </button>
             </div>
@@ -284,11 +284,13 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
               <h1>Ventas</h1>
               <p>Crea cotizaciones o ventas comerciales con productos del catálogo. Las ventas descuentan inventario; las facturas fiscales se emiten en la pestaña Facturas.</p>
             </div>
-            <div className={`${styles.topbarActions} ${styles.salesActions}`}>
-              <button type="button" className={styles.ghostBtn} onClick={() => openCreate("cotizacion")}>
+            {/* Contenedor propio (salesActionRow): evita herdar el ancho de la
+                barra global y que los botones desborden la pantalla en móvil. */}
+            <div className={styles.salesActionRow}>
+              <button type="button" className={`${styles.ghostBtn} ${styles.salesActionBtn}`} onClick={() => openCreate("cotizacion")}>
                 <Plus size={16} /> Nueva cotización
               </button>
-              <button type="button" className={styles.primaryBtn} onClick={() => openCreate("venta")}>
+              <button type="button" className={`${styles.primaryBtn} ${styles.salesActionBtn}`} onClick={() => openCreate("venta")}>
                 <Plus size={16} /> Nueva venta
               </button>
             </div>

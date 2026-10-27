@@ -1468,13 +1468,40 @@
   }
 }
 
+/* Fila de acciones de Ventas (Nueva cotizacion / Nueva venta). Antes estos
+   botones vivian dentro de .topbarActions/.salesActions, que heredaba el
+   ancho completo de la barra superior y, con `white-space: nowrap`, empujaba
+   los botones mas alla del borde derecho en telefonos. Esta fila es un
+   contenedor propio que nunca supera el ancho disponible. */
+.salesActionRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
+}
+
 .salesActionBtn {
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  min-width: 0;
+  /* Permite que el texto se parta si hiciera falta en lugar de desbordar. */
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: center;
 }
 
 @media (max-width: 620px) {
+  .salesActionRow {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 8px;
+  }
+
   .salesActionBtn {
     width: 100%;
+    flex: none;
   }
 }
 
