@@ -786,27 +786,8 @@ useEffect(() => {
               <p className={styles.heroCenterDescription}>
                 Soluciones en telecomunicaciones, fibra óptica y CATV para conectar negocios y comunidades en Honduras.
               </p>
-              <div className={styles.heroCenterActions}>
-                <a className={styles.refPillBtn} href="#soluciones">
-                  <span>Explorar soluciones</span>
-                  <span className={styles.refPillIcon}>
-                    <ArrowUpRight size={16} />
-                  </span>
-                </a>
-              </div>
             </div>
-            {mounted && (
-            <div className={styles.heroTimeVisual} aria-hidden="true">
-              <Image
-                src={TIME_IMAGES[timeOfDay]}
-                alt={`Neto ${timeOfDay}`}
-                width={520}
-                height={520}
-                className={styles.heroTimeImage}
-                priority
-              />
-            </div>
-          )}
+</div>
           </div>
 
           {/* Bottom Bar inside Card */}
@@ -913,7 +894,7 @@ useEffect(() => {
               <li key={product}><span>0{index + 1}</span><strong>{product}</strong><ArrowUpRight size={17} /></li>
             ))}
           </ul>
-          <a className={styles.catalogLink} href="/catalogo">Explorar catálogo <ArrowRight size={16} /></a>
+          
         </div>
       </section>
 

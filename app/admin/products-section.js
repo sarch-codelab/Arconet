@@ -312,9 +312,11 @@ export default function ProductsSection({ products, setProducts, categorias = []
         title="Productos"
         subtitle="Catálogo de Arconet: categoría, precio, stock y disponibilidad."
         action={
-          <button type="button" className={styles.primaryBtn} onClick={openCreate}>
-            <Plus size={16} /> Nuevo producto
-          </button>
+          canWriteProducts && (
+            <button type="button" className={styles.primaryBtn} onClick={openCreate}>
+              <Plus size={16} /> Nuevo producto
+            </button>
+          )
         }
         session={session}
         workers={workers}

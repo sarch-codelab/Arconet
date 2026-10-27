@@ -45,11 +45,7 @@ import Footer from "../../../footer";
 import MobileSiteMenu from "../../../mobile-site-menu";
 
 const NAVIGATION = [
-  { href: "/catalogo#familias", label: "Soluciones" },
   { href: "/catalogo#catalogo-items", label: "Catálogo" },
-  { href: "/#empresa", label: "La empresa" },
-  { href: "/contacto", label: "Contacto" },
-  { href: "/terminos", label: "Términos" },
 ];
 
 const SUPPORT_ITEMS = [
@@ -193,8 +189,8 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
           <Image src="/arconet.png" alt="Arconet" width={2172} height={362} priority />
         </Link>
         <MobileSiteMenu />
-        <nav className={styles.nav} aria-label="Navegación principal">
-          {NAVIGATION.map((item) => <a key={item.label} href={item.href}>{item.label}</a>)}
+        <nav className={styles.nav} aria-label="Navegación principal" style={{ position: "fixed", right: 24, top: 100, zIndex: 100 }}>
+          {NAVIGATION.map((item) => <a key={item.label} href={item.href} style={{ fontSize: "14px", textTransform: "uppercase", letterSpacing: "0.5px" }}>{item.label}</a>)}
         </nav>
         <button
           type="button"
