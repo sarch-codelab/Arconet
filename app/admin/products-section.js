@@ -18,6 +18,7 @@ import {
   formatPrice,
   formatStock,
   newProductId,
+  unitLabel,
   updateProduct,
 } from "./products-store";
 
