@@ -65,8 +65,10 @@ export default function ProductPage({ product }) {
       .map((image) => image.trim());
     return [...new Set(all)];
   }, [product.foto, product.fotos]);
+  // Índice interno 0 = portada; el producto puede tener N fotos adicionales.
   const [activeImage, setActiveImage] = useState(0);
-  const currentImage = images[activeImage] || "";
+  const safeActive = Math.min(activeImage, Math.max(images.length - 1, 0));
+  const currentImage = images[safeActive] || "";
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const { addItem, open: openCart, count: cartCount } = useCart();
   const { products } = useCatalogProducts();
@@ -212,7 +214,7 @@ export default function ProductPage({ product }) {
             {currentImage ? (
               <Image
                 src={currentImage}
-                alt={`${product.nombre}${images.length > 1 ? ` — imagen ${activeImage + 1} de ${images.length}` : ""}`}
+                alt={`${product.nombre}${images.length > 1 ? ` — imagen ${safeActive + 1} de ${images.length}` : ""}`}
                 fill
                 priority
                 unoptimized={String(currentImage).startsWith("data:")}
@@ -239,9 +241,9 @@ export default function ProductPage({ product }) {
                 <button
                   key={idx}
                   type="button"
-                  className={`${styles.galleryThumb} ${idx === activeImage ? styles.galleryThumbActive : ""}`}
+                  className={`${styles.galleryThumb} ${idx === safeActive ? styles.galleryThumbActive : ""}`}
                   onClick={() => setActiveImage(idx)}
-                  aria-pressed={idx === activeImage}
+                  aria-pressed={idx === safeActive}
                   aria-label={`Ver imagen ${idx + 1} de ${images.length}`}
                 >
                   <Image

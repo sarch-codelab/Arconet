@@ -441,10 +441,13 @@
   padding: clamp(26px, 4vw, 52px) clamp(20px, 6vw, 96px) clamp(40px, 6vw, 84px);
 }
 
-/* Columna izquierda en PC: foto principal arriba y galería debajo. */
+/* Columna izquierda en PC: foto principal arriba y galería debajo.
+   NO usamos position:sticky aquí: el sitio carga LocomotiveScroll (Lenis), que
+   aplica transform/scale al contenedor de scroll, y eso rompe tanto el sticky
+   (la imagen "fallaba" y se desalineaba al hacer scroll) como los clics en las
+   miniaturas (las coordenadas hit-test quedan desplazadas respecto al elemento
+   pintado). Con estático, la imagen grande y las miniaturas se comportan bien. */
 .mediaColumn {
-  position: sticky;
-  top: 26px;
   align-self: start;
   display: grid;
   gap: 12px;
@@ -452,6 +455,7 @@
 }
 
 .media {
+  position: relative;
   overflow: hidden;
   display: grid;
   place-items: center;
@@ -905,9 +909,8 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  /* En pantallas pequeñas la columna ya no es sticky: fluye normal. */
+  /* Columna sin sticky (ver comentario en .mediaColumn): fluye normal. */
   .mediaColumn {
-    position: static;
     gap: 10px;
   }
 
