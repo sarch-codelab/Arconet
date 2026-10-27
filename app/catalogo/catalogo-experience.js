@@ -138,7 +138,10 @@ export default function CatalogoExperience() {
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [branch, setBranch] = useState("");
-  const [gateOpen, setGateOpen] = useState(true);
+  // La "puerta" de sucursal se muestra solo si el visitante ya eligio una antes
+  // (primera visita entra directo al catalog: no bloquea la compra ni genera
+  // scroll lateral por el overlay).
+  const [gateOpen, setGateOpen] = useState(false);
   const heroRef = useRef(null);
   const navRef = useRef(null);
   const topbarRef = useRef(null);
@@ -193,7 +196,6 @@ export default function CatalogoExperience() {
     }
     if (BRANCHES.some((item) => item.id === stored)) {
       setBranch(stored);
-      setGateOpen(false);
     }
   }, []);
 
