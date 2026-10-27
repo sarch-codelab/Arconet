@@ -42,9 +42,9 @@ import MobileSiteMenu from "../mobile-site-menu";
 const NAVIGATION = [
   { id: "inicio", label: "Inicio", mega: false, href: "/" },
   { id: "familias", label: "Soluciones", mega: true, href: "#familias", megaGroups: [
-    { title: "Red Ã³ptica y FTTH", links: [
+    { title: "Red óptica y FTTH", links: [
       { label: "Soluciones de Preconectorizado", href: "/catalogo/soluciones-de-preconectorizado" },
-      { label: "Cajas de DistribuciÃ³n y Emplazamiento", href: "/catalogo/cajas-de-distribucion-y-emplazamiento" },
+      { label: "Cajas de Distribución y Emplazamiento", href: "/catalogo/cajas-de-distribucion-y-emplazamiento" },
       { label: "Soluciones activas y Accesorios FTTH", href: "/catalogo/soluciones-activas-y-accesorios-ftth" },
       { label: "Componentes pasivos", href: "/catalogo/componentes-pasivos" },
       { label: "Microcables y Microproductos", href: "/catalogo/microcables-y-microproductos" }
@@ -55,13 +55,13 @@ const NAVIGATION = [
       { label: "Escaleras", href: "/catalogo/escaleras" },
       { label: "Optical Distribution Frame - ODF", href: "/catalogo/optical-distribution-frame-odf" }
     ]},
-    { title: "MediciÃ³n y herramientas", links: [
-      { label: "Instrumentos de mediciÃ³n Ã³ptica", href: "/catalogo/instrumentos-de-medicion-optica" },
+    { title: "Medición y herramientas", links: [
+      { label: "Instrumentos de medición óptica", href: "/catalogo/instrumentos-de-medicion-optica" },
       { label: "Herramientas y kits", href: "/catalogo/herramientas-y-kits" }
     ]},
-    { title: "MÃ¡s de Arconet", links: [
+    { title: "Más de Arconet", links: [
       { label: "La empresa", href: "/#empresa" },
-      { label: "TÃ©rminos de uso", href: "/terminos" }
+      { label: "Términos de uso", href: "/terminos" }
     ]}
   ]},
   { id: "empresa", label: "La empresa", mega: false, href: "/#empresa" },
@@ -69,24 +69,24 @@ const NAVIGATION = [
 ];
 
 const TRUST = [
-  { icon: PackageCheck, title: "ImportaciÃ³n directa", text: "Traemos el equipo sin intermediarios de mÃ¡s." },
-  { icon: Handshake, title: "AsesorÃ­a de una persona", text: "Alguien revisa tu proyecto contigo." },
-  { icon: Truck, title: "Entrega en Honduras", text: "Coordinamos la entrega donde estÃ©s." },
+  { icon: PackageCheck, title: "Importación directa", text: "Traemos el equipo sin intermediarios de más." },
+  { icon: Handshake, title: "Asesoría de una persona", text: "Alguien revisa tu proyecto contigo." },
+  { icon: Truck, title: "Entrega en Honduras", text: "Coordinamos la entrega donde estés." },
 ];
 
 const BRANCH_KEY = "arconet-branch";
 
-// Ãcono de respaldo para las tarjetas de producto sin foto, segÃºn su categorÃ­a.
+// Ícono de respaldo para las tarjetas de producto sin foto, según su categoría.
 const PRODUCT_ICONS = {
   "Soluciones de Preconectorizado": Cable,
   Herrajes: SlidersHorizontal,
   "Gabinetes y Racks": Network,
-  "Cajas de DistribuciÃ³n y Emplazamiento": Boxes,
+  "Cajas de Distribución y Emplazamiento": Boxes,
   "Soluciones activas y Accesorios FTTH": Radio,
   "Herramientas y kits": Wrench,
   Escaleras: Ruler,
   "Optical Distribution Frame - ODF": Server,
-  "Instrumentos de mediciÃ³n Ã³ptica": Gauge,
+  "Instrumentos de medición óptica": Gauge,
   "Componentes pasivos": Layers,
   "Microcables y Microproductos": Cable,
 };
@@ -101,24 +101,24 @@ const STEPS = [
   {
     number: "01",
     title: "Nos cuentas tu proyecto",
-    text: "Una llamada o un mensaje basta. Nos dices quÃ© necesitas conectar y te hacemos las preguntas correctas.",
+    text: "Una llamada o un mensaje basta. Nos dices qué necesitas conectar y te hacemos las preguntas correctas.",
   },
   {
     number: "02",
     title: "Te recomendamos y cotizamos",
-    text: "Seleccionamos el equipo que sÃ­ sirve para tu caso y te enviamos una cotizaciÃ³n clara, sin letra chica.",
+    text: "Seleccionamos el equipo que sí sirve para tu caso y te enviamos una cotización clara, sin letra chica.",
   },
   {
     number: "03",
-    title: "Entregamos y acompaÃ±amos",
-    text: "Coordinamos la entrega y seguimos disponibles durante la instalaciÃ³n y despuÃ©s de ella.",
+    title: "Entregamos y acompañamos",
+    text: "Coordinamos la entrega y seguimos disponibles durante la instalación y después de ella.",
   },
 ];
 
 const DETAILS = [
-  { icon: MapPin, title: "San Pedro Sula, CortÃ©s", text: "Atendemos proyectos en todo Honduras." },
-  { icon: Handshake, title: "Hablas con el equipo tÃ©cnico", text: "No hay bots de por medio." },
-  { icon: ShieldCheck, title: "Soporte antes y despuÃ©s", text: "Te acompaÃ±amos tambiÃ©n en la instalaciÃ³n." },
+  { icon: MapPin, title: "San Pedro Sula, Cortés", text: "Atendemos proyectos en todo Honduras." },
+  { icon: Handshake, title: "Hablas con el equipo técnico", text: "No hay bots de por medio." },
+  { icon: ShieldCheck, title: "Soporte antes y después", text: "Te acompañamos también en la instalación." },
 ];
 
 const FALLBACK_CATEGORIES = FAMILIES.map((family) => ({
@@ -160,7 +160,7 @@ export default function CatalogoExperience() {
         const family = findFamily(category.slug) || findFamily(category.nombre);
         return {
           title: category.nombre,
-          text: category.descripcion || family?.summary || "Explora esta categorÃ­a.",
+          text: category.descripcion || family?.summary || "Explora esta categoría.",
           slug: category.slug,
           image: category.foto || family?.image || "/catalogo/hero-fiber.jpg",
         };
@@ -270,7 +270,7 @@ export default function CatalogoExperience() {
     return () => locomotive.destroy();
   }, [gateOpen]);
 
-  // Indicador deslizante del dock: sigue al enlace de la secciÃ³n activa.
+  // Indicador deslizante del dock: sigue al enlace de la sección activa.
   useEffect(() => {
     const nav = navRef.current;
     if (!nav) return undefined;
@@ -350,7 +350,7 @@ export default function CatalogoExperience() {
     });
   }, [products, activeCategory, searchTerm]);
 
-  // Filtros: las categorÃ­as activas mÃ¡s cualquier categorÃ­a nueva que exista en la BD.
+  // Filtros: las categorías activas más cualquier categoría nueva que exista en la BD.
   const productCategories = useMemo(() => {
     const names = catalogCategories.map((category) => category.nombre);
     const extra = [...new Set(products.map((product) => product.categoria))].filter(
@@ -389,7 +389,7 @@ export default function CatalogoExperience() {
         </div>
       ))}
       <div className={styles.megaMenuFooter}>
-        <span>Compra por sucursal con asesorÃ­a tÃ©cnica directa</span>
+        <span>Compra por sucursal con asesoría técnica directa</span>
         <a href="#catalogo-items">
           Ver productos
           <ArrowRight size={14} aria-hidden="true" />
@@ -426,17 +426,17 @@ export default function CatalogoExperience() {
             <span className={styles.branchGateBrand}>
               <Image src="/arconet.png" alt="Arconet" width={2172} height={362} priority />
             </span>
-            <span className={styles.branchGateMeta}>CatÃ¡logo tÃ©cnico Â· Honduras</span>
+            <span className={styles.branchGateMeta}>Catálogo técnico · Honduras</span>
           </header>
 
           <div className={styles.branchGateContent}>
             <p className={styles.branchGateEyebrow}><i /> Bienvenido</p>
             <h1>
               Necesitamos saber<br />
-              <em>a quÃ© sucursal</em> te diriges.
+              <em>a qué sucursal</em> te diriges.
             </h1>
             <p className={styles.branchGateText}>
-              Elige la sucursal mÃ¡s cercana para ver el catÃ¡logo de tu zona. La recordaremos para tu prÃ³xima visita.
+              Elige la sucursal más cercana para ver el catálogo de tu zona. La recordaremos para tu próxima visita.
             </p>
 
             <div className={styles.branchGateOptions}>
@@ -484,7 +484,7 @@ export default function CatalogoExperience() {
             <Image src="/arconet.png" alt="Arconet" width={2172} height={362} />
           </a>
 
-          <nav className={styles.topbarNav} aria-label="NavegaciÃ³n del catÃ¡logo" ref={navRef}>
+          <nav className={styles.topbarNav} aria-label="Navegación del catálogo" ref={navRef}>
             <span className={styles.navIndicator} aria-hidden="true" />
             {NAVIGATION.map((item) => {
               const isActive = Boolean(item.id) && activeSection === item.id;
@@ -505,7 +505,7 @@ export default function CatalogoExperience() {
               type="button"
               className={`${styles.menuToggleCatalogo}${mobileMenuOpen ? ` ${styles.menuToggleActiveCatalogo}` : ""}`}
               aria-expanded={mobileMenuOpen}
-              aria-label={mobileMenuOpen ? "Cerrar menÃº" : "Abrir menÃº"}
+              aria-label={mobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               tabIndex={scrolledPastHero ? 0 : -1}
             >
@@ -520,13 +520,13 @@ export default function CatalogoExperience() {
             className={styles.topbarAction}
             onClick={openCart}
             tabIndex={scrolledPastHero ? 0 : -1}
-            aria-label={`Carrito de cotizaciÃ³n, ${cartCount} ${cartCount === 1 ? "unidad" : "unidades"}`}
+            aria-label={`Carrito de cotización, ${cartCount} ${cartCount === 1 ? "unidad" : "unidades"}`}
           >
             <span className={styles.topbarCartIcon}>
               <ShoppingCart size={15} aria-hidden="true" />
               {cartCount > 0 && <i className="cartBadge" aria-hidden="true">{cartCount > 99 ? "99+" : cartCount}</i>}
             </span>
-            CotizaciÃ³n
+            Cotización
           </button>
 
           {megaMenu}
@@ -550,7 +550,7 @@ export default function CatalogoExperience() {
                 )
               )}
               <div className={styles.mobileMenuLegal}>
-                <Link href="/terminos" onClick={() => setMobileMenuOpen(false)}>TÃ©rminos</Link>
+                <Link href="/terminos" onClick={() => setMobileMenuOpen(false)}>Términos</Link>
                 <Link href="/privacidad" onClick={() => setMobileMenuOpen(false)}>Privacidad</Link>
                 <Link href="/ayuda" onClick={() => setMobileMenuOpen(false)}>Ayuda</Link>
               </div>
@@ -579,7 +579,7 @@ export default function CatalogoExperience() {
             <a className={styles.heroBrand} href="/" aria-label="Arconet, inicio">
               <Image src="/arconet.png" alt="Arconet" width={2172} height={362} priority />
             </a>
-            <nav className={styles.navigation} aria-label="NavegaciÃ³n principal">
+            <nav className={styles.navigation} aria-label="Navegación principal">
               {NAVIGATION.map((item) => (
                 <a
                   className={`${item.id && activeSection === item.id ? styles.navigationActive : ""}${item.mega ? ` ${styles.megaTrigger}` : ""}`}
@@ -596,9 +596,9 @@ export default function CatalogoExperience() {
                 type="button"
                 className={styles.contactButton}
                 onClick={openCart}
-                aria-label={`Carrito de cotizaciÃ³n, ${cartCount} ${cartCount === 1 ? "unidad" : "unidades"}`}
+                aria-label={`Carrito de cotización, ${cartCount} ${cartCount === 1 ? "unidad" : "unidades"}`}
               >
-                <span className={styles.contactLabel}>CotizaciÃ³n</span>
+                <span className={styles.contactLabel}>Cotización</span>
                 <span className={styles.contactIcon}>
                   <ShoppingCart size={14} aria-hidden="true" />
                   {cartCount > 0 && <i className="cartBadge" aria-hidden="true">{cartCount > 99 ? "99+" : cartCount}</i>}
@@ -608,29 +608,29 @@ export default function CatalogoExperience() {
           </header>
 
           <div className={styles.heroContent}>
-            <p className={styles.eyebrow}><i /> CatÃ¡logo tÃ©cnico Â· Honduras</p>
-            <h1>Todo para tu red,<br />y <em>quiÃ©n te acompaÃ±a.</em></h1>
+            <p className={styles.eyebrow}><i /> Catálogo técnico · Honduras</p>
+            <h1>Todo para tu red,<br />y <em>quién te acompaña.</em></h1>
             <p className={styles.heroDescription}>
-              Fibra Ã³ptica, CATV, satÃ©lite e infraestructura. Explora el catÃ¡logo y cotiza con una persona de nuestro equipo, aquÃ­ en San Pedro Sula.
+              Fibra óptica, CATV, satélite e infraestructura. Explora el catálogo y cotiza con una persona de nuestro equipo, aquí en San Pedro Sula.
             </p>
             <div className={styles.heroActions}>
               <a className={styles.primaryButton} href="#catalogo-items">
                 Ver productos <ArrowDown size={15} />
               </a>
               <a className={styles.ghostButton} href="/#contacto">
-                Pedir asesorÃ­a <ArrowRight size={15} />
+                Pedir asesoría <ArrowRight size={15} />
               </a>
             </div>
           </div>
 
           <div className={styles.heroFooter}>
-            <span>ARCONET Â· {branchLabel.toLocaleUpperCase("es")}, HONDURAS</span>
-            <a href="#familias">Descubrir lÃ­neas <ArrowDown size={14} /></a>
+            <span>ARCONET · {branchLabel.toLocaleUpperCase("es")}, HONDURAS</span>
+            <a href="#familias">Descubrir líneas <ArrowDown size={14} /></a>
           </div>
         </section>
       </div>
 
-      <section className={styles.trustBar} aria-label="CÃ³mo trabajamos">
+      <section className={styles.trustBar} aria-label="Cómo trabajamos">
         {TRUST.map(({ icon: Icon, title, text }) => (
           <div className={styles.trustItem} key={title}>
             <Icon size={22} strokeWidth={1.5} />
@@ -645,20 +645,20 @@ export default function CatalogoExperience() {
       <section id="familias" className={styles.introSection}>
         <div className={styles.introCopy} data-reveal>
           <p className={styles.sectionEyebrow}><i /> Lo que necesitas, bien conectado</p>
-          <h2>Soluciones para redes<br /><em>que hacen mÃ¡s.</em></h2>
+          <h2>Soluciones para redes<br /><em>que hacen más.</em></h2>
         </div>
         <div className={styles.introAside} data-reveal>
           <p className={styles.introText}>
-            Distribuimos, importamos y damos soporte para equipos de telecomunicaciones. Si no sabes exactamente quÃ© pieza necesitas, lo averiguamos contigo: esa es parte del trabajo.
+            Distribuimos, importamos y damos soporte para equipos de telecomunicaciones. Si no sabes exactamente qué pieza necesitas, lo averiguamos contigo: esa es parte del trabajo.
           </p>
-          <p className={styles.introSignature}>â€” Equipo Arconet Â· San Pedro Sula</p>
+          <p className={styles.introSignature}>— Equipo Arconet · San Pedro Sula</p>
         </div>
       </section>
 
-      <section className={styles.exampleSection} aria-label="CategorÃ­a">
+      <section className={styles.exampleSection} aria-label="Categoría">
         <div className={styles.exampleHeading} data-reveal>
-          <p className={styles.sectionEyebrow}><i /> CatÃ¡logo</p>
-          <h2>CategorÃ­a</h2>
+          <p className={styles.sectionEyebrow}><i /> Catálogo</p>
+          <h2>Categoría</h2>
         </div>
         <div className={styles.exampleGrid}>
           {examples.map((example) => (
@@ -677,7 +677,7 @@ export default function CatalogoExperience() {
               <div className={styles.exampleCopy}>
                 <h3>{example.title}</h3>
                 <p>{example.text}</p>
-                <span className={styles.exampleLink}>Ver catÃ¡logo <ArrowUpRight size={15} /></span>
+                <span className={styles.exampleLink}>Ver catálogo <ArrowUpRight size={15} /></span>
               </div>
             </Link>
           ))}
@@ -687,7 +687,7 @@ export default function CatalogoExperience() {
       <section id="catalogo-items" className={styles.catalogSection}>
         <div className={styles.catalogHeading} data-reveal>
           <div>
-            <p className={styles.sectionEyebrow}><i /> Encuentra tu soluciÃ³n</p>
+            <p className={styles.sectionEyebrow}><i /> Encuentra tu solución</p>
             <h2>Productos</h2>
           </div>
           <span className={styles.resultCount}>
@@ -696,7 +696,7 @@ export default function CatalogoExperience() {
         </div>
 
         <div className={styles.catalogControls}>
-          <div className={styles.categoryFilters} role="group" aria-label="Filtrar por categorÃ­a">
+          <div className={styles.categoryFilters} role="group" aria-label="Filtrar por categoría">
             {productCategories.map((category) => (
               <button
                 type="button"
@@ -714,11 +714,11 @@ export default function CatalogoExperience() {
             <input
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="Â¿QuÃ© necesitas? Ej. splitter"
-              aria-label="Buscar en el catÃ¡logo"
+              placeholder="¿Qué necesitas? Ej. splitter"
+              aria-label="Buscar en el catálogo"
             />
             {searchTerm && (
-              <button type="button" aria-label="Limpiar bÃºsqueda" onClick={() => setSearchTerm("")}>
+              <button type="button" aria-label="Limpiar búsqueda" onClick={() => setSearchTerm("")}>
                 <X size={16} />
               </button>
             )}
@@ -729,7 +729,7 @@ export default function CatalogoExperience() {
           {productsLoading ? (
             <div className={styles.emptyState}>
               <Search size={24} strokeWidth={1.4} aria-hidden="true" />
-              <p>Cargando productosâ€¦</p>
+              <p>Cargando productos…</p>
             </div>
           ) : visibleProducts.length ? (
             visibleProducts.map((product, index) => {
@@ -774,7 +774,7 @@ export default function CatalogoExperience() {
                     <h3>{product.nombre}</h3>
                     <p className={styles.familySummary}>
                       SKU {product.sku}
-                      {product.marca ? ` Â· ${product.marca}` : ""} Â· {product.unidad}
+                      {product.marca ? ` · ${product.marca}` : ""} · {product.unidad}
                     </p>
 
                     <div className={styles.familyMeta}>
@@ -803,9 +803,9 @@ export default function CatalogoExperience() {
                       type="button"
                       className={styles.familyQuoteButton}
                       onClick={() => addProductToQuote(product)}
-                      aria-label={`AÃ±adir ${product.nombre} a la cotizaciÃ³n`}
+                      aria-label={`Añadir ${product.nombre} a la cotización`}
                     >
-                      AÃ±adir a cotizaciÃ³n
+                      Añadir a cotización
                       <span><ShoppingCart size={15} aria-hidden="true" /></span>
                     </button>
                   </div>
@@ -815,9 +815,9 @@ export default function CatalogoExperience() {
           ) : (
             <div className={styles.emptyState}>
               <Search size={24} strokeWidth={1.4} aria-hidden="true" />
-              <p>No encontramos ese producto todavÃ­a, pero podemos conseguirlo para ti.</p>
+              <p>No encontramos ese producto todavía, pero podemos conseguirlo para ti.</p>
               <div>
-                <button type="button" onClick={resetFilters}>Ver todo el catÃ¡logo</button>
+                <button type="button" onClick={resetFilters}>Ver todo el catálogo</button>
                 <a href="/#contacto">Escribir al equipo <ArrowRight size={15} /></a>
               </div>
             </div>
@@ -827,10 +827,10 @@ export default function CatalogoExperience() {
 
       <section id="acompanamiento" className={styles.supportSection}>
         <div className={styles.supportIntro} data-reveal>
-          <p className={styles.sectionEyebrow}><i /> AcompaÃ±amiento</p>
-          <h2>El equipo importa.<br /><em>QuiÃ©n te respalda, tambiÃ©n.</em></h2>
+          <p className={styles.sectionEyebrow}><i /> Acompañamiento</p>
+          <h2>El equipo importa.<br /><em>Quién te respalda, también.</em></h2>
           <p className={styles.supportText}>
-            Comprar el equipo es la parte fÃ¡cil. Lo difÃ­cil es que funcione bien el dÃ­a que se instala, y para eso estamos: respondemos, recomendamos y seguimos ahÃ­.
+            Comprar el equipo es la parte fácil. Lo difícil es que funcione bien el día que se instala, y para eso estamos: respondemos, recomendamos y seguimos ahí.
           </p>
           <a className={styles.supportLink} href="/#contacto">Conversemos de tu proyecto <ArrowRight size={16} /></a>
         </div>
@@ -859,7 +859,7 @@ export default function CatalogoExperience() {
         </ol>
       </section>
 
-      <section className={styles.detailBand} aria-label="Detalles de la atenciÃ³n">
+      <section className={styles.detailBand} aria-label="Detalles de la atención">
         {DETAILS.map(({ icon: Icon, title, text }) => (
           <div className={styles.detailItem} key={title}>
             <Icon size={20} strokeWidth={1.5} aria-hidden="true" />
@@ -869,17 +869,17 @@ export default function CatalogoExperience() {
             </div>
           </div>
         ))}
-        <div className={styles.detailMark} aria-hidden="true"><Network size={26} strokeWidth={1.2} /><span>01 â€” 05</span></div>
+        <div className={styles.detailMark} aria-hidden="true"><Network size={26} strokeWidth={1.2} /><span>01 — 05</span></div>
       </section>
 
       <section className={styles.contactSection}>
         <div className={styles.contactGrid} aria-hidden="true" />
         <div className={styles.contactInner}>
           <div className={styles.contactContent} data-reveal>
-            <p className={styles.contactEyebrow}>Tu proyecto empieza con una conversaciÃ³n</p>
+            <p className={styles.contactEyebrow}>Tu proyecto empieza con una conversación</p>
             <h2>Hagamos que<br /><em>todo conecte.</em></h2>
             <p>
-              Dinos quÃ© necesitas conectar. Te respondemos con una recomendaciÃ³n concreta y una cotizaciÃ³n clara, sin compromiso.
+              Dinos qué necesitas conectar. Te respondemos con una recomendación concreta y una cotización clara, sin compromiso.
             </p>
             <a className={styles.contactAction} href="/#contacto">
               Escribir al equipo <ArrowUpRight size={17} />
@@ -895,7 +895,7 @@ export default function CatalogoExperience() {
             />
           </div>
         </div>
-        <span className={styles.contactLocation}>San Pedro Sula Â· Honduras</span>
+        <span className={styles.contactLocation}>San Pedro Sula · Honduras</span>
       </section>
 
       <Footer />
