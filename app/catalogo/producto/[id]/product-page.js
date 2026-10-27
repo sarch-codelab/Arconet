@@ -205,55 +205,59 @@ export default function ProductPage({ product }) {
       </div>
 
       <section className={styles.product}>
-        <div className={`${styles.media} ${currentImage ? styles.mediaPhoto : ""}`}>
-          {currentImage ? (
-            <Image
-              src={currentImage}
-              alt={`${product.nombre}${images.length > 1 ? ` — imagen ${activeImage + 1} de ${images.length}` : ""}`}
-              fill
-              priority
-              unoptimized={String(currentImage).startsWith("data:")}
-              sizes="(max-width: 900px) 92vw, 46vw"
-              className={styles.mediaImage}
-            />
-          ) : (
-            <div className={styles.graphic} aria-hidden="true">
-              <div className={styles.orbit}><i /><i /><i /></div>
-              <Icon size={96} strokeWidth={1} />
-              <span>{product.sku}</span>
+        {/* Columna izquierda: foto principal con la galería debajo (en PC las
+            miniaturas aparecían como una columna lateral; ahora van abajo). */}
+        <div className={styles.mediaColumn}>
+          <div className={`${styles.media} ${currentImage ? styles.mediaPhoto : ""}`}>
+            {currentImage ? (
+              <Image
+                src={currentImage}
+                alt={`${product.nombre}${images.length > 1 ? ` — imagen ${activeImage + 1} de ${images.length}` : ""}`}
+                fill
+                priority
+                unoptimized={String(currentImage).startsWith("data:")}
+                sizes="(max-width: 900px) 92vw, 46vw"
+                className={styles.mediaImage}
+              />
+            ) : (
+              <div className={styles.graphic} aria-hidden="true">
+                <div className={styles.orbit}><i /><i /><i /></div>
+                <Icon size={96} strokeWidth={1} />
+                <span>{product.sku}</span>
+              </div>
+            )}
+            {soldOut ? (
+              <span className={`${styles.mediaFlag} ${styles.flagOut}`}>Agotado</span>
+            ) : lowStock ? (
+              <span className={`${styles.mediaFlag} ${styles.flagLow}`}>Últimas unidades</span>
+            ) : null}
+          </div>
+
+          {images.length > 1 && (
+            <div className={styles.gallery} role="group" aria-label="Galería de imágenes del producto">
+              {images.map((img, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  className={`${styles.galleryThumb} ${idx === activeImage ? styles.galleryThumbActive : ""}`}
+                  onClick={() => setActiveImage(idx)}
+                  aria-pressed={idx === activeImage}
+                  aria-label={`Ver imagen ${idx + 1} de ${images.length}`}
+                >
+                  <Image
+                    src={img}
+                    alt=""
+                    width={120}
+                    height={120}
+                    unoptimized={String(img).startsWith("data:")}
+                    sizes="120px"
+                    className={styles.galleryImage}
+                  />
+                </button>
+              ))}
             </div>
           )}
-{soldOut ? (
-            <span className={`${styles.mediaFlag} ${styles.flagOut}`}>Agotado</span>
-          ) : lowStock ? (
-            <span className={`${styles.mediaFlag} ${styles.flagLow}`}>Últimas unidades</span>
-          ) : null}
         </div>
-
-        {images.length > 1 && (
-          <div className={styles.gallery} role="group" aria-label="Galería de imágenes del producto">
-            {images.map((img, idx) => (
-              <button
-                key={idx}
-                type="button"
-                className={`${styles.galleryThumb} ${idx === activeImage ? styles.galleryThumbActive : ""}`}
-                onClick={() => setActiveImage(idx)}
-                aria-pressed={idx === activeImage}
-                aria-label={`Ver imagen ${idx + 1} de ${images.length}`}
-              >
-                <Image
-                  src={img}
-                  alt=""
-                  width={120}
-                  height={120}
-                  unoptimized={String(img).startsWith("data:")}
-                  sizes="120px"
-                  className={styles.galleryImage}
-                />
-              </button>
-            ))}
-          </div>
-        )}
 
         <div className={styles.info}>
           <p className={styles.eyebrow}><i /> {product.categoria}</p>

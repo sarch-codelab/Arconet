@@ -434,15 +434,24 @@
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
   gap: clamp(26px, 4vw, 62px);
-  align-items: start;
+  /* Ya no usamos align-items:start aquí: la columna de media (.mediaColumn)
+     lleva align-self:start y sticky por su cuenta. */
   max-width: 1480px;
   margin: 0 auto;
   padding: clamp(26px, 4vw, 52px) clamp(20px, 6vw, 96px) clamp(40px, 6vw, 84px);
 }
 
-.media {
+/* Columna izquierda en PC: foto principal arriba y galería debajo. */
+.mediaColumn {
   position: sticky;
   top: 26px;
+  align-self: start;
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.media {
   overflow: hidden;
   display: grid;
   place-items: center;
@@ -896,9 +905,13 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
+  /* En pantallas pequeñas la columna ya no es sticky: fluye normal. */
+  .mediaColumn {
+    position: static;
+    gap: 10px;
+  }
+
   .media {
-    position: relative;
-    top: auto;
     width: 100%;
     min-width: 0;
     max-width: 520px;
@@ -1063,10 +1076,12 @@
 }
 
 /* ---------------- Galeria de imágenes ---------------- */
+/* Va debajo de la foto principal (en PC y móvil). El espaciado con la foto lo
+   controla el gap de .mediaColumn, así que aquí no se añade padding extra. */
 .gallery {
   display: flex;
   gap: 8px;
-  padding: 12px 0 0;
+  padding: 0;
   overflow-x: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--blue) transparent;
@@ -1131,8 +1146,8 @@
 }
 
 @media (max-width: 720px) {
-  .gallery {
-    padding: 8px 0 0;
+  .mediaColumn {
+    gap: 8px;
   }
   .galleryImage {
     width: 100px;
