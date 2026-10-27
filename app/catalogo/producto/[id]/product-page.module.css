@@ -1138,11 +1138,12 @@
   border-radius: 10px;
   border: 1px solid var(--line);
   background: #f6f7fa;
-  transition: box-shadow 180ms ease, border-color 180ms ease;
+  /* Sin ninguna transform en hover: las miniaturas quedan totalmente estáticas
+     (el usuario pidió que no se agranden al pasar el mouse). Solo cambia el
+     color de borde como pista visual mínima. */
   cursor: pointer;
 }
 
-/* Hover sutil: solo realce de borde, sin agrandar la miniatura. */
 .galleryImage:hover {
   border-color: var(--blue);
 }
