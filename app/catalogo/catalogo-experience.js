@@ -28,6 +28,10 @@ import {
   X,
 } from "lucide-react";
 import styles from "./catalogo-experience.module.css";
+
+// Las fotos de la BD llegan como data: URLs; next/image con el loader por defecto
+// las envia a /_next/image y falla. Loader interno: usa la src tal cual.
+const directLoader = ({ src }) => src;
 import { FAMILIES, findFamily, formatPrice } from "./catalogo-data";
 import { useCart } from "../cart-context";
 import { useCatalogProducts } from "./catalogo-products";
@@ -609,7 +613,7 @@ export default function CatalogoExperience() {
             </p>
             <div className={styles.heroActions}>
               <a className={styles.primaryButton} href="#catalogo-items">
-                
+                Ver productos <ArrowDown size={15} />
               </a>
               <a className={styles.ghostButton} href="/#contacto">
                 Pedir asesorÃ­a <ArrowRight size={15} />
@@ -741,6 +745,8 @@ export default function CatalogoExperience() {
                         src={product.foto}
                         alt={product.nombre}
                         fill
+                        loader={directLoader}
+                        unoptimized
                         sizes="(max-width: 700px) 92vw, (max-width: 1080px) 46vw, 30vw"
                         className={styles.familyImage}
                       />
