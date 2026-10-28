@@ -1,5 +1,5 @@
-import { prisma } from "../../../../lib/prisma";
-import { deleteClientSession, getClientSession } from "../../../../lib/client-session";
+import { prisma } from '@/lib/prisma";
+import { deleteClientSession, getClientSession } from '@/lib/client-session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

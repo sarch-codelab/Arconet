@@ -1,6 +1,6 @@
-import { prisma } from "../../../../../lib/prisma";
-import { requirePermission } from "../../../../../lib/dal";
-import { canAccessSolicitud } from "../../../../../lib/solicitudes-internas";
+import { prisma } from '@/lib/prisma";
+import { requirePermission } from '@/lib/dal";
+import { canAccessSolicitud } from '@/lib/solicitudes-internas";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

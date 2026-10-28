@@ -8,7 +8,7 @@ import { ArrowRight, Check, Eye, EyeOff } from "lucide-react";
 import styles from "../admin/admin-experience.module.css";
 import registration from "./registro-experience.module.css";
 import { sileo } from "../toaster";
-import { fuerzaPassword, validarPassword } from "../../lib/seguridad";
+import { fuerzaPassword, validarPassword } from '@/lib/seguridad";
 import MobileSiteMenu from "../mobile-site-menu";
 
 const FUERZA_LABEL = ["Muy débil", "Débil", "Aceptable", "Fuerte", "Muy fuerte"];

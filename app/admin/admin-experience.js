@@ -6,7 +6,7 @@ import styles from "./admin-experience.module.css";
 import { AdminContext, NAV } from "./admin-nav";
 import { SectionErrorBoundary } from "./error-boundary";
 import { useAdminSmoothScroll } from "./use-smooth-scroll";
-import { canAccessSection } from "../../lib/permisos";
+import { canAccessSection } from '@/lib/permisos";
 import { clearSession, fetchWorkers } from "./workers-store";
 import { fetchProducts } from "./products-store";
 import { fetchCategorias } from "./categories-store";

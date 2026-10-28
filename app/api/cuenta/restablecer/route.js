@@ -1,13 +1,13 @@
-import { checkRateLimit, getClientIp } from "../../../../lib/rate-limit";
-import { writeLog } from "../../../../lib/logs";
-import { validarPassword } from "../../../../lib/seguridad";
-import { consumirTokenAcceso } from "../../../../lib/tokens";
-import { deleteClientSession, getClientSession } from "../../../../lib/client-session";
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit";
+import { writeLog } from '@/lib/logs";
+import { validarPassword } from '@/lib/seguridad";
+import { consumirTokenAcceso } from '@/lib/tokens";
+import { deleteClientSession, getClientSession } from '@/lib/client-session";
 import {
   buscarCuentaPorCorreo,
   cambiarPasswordCuenta,
   normalizarCorreo,
-} from "../../../../lib/cuenta";
+} from '@/lib/cuenta";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

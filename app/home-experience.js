@@ -35,7 +35,7 @@ import {
 } from "lucide-react";
 import styles from "./page.module.css";
 import Footer from "./footer";
-import { CONTACT_PHONE } from "../lib/contact";
+import { CONTACT_PHONE } from '@/lib/contact";
 
 const NAVIGATION = [
   { id: "inicio", label: "Inicio", href: "#inicio", mega: false },

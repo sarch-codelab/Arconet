@@ -1,8 +1,8 @@
-import { prisma } from "../../../../lib/prisma";
-import { verifyPassword } from "../../../../lib/auth";
-import { createSession } from "../../../../lib/session";
-import { writeLog } from "../../../../lib/logs";
-import { decryptTotpSecret, verifyTotp } from "../../../../lib/totp";
+import { prisma } from '@/lib/prisma";
+import { verifyPassword } from '@/lib/auth";
+import { createSession } from '@/lib/session";
+import { writeLog } from '@/lib/logs";
+import { decryptTotpSecret, verifyTotp } from '@/lib/totp";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

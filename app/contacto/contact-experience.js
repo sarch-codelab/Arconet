@@ -17,7 +17,7 @@ import {
 import styles from "./contact-experience.module.css";
 import Footer from "../footer";
 import { sileo } from "../toaster";
-import { CONTACT_EMAIL } from "../../lib/contact";
+import { CONTACT_EMAIL } from '@/lib/contact";
 import MobileSiteMenu from "../mobile-site-menu";
 
 const NAVIGATION = [

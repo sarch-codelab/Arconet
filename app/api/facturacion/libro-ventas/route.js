@@ -1,6 +1,6 @@
-import { requirePermission } from "../../../../lib/dal";
-import { libroDeVentas } from "../../../../lib/facturacion";
-import { csvResponse, xlsxResponse } from "../../../../lib/export";
+import { requirePermission } from '@/lib/dal";
+import { libroDeVentas } from '@/lib/facturacion";
+import { csvResponse, xlsxResponse } from '@/lib/export";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

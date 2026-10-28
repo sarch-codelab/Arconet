@@ -1,8 +1,8 @@
-import { prisma } from "../../../../../lib/prisma";
-import { puedeTransicionar, registrarEvento, ORDER_STATUSES } from "../../../../../lib/ventas";
-import { descontarStock, revertirStock } from "../../../../../lib/stock-ventas";
-import { requirePermission } from "../../../../../lib/dal";
-import { writeLog } from "../../../../../lib/logs";
+import { prisma } from '@/lib/prisma";
+import { puedeTransicionar, registrarEvento, ORDER_STATUSES } from '@/lib/ventas";
+import { descontarStock, revertirStock } from '@/lib/stock-ventas";
+import { requirePermission } from '@/lib/dal";
+import { writeLog } from '@/lib/logs";
 
 // Etiqueta legible para avisos al cliente.
 const ESTADO_LABEL = {

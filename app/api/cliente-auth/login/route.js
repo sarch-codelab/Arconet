@@ -1,8 +1,8 @@
-import { prisma } from "../../../../lib/prisma";
-import { verifyPassword } from "../../../../lib/auth";
-import { createClientSession } from "../../../../lib/client-session";
-import { writeLog } from "../../../../lib/logs";
-import { checkRateLimit, getClientIp } from "../../../../lib/rate-limit";
+import { prisma } from '@/lib/prisma";
+import { verifyPassword } from '@/lib/auth";
+import { createClientSession } from '@/lib/client-session";
+import { writeLog } from '@/lib/logs";
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

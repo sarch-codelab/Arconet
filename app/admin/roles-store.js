@@ -1,4 +1,4 @@
-import { slugify } from "../../lib/roles";
+import { slugify } from '@/lib/roles";
 
 export const ROLE_STATUSES = [
   { id: "activo", label: "Activo" },

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { prisma } from "../../../../lib/prisma";
+import { prisma } from '@/lib/prisma";
 import ProductPage from "./product-page";
 
 export const runtime = "nodejs";

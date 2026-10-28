@@ -1,9 +1,9 @@
-import { prisma } from "../../../lib/prisma";
-import { newProductoId, parseProducto } from "../../../lib/productos";
-import { toProducto } from "../../../lib/serialize";
-import { requirePermission, requireSession } from "../../../lib/dal";
-import { writeLog } from "../../../lib/logs";
-import { aplicarMovimiento, bodegaPrincipal } from "../../../lib/inventario";
+import { prisma } from '@/lib/prisma";
+import { newProductoId, parseProducto } from '@/lib/productos";
+import { toProducto } from '@/lib/serialize";
+import { requirePermission, requireSession } from '@/lib/dal";
+import { writeLog } from '@/lib/logs";
+import { aplicarMovimiento, bodegaPrincipal } from '@/lib/inventario";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

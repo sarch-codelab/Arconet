@@ -1,5 +1,5 @@
-import { prisma } from "../../../lib/prisma";
-import { CONTACT_EMAIL, CONTACT_PHONE } from "../../../lib/contact";
+import { prisma } from '@/lib/prisma";
+import { CONTACT_EMAIL, CONTACT_PHONE } from '@/lib/contact";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

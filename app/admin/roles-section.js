@@ -8,7 +8,7 @@ import {
   PERMISSION_ACTIONS,
   PERMISSION_MODULES,
   SUPER_ROLE,
-} from "../../lib/permisos";
+} from '@/lib/permisos";
 import { ROLE_STATUSES, rolSlug, createRol, deleteRol, updateRol } from "./roles-store";
 import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
 import { Topbar, SectionTabs } from "./topbar";

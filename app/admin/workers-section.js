@@ -16,7 +16,7 @@ import {
   statusLabel,
   updateWorker,
 } from "./workers-store";
-import { SUPER_ROLE, canAccessSection } from "../../lib/permisos";
+import { SUPER_ROLE, canAccessSection } from '@/lib/permisos";
 import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
 import { Topbar, SectionTabs } from "./topbar";
 import { SECTION_NAV_CONFIG, AdminContext } from "./admin-nav";

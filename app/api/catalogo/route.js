@@ -1,4 +1,4 @@
-import { prisma } from "../../../lib/prisma";
+import { prisma } from '@/lib/prisma";
 
 export const runtime = "nodejs";
 // El catálogo se cachea muy poco: con 60 s un producto recién creado tardaba

@@ -24,8 +24,8 @@ import {
   X,
 } from "lucide-react";
 import styles from "./cliente-experience.module.css";
-import { CONTACT_EMAIL, CONTACT_PHONE, CONTACT_PHONE_HREF } from "../../lib/contact";
-import { fuerzaPassword, validarPassword } from "../../lib/seguridad";
+import { CONTACT_EMAIL, CONTACT_PHONE, CONTACT_PHONE_HREF } from '@/lib/contact";
+import { fuerzaPassword, validarPassword } from '@/lib/seguridad";
 import { sileo } from "../toaster";
 
 const FUERZA_LABEL = ["Muy débil", "Débil", "Aceptable", "Fuerte", "Muy fuerte"];

@@ -1,7 +1,7 @@
-import { prisma } from "../../../../../lib/prisma";
-import { requirePermission } from "../../../../../lib/dal";
-import { writeLog } from "../../../../../lib/logs";
-import { revertirStock } from "../../../../../lib/stock-ventas";
+import { prisma } from '@/lib/prisma";
+import { requirePermission } from '@/lib/dal";
+import { writeLog } from '@/lib/logs";
+import { revertirStock } from '@/lib/stock-ventas";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

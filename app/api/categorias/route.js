@@ -1,7 +1,7 @@
-import { prisma } from "../../../lib/prisma";
-import { newCategoriaId, parseCategoria } from "../../../lib/categorias";
-import { requirePermission } from "../../../lib/dal";
-import { writeLog } from "../../../lib/logs";
+import { prisma } from '@/lib/prisma";
+import { newCategoriaId, parseCategoria } from '@/lib/categorias";
+import { requirePermission } from '@/lib/dal";
+import { writeLog } from '@/lib/logs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

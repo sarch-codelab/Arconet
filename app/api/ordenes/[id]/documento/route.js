@@ -1,7 +1,7 @@
-import { prisma } from "../../../../../lib/prisma";
-import { requirePermission } from "../../../../../lib/dal";
-import { CONTACT_EMAIL, CONTACT_PHONE } from "../../../../../lib/contact";
-import { esc, money, logoDataUrl, headerBlock, metaPanels, totalsBlock, footerBlock, docShell } from "../_shared";
+import { prisma } from '@/lib/prisma";
+import { requirePermission } from '@/lib/dal";
+import { CONTACT_EMAIL, CONTACT_PHONE } from '@/lib/contact";
+import { esc, money, logoDataUrl, headerBlock, metaPanels, totalsBlock, footerBlock, docShell } from '@/app/_shared';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

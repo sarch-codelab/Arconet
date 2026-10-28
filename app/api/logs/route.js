@@ -1,6 +1,6 @@
-import { listLogs, serializeLog } from "../../../lib/logs";
-import { prisma } from "../../../lib/prisma";
-import { requirePermission } from "../../../lib/dal";
+import { listLogs, serializeLog } from '@/lib/logs";
+import { prisma } from '@/lib/prisma";
+import { requirePermission } from '@/lib/dal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

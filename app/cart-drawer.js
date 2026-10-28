@@ -18,7 +18,7 @@ import {
 import { buildCartMessage, useCart } from "./cart-context";
 import { sileo } from "./toaster";
 import styles from "./cart.module.css";
-import { CONTACT_EMAIL } from "../lib/contact";
+import { CONTACT_EMAIL } from '@/lib/contact";
 
 const SUBJECT = "Solicitud de cotización — Arconet";
 

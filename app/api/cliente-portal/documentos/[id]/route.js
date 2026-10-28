@@ -1,5 +1,5 @@
-import { prisma } from "../../../../../lib/prisma";
-import { requireClientSession } from "../../../../../lib/portal-cliente";
+import { prisma } from '@/lib/prisma";
+import { requireClientSession } from '@/lib/portal-cliente";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowDown, ArrowRight, ArrowUpRight, Building2 } from "lucide-react";
 import Footer from "../footer";
 import styles from "../terminos/terminos-experience.module.css";
-import { CONTACT_EMAIL, CONTACT_PHONE } from "../../lib/contact";
+import { CONTACT_EMAIL, CONTACT_PHONE } from '@/lib/contact";
 import MobileSiteMenu from "../mobile-site-menu";
 
 export const metadata = {

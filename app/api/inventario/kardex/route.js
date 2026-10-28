@@ -1,5 +1,5 @@
-import { requirePermission } from "../../../../lib/dal";
-import { prisma } from "../../../../lib/prisma";
+import { requirePermission } from '@/lib/dal";
+import { prisma } from '@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

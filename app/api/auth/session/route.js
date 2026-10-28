@@ -1,4 +1,4 @@
-import { getSession } from "../../../../lib/session";
+import { getSession } from '@/lib/session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

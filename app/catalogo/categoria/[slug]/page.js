@@ -1,4 +1,4 @@
-import { prisma } from "../../../../lib/prisma";
+import { prisma } from '@/lib/prisma";
 import { findFamily } from "../../catalogo-data";
 import CategoryProducts from "./category-products";
 

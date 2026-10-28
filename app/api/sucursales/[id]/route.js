@@ -1,8 +1,8 @@
-import { prisma } from "../../../../lib/prisma";
-import { parseSucursal } from "../../../../lib/sucursales";
-import { toSucursal } from "../../../../lib/serialize";
-import { requirePermission } from "../../../../lib/dal";
-import { writeLog } from "../../../../lib/logs";
+import { prisma } from '@/lib/prisma";
+import { parseSucursal } from '@/lib/sucursales";
+import { toSucursal } from '@/lib/serialize";
+import { requirePermission } from '@/lib/dal";
+import { writeLog } from '@/lib/logs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

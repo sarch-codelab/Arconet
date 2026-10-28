@@ -1,5 +1,5 @@
-import { prisma } from "../../../lib/prisma";
-import { requireSession } from "../../../lib/dal";
+import { prisma } from '@/lib/prisma";
+import { requireSession } from '@/lib/dal";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

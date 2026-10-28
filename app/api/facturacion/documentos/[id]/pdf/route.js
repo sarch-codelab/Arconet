@@ -1,6 +1,6 @@
-import { prisma } from "../../../../../../lib/prisma";
-import { requirePermission } from "../../../../../../lib/dal";
-import { obtenerConfigFiscal } from "../../../../../../lib/facturacion";
+import { prisma } from '@/lib/prisma";
+import { requirePermission } from '@/lib/dal";
+import { obtenerConfigFiscal } from '@/lib/facturacion";
 import { readFileSync } from "fs";
 import { join } from "path";
 

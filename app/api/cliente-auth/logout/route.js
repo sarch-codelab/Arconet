@@ -1,5 +1,5 @@
-import { deleteClientSession, getClientSession } from "../../../../lib/client-session";
-import { writeLog } from "../../../../lib/logs";
+import { deleteClientSession, getClientSession } from '@/lib/client-session";
+import { writeLog } from '@/lib/logs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
