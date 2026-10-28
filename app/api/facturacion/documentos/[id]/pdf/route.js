@@ -96,7 +96,7 @@ export async function GET(request, { params }) {
 <style>
   /* ---- Factura premium monocromatica (blanco y negro puro) ---- */
   @page { size: A4; margin: 14mm 13mm; }
-  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  * { box-sizing: border-box; }
   html, body { background: #fff; }
   body { font-family: Georgia, "Times New Roman", "Palatino Linotype", serif; color: #111; margin: 0; }
   .sheet { max-width: 794px; min-height: 1123px; margin: 20px auto; padding: 48px 52px; background: #fff; border: 1px solid #d9d9d9; }
@@ -104,7 +104,10 @@ export async function GET(request, { params }) {
 
   .emisor-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 28px; }
   .emisor { font-size: 13px; line-height: 1.65; color: #222; }
-  .emisor img { display: block; width: 170px; height: auto; margin-bottom: 14px; filter: grayscale(100%) contrast(1.1); }
+  .emisor img { display: block; width: 170px; height: auto; margin-bottom: 14px; /* Filtro B/N forzado SIEMPRE, tanto en pantalla como al imprimir:
+     el logo original es a color y, sin esta linea, la vista previa del navegador
+     y el PDF salian a color aunque la hoja sea blanco y negro. */
+     -webkit-filter: grayscale(100%) contrast(1.15) brightness(1.02); filter: grayscale(100%) contrast(1.15) brightness(1.02); }
   .emisor .razon { font-size: 16px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #000; margin: 0 0 4px; }
   .doc-box { text-align: right; font-size: 12.5px; line-height: 1.9; color: #222; min-width: 230px; }
   .doc-box .tipo { display: inline-block; padding: 7px 18px; border: 2px solid #000; font-family: Helvetica, Arial, sans-serif; font-weight: 700; letter-spacing: .18em; font-size: 13px; text-transform: uppercase; color: #000; background: #fff; }
@@ -143,6 +146,17 @@ export async function GET(request, { params }) {
   .no-print { text-align: center; margin: 18px 0; font-family: Helvetica, Arial, sans-serif; }
   .no-print button { padding: 10px 22px; border: 1px solid #000; border-radius: 6px; background: #fff; color: #000; font-size: 14px; cursor: pointer; }
   @media print { .no-print { display: none !important; } }
+
+  /* Seguridad final: en la impresion, TODO el contenido del documento se
+     renderiza en escala de grises (no solo las imagenes). Asi, aunque el
+     navegador tenga activada la opcion "Color" o algun elemento conserve
+     un tinte a color, la factura SIEMPRE sale en blanco y negro. */
+  @media print {
+    html, body, * {
+      filter: grayscale(100%) !important;
+      -webkit-filter: grayscale(100%) !important;
+    }
+  }
 </style>
 </head>
 <body>
