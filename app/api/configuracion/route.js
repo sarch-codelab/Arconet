@@ -1,7 +1,7 @@
-import { prisma } from '@/lib/prisma";
-import { requirePermission } from '@/lib/dal";
-import { CONTACT_EMAIL, CONTACT_PHONE } from '@/lib/contact";
-import { writeLog } from '@/lib/logs";
+import { prisma } from '@/lib/prisma';
+import { requirePermission } from '@/lib/dal';
+import { CONTACT_EMAIL, CONTACT_PHONE } from '@/lib/contact';
+import { writeLog } from '@/lib/logs';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

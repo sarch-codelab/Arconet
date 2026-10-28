@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
-import { prisma } from '@/lib/prisma";
-import { requirePermission, requireSession } from '@/lib/dal";
-import { areaSlug, canSeeAllSolicitudes } from '@/lib/solicitudes-internas";
-import { writeLog } from '@/lib/logs";
+import { prisma } from '@/lib/prisma';
+import { requirePermission, requireSession } from '@/lib/dal';
+import { areaSlug, canSeeAllSolicitudes } from '@/lib/solicitudes-internas';
+import { writeLog } from '@/lib/logs';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

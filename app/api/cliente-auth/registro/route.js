@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
-import { prisma } from '@/lib/prisma";
-import { hashPassword } from '@/lib/auth";
-import { createClientSession } from '@/lib/client-session";
-import { checkRateLimit, getClientIp } from '@/lib/rate-limit";
-import { validarPassword } from '@/lib/seguridad";
-import { enviarCodigoVerificacion } from '@/lib/cuenta";
+import { prisma } from '@/lib/prisma';
+import { hashPassword } from '@/lib/auth';
+import { createClientSession } from '@/lib/client-session';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { validarPassword } from '@/lib/seguridad';
+import { enviarCodigoVerificacion } from '@/lib/cuenta';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

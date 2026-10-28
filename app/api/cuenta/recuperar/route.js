@@ -1,6 +1,6 @@
-import { checkRateLimit, getClientIp } from '@/lib/rate-limit";
-import { writeLog } from '@/lib/logs";
-import { buscarCuentaPorCorreo, enviarCodigoRecuperacion, normalizarCorreo } from '@/lib/cuenta";
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { writeLog } from '@/lib/logs';
+import { buscarCuentaPorCorreo, enviarCodigoRecuperacion, normalizarCorreo } from '@/lib/cuenta';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

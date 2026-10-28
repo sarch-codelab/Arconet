@@ -1,7 +1,7 @@
-import { prisma } from '@/lib/prisma";
-import { requirePermission } from '@/lib/dal";
-import { SLA_HORAS } from '@/lib/solicitudes-internas";
-import { csvResponse, xlsxResponse } from '@/lib/export";
+import { prisma } from '@/lib/prisma';
+import { requirePermission } from '@/lib/dal';
+import { SLA_HORAS } from '@/lib/solicitudes-internas';
+import { csvResponse, xlsxResponse } from '@/lib/export';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

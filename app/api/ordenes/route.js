@@ -1,11 +1,11 @@
-import { prisma } from '@/lib/prisma";
-import { newOrderId, parseOrden } from '@/lib/ordenes";
-import { toOrden } from '@/lib/serialize";
-import { requirePermission, requireSession } from '@/lib/dal";
-import { getClientSession } from '@/lib/client-session";
-import { writeLog } from '@/lib/logs";
-import { checkRateLimit } from '@/lib/rate-limit";
-import { descontarStock } from '@/lib/stock-ventas";
+import { prisma } from '@/lib/prisma';
+import { newOrderId, parseOrden } from '@/lib/ordenes';
+import { toOrden } from '@/lib/serialize';
+import { requirePermission, requireSession } from '@/lib/dal';
+import { getClientSession } from '@/lib/client-session';
+import { writeLog } from '@/lib/logs';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { descontarStock } from '@/lib/stock-ventas';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

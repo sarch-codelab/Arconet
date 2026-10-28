@@ -1,9 +1,9 @@
-import { prisma } from '@/lib/prisma";
-import { parseOrden } from '@/lib/ordenes";
-import { toOrden } from '@/lib/serialize";
-import { requirePermission } from '@/lib/dal";
-import { descontarStock, revertirStock } from '@/lib/stock-ventas";
-import { writeLog } from '@/lib/logs";
+import { prisma } from '@/lib/prisma';
+import { parseOrden } from '@/lib/ordenes';
+import { toOrden } from '@/lib/serialize';
+import { requirePermission } from '@/lib/dal';
+import { descontarStock, revertirStock } from '@/lib/stock-ventas';
+import { writeLog } from '@/lib/logs';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

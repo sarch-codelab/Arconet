@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowUp, Mail, MapPin, Phone } from "lucide-react";
 import { FAMILIES } from "./catalogo/catalogo-data";
 import styles from "./footer.module.css";
-import { CONTACT_EMAIL, CONTACT_PHONE, CONTACT_PHONE_HREF } from '@/lib/contact";
+import { CONTACT_EMAIL, CONTACT_PHONE, CONTACT_PHONE_HREF } from '@/lib/contact';
 
 const COMPANY_LINKS = [
   { href: "/", label: "Inicio" },

@@ -1,8 +1,8 @@
-import { prisma } from '@/lib/prisma";
-import { requireSession } from '@/lib/dal";
-import { hashPassword, verifyPassword } from '@/lib/auth";
-import { writeLog } from '@/lib/logs";
-import { validarPassword } from '@/lib/seguridad";
+import { prisma } from '@/lib/prisma';
+import { requireSession } from '@/lib/dal';
+import { hashPassword, verifyPassword } from '@/lib/auth';
+import { writeLog } from '@/lib/logs';
+import { validarPassword } from '@/lib/seguridad';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

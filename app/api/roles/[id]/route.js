@@ -1,8 +1,8 @@
-import { prisma } from '@/lib/prisma";
-import { requirePermission } from '@/lib/dal";
-import { writeLog } from '@/lib/logs";
-import { SUPER_ROLE } from '@/lib/permisos";
-import { parseRol, toRol } from '@/lib/roles";
+import { prisma } from '@/lib/prisma';
+import { requirePermission } from '@/lib/dal';
+import { writeLog } from '@/lib/logs';
+import { SUPER_ROLE } from '@/lib/permisos';
+import { parseRol, toRol } from '@/lib/roles';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

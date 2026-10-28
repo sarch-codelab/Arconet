@@ -1,7 +1,7 @@
-import { prisma } from '@/lib/prisma";
-import { requirePermission } from '@/lib/dal";
-import { canAccessSolicitud, canSeeAllSolicitudes, createSolicitudNotifications, ESTADOS_SOLICITUD, fechaLimiteSLA, registrarEventoSolicitud, rolesForArea } from '@/lib/solicitudes-internas";
-import { writeLog } from '@/lib/logs";
+import { prisma } from '@/lib/prisma';
+import { requirePermission } from '@/lib/dal';
+import { canAccessSolicitud, canSeeAllSolicitudes, createSolicitudNotifications, ESTADOS_SOLICITUD, fechaLimiteSLA, registrarEventoSolicitud, rolesForArea } from '@/lib/solicitudes-internas';
+import { writeLog } from '@/lib/logs';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

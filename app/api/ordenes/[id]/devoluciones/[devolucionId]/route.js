@@ -1,8 +1,8 @@
-import { prisma } from '@/lib/prisma";
-import { ESTADOS_DEVOLUCION, registrarEvento } from '@/lib/ventas";
-import { aplicarMovimiento } from '@/lib/inventario";
-import { requirePermission } from '@/lib/dal";
-import { writeLog } from '@/lib/logs";
+import { prisma } from '@/lib/prisma';
+import { ESTADOS_DEVOLUCION, registrarEvento } from '@/lib/ventas';
+import { aplicarMovimiento } from '@/lib/inventario';
+import { requirePermission } from '@/lib/dal';
+import { writeLog } from '@/lib/logs';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

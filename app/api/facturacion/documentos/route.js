@@ -1,8 +1,8 @@
-import { prisma } from '@/lib/prisma";
-import { emitirDocumentoFiscal, TIPOS_DOCUMENTO } from '@/lib/facturacion";
-import { descontarStock, tieneSalidas } from '@/lib/stock-ventas";
-import { requirePermission } from '@/lib/dal";
-import { writeLog } from '@/lib/logs";
+import { prisma } from '@/lib/prisma';
+import { emitirDocumentoFiscal, TIPOS_DOCUMENTO } from '@/lib/facturacion';
+import { descontarStock, tieneSalidas } from '@/lib/stock-ventas';
+import { requirePermission } from '@/lib/dal';
+import { writeLog } from '@/lib/logs';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

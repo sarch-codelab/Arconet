@@ -1,6 +1,6 @@
-import { prisma } from '@/lib/prisma";
-import { requireClientSession } from '@/lib/portal-cliente";
-import { writeLog } from '@/lib/logs";
+import { prisma } from '@/lib/prisma';
+import { requireClientSession } from '@/lib/portal-cliente';
+import { writeLog } from '@/lib/logs';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

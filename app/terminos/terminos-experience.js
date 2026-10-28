@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowDown, ArrowRight, ArrowUpRight } from "lucide-react";
 import styles from "./terminos-experience.module.css";
 import Footer from "../footer";
-import { CONTACT_EMAIL, CONTACT_PHONE } from '@/lib/contact";
+import { CONTACT_EMAIL, CONTACT_PHONE } from '@/lib/contact';
 import MobileSiteMenu from "../mobile-site-menu";
 
 const SECTIONS = [

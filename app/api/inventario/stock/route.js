@@ -1,5 +1,5 @@
-import { requirePermission } from '@/lib/dal";
-import { stockPorBodega } from '@/lib/inventario";
+import { requirePermission } from '@/lib/dal';
+import { stockPorBodega } from '@/lib/inventario';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

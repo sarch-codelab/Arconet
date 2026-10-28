@@ -1,5 +1,5 @@
-import { getSystemStatus } from '@/lib/monitor";
-import { requirePermission } from '@/lib/dal";
+import { getSystemStatus } from '@/lib/monitor';
+import { requirePermission } from '@/lib/dal';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

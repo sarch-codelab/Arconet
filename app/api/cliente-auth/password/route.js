@@ -1,10 +1,10 @@
-import { prisma } from '@/lib/prisma";
-import { getClientSession } from '@/lib/client-session";
-import { hashPassword, verifyPassword } from '@/lib/auth";
-import { checkRateLimit, getClientIp } from '@/lib/rate-limit";
-import { validarPassword } from '@/lib/seguridad";
-import { normalizarCorreo } from '@/lib/cuenta";
-import { writeLog } from '@/lib/logs";
+import { prisma } from '@/lib/prisma';
+import { getClientSession } from '@/lib/client-session';
+import { hashPassword, verifyPassword } from '@/lib/auth';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { validarPassword } from '@/lib/seguridad';
+import { normalizarCorreo } from '@/lib/cuenta';
+import { writeLog } from '@/lib/logs';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

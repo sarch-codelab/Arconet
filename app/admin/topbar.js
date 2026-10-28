@@ -5,7 +5,7 @@ import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Bell, ExternalLink, HelpCircle, LogOut, Search, User, MessageSquare, AlertTriangle, CheckCircle, X } from "lucide-react";
 import { sileo } from "../toaster";
 import { AdminContext, NAV } from "./admin-nav";
-import { canAccessSection } from '@/lib/permisos";
+import { canAccessSection } from '@/lib/permisos';
 import styles from "./admin-experience.module.css";
 
 /**

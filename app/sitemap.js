@@ -1,7 +1,7 @@
 const baseUrl = process.env.APP_ORIGIN || "https://arconethn.com";
 
 import { FAMILIES } from "./catalogo/catalogo-data";
-import { prisma } from '@/lib/prisma";
+import { prisma } from '@/lib/prisma';
 
 // Se regenera cada hora (ISR) para reflejar productos y categorías nuevos.
 export const revalidate = 3600;

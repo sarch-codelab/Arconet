@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
-import { getSession } from '@/lib/session";
-import { getPermisos } from '@/lib/dal";
-import { prisma } from '@/lib/prisma";
-import { PERMISSION_MODULES, canAccessSection } from '@/lib/permisos";
+import { getSession } from '@/lib/session';
+import { getPermisos } from '@/lib/dal';
+import { prisma } from '@/lib/prisma';
+import { PERMISSION_MODULES, canAccessSection } from '@/lib/permisos';
 import { AdminPanel } from "../admin/admin-experience";
 
 export const metadata = {

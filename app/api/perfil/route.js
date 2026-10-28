@@ -1,7 +1,7 @@
-import { prisma } from '@/lib/prisma";
-import { requireSession } from '@/lib/dal";
-import { createSession } from '@/lib/session";
-import { writeLog } from '@/lib/logs";
+import { prisma } from '@/lib/prisma';
+import { requireSession } from '@/lib/dal';
+import { createSession } from '@/lib/session';
+import { writeLog } from '@/lib/logs';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

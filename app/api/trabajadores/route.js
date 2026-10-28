@@ -1,8 +1,8 @@
-import { prisma } from '@/lib/prisma";
-import { checkRolAsignado, newWorkerId, parseTrabajador } from '@/lib/trabajadores";
-import { toTrabajador } from '@/lib/serialize";
-import { parseAcceso, syncUsuario } from '@/lib/usuarios";
-import { requirePermission } from '@/lib/dal";
+import { prisma } from '@/lib/prisma';
+import { checkRolAsignado, newWorkerId, parseTrabajador } from '@/lib/trabajadores';
+import { toTrabajador } from '@/lib/serialize';
+import { parseAcceso, syncUsuario } from '@/lib/usuarios';
+import { requirePermission } from '@/lib/dal';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

@@ -1,7 +1,7 @@
-import { prisma } from '@/lib/prisma";
-import { newClienteId, parseCliente } from '@/lib/clientes";
-import { toCliente } from '@/lib/serialize";
-import { requirePermission } from '@/lib/dal";
+import { prisma } from '@/lib/prisma';
+import { newClienteId, parseCliente } from '@/lib/clientes';
+import { toCliente } from '@/lib/serialize';
+import { requirePermission } from '@/lib/dal';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
