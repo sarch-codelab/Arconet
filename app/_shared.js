@@ -15,10 +15,10 @@ export const money = (value, currency = "L") =>
 
 export const esc = (value) =>
   String(value ?? "")
-    .replace(/&/g, "&")
-    .replace(/</g, "<")
-    .replace(/>/g, ">")
-    .replace(/"/g, "");
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 
 /** Logo de la empresa embebido en base64 (null si el PNG no existe). */
 export function logoDataUrl(fileName = "arconet.png") {
@@ -63,6 +63,7 @@ export const DOC_CSS = `
   .items td { padding: 10px 12px; border-bottom: 1px solid #e3e3e3; text-align: left; vertical-align: top; }
   .items tr.alt td { background: #fafafa; }
   .num { text-align: right; white-space: nowrap; }
+  .items tbody tr:last-child td { border-bottom: 2px solid #000; }
 
   .totals { display: flex; justify-content: flex-end; margin-top: 18px; }
   .totals table { width: 330px; border-collapse: collapse; font-size: 13px; }
@@ -75,7 +76,7 @@ export const DOC_CSS = `
   .notas { margin-top: 20px; font-size: 12px; color: #333; line-height: 1.6; }
   .notas .label { font-family: Helvetica, Arial, sans-serif; font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase; font-weight: 700; color: #000; display: block; margin-bottom: 4px; }
 
-  .footer { margin-top: 30px; padding-top: 14px; border-top: 3px double #000; font-size: 10.5px; color: #222; display: flex; justify-content: space-between; gap: 24px; }
+  .footer { margin-top: 30px; padding-top: 14px; border-top: 3px double #000; font-size: 10.5px; color: #333; display: flex; justify-content: space-between; gap: 24px; }
   .footer .hash { font-family: "Courier New", monospace; word-break: break-all; max-width: 46%; }
   .gracias { text-align: center; margin-top: 22px; font-size: 13px; letter-spacing: .3em; text-transform: uppercase; color: #000; }
 
