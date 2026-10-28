@@ -1,7 +1,7 @@
-import { prisma } from "../../../../lib/prisma";
-import { requireClientSession } from "../../../../lib/portal-cliente";
-import { checkRateLimit } from "../../../../lib/rate-limit";
-import { writeLog } from "../../../../lib/logs";
+import { prisma } from "@/lib/prisma";
+import { requireClientSession } from "@/lib/portal-cliente";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { writeLog } from "@/lib/logs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
