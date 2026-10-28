@@ -62,3 +62,6 @@ ops/backups/*.jsonl.gz
 
 # token local (no versionar)
 .env.local
+
+# Token local — nunca subir a GitHub (secret scanning lo bloquea)
+key
