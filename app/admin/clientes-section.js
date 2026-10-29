@@ -18,6 +18,8 @@ import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
 import { Topbar } from "./topbar";
 
 export default function ClientesSection({ clientes = [], setClientes, workers = [], session }) {
+  const canWrite = session?.permisos?.includes("clientes:write");
+  const canDelete = session?.permisos?.includes("clientes:delete");
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [modalOpen, setModalOpen] = useState(false);
@@ -149,7 +151,7 @@ export default function ClientesSection({ clientes = [], setClientes, workers = 
         title="Clientes"
         subtitle="Base de clientes de Arconet: contacto, RTN y estado."
         action={
-          <button type="button" className={styles.primaryBtn} onClick={openCreate}>
+          <button type="button" className={styles.primaryBtn} disabled={!canWrite} onClick={openCreate}>
             <Plus size={16} /> Nuevo cliente
           </button>
         }
@@ -249,7 +251,7 @@ export default function ClientesSection({ clientes = [], setClientes, workers = 
                       <div className={styles.rowActions}>
                         <button
                           type="button"
-                          onClick={() => openEdit(cliente)}
+                          disabled={!canWrite} onClick={() => openEdit(cliente)}
                           aria-label={`Editar ${cliente.nombre}`}
                           title="Editar"
                         >
@@ -258,7 +260,7 @@ export default function ClientesSection({ clientes = [], setClientes, workers = 
                         <button
                           type="button"
                           className={styles.danger}
-                          onClick={() => setConfirmCliente(cliente)}
+                          disabled={!canDelete} onClick={() => setConfirmCliente(cliente)}
                           aria-label={`Eliminar ${cliente.nombre}`}
                           title="Eliminar"
                         >

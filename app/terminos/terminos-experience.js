@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowDown, ArrowRight, ArrowUpRight } from "lucide-react";
 import styles from "./terminos-experience.module.css";
 import Footer from "../footer";
-import { CONTACT_EMAIL, CONTACT_PHONE } from '@/lib/contact';
+import { useContact } from "../contact-provider";
 import MobileSiteMenu from "../mobile-site-menu";
 
 const SECTIONS = [
@@ -28,7 +28,7 @@ const SECTIONS = [
     paragraphs: [
       "Para usar el portal debes proporcionar información correcta y mantener la confidencialidad de tus credenciales. Eres responsable de la actividad realizada desde tu sesión; avisa a Arconet si sospechas que alguien más accedió a tu cuenta.",
       "No uses el portal para suplantar a otra persona, intentar acceder a cuentas ajenas, interferir con el servicio ni enviar contenido ilegal o malicioso. Arconet puede restringir temporalmente una cuenta cuando sea necesario para proteger el servicio o a sus usuarios.",
-      `Puedes solicitar ayuda para actualizar o cerrar tu cuenta escribiendo a ${CONTACT_EMAIL} desde el correo asociado a ella.`,
+      ({ email }) => `Puedes solicitar ayuda para actualizar o cerrar tu cuenta escribiendo a ${email} desde el correo asociado a ella.`,
     ],
   },
   {
@@ -89,7 +89,7 @@ const SECTIONS = [
     title: "La versión vigente se publica aquí.",
     paragraphs: [
       "Podemos actualizar estas condiciones para reflejar cambios en el sitio o en la forma de atender solicitudes. Indicaremos la fecha de actualización en esta página. Los cambios no modifican acuerdos comerciales ya confirmados, salvo acuerdo escrito de las partes.",
-      `Para consultas sobre estos términos, escribe a ${CONTACT_EMAIL} o llámanos al ${CONTACT_PHONE}. La última actualización de esta página es del 23 de octubre de 2026.`,
+      ({ email, phone }) => `Para consultas sobre estos términos, escribe a ${email} o llámanos al ${phone}. La última actualización de esta página es del 23 de octubre de 2026.`,
     ],
   },
 ];
@@ -97,6 +97,7 @@ const SECTIONS = [
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 
 export default function TerminosExperience() {
+  const contact = useContact();
   const pageRef = useRef(null);
   const heroRef = useRef(null);
   const [activeSection, setActiveSection] = useState(SECTIONS[0].id);
@@ -260,7 +261,11 @@ export default function TerminosExperience() {
               <div className={styles.termContent}>
                 <p className={styles.termLabel}>{section.label}</p>
                 <h2>{section.title}</h2>
-                {section.paragraphs.map((paragraph) => <p className={styles.termParagraph} key={paragraph}>{paragraph}</p>)}
+                {section.paragraphs.map((paragraph, index) => (
+                  <p className={styles.termParagraph} key={`${section.id}-${index}`}>
+                    {typeof paragraph === "function" ? paragraph(contact) : paragraph}
+                  </p>
+                ))}
               </div>
             </section>
           ))}

@@ -1,5 +1,7 @@
 "use client";
 
+import { apiFetch as fetch } from "@/lib/api-fetch";
+
 import { useCallback, useEffect, useState } from "react";
 import { Activity, AlertTriangle, Cpu, Database, HardDrive, RefreshCw, Server, Monitor } from "lucide-react";
 import styles from "./admin-experience.module.css";
@@ -116,6 +118,12 @@ export default function MonitoreoSection({ session, workers = [] }) {
             </div>
           </section>
         ) : null}
+
+        {status && tab === "alerts" && !status.alerts?.length && (
+          <section className={styles.card} aria-label="Alertas del sistema">
+            <p className={styles.cardBody}>No hay alertas activas.</p>
+          </section>
+        )}
 
         {status && (tab === "all" || tab === "alerts") && status.alerts?.length > 0 && (
           <section className={styles.card} aria-label="Alertas del sistema">

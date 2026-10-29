@@ -1,3 +1,4 @@
+import { rememberLocalPreviewSession, clearLocalPreviewSession, apiFetch as fetch } from "@/lib/api-fetch";
 export const BRANCHES = [
   { id: "sps", label: "San Pedro Sula" },
   { id: "la-ceiba", label: "La Ceiba" },
@@ -55,6 +56,7 @@ export function loadWorkers() {
 }
 
 export function clearSession() {
+  clearLocalPreviewSession("admin");
   if (!canUseStorage()) return;
   try {
     window.localStorage.removeItem(SESSION_KEY);
@@ -72,14 +74,27 @@ export async function authenticate(email, password, codigo = "") {
       body: JSON.stringify({ email: normalized, password, ...(codigo ? { codigo } : {}) }),
     });
     if (response.ok) {
-      return await response.json();
+      const { localPreviewToken, ...user } = await response.json();
+      rememberLocalPreviewSession("admin", localPreviewToken);
+      if (localPreviewToken) {
+        const check = await fetch("/api/local-preview/session", { cache: "no-store" });
+        if (!check.ok) {
+          clearLocalPreviewSession("admin");
+          throw new Error("Los datos son correctos, pero la vista previa no conserva la sesión. Recarga la vista previa e inténtalo de nuevo.");
+        }
+      }
+      return user;
     }
-  } catch {}
-  return null;
+    const payload = await response.json().catch(() => ({}));
+    throw new Error(payload.error || "No se pudo iniciar sesión.");
+  } catch (error) {
+    throw new Error(error.message || "No se pudo conectar al servidor.");
+  }
 }
 
-export function branchLabel(id) {
-  return BRANCHES.find((branch) => branch.id === id)?.label || id;
+export function branchLabel(id, catalog = BRANCHES) {
+  const branch = catalog.find(item => item.id === id) || BRANCHES.find(item => item.id === id);
+  return branch?.label || branch?.nombre || id;
 }
 
 export function statusLabel(id) {

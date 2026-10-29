@@ -1,5 +1,8 @@
 "use client";
 
+import { canLookupInventoryProducts } from "@/lib/admin-navigation";
+import { apiFetch as fetch } from "@/lib/api-fetch";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
@@ -76,6 +79,9 @@ function formatNumero(value) {
 }
 
 export default function InventarioPanel({ session, productos: productosIniciales = [] }) {
+  const canWrite = session?.permisos?.includes("inventario:write");
+  const canDelete = session?.permisos?.includes("inventario:delete");
+  const canReadProductos = canLookupInventoryProducts(session?.permisos);
   const [tab, setTab] = useState("stock");
   const [stock, setStock] = useState([]);
   const [bodegas, setBodegas] = useState([]);
@@ -100,12 +106,12 @@ export default function InventarioPanel({ session, productos: productosIniciales
       const [stockData, bodegasData, productosData, alertasData] = await Promise.all([
         request("/api/inventario/stock"),
         request("/api/bodegas"),
-        request("/api/productos?take=500"),
+        canReadProductos ? request("/api/productos?take=500") : Promise.resolve(null),
         request("/api/inventario/alertas"),
       ]);
       setStock(Array.isArray(stockData) ? stockData : []);
       setBodegas(Array.isArray(bodegasData) ? bodegasData : []);
-      setProductos(Array.isArray(productosData) ? productosData : []);
+      setProductos(Array.isArray(productosData) ? productosData : [...new Map((stockData || []).filter(fila => fila.producto).map(fila => [fila.productoId, fila.producto])).values()]);
       setAlertas(alertasData || { alertas: [], agotados: [], total: 0 });
       setError("");
     } catch (err) {
@@ -113,7 +119,7 @@ export default function InventarioPanel({ session, productos: productosIniciales
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [canReadProductos]);
 
   const cargarKardex = useCallback(async () => {
     const params = new URLSearchParams({ take: "200" });
@@ -506,7 +512,7 @@ export default function InventarioPanel({ session, productos: productosIniciales
                   <label className={adminStyles.field}>
                     Tipo
                     <select
-                      value={movimiento.tipo}
+                      disabled={!canWrite} value={movimiento.tipo}
                       onChange={(event) => setMovimiento({ ...movimiento, tipo: event.target.value })}
                     >
                       {TIPOS.map((tipo) => (
@@ -518,7 +524,7 @@ export default function InventarioPanel({ session, productos: productosIniciales
                   <label className={adminStyles.field}>
                     Producto
                     <select
-                      value={movimiento.productoId}
+                      disabled={!canWrite} value={movimiento.productoId}
                       onChange={(event) => setMovimiento({ ...movimiento, productoId: event.target.value })}
                       required
                     >
@@ -534,7 +540,7 @@ export default function InventarioPanel({ session, productos: productosIniciales
                   <label className={adminStyles.field}>
                     Bodega
                     <select
-                      value={movimiento.bodegaId}
+                      disabled={!canWrite} value={movimiento.bodegaId}
                       onChange={(event) => setMovimiento({ ...movimiento, bodegaId: event.target.value })}
                       required
                     >
@@ -549,7 +555,7 @@ export default function InventarioPanel({ session, productos: productosIniciales
                     <label className={adminStyles.field}>
                       Bodega destino
                       <select
-                        value={movimiento.bodegaDestinoId}
+                        disabled={!canWrite} value={movimiento.bodegaDestinoId}
                         onChange={(event) => setMovimiento({ ...movimiento, bodegaDestinoId: event.target.value })}
                         required
                       >
@@ -568,7 +574,7 @@ export default function InventarioPanel({ session, productos: productosIniciales
                     <input
                       type="number"
                       step={1}
-                      value={movimiento.cantidad}
+                      disabled={!canWrite} value={movimiento.cantidad}
                       onChange={(event) => setMovimiento({ ...movimiento, cantidad: event.target.value })}
                       placeholder="0"
                       required
@@ -584,7 +590,7 @@ export default function InventarioPanel({ session, productos: productosIniciales
                       type="number"
                       min="0"
                       step="0.01"
-                      value={movimiento.costoUnitario}
+                      disabled={!canWrite} value={movimiento.costoUnitario}
                       onChange={(event) => setMovimiento({ ...movimiento, costoUnitario: event.target.value })}
                       placeholder="0.00"
                     />
@@ -594,7 +600,7 @@ export default function InventarioPanel({ session, productos: productosIniciales
                     Motivo
                     <input
                       type="text"
-                      value={movimiento.motivo}
+                      disabled={!canWrite} value={movimiento.motivo}
                       onChange={(event) => setMovimiento({ ...movimiento, motivo: event.target.value })}
                       placeholder="Compra, ajuste de conteo, devolución…"
                     />
@@ -604,7 +610,7 @@ export default function InventarioPanel({ session, productos: productosIniciales
                     Referencia (opcional)
                     <input
                       type="text"
-                      value={movimiento.referencia}
+                      disabled={!canWrite} value={movimiento.referencia}
                       onChange={(event) => setMovimiento({ ...movimiento, referencia: event.target.value })}
                       placeholder="Factura, guía o documento externo"
                     />
@@ -612,7 +618,7 @@ export default function InventarioPanel({ session, productos: productosIniciales
                 </div>
 
                 <div className={adminStyles.modalActions}>
-                  <button type="submit" className={adminStyles.primaryBtn} disabled={guardando || movimientoInvalido}>
+                  <button type="submit" className={adminStyles.primaryBtn} disabled={!canWrite || guardando || movimientoInvalido}>
                     <Plus size={16} /> {guardando ? "Guardando…" : "Registrar movimiento"}
                   </button>
                 </div>
@@ -660,7 +666,7 @@ export default function InventarioPanel({ session, productos: productosIniciales
                     Nombre
                     <input
                       type="text"
-                      value={bodegaDraft.nombre}
+                      disabled={!canWrite} value={bodegaDraft.nombre}
                       onChange={(event) => setBodegaDraft({ ...bodegaDraft, nombre: event.target.value })}
                       placeholder="Bodega La Ceiba"
                       required
@@ -670,7 +676,7 @@ export default function InventarioPanel({ session, productos: productosIniciales
                     Código
                     <input
                       type="text"
-                      value={bodegaDraft.codigo}
+                      disabled={!canWrite} value={bodegaDraft.codigo}
                       onChange={(event) => setBodegaDraft({ ...bodegaDraft, codigo: event.target.value })}
                       placeholder="BOD-LCE"
                     />
@@ -678,7 +684,7 @@ export default function InventarioPanel({ session, productos: productosIniciales
                   <label className={adminStyles.field}>
                     Estado
                     <select
-                      value={bodegaDraft.estado}
+                      disabled={!canWrite} value={bodegaDraft.estado}
                       onChange={(event) => setBodegaDraft({ ...bodegaDraft, estado: event.target.value })}
                     >
                       <option value="activo">Activa</option>
@@ -689,7 +695,7 @@ export default function InventarioPanel({ session, productos: productosIniciales
                     Dirección
                     <input
                       type="text"
-                      value={bodegaDraft.direccion}
+                      disabled={!canWrite} value={bodegaDraft.direccion}
                       onChange={(event) => setBodegaDraft({ ...bodegaDraft, direccion: event.target.value })}
                       placeholder="Ubicación física"
                     />
@@ -716,7 +722,7 @@ export default function InventarioPanel({ session, productos: productosIniciales
                       Cancelar
                     </button>
                   ) : null}
-                  <button type="submit" className={adminStyles.primaryBtn} disabled={guardando}>
+                  <button type="submit" className={adminStyles.primaryBtn} disabled={!canWrite || guardando}>
                     <Plus size={16} /> {editandoBodega ? "Guardar cambios" : "Crear bodega"}
                   </button>
                 </div>
@@ -756,10 +762,10 @@ export default function InventarioPanel({ session, productos: productosIniciales
                         </td>
                         <td data-label="Acciones" className={adminStyles.actionsCol}>
                           <div className={adminStyles.rowActions}>
-                            <button type="button" className={adminStyles.ghostBtn} onClick={() => editarBodega(bodega)}>
+                            <button type="button" className={adminStyles.ghostBtn} disabled={!canWrite} onClick={() => editarBodega(bodega)}>
                               Editar
                             </button>
-                            <button type="button" className={adminStyles.dangerBtn} onClick={() => eliminarBodega(bodega)}>
+                            <button type="button" className={adminStyles.dangerBtn} disabled={!canDelete} onClick={() => eliminarBodega(bodega)}>
                               <Trash2 size={14} />
                             </button>
                           </div>

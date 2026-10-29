@@ -15,6 +15,8 @@ import {
 } from "./sucursales-store";
 
 export default function SucursalesSection({ sucursales = [], setSucursales, workers = [], session }) {
+  const canWrite = session?.permisos?.includes("sucursales:write");
+  const canDelete = session?.permisos?.includes("sucursales:delete");
   const [query, setQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -116,7 +118,7 @@ export default function SucursalesSection({ sucursales = [], setSucursales, work
         title="Sucursales"
         subtitle="Ubicaciones de Arconet: dirección, contacto y responsables."
         action={
-          <button type="button" className={styles.primaryBtn} onClick={openCreate}>
+          <button type="button" className={styles.primaryBtn} disabled={!canWrite} onClick={openCreate}>
             <Plus size={16} /> Nueva sucursal
           </button>
         }
@@ -200,7 +202,7 @@ export default function SucursalesSection({ sucursales = [], setSucursales, work
                       <div className={styles.rowActions}>
                         <button
                           type="button"
-                          onClick={() => openEdit(sucursal)}
+                          disabled={!canWrite} onClick={() => openEdit(sucursal)}
                           aria-label={`Editar ${sucursal.nombre}`}
                           title="Editar"
                         >
@@ -209,7 +211,7 @@ export default function SucursalesSection({ sucursales = [], setSucursales, work
                         <button
                           type="button"
                           className={styles.danger}
-                          onClick={() => setConfirmSucursal(sucursal)}
+                          disabled={!canDelete} onClick={() => setConfirmSucursal(sucursal)}
                           aria-label={`Eliminar ${sucursal.nombre}`}
                           title="Eliminar"
                         >

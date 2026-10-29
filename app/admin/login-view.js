@@ -7,9 +7,11 @@ import { ArrowLeft, ArrowRight, Check, Eye, EyeOff } from "lucide-react";
 import styles from "./admin-experience.module.css";
 import { notifyError } from "./admin-ui";
 import { authenticate } from "./workers-store";
+import { isLocalPreview } from "@/lib/local-preview";
 
 export default function LoginView() {
   const router = useRouter();
+  const localPreview = isLocalPreview();
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(true);
   const [email, setEmail] = useState("");
@@ -21,7 +23,14 @@ export default function LoginView() {
   async function submit(event) {
     event.preventDefault();
     setSubmitting(true);
-    const user = await authenticate(email, password, verificationCode);
+    let user;
+    try {
+      user = await authenticate(email, password, verificationCode);
+    } catch (error) {
+      notifyError(error.message || "No se pudo iniciar sesión.");
+      setSubmitting(false);
+      return;
+    }
     if (user?.twoFactorRequired) {
       setTwoFactorRequired(true);
       setSubmitting(false);
@@ -93,15 +102,20 @@ export default function LoginView() {
               </p>
             </header>
 
+            {localPreview && <p className={styles.loginIntro} role="note">
+              Pruebas locales: usuario <strong>admin</strong> y contraseña <strong>1234</strong>.
+              Los cambios solo afectan la base de demostración.
+            </p>}
+
             <form className={styles.form} onSubmit={submit}>
               <label className={styles.field}>
-                Correo electrónico
+                {localPreview ? "Correo o usuario" : "Correo electrónico"}
                 <input
-                  type="email"
+                  type={localPreview ? "text" : "email"}
                   name="email"
-                  autoComplete="email"
+                  autoComplete="username"
                   required
-                    placeholder="usuario@arconethn.com"
+                  placeholder={localPreview ? "admin" : "usuario@arconethn.com"}
                   value={email}
                   onChange={(event) => { setEmail(event.target.value); setTwoFactorRequired(false); setVerificationCode(""); }}
                 />

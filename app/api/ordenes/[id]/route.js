@@ -2,13 +2,11 @@ import { prisma } from '@/lib/prisma';
 import { parseOrden } from '@/lib/ordenes';
 import { toOrden } from '@/lib/serialize';
 import { requirePermission } from '@/lib/dal';
-import { descontarStock, revertirStock } from '@/lib/stock-ventas';
+import { descontarStock, revertirStock, isStockSale } from '@/lib/stock-ventas';
 import { writeLog } from '@/lib/logs';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const ESTADOS_SIN_STOCK = ["cancelada", "rechazada"];
 
 export async function GET(_request, { params }) {
   const guard = await requirePermission("ordenes:read");
@@ -36,22 +34,23 @@ export async function PATCH(request, { params }) {
   const { data, errors } = parseOrden(body, { partial: true });
   if (errors.length) return Response.json({ error: errors[0], errors }, { status: 400 });
 
-  const existente = await prisma.orden.findUnique({
-    where: { id },
-    include: { items: true },
-  });
-  if (!existente) return Response.json({ error: "Orden no encontrada." }, { status: 404 });
-
   const { items, ...ordenData } = data;
-  const estadoNuevo = ordenData.estado ?? existente.estado;
-  const estabaSinStock = ESTADOS_SIN_STOCK.includes(existente.estado);
-  const quedaSinStock = ESTADOS_SIN_STOCK.includes(estadoNuevo);
-  const cambiaInventario =
-    existente.tipo === "venta" && (Boolean(items) || estabaSinStock !== quedaSinStock);
-
   try {
-    const orden = await prisma.$transaction(
+    const { orden, cambiaInventario } = await prisma.$transaction(
       async (tx) => {
+        // Leer después de bloquear: otra edición puede haber cambiado el tipo
+        // o el estado desde que se abrió el formulario del navegador.
+        await tx.$executeRaw`SELECT id FROM "Orden" WHERE id = ${id} FOR UPDATE`;
+        const existente = await tx.orden.findUnique({ where: { id }, include: { items: true } });
+        if (!existente) {
+          const error = new Error("Orden no encontrada.");
+          error.status = 404;
+          throw error;
+        }
+        const descontabaStock = isStockSale(existente);
+        const debeDescontarStock = isStockSale({ ...existente, ...ordenData });
+        const cambiaInventario = descontabaStock !== debeDescontarStock ||
+          (Boolean(items) && (descontabaStock || debeDescontarStock));
         const actualizada = await tx.orden.update({
           where: { id },
           data: {
@@ -70,7 +69,7 @@ export async function PATCH(request, { params }) {
             actor: guard.session?.correo ?? null,
             motivo: "Ajuste de venta",
           });
-          if (!quedaSinStock && actualizada.items.length) {
+          if (debeDescontarStock && actualizada.items.length) {
             await descontarStock(tx, {
               referencia,
               items: actualizada.items,
@@ -81,7 +80,7 @@ export async function PATCH(request, { params }) {
           }
         }
 
-        return actualizada;
+        return { orden: actualizada, cambiaInventario };
       },
       { timeout: 20_000 },
     );
@@ -90,7 +89,7 @@ export async function PATCH(request, { params }) {
       await writeLog("panel", `Venta ${id} actualizada con ajuste de inventario`, {
         actor: guard.session?.correo,
         ruta: `/api/ordenes/${id}`,
-        detalle: { estado: estadoNuevo, items: items?.length ?? existente.items.length },
+        detalle: { estado: orden.estado, items: orden.items.length },
       });
     }
 
@@ -113,22 +112,17 @@ export async function DELETE(_request, { params }) {
   if (guard.response) return guard.response;
   const { id } = await params;
   try {
-    const orden = await prisma.orden.findUnique({
-      where: { id },
-      select: { id: true, tipo: true },
-    });
-    if (!orden) return Response.json({ error: "Orden no encontrada." }, { status: 404 });
-
-    await prisma.$transaction(
+    const orden = await prisma.$transaction(
       async (tx) => {
-        if (orden.tipo === "venta") {
-          await revertirStock(tx, {
-            referencia: `venta:${id}`,
-            actor: guard.session?.correo ?? null,
-            motivo: "Venta eliminada: se devuelve el inventario",
-          });
-        }
-        await tx.orden.delete({ where: { id } });
+        // Borrar toma primero el bloqueo de la orden, igual que PATCH; todo se
+        // revierte si falla la devolución. Una cotización sin salidas no mueve stock.
+        const eliminada = await tx.orden.delete({ where: { id } });
+        await revertirStock(tx, {
+          referencia: `venta:${id}`,
+          actor: guard.session?.correo ?? null,
+          motivo: "Documento eliminado: se devuelve el inventario pendiente",
+        });
+        return eliminada;
       },
       { timeout: 20_000 },
     );

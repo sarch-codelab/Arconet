@@ -1,5 +1,7 @@
 "use client";
 
+import { rememberLocalPreviewSession, clientApiFetch as fetch } from "@/lib/api-fetch";
+
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -8,6 +10,7 @@ import { ArrowRight, Check, Eye, EyeOff } from "lucide-react";
 import styles from "../admin/admin-experience.module.css";
 import { sileo } from "../toaster";
 import MobileSiteMenu from "../mobile-site-menu";
+import { isLocalPreview } from "@/lib/local-preview";
 
 export default function LoginExperience() {
   const router = useRouter();
@@ -29,6 +32,7 @@ export default function LoginExperience() {
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || "No se pudo iniciar sesión.");
+      rememberLocalPreviewSession("cliente", payload.localPreviewToken);
       sileo.success({
         title: "Sesión iniciada",
         description: "Abriendo tu portal de clientes.",
@@ -98,6 +102,11 @@ export default function LoginExperience() {
                 Usa tu correo y contraseña para acceder a tu cuenta Arconet.
               </p>
             </header>
+
+            {isLocalPreview() && <p className={styles.loginIntro} role="note">
+              Cliente de prueba: <strong>cliente@arconet.local</strong> / <strong>1234</strong>.
+              {" "}<Link href="/admin">Para entrar como admin, abre el acceso administrativo.</Link>
+            </p>}
 
             <form className={styles.form} onSubmit={submit}>
               <label className={styles.field}>

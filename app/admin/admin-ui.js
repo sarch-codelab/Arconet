@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
+import { useBodyScrollLock, useEscapeKey } from "./use-body-scroll-lock";
 import { AlertTriangle } from "lucide-react";
 import styles from "./admin-experience.module.css";
 import { sileo } from "../toaster";
@@ -33,6 +34,30 @@ export function notifyError(message) {
 }
 
 export function ConfirmDialog({ title, message, onCancel, onConfirm }) {
+  const dialogRef = useRef(null);
+  useBodyScrollLock(true);
+  useEscapeKey(true, onCancel);
+  useEffect(() => {
+    const trigger = document.activeElement;
+    dialogRef.current?.querySelector("button")?.focus();
+    return () => { if (trigger?.isConnected) trigger.focus(); };
+  }, []);
+
+  const containFocus = (event) => {
+    if (event.key !== "Tab") return;
+    const buttons = dialogRef.current?.querySelectorAll("button:not([disabled])");
+    if (!buttons?.length) return;
+    const first = buttons[0];
+    const last = buttons[buttons.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
   return (
     <div
       className={styles.overlay}
@@ -41,7 +66,7 @@ export function ConfirmDialog({ title, message, onCancel, onConfirm }) {
         if (event.target === event.currentTarget) onCancel();
       }}
     >
-      <div className={styles.confirm} role="dialog" aria-modal="true" aria-label={title}>
+      <div ref={dialogRef} onKeyDown={containFocus} className={styles.confirm} role="dialog" aria-modal="true" aria-label={title}>
         <span className={styles.confirmIcon}><AlertTriangle size={22} /></span>
         <h3>{title}</h3>
         <p>{message}</p>

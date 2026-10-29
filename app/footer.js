@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowUp, Mail, MapPin, Phone } from "lucide-react";
 import { FAMILIES } from "./catalogo/catalogo-data";
 import styles from "./footer.module.css";
-import { CONTACT_EMAIL, CONTACT_PHONE, CONTACT_PHONE_HREF } from '@/lib/contact';
+import { useContact } from "./contact-provider";
 
 const COMPANY_LINKS = [
   { href: "/", label: "Inicio" },
@@ -39,6 +39,7 @@ const SOCIAL = [
 ];
 
 export default function Footer() {
+  const { email: CONTACT_EMAIL, phone: CONTACT_PHONE, phoneHref: CONTACT_PHONE_HREF } = useContact();
   const scrollToTop = () => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });

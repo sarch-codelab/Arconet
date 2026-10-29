@@ -16,16 +16,26 @@ const securityHeaders = [
       // `media-src 'self' blob:` permite que el video del escáner de códigos
       // de barras (stream de cámara) se pinte dentro de la página; sin él,
       // CSP bloqueaba el <video> y el lector nunca mostraba imagen.
-      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; media-src 'self' blob:; connect-src 'self' https://static.cloudflareinsights.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+      // frame-src permite el visor de documentos autenticados en la misma
+      // pestaña. Se conserva frame-ancestors none en producción.
+      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; media-src 'self' blob:; frame-src 'self' blob:; connect-src 'self' https://static.cloudflareinsights.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
   },
 ];
 
 const nextConfig = {
-  // Solo afecta a `next dev`: permite abrir el servidor de desarrollo desde
-  // los portales de los orbs de Amp.
-  allowedDevOrigins: ["*.onamp.dev"],
+  // Solo afecta a `next dev`: permite las vistas previas de Amp y Arena.
+  allowedDevOrigins: ["127.0.0.1", "*.onamp.dev", "*.e2b.app"],
   async headers() {
-    return [{ source: "/(.*)", headers: securityHeaders }];
+    // Las vistas previas se muestran en un iframe. Mantener el bloqueo de
+    // framing en producción, pero permitir la vista embebida en desarrollo.
+    const headers = process.env.NODE_ENV === "development"
+      ? securityHeaders
+          .filter(({ key }) => key !== "X-Frame-Options")
+          .map((header) => header.key === "Content-Security-Policy"
+            ? { ...header, value: header.value.replace("frame-ancestors 'none'; ", "") }
+            : header)
+      : securityHeaders;
+    return [{ source: "/(.*)", headers }];
   },
 };
 

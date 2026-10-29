@@ -689,6 +689,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  /* Todas las secciones deben ser destinos del scroll, no solo la activa. */
+  scroll-snap-align: center;
   /* Touch target mínimo 44px */
   width: 44px;
   height: 44px;
@@ -1440,135 +1442,55 @@
   flex-wrap: wrap;
 }
 
-/* Botones de accion de la seccion Ventas (Nueva cotizacion / Nueva venta /
-   Nueva factura). En telefonos se apilan a lo largo para que ninguno quede
-   cortado o montado sobre el otro. */
-.salesActions {
-  width: 100%;
-}
-
-.salesActions .ghostBtn,
-.salesActions .primaryBtn {
-  flex: 1 1 auto;
-  min-width: 0;
-  white-space: nowrap;
-}
-
-@media (max-width: 620px) {
-  .salesActions {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
-
-  .salesActions .ghostBtn,
-  .salesActions .primaryBtn {
-    width: 100%;
-    flex: none;
-  }
-}
-
-/* Fila de acciones de Ventas (Nueva cotizacion / Nueva venta). Antes estos
-   botones vivian dentro de .topbarActions/.salesActions, que heredaba el
-   ancho completo de la barra superior y, con `white-space: nowrap`, empujaba
-   los botones mas alla del borde derecho en telefonos. Esta fila es un
-   contenedor propio que nunca supera el ancho disponible. */
+/* Acciones de Ventas. El ancho depende del padre, nunca del viewport.
+   En móvil el flex-basis debe ser automático: 100% sería una ALTURA al
+   cambiar la cabecera a columna y haría que los botones envuelvan a la derecha. */
 .salesActionRow {
   display: flex;
   align-items: center;
-  gap: 10px;
   flex-wrap: wrap;
+  gap: 10px;
   min-width: 0;
   max-width: 100%;
 }
 
-.salesActionBtn {
-  /* `flex-basis: auto` + shrink habilitado: los botones base del panel usan
-     `flex-shrink: 0`, por lo que dentro de una fila estrecha no podian
-     encoger y empujaban la pantalla hacia la derecha en el telefono. Aqui se
-     re-declara la clase para que puedan reducirse hasta el ancho disponible. */
+/* Mayor especificidad que los botones base (también los del modal), sin
+   !important ni anchos mínimos que impidan encoger en pantallas pequeñas. */
+.salesActionRow .salesActionBtn {
   flex: 0 1 auto;
   min-width: 0;
+  min-height: 44px;
   max-width: 100%;
-  box-sizing: border-box;
-  /* Permite que el texto se parta si hiciera falta en lugar de desbordar. */
   white-space: normal;
   overflow-wrap: anywhere;
   text-align: center;
 }
 
-/* Icono dentro de estos botones: fijo, para que nunca se estire al encoger. */
 .salesActionBtn svg {
   flex: none;
 }
 
 @media (max-width: 760px) {
-  /* En el telefono los dos botones van SIEMPRE uno debajo del otro, a lo
-     ancho completo y centrados. Antes dependian de que cupieran lado a lado;
-     con textos largos ("Nueva cotización") desbordaban el borde derecho. */
+  .sectionSubBar > .topbarActions {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
   .salesActionRow {
+    flex: 0 0 auto;
     flex-direction: column;
+    flex-wrap: nowrap;
     align-items: stretch;
     justify-content: center;
     width: 100%;
-    max-width: 100%;
     gap: 8px;
   }
 
-  .salesActionBtn {
-    width: 100%;
+  .salesActionRow .salesActionBtn {
     flex: none;
-  }
-}
-
-/* ============================================================
-   ASEGURIDAD ANTI-DESBORDE (movil) para las acciones de Ventas
-
-   Los botones "Nueva cotizacion" y "Nueva venta" viven dentro de
-   .salesActionRow, que a su vez se renderiza en .topbarActions (Topbar)
-   o en .sectionSubBar (cabecera compacta). Las reglas siguientes van
-   DESPUES de todas las media queries de cabecera y usan !important para
-   garantizar que, en cualquier telefono (<=760px), ambos botones queden
-   apilados verticalmente, a lo ancho y centrados — nunca pegados al
-   borde derecho ni salidos de la pantalla.
-   ============================================================ */
-@media (max-width: 760px) {
-  /* 1) El contenedor del Topbar que recibe la accion ya no empuja nada
-        hacia la derecha: ocupa el 100% del ancho disponible. */
-  .topbarActions {
-    flex-basis: 100% !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    justify-content: stretch !important;
-  }
-
-  /* 2) La fila de botones de Ventas, sea cual sea su padre, se apila. */
-  .salesActionRow {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
-    justify-content: center !important;
-    flex-basis: 100% !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    box-sizing: border-box !important;
-    gap: 8px !important;
-  }
-
-  /* 3) Cada boton ocupa todo el ancho, permite partir el texto si hace
-        falta y nunca supera el limite de la pantalla. */
-  .salesActionBtn {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    flex: none !important;
-    box-sizing: border-box !important;
-    white-space: normal !important;
-    overflow-wrap: anywhere;
-    justify-content: center !important;
-    text-align: center;
+    width: 100%;
   }
 }
 
@@ -3015,12 +2937,9 @@
     grid-template-columns: 1fr 1fr;
   }
 
-  .topbarTitle {
-    flex-basis: calc(100% - 56px);
-  }
-
+  .topbarTitle,
   .topbarActions {
-    flex-basis: 100%;
+    flex-basis: auto;
   }
 
   .topbarActions .primaryBtn {
@@ -3078,6 +2997,8 @@
 
   .sectionSubBar {
     flex-direction: column;
+    /* No envolver una columna en otra columna fuera de la pantalla. */
+    flex-wrap: nowrap;
     align-items: stretch;
   }
 

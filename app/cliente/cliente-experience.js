@@ -1,5 +1,9 @@
 "use client";
 
+import { previewDocumentClick } from "@/lib/api-document";
+
+import { clearLocalPreviewSession, clientApiFetch as fetch } from "@/lib/api-fetch";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -24,7 +28,7 @@ import {
   X,
 } from "lucide-react";
 import styles from "./cliente-experience.module.css";
-import { CONTACT_EMAIL, CONTACT_PHONE, CONTACT_PHONE_HREF } from '@/lib/contact';
+import { useContact } from "../contact-provider";
 import { fuerzaPassword, validarPassword } from '@/lib/seguridad';
 import { sileo } from "../toaster";
 
@@ -68,6 +72,7 @@ export default function ClientExperience() {
 
   const handleLogout = async () => {
     await fetch("/api/cliente-auth/logout", { method: "POST" }).catch(() => {});
+    clearLocalPreviewSession("cliente");
     router.replace("/login");
   };
 
@@ -83,6 +88,7 @@ export default function ClientExperience() {
 }
 
 function ClientDashboard({ session, orders, setOrders, onLogout }) {
+  const { email: CONTACT_EMAIL } = useContact();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [requestModalOpen, setRequestModalOpen] = useState(false);
@@ -525,6 +531,7 @@ const TICKET_ESTADO_LABEL = {
 };
 
 function SupportPage() {
+  const { email: CONTACT_EMAIL, phone: CONTACT_PHONE, phoneHref: CONTACT_PHONE_HREF } = useContact();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ asunto: "", mensaje: "" });
@@ -687,7 +694,8 @@ function DocumentsPage() {
               <a
                 className={styles.viewBtn}
                 href={doc.url}
-                target="_blank"
+                data-no-transition="true"
+                onClick={event => previewDocumentClick(event, "cliente")?.catch(error => sileo.error({ title: error.message }))}
                 rel="noopener noreferrer"
                 style={{ textDecoration: "none", display: "inline-block" }}
               >

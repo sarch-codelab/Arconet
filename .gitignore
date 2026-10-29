@@ -64,4 +64,8 @@ ops/backups/*.jsonl.gz
 .env.local
 
 # Token local — nunca subir a GitHub (secret scanning lo bloquea)
-key
+[Kk][Ee][Yy]
+*.key
+
+# PostgreSQL y configuración de la vista previa local (no versionar)
+/.local/

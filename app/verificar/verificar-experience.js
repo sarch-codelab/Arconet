@@ -1,5 +1,7 @@
 "use client";
 
+import { clientApiFetch as fetch } from "@/lib/api-fetch";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";

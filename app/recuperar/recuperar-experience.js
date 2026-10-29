@@ -1,5 +1,7 @@
 "use client";
 
+import { clientApiFetch as fetch } from "@/lib/api-fetch";
+
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";

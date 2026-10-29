@@ -1,3 +1,4 @@
+import { isLocalPreviewAuthEnabled } from "@/lib/local-preview-auth";
 import { randomUUID } from "node:crypto";
 import { prisma } from '@/lib/prisma';
 import { hashPassword } from '@/lib/auth';
@@ -86,7 +87,7 @@ export async function POST(request) {
       ciudad: cliente.ciudad || "",
       direccion: cliente.direccion || "",
     };
-    await createClientSession(session, body?.recordarme !== false);
+    const token = await createClientSession(session, body?.recordarme !== false);
 
     // El código de verificación es best-effort: si el SMTP falla, la cuenta ya
     // está creada y el cliente puede pedir otro código desde el portal.
@@ -107,7 +108,7 @@ export async function POST(request) {
       console.error("POST /api/cliente-auth/registro verificación", error?.message);
     }
 
-    return Response.json({ ...session, verificacionEnviada }, { status: 201 });
+    return Response.json({ ...session, verificacionEnviada, ...(isLocalPreviewAuthEnabled() ? { localPreviewToken: token } : {}) }, { status: 201, headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     if (error?.status === 409 || error?.code === "P2002" || error?.code === "23505") {
       return Response.json(

@@ -1,3 +1,4 @@
+import { getLocalPreviewToken, isLocalPreviewAuthEnabled } from "./lib/local-preview-auth";
 import { NextResponse } from "next/server";
 import { verifyToken, SESSION_COOKIE, CLIENT_SESSION_COOKIE } from "./lib/session";
 import { checkRateLimit, getClientIp } from "./lib/rate-limit";
@@ -23,8 +24,9 @@ function isProtectedApi(pathname) {
 // verifyToken es async: sin `await`, la sesión sería un Promise (siempre
 // truthy) y las comprobaciones de abajo nunca bloquearían nada.
 async function readSession(request) {
-  const token = request.cookies.get(SESSION_COOKIE)?.value;
-  return verifyToken(token);
+  const token = getLocalPreviewToken(request.headers) || request.cookies.get(SESSION_COOKIE)?.value;
+  const session = await verifyToken(token);
+  return session?.tipo === "cliente" ? null : session;
 }
 
 const MAX_BODY_BYTES = 1_000_000; // 1 MB default
@@ -106,11 +108,13 @@ export default async function proxy(request) {
     pathname === PROTECTED_PAGES ||
     pathname.startsWith(`${PROTECTED_PAGES}/`)
   ) {
-    if (!session) {
+    if (!session && !isLocalPreviewAuthEnabled()) {
       const loginUrl = new URL("/admin", request.url);
       loginUrl.searchParams.set("next", pathname);
       return NextResponse.redirect(loginUrl);
     }
+    // En la demo solo se sirve la carcasa del panel. Los datos siguen
+    // protegidos en cada API con firma, sesión vigente y permisos reales.
     const res = NextResponse.next();
     res.headers.set("X-Request-Id", requestId);
     return res;
@@ -123,7 +127,7 @@ export default async function proxy(request) {
       pathname === "/api/ordenes" &&
       (method === "GET" || method === "POST")
     ) {
-      const clientToken = request.cookies.get(CLIENT_SESSION_COOKIE)?.value;
+      const clientToken = getLocalPreviewToken(request.headers) || request.cookies.get(CLIENT_SESSION_COOKIE)?.value;
       const clientSession = await verifyToken(clientToken);
       if (clientSession?.tipo === "cliente" && clientSession.clienteId) {
         authorizedSession = clientSession;

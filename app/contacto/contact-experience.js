@@ -17,7 +17,8 @@ import {
 import styles from "./contact-experience.module.css";
 import Footer from "../footer";
 import { sileo } from "../toaster";
-import { CONTACT_EMAIL } from '@/lib/contact';
+import { useContact } from "../contact-provider";
+import { copyText } from "@/lib/clipboard";
 import MobileSiteMenu from "../mobile-site-menu";
 
 const NAVIGATION = [
@@ -44,6 +45,7 @@ const STEPS = [
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 
 export default function ContactExperience() {
+  const { email: CONTACT_EMAIL } = useContact();
   const pageRef = useRef(null);
   const [activeArea, setActiveArea] = useState(0);
 
@@ -157,11 +159,13 @@ export default function ContactExperience() {
       "Proyecto:",
       data.get("message"),
     ].join("\n");
-    try {
-      await navigator.clipboard.writeText(content);
+    if (await copyText(content)) {
       sileo.success({ title: "Solicitud copiada al portapapeles." });
-    } catch {
-      sileo.error({ title: "No se pudo copiar el borrador." });
+    } else {
+      sileo.error({
+        title: "No se pudo copiar el borrador.",
+        description: "El navegador restringe el portapapeles. Abre la vista previa en una pestaña nueva o selecciona el texto para copiarlo manualmente.",
+      });
     }
   };
 

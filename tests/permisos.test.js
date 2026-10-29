@@ -24,6 +24,18 @@ describe("canAccessSection", () => {
     expect(canAccessSection(["ordenes:read"], "ordenes")).toBe(false);
   });
 
+  it("incluye los permisos fiscales usados por las APIs", () => {
+    expect(ALL_PERMISSIONS).toContain("facturacion:read");
+    expect(ALL_PERMISSIONS).toContain("facturacion:write");
+    expect(normalizePermisos(["facturacion:read"])).toEqual(["facturacion:read"]);
+  });
+
+  it("permite la pantalla compartida al rol fiscal sin concederle ventas", () => {
+    expect(canAccessSection(["facturacion:read"], "ventas")).toBe(true);
+    expect(canAccessSection(["facturacion:read"], "facturas")).toBe(true);
+    expect(canAccessSection(["facturacion:write"], "ventas")).toBe(false);
+  });
+
   it("desconoce secciones inexistentes", () => {
     expect(canAccessSection(ALL_PERMISSIONS, "seccion-fantasma")).toBe(false);
   });

@@ -1,5 +1,7 @@
 "use client";
 
+import { apiFetch as fetch } from "@/lib/api-fetch";
+
 import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, Check, Layers, Package, Pencil, Plus, RotateCw, Search, Trash2, X } from "lucide-react";
 import styles from "./admin-experience.module.css";
@@ -74,7 +76,8 @@ export default function ProductsSection({ products = [], setProducts, categorias
     return activeCategoryNames;
   }, [activeCategoryNames, draft.categoria]);
 
-  const canWriteProducts = (session?.permisos || []).includes("productos:write");
+  const canWrite = (session?.permisos || []).includes("productos:write");
+  const canDelete = session?.permisos?.includes("productos:delete");
   const [busyProduct, setBusyProduct] = useState(null);
 
   // Accion rapida: activar/inactivar un producto desde la tabla.
@@ -313,8 +316,8 @@ export default function ProductsSection({ products = [], setProducts, categorias
         title="Productos"
         subtitle="Catálogo de Arconet: categoría, precio, stock y disponibilidad."
         action={
-          canWriteProducts && (
-            <button type="button" className={styles.primaryBtn} onClick={openCreate}>
+          canWrite && (
+            <button type="button" className={styles.primaryBtn} disabled={!canWrite} onClick={openCreate}>
               <Plus size={16} /> Nuevo producto
             </button>
           )
@@ -435,7 +438,7 @@ export default function ProductsSection({ products = [], setProducts, categorias
                     </td>
                     <td data-label="Acciones">
                       <div className={styles.rowActions}>
-                        {canWriteProducts && (
+                        {canWrite && (
                           <button
                             type="button"
                             onClick={() => toggleProductState(product)}
@@ -452,7 +455,7 @@ export default function ProductsSection({ products = [], setProducts, categorias
                         )}
                         <button
                           type="button"
-                          onClick={() => openEdit(product)}
+                          disabled={!canWrite} onClick={() => openEdit(product)}
                           aria-label={`Editar ${product.nombre}`}
                           title="Editar"
                         >
@@ -461,7 +464,7 @@ export default function ProductsSection({ products = [], setProducts, categorias
                         <button
                           type="button"
                           className={styles.danger}
-                          onClick={() => setConfirmProduct(product)}
+                          disabled={!canDelete} onClick={() => setConfirmProduct(product)}
                           aria-label={`Eliminar ${product.nombre}`}
                           title="Eliminar"
                         >
