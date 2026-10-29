@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
-  prisma: { orden: { findUnique: vi.fn() }, $transaction: vi.fn() },
-  tx: { $executeRaw: vi.fn(), orden: { findUnique: vi.fn(), update: vi.fn(), create: vi.fn(), delete: vi.fn() } },
+  prisma: { orden: { findUnique: vi.fn(), findMany: vi.fn() }, clienteCuenta: { findUnique: vi.fn() }, $transaction: vi.fn() },
+  tx: { producto: { findMany: vi.fn() }, $executeRaw: vi.fn(), orden: { findUnique: vi.fn(), update: vi.fn(), create: vi.fn(), delete: vi.fn() } },
   requirePermission: vi.fn(), requireSession: vi.fn(), getClientSession: vi.fn(),
   descontarStock: vi.fn(), revertirStock: vi.fn(), writeLog: vi.fn(),
 }));
@@ -11,7 +11,7 @@ vi.mock('@/lib/client-session', () => ({ getClientSession: mocks.getClientSessio
 vi.mock('@/lib/logs', () => ({ writeLog: mocks.writeLog }));
 vi.mock('@/lib/stock-ventas', async importOriginal => ({ ...await importOriginal(), descontarStock: mocks.descontarStock, revertirStock: mocks.revertirStock }));
 import { PATCH, DELETE } from '../app/api/ordenes/[id]/route';
-import { POST } from '../app/api/ordenes/route';
+import { POST, GET } from '../app/api/ordenes/route';
 const items = [{ productoId: 'qa-p', nombre: 'QA', cantidad: 1, precio: 25 }];
 let existing;
 const request = data => new Request('https://arconet.test/api/ordenes/qa', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
@@ -21,7 +21,10 @@ beforeEach(() => {
   existing = { id: 'qa', tipo: 'cotizacion', estado: 'pendiente', monto: 25, clienteId: 'qa-c', items };
   mocks.requirePermission.mockResolvedValue({ session: { correo: 'qa@example.invalid' } });
   mocks.getClientSession.mockResolvedValue(null);
+  mocks.prisma.orden.findMany.mockImplementation(async () => [existing]);
+  mocks.prisma.clienteCuenta.findUnique.mockResolvedValue({ activo: true, cliente: { estado: "activo" } });
   mocks.prisma.orden.findUnique.mockImplementation(async () => existing);
+  mocks.tx.producto.findMany.mockResolvedValue([{ id: "qa-p", nombre: "QA", precio: 25, precioDescuento: 22, precioMayorista: 20, archivado: false, estado: "activo" }]);
   mocks.tx.orden.findUnique.mockImplementation(async () => existing);
   mocks.tx.orden.delete.mockImplementation(async () => existing);
   mocks.prisma.$transaction.mockImplementation(async callback => callback(mocks.tx));
@@ -89,4 +92,50 @@ describe('transiciones comerciales y existencias', () => {
     mocks.requirePermission.mockResolvedValue({ response: new Response(null, { status: 403 }) });
     expect((await patch({ tipo: 'venta' })).status).toBe(403); expect(mocks.prisma.orden.findUnique).not.toHaveBeenCalled();
   });
+});
+
+describe('precios de catálogo en órdenes, sin confiar en el navegador', () => {
+  it.each([['normal', 25], ['descuento', 22], ['mayorista', 20]])('POST resuelve %s y recalcula el monto', async (nivelPrecio, expected) => {
+    const response = await POST(request({ clienteId: 'qa-c', monto: 0.01, items: [{ ...items[0], nivelPrecio, precio: 0.01, cantidad: 2 }] }));
+    expect(response.status).toBe(201);
+    const saved = await response.json(); expect(saved.monto).toBe(expected * 2); expect(saved.items[0].precio).toBe(expected);
+  });
+  it('no permite falsear solo monto en PATCH cuando ya hay líneas', async () => {
+    const response = await patch({ monto: 0.01, notas: 'Intento' });
+    expect((await response.json()).monto).toBe(25);
+  });
+  it('conserva el monto histórico cuando no cambian las líneas', async () => {
+    existing.monto = 24;
+    const response = await patch({ monto: 0.01, items, notas: 'Nota sin cambio de cantidades' });
+    expect((await response.json()).monto).toBe(24);
+  });
+});
+
+describe('lectura de órdenes y regresión de snapshots en el listado', () => {
+  it('el listado incluye id, tarifa, precio base y versión usados al reabrir el formulario', async () => {
+    existing.items = [{ ...items[0], id: 'linea', nivelPrecio: 'descuento', precioBase: 30 }];
+    const response = await GET(request({}));
+    expect(response.status).toBe(200);
+    const query = mocks.prisma.orden.findMany.mock.calls[0][0];
+    expect(query.select.items.select).toMatchObject({ id: true, nivelPrecio: true, precioBase: true });
+    expect(query.select.updatedAt).toBe(true);
+    expect((await response.json())[0].items[0]).toMatchObject({ id: 'linea', nivelPrecio: 'descuento', precioBase: 30 });
+  });
+  it('solo ver precios no autoriza consultar la lista comercial', async () => {
+    mocks.requirePermission.mockResolvedValue({ response: new Response(null, { status: 403 }) });
+    expect((await GET(request({}))).status).toBe(403);
+    expect(mocks.requirePermission).toHaveBeenCalledWith('ordenes:read'); expect(mocks.prisma.orden.findMany).not.toHaveBeenCalled();
+  });
+  it('el portal de cliente mantiene acceso solo a sus propias órdenes', async () => {
+    mocks.getClientSession.mockResolvedValue({ clienteId: 'qa-c' });
+    expect((await GET(request({}))).status).toBe(200);
+    expect(mocks.prisma.orden.findMany.mock.calls[0][0].where.clienteId).toBe('qa-c');
+    expect(mocks.requirePermission).not.toHaveBeenCalled();
+  });
+});
+
+it('rechaza un formulario desactualizado antes de tocar líneas o inventario', async () => {
+  existing.updatedAt = new Date('2026-10-29T20:00:00.000Z');
+  expect((await patch({ updatedAt: '2026-10-29T19:00:00.000Z', items })).status).toBe(409);
+  expect(mocks.tx.orden.update).not.toHaveBeenCalled(); expect(mocks.revertirStock).not.toHaveBeenCalled();
 });

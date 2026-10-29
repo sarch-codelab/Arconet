@@ -1,3 +1,4 @@
+import { resolveCatalogPrices } from "@/lib/precios-service";
 import { prisma } from '@/lib/prisma';
 import { parseOrden } from '@/lib/ordenes';
 import { toOrden } from '@/lib/serialize';
@@ -47,15 +48,26 @@ export async function PATCH(request, { params }) {
           error.status = 404;
           throw error;
         }
+        if (body?.updatedAt != null && body.updatedAt !== existente.updatedAt?.toISOString()) {
+          const error = new Error("El documento cambió desde que abriste el formulario. Recarga antes de guardar.");
+          error.status = 409; throw error;
+        }
         const descontabaStock = isStockSale(existente);
         const debeDescontarStock = isStockSale({ ...existente, ...ordenData });
         const cambiaInventario = descontabaStock !== debeDescontarStock ||
           (Boolean(items) && (descontabaStock || debeDescontarStock));
+        const pricedItems = items ? await resolveCatalogPrices(tx, items, { previous: existente.items, editing: true }) : undefined;
+        const amountChanged = pricedItems && (pricedItems.length !== existente.items.length || pricedItems.some((line, index) => {
+          const old = existente.items[index];
+          return line.productoId !== old.productoId || Number(line.cantidad) !== Number(old.cantidad) || Number(line.precio) !== Number(old.precio);
+        }));
+        const amount = pricedItems?.length ? (amountChanged ? pricedItems.reduce((total, line) => total + line.cantidad * line.precio, 0) : existente.monto) : pricedItems ? ordenData.monto ?? 0 : existente.items.length ? existente.monto : ordenData.monto;
         const actualizada = await tx.orden.update({
           where: { id },
           data: {
             ...ordenData,
-            ...(items ? { items: { deleteMany: {}, create: items } } : {}),
+            ...(amount !== undefined ? { monto: amount } : {}),
+            ...(pricedItems ? { items: { deleteMany: {}, create: pricedItems } } : {}),
           },
           include: { cliente: true, items: true },
         });

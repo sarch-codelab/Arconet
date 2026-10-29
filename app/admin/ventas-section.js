@@ -2,6 +2,7 @@
 
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import CotizacionesSection from "./cotizaciones-section";
+import PreciosPanel from "./precios-panel";
 import FacturacionPanel from "./facturacion-panel";
 import { AdminContext, SECTION_NAV_CONFIG } from "./admin-nav";
 import { Topbar } from "./topbar";
@@ -15,6 +16,7 @@ import { allowedSalesTabs } from "@/lib/admin-navigation";
  * Ahora hay UNA sola seccion con pills internas:
  *  - Cotizaciones / Ventas / Pendientes / Aprobadas / Completadas / Todas:
  *    flujo comercial (CotizacionesSection).
+ *  - Precios: tarifas normal, descuento y mayorista; autorización propia.
  *  - Facturas: facturacion fiscal con CAI (FacturacionPanel).
  *
  * La cabecera global (logo, pildora de secciones, buscador, notificaciones y
@@ -23,11 +25,12 @@ import { allowedSalesTabs } from "@/lib/admin-navigation";
  * demas paginas del panel. Cada pestana aporta su propio titulo/acciones en
  * el cuerpo mediante SectionTabs + sub-barra propia.
  */
-export default function VentasSection({ orders, setOrders, clientes, setClientes, products, workers, session }) {
+export default function VentasSection({ orders, setOrders, clientes, setClientes, products, setProducts, workers, session }) {
   // La pestana inicial es "Todas": al entrar a Ventas se ve el flujo completo
   // (cotizaciones + ventas) en lugar de un subconjunto.
   const tabs = useMemo(() => allowedSalesTabs(SECTION_NAV_CONFIG.ventas?.tabs || [], session?.permisos), [session?.permisos]);
-  const [activeTab, setActiveTab] = useState(() => tabs[0]?.id || "todas");
+  const [requestedTab, setActiveTab] = useState(() => tabs[0]?.id || "todas");
+  const activeTab = tabs.some(tab => tab.id === requestedTab) ? requestedTab : tabs[0]?.id;
   // Extender, no reemplazar: Topbar necesita section/goTo/session del shell.
   const adminContext = useContext(AdminContext);
 
@@ -61,6 +64,8 @@ export default function VentasSection({ orders, setOrders, clientes, setClientes
           activeTab={activeTab}
           onTabChange={setActiveTab}
         />
+      ) : activeTab === "precios" ? (
+        <PreciosPanel products={products} setProducts={setProducts} session={session} tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
       ) : (
         <CotizacionesSection
           orders={orders}

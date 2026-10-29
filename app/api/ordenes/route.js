@@ -1,7 +1,8 @@
+import { resolveCatalogPrices } from "@/lib/precios-service";
 import { prisma } from '@/lib/prisma';
 import { newOrderId, parseOrden } from '@/lib/ordenes';
 import { toOrden } from '@/lib/serialize';
-import { requirePermission, requireSession } from '@/lib/dal';
+import { requirePermission } from '@/lib/dal';
 import { getClientSession } from '@/lib/client-session';
 import { writeLog } from '@/lib/logs';
 import { checkRateLimit } from '@/lib/rate-limit';
@@ -30,7 +31,7 @@ export async function GET(request) {
       return Response.json({ error: "No se pudo verificar la cuenta." }, { status: 503 });
     }
   } else {
-    const guard = await requireSession();
+    const guard = await requirePermission("ordenes:read");
     if (guard.response) return guard.response;
   }
   const { searchParams } = new URL(request.url);
@@ -53,10 +54,10 @@ export async function GET(request) {
       take,
       skip,
       select: {
-        id: true, tipo: true, clienteId: true, fecha: true, monto: true,
+        id: true, tipo: true, clienteId: true, fecha: true, fechaVencimiento: true, monto: true, descuento: true, updatedAt: true,
         estado: true, notas: true,
         cliente: { select: { nombre: true } },
-        items: { select: { productoId: true, nombre: true, cantidad: true, precio: true } },
+        items: { select: { id: true, productoId: true, nombre: true, cantidad: true, precio: true, nivelPrecio: true, precioBase: true } },
       },
     });
     return Response.json(ordenes.map(toOrden));
@@ -148,12 +149,13 @@ export async function POST(request) {
   try {
     const orden = await prisma.$transaction(
       async (tx) => {
+        const pricedItems = items?.length ? await resolveCatalogPrices(tx, items) : items;
         const creada = await tx.orden.create({
           data: {
             id: newOrderId(),
             ...ordenData,
-            monto: ordenData.monto ?? 0,
-            items: items?.length ? { create: items } : undefined,
+            monto: pricedItems?.length ? pricedItems.reduce((total, line) => total + line.cantidad * line.precio, 0) : ordenData.monto ?? 0,
+            items: pricedItems?.length ? { create: pricedItems } : undefined,
           },
           include: { cliente: true, items: true },
         });

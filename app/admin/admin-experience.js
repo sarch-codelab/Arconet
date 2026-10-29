@@ -205,6 +205,7 @@ function AdminShell({ session, onLogout, initialSection }) {
                 clientes={clientes}
                 setClientes={setClientes}
                 products={products}
+                setProducts={setProducts}
                 workers={workers}
                 session={session}
               />
@@ -223,6 +224,7 @@ function AdminShell({ session, onLogout, initialSection }) {
                 clientes={clientes}
                 setClientes={setClientes}
                 products={products}
+                setProducts={setProducts}
                 workers={workers}
                 session={session}
               />

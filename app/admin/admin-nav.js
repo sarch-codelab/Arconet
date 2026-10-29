@@ -141,6 +141,7 @@ export const SECTION_NAV_CONFIG = {
       { id: "pendientes", label: "Pendientes", icon: Clock, title: "En revisión" },
       { id: "aprobadas", label: "Aprobadas", icon: Check, title: "Aprobadas" },
       { id: "completadas", label: "Completadas", icon: Check, title: "Completadas" },
+      { id: "precios", label: "Precios", icon: TrendingUp, title: "Tres precios de venta: normal, descuento y mayorista" },
       { id: "facturas", label: "Facturas", icon: Receipt, title: "Facturación fiscal: facturas con CAI, libro de ventas y configuración" },
     ],
   },

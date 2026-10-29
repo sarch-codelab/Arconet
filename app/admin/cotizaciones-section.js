@@ -1,5 +1,7 @@
 "use client";
 
+import { priceAt } from "@/lib/precios";
+import PrecioSelector from "./precio-selector";
 import { openApiDocument } from "@/lib/api-document";
 
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
@@ -82,7 +84,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
   const searchTerms = useMemo(() => normalize(query).split(/\s+/).filter(Boolean), [query]);
 
   const handleTabChange = (tabId) => {
-    if (tabId === "facturas") {
+    if (tabId === "facturas" || tabId === "precios") {
       // La pestaña "Facturas" monta el panel fiscal completo; no toca los
       // filtros de cotizaciones ni el estado interno de esta lista.
       onTabChange?.(tabId);
@@ -196,7 +198,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
   function addCatalogItem() {
     const product = products.find((item) => item.estado === "activo");
     if (!product) return;
-    setDraft((prev) => ({ ...prev, items: [...prev.items, { productoId: product.id, nombre: product.nombre, cantidad: 1, precio: Number(product.precio) || 0 }] }));
+    setDraft((prev) => ({ ...prev, items: [...prev.items, { productoId: product.id, nombre: product.nombre, cantidad: 1, precio: Number(product.precio) || 0, nivelPrecio: "normal", actualizarPrecio: true }] }));
   }
 
   function updateLine(index, field, value) {
@@ -204,7 +206,13 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
       if (lineIndex !== index) return line;
       if (field === "productoId") {
         const product = products.find((item) => item.id === value);
-        return product ? { ...line, productoId: product.id, nombre: product.nombre, precio: Number(product.precio) || 0 } : line;
+        return product ? { ...line, productoId: product.id, nombre: product.nombre, precio: Number(product.precio) || 0, nivelPrecio: "normal", actualizarPrecio: true } : line;
+      }
+      if (field === "nivelPrecio" || field === "actualizarPrecio") {
+        const product = products.find(item => item.id === line.productoId);
+        const level = field === "nivelPrecio" ? value : line.nivelPrecio || "normal";
+        const price = priceAt(product, level);
+        return price == null ? line : { ...line, nivelPrecio: level, precio: price, actualizarPrecio: true };
       }
       return { ...line, [field]: value };
     }) }));
@@ -460,7 +468,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
 
       {modalOpen && (
         <div
-          className={styles.overlay}
+          className={`${styles.overlay} ${styles.centeredOverlay}`}
           role="presentation"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) closeModal();
@@ -548,11 +556,14 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
                     <select className={styles.select} value={line.productoId || ""} onChange={(event) => updateLine(index, "productoId", event.target.value)} aria-label={`Producto de la línea ${index + 1}`}>
                       {products.filter((item) => item.estado === "activo" || item.id === line.productoId).map((item) => <option key={item.id} value={item.id}>{item.nombre} · {formatPrice(item.precio)}</option>)}
                     </select>
+                    {line.productoId && <PrecioSelector className={styles.select} product={products.find(item => item.id === line.productoId)} value={line.nivelPrecio || "normal"} onChange={value => updateLine(index, "nivelPrecio", value)} label={`Tarifa de la línea ${index + 1}`} snapshot={editingId && !line.actualizarPrecio ? line.precio : null} />}
+                    {editingId && line.productoId && !line.actualizarPrecio && <button type="button" className={styles.ghostBtn} onClick={() => updateLine(index, "actualizarPrecio", true)}>Actualizar tarifa</button>}
+                    <span>{formatPrice(line.precio)} c/u</span>
                     <input className={styles.lineQuantity} type="number" min={line.productoId ? "1" : "0.001"} step={line.productoId ? "1" : "0.001"} value={line.cantidad} onChange={(event) => updateLine(index, "cantidad", event.target.value)} aria-label="Cantidad" />
                     <button type="button" className={styles.clearBtn} onClick={() => setDraft((prev) => ({ ...prev, items: prev.items.filter((_, lineIndex) => lineIndex !== index) }))}>Quitar</button>
                   </div>)}
                   <button type="button" className={styles.ghostBtn} onClick={addCatalogItem} disabled={!products.some((item) => item.estado === "activo")}>Añadir producto real del catálogo</button>
-                  <small>El total se calcula con los precios de catálogo. Al guardar una venta se descuenta el inventario; una venta comercial no sustituye el comprobante fiscal autorizado, que se emite en Facturación.</small>
+                  <small>Elige normal, descuento o mayorista para cada producto. Al editar se conserva el precio guardado; «Actualizar tarifa» aplica el catálogo vigente. El servidor valida el importe al guardar. Al guardar una venta se descuenta el inventario; una venta comercial no sustituye el comprobante fiscal autorizado, que se emite en Facturación.</small>
                 </div>
                 <label className={`${styles.field} ${styles.spanFull}`}>
                   Notas

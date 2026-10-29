@@ -711,6 +711,7 @@ useEffect(() => {
       {/* Full screen rounded hero */}
       <div className={styles.heroFrame}>
         <section id="inicio" className={styles.heroCard}>
+          <h1 className={styles.visuallyHidden}>Arconet</h1>
           {/* Background company image replacing the sofa */}
           <div className={styles.heroBgMedia}>
             <Image
@@ -775,19 +776,6 @@ useEffect(() => {
               </a>
             </div>
           </header>
-
-          {/* Centered Main Hero Copy & Reference Pill Button */}
-          <div className={styles.heroCenterContent}>
-            <div className={styles.heroMain}>
-              <h1 className={styles.heroCenterTitle}>
-                Infraestructura para<br />
-                estar <em>más cerca.</em>
-              </h1>
-              <p className={styles.heroCenterDescription}>
-                Soluciones en telecomunicaciones, fibra óptica y CATV para conectar negocios y comunidades en Honduras.
-              </p>
-            </div>
-          </div>
 
           {/* Bottom Bar inside Card */}
           <div className={styles.cardBottomBar}>
