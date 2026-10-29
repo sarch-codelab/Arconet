@@ -2,6 +2,8 @@
 
 Fecha: **29 de octubre de 2026**. Rama de trabajo: `arena/13a6ae27-arconet`.
 
+Seguimiento posterior: [fallo de montaje de Inventario con un módulo sin exportación y su corrección](incidente-inventario-2026-10-29.md). La matriz original no cubría esta condición de versiones de JavaScript distintas.
+
 ## Entorno y alcance
 
 - Next.js y PostgreSQL locales; base `arconet_local` en loopback, puerto 55432. No se usaron la base de producción ni SMTP externo.
