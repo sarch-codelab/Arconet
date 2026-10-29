@@ -1,6 +1,5 @@
 "use client";
 
-import { canLookupInventoryProducts } from "@/lib/admin-navigation";
 import { apiFetch as fetch } from "@/lib/api-fetch";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -79,9 +78,12 @@ function formatNumero(value) {
 }
 
 export default function InventarioPanel({ session, productos: productosIniciales = [] }) {
-  const canWrite = session?.permisos?.includes("inventario:write");
-  const canDelete = session?.permisos?.includes("inventario:delete");
-  const canReadProductos = canLookupInventoryProducts(session?.permisos);
+  const permisos = Array.isArray(session?.permisos) ? session.permisos : [];
+  const canWrite = permisos.includes("inventario:write");
+  const canDelete = permisos.includes("inventario:delete");
+  // Este permiso de apoyo no depende de exports del módulo de navegación:
+  // Inventario debe poder montar también al recuperar un bundle anterior.
+  const canReadProductos = permisos.includes("productos:read") || permisos.includes("inventario:read");
   const [tab, setTab] = useState("stock");
   const [stock, setStock] = useState([]);
   const [bodegas, setBodegas] = useState([]);
