@@ -163,7 +163,8 @@ try {
         Write-Log "Applying database migrations..."
         $code = Invoke-Npm @('run', 'db:migrate')
         if ($code -ne 0) {
-            Write-Log "prisma migrate deploy failed with exit code $code (se continua)" "WARN"
+            # Nunca arrancar un build que consulta columnas que aun no existen.
+            Fail "prisma migrate deploy failed with exit code $code; no se publica el build nuevo"
         } else {
             Write-Log "Database migrations applied"
         }

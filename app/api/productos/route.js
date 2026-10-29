@@ -1,3 +1,4 @@
+import { validatePriceSet, priceSnapshot } from "@/lib/precios";
 import { prisma } from '@/lib/prisma';
 import { newProductoId, parseProducto } from '@/lib/productos';
 import { toProducto } from '@/lib/serialize';
@@ -40,7 +41,7 @@ export async function GET(request) {
       skip,
       select: {
         id: true, nombre: true, sku: true, codigoBarras: true, categoria: true, marca: true,
-        unidad: true, descripcion: true, precio: true, costo: true, stock: true,
+        unidad: true, descripcion: true, precio: true, precioDescuento: true, precioMayorista: true, preciosUpdatedAt: true, preciosUpdatedBy: true, costo: true, stock: true,
         stockMinimo: true, ubicacion: true, peso: true, estado: true, foto: true, fotos: true, updatedAt: true,
       },
     });
@@ -62,7 +63,9 @@ export async function POST(request) {
     return Response.json({ error: "JSON inválido." }, { status: 400 });
   }
 
+  if (!guard.permisos?.includes("precios:write")) return Response.json({ error: "Crear productos con precio requiere permiso de modificar precios." }, { status: 403 });
   const { data, errors } = parseProducto(body);
+  errors.push(...validatePriceSet(data));
   if (errors.length) {
     return Response.json({ error: errors[0], errors }, { status: 400 });
   }
@@ -72,8 +75,9 @@ export async function POST(request) {
     const producto = await prisma.$transaction(
       async (tx) => {
         const creado = await tx.producto.create({
-          data: { id: newProductoId(), ...resto, stock: 0, createdBy: guard.session?.correo ?? null },
+          data: { id: newProductoId(), ...resto, stock: 0, preciosUpdatedAt: new Date(), preciosUpdatedBy: guard.session?.correo ?? null, createdBy: guard.session?.correo ?? null },
         });
+        await tx.log.create({ data: { categoria: "panel", mensaje: `Precios iniciales: ${creado.nombre}`, actor: guard.session?.correo ?? null, ruta: `/api/precios/${creado.id}`, detalle: JSON.stringify({ antes: null, despues: priceSnapshot(creado) }) } });
         // El stock inicial entra por kardex: así el producto nace con saldo
         // trazable en la bodega principal y no como un número suelto.
         if (Number(stock) > 0) {

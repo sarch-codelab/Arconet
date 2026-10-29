@@ -1,5 +1,7 @@
 "use client";
 
+import PrecioSelector from "./precio-selector";
+import { priceAt } from "@/lib/precios";
 import { previewDocumentClick } from "@/lib/api-document";
 import { resolveFiscalTab } from "@/lib/admin-navigation";
 
@@ -32,7 +34,7 @@ const TABS = [
 ];
 
 // Las píldoras comerciales pertenecen al padre; las fiscales son locales.
-const SALES_TABS = new Set(["facturas", "cotizaciones", "ventas", "pendientes", "aprobadas", "completadas", "todas"]);
+const SALES_TABS = new Set(["precios", "facturas", "cotizaciones", "ventas", "pendientes", "aprobadas", "completadas", "todas"]);
 
 const IMPUESTOS = [
   { value: "15", label: "ISV 15%" },
@@ -48,6 +50,7 @@ function nuevaLinea(impuesto = 15) {
   return {
     key: `linea-${lineaSeq}`,
     productoId: "",
+    nivelPrecio: "normal",
     descripcion: "",
     cantidad: "1",
     precio: "",
@@ -212,7 +215,11 @@ export default function FacturacionPanel({ session, productos: productosIniciale
 
   function cambiarLinea(key, campo, valor) {
     setLineas((current) =>
-      current.map((linea) => (linea.key === key ? { ...linea, [campo]: valor } : linea)),
+      current.map((linea) => {
+        if (linea.key !== key) return linea;
+        if (campo === "nivelPrecio") return { ...linea, nivelPrecio: valor, precio: String(priceAt(productos.find(item => item.id === linea.productoId), valor) ?? "") };
+        return { ...linea, [campo]: valor };
+      }),
     );
   }
 
@@ -224,6 +231,8 @@ export default function FacturacionPanel({ session, productos: productosIniciale
           ? {
               ...linea,
               productoId,
+              nivelPrecio: "normal",
+              descuento: "",
               descripcion: producto ? producto.nombre : "",
               precio: producto ? String(producto.precio) : "",
             }
@@ -258,7 +267,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
         clienteId,
         impuestoPorcentaje: impuesto,
         items: lineas.map((linea) => ({
-          ...(linea.productoId ? { productoId: linea.productoId } : {}),
+          ...(linea.productoId ? { productoId: linea.productoId, nivelPrecio: linea.nivelPrecio } : {}),
           descripcion: linea.descripcion.trim(),
           cantidad: Number(linea.cantidad),
           precio: Number(linea.precio),
@@ -558,7 +567,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
                             onChange={(event) => elegirProducto(linea.key, event.target.value)}
                           >
                             <option value="">Concepto libre</option>
-                            {productos.map((item) => (
+                            {productos.filter(item => item.estado === "activo").map((item) => (
                               <option key={item.id} value={item.id}>
                                 {item.nombre} · stock {item.stock}
                               </option>
@@ -587,6 +596,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
                         />
                       </label>
 
+                      {linea.productoId && <label className={adminStyles.field}>Tarifa de venta<PrecioSelector product={producto} value={linea.nivelPrecio} onChange={value => cambiarLinea(linea.key, "nivelPrecio", value)} label="Tarifa de venta" /></label>}
                       <div className={styles.lineaGrid}>
                         <label className={adminStyles.field}>
                           Cantidad
@@ -606,6 +616,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
                             min="0"
                             step="0.01"
                             value={linea.precio}
+                            readOnly={Boolean(linea.productoId)}
                             onChange={(event) => cambiarLinea(linea.key, "precio", event.target.value)}
                             placeholder="0.00"
                             required
@@ -618,6 +629,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
                             min="0"
                             step="0.01"
                             value={linea.descuento}
+                            disabled={Boolean(linea.productoId) && !session?.permisos?.includes("precios:write")}
                             onChange={(event) => cambiarLinea(linea.key, "descuento", event.target.value)}
                             placeholder="0.00"
                           />

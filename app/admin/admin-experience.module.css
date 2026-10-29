@@ -2243,6 +2243,21 @@
 }
 
 
+/* Los formularios comerciales y de precios siguen centrados también en móvil.
+   El contenido se desplaza dentro del diálogo, no fuera del viewport. */
+.centeredOverlay {
+  place-items: center;
+  padding: 16px;
+}
+
+.centeredOverlay .modal {
+  max-height: calc(100svh - 32px);
+  border-radius: 22px;
+  border-bottom: 1px solid var(--border);
+  animation: none;
+}
+
+
 .modalHead {
   display: flex;
   align-items: flex-start;

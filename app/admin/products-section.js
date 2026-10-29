@@ -1,5 +1,6 @@
 "use client";
 
+import { PRICE_FIELDS, PRICE_LEVELS, parsePrices, validatePriceSet } from "@/lib/precios";
 import { apiFetch as fetch } from "@/lib/api-fetch";
 
 import { useEffect, useMemo, useState } from "react";
@@ -33,6 +34,8 @@ const EMPTY_PRODUCT = {
   marca: "",
   unidad: "Unidad",
   precio: "",
+  precioDescuento: "",
+  precioMayorista: "",
   costo: "",
   stock: "",
   stockMinimo: "",
@@ -77,6 +80,8 @@ export default function ProductsSection({ products = [], setProducts, categorias
   }, [activeCategoryNames, draft.categoria]);
 
   const canWrite = (session?.permisos || []).includes("productos:write");
+  const canReadWarehouses = session?.permisos?.includes("inventario:read");
+  const canWritePrices = session?.permisos?.includes("precios:write");
   const canDelete = session?.permisos?.includes("productos:delete");
   const [busyProduct, setBusyProduct] = useState(null);
 
@@ -85,7 +90,7 @@ export default function ProductsSection({ products = [], setProducts, categorias
     const nextEstado = product.estado === "activo" ? "inactivo" : "activo";
     setBusyProduct(product.id);
     try {
-      const saved = await updateProduct(product.id, { ...product, estado: nextEstado });
+      const saved = await updateProduct(product.id, { estado: nextEstado });
       setProducts((current) =>
         current.map((item) => (item.id === product.id ? saved : item)),
       );
@@ -113,6 +118,7 @@ export default function ProductsSection({ products = [], setProducts, categorias
 
   const [bodegaOptions, setBodegaOptions] = useState([]);
   useEffect(() => {
+    if (!canReadWarehouses) return;
     let active = true;
     fetch("/api/bodegas", { cache: "no-store" })
       .then((response) => (response.ok ? response.json() : []))
@@ -126,7 +132,7 @@ export default function ProductsSection({ products = [], setProducts, categorias
       })
       .catch(() => {});
     return () => { active = false; };
-  }, []);
+  }, [canReadWarehouses]);
 
   const ubicacionOptions = useMemo(() => {
     const set = new Set();
@@ -134,9 +140,9 @@ export default function ProductsSection({ products = [], setProducts, categorias
       const value = String(product.ubicacion || "").trim();
       if (value) set.add(value);
     });
-    bodegaOptions.forEach((value) => set.add(value));
+    if (canReadWarehouses) bodegaOptions.forEach((value) => set.add(value));
     return [...set].sort((a, b) => a.localeCompare(b, "es"));
-  }, [products, bodegaOptions]);
+  }, [products, bodegaOptions, canReadWarehouses]);
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
@@ -210,6 +216,8 @@ export default function ProductsSection({ products = [], setProducts, categorias
   function openEdit(product) {
     setDraft({
       ...product,
+      precioDescuento: product.precioDescuento ?? "",
+      precioMayorista: product.precioMayorista ?? "",
       costo: product.costo == null ? "" : product.costo,
       peso: product.peso == null ? "" : product.peso,
       stockMinimo: product.stockMinimo == null ? "" : product.stockMinimo,
@@ -290,6 +298,14 @@ export default function ProductsSection({ products = [], setProducts, categorias
       ubicacion: String(draft.ubicacion || "").trim(),
       peso: draft.peso === "" || draft.peso == null ? null : Number(draft.peso) || 0,
     };
+    if (canWritePrices) {
+      const parsed = parsePrices(draft);
+      const errors = [...parsed.errors, ...validatePriceSet(parsed.data)];
+      if (errors.length) { notifyError(errors[0]); return; }
+      Object.assign(payload, parsed.data, { preciosVersion: draft.preciosUpdatedAt ?? null });
+    } else {
+      PRICE_FIELDS.forEach(field => delete payload[field]);
+    }
     let saved;
     try {
       if (editingId) {
@@ -317,7 +333,7 @@ export default function ProductsSection({ products = [], setProducts, categorias
         subtitle="Catálogo de Arconet: categoría, precio, stock y disponibilidad."
         action={
           canWrite && (
-            <button type="button" className={styles.primaryBtn} disabled={!canWrite} onClick={openCreate}>
+            <button type="button" className={styles.primaryBtn} disabled={!canWrite || !canWritePrices} title={!canWritePrices ? "Crear productos requiere permiso de modificar precios" : undefined} onClick={openCreate}>
               <Plus size={16} /> Nuevo producto
             </button>
           )
@@ -648,19 +664,11 @@ export default function ProductsSection({ products = [], setProducts, categorias
                   </select>
                   <small className={styles.fieldHint}>Solo etiqueta el stock; no convierte cantidades.</small>
                 </label>
-                <label className={styles.field}>
-                  Precio (L)
-                  <input
-                    type="number"
-                    min="1"
-                    step="0.01"
-                    required
-                    value={draft.precio}
-                    onChange={(event) => changeField("precio", event.target.value)}
-                    placeholder="1.00"
-                  />
-                  <small className={styles.fieldHint}>Mínimo L 1.00: el sistema no permite productos a L 0.</small>
-                </label>
+                {PRICE_LEVELS.map(level => <label className={styles.field} key={level.id}>
+                  {level.label} (L)
+                  <input type="number" min={level.id === "normal" ? "1" : "0.01"} max="9999999999.99" step="0.01" required={level.id === "normal"} disabled={!canWritePrices} value={draft[level.field]} onChange={event => changeField(level.field, event.target.value)} placeholder={level.id === "normal" ? "Precio original de venta" : "Opcional"} />
+                  <small className={styles.fieldHint}>{!canWritePrices ? "Solo lectura: requiere permiso de modificar precios." : level.id === "normal" ? "Precio normal de venta, no costo de compra. Mínimo L 1.00." : "Vacío = sin configurar. No puede superar el precio normal."}</small>
+                </label>)}
                 <label className={styles.field}>
                   Costo (L)
                   <input

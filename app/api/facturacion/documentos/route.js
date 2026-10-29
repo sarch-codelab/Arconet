@@ -80,6 +80,7 @@ export async function POST(request) {
           items: Array.isArray(body?.items) ? body.items : [],
           impuestoPorcentaje: Number(body?.impuestoPorcentaje) || undefined,
           actor: guard.session.correo,
+          canDiscount: guard.permisos?.includes("precios:write"),
         });
 
         // La factura descuenta inventario salvo que su venta ya lo haya hecho

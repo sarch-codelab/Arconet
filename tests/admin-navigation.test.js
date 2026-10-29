@@ -88,3 +88,15 @@ describe('catálogo de apoyo de inventario', () => {
     expect(canLookupInventoryProducts(['productos:read'])).toBe(true);
   });
 });
+
+describe('pestaña independiente de tarifas en Ventas', () => {
+  const tabs = ['todas', 'precios', 'facturas'].map(id => ({ id }));
+  it('un lector de precios entra a Ventas sin acceso comercial ni fiscal', () => {
+    expect(defaultAdminSection(['precios:read'])).toBe('ventas');
+    expect(allowedSalesTabs(tabs, ['precios:read'])).toEqual([{ id: 'precios' }]);
+  });
+  it('los permisos comerciales/fiscales no conceden gestión de tarifas', () => {
+    expect(allowedSalesTabs(tabs, ['ordenes:read', 'facturacion:read'])).toEqual([{ id: 'todas' }, { id: 'facturas' }]);
+    expect(allowedSalesTabs(tabs, ['precios:write'])).toEqual([]);
+  });
+});

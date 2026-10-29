@@ -1,3 +1,5 @@
+import { PRICE_FIELDS, hasPriceChanges } from "@/lib/precios";
+import { updateProductPrices } from "@/lib/precios-service";
 import { prisma } from '@/lib/prisma';
 import { parseProducto } from '@/lib/productos';
 import { toProducto } from '@/lib/serialize';
@@ -31,6 +33,7 @@ export async function PATCH(request, { params }) {
     return Response.json({ error: "JSON inválido." }, { status: 400 });
   }
 
+  if (hasPriceChanges(body) && !guard.permisos?.includes("precios:write")) return Response.json({ error: "Se necesita permiso de modificar precios." }, { status: 403 });
   const { data, errors } = parseProducto(body, { partial: true });
   if (errors.length) {
     return Response.json({ error: errors[0], errors }, { status: 400 });
@@ -53,12 +56,13 @@ export async function PATCH(request, { params }) {
           throw error;
         }
 
-        if (stock === undefined) {
-          return tx.producto.update({
-            where: { id },
-            data: { ...resto, updatedBy: guard.session?.correo ?? null },
-          });
-        }
+        const save = () => {
+          if (!hasPriceChanges(resto)) return tx.producto.update({ where: { id }, data: { ...resto, updatedBy: guard.session?.correo ?? null } });
+          const prices = Object.fromEntries(PRICE_FIELDS.filter(field => Object.hasOwn(resto, field)).map(field => [field, resto[field]]));
+          const extra = Object.fromEntries(Object.entries(resto).filter(([field]) => !PRICE_FIELDS.includes(field)));
+          return updateProductPrices(tx, id, prices, { actor: guard.session?.correo, version: body.preciosVersion, extra: { ...extra, updatedBy: guard.session?.correo ?? null } });
+        };
+        if (stock === undefined) return save();
 
         if (Number(stock) !== actual.stock) {
           // Si el producto venía de antes de existir bodegas, primero se
@@ -79,10 +83,7 @@ export async function PATCH(request, { params }) {
           });
         }
 
-        return tx.producto.update({
-          where: { id },
-          data: { ...resto, updatedBy: guard.session?.correo ?? null },
-        });
+        return save();
       },
       { timeout: 20_000 },
     );
