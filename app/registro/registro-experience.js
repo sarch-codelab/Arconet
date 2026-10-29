@@ -1,5 +1,7 @@
 "use client";
 
+import { rememberLocalPreviewSession, clientApiFetch as fetch } from "@/lib/api-fetch";
+
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -62,6 +64,7 @@ export default function RegistroExperience() {
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || "No se pudo crear la cuenta.");
+      rememberLocalPreviewSession("cliente", payload.localPreviewToken);
       sileo.success({
         title: "Tu cuenta está lista",
         description: payload.verificacionEnviada

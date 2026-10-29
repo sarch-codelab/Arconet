@@ -1,5 +1,7 @@
+import { isLocalPreviewAuthEnabled } from "@/lib/local-preview-auth";
 import { prisma } from '@/lib/prisma';
 import { verifyPassword } from '@/lib/auth';
+import { normalizeAdminLogin } from '@/lib/local-preview';
 import { createSession } from '@/lib/session';
 import { writeLog } from '@/lib/logs';
 import { decryptTotpSecret, verifyTotp } from '@/lib/totp';
@@ -44,7 +46,7 @@ export async function POST(request) {
     return Response.json({ error: "JSON inválido." }, { status: 400 });
   }
 
-  const email = typeof body?.email === "string" ? body.email.trim().toLowerCase().slice(0, 254) : "";
+  const email = normalizeAdminLogin(body?.email);
   const password = typeof body?.password === "string" ? body.password.slice(0, 256) : "";
   const ip = getClientIp(request);
   if (rateLimit(`ip:${ip}`, 30) || rateLimit(`acct:${email || "anon"}`, 10)) {
@@ -81,7 +83,7 @@ export async function POST(request) {
     }
   }
 
-  await createSession({
+  const token = await createSession({
     id: usuario.id,
     nombre: usuario.nombre,
     correo: usuario.correo,
@@ -96,9 +98,10 @@ export async function POST(request) {
   });
 
   return Response.json({
+    ...(isLocalPreviewAuthEnabled() ? { localPreviewToken: token } : {}),
     nombre: usuario.nombre,
     correo: usuario.correo,
     rol: usuario.rol,
     sucursal: usuario.sucursalId ?? "",
-  });
+  }, { headers: { "Cache-Control": "no-store" } });
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { apiFetch as fetch } from "@/lib/api-fetch";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertCircle, ArrowRight, Check, ClipboardList, MessageSquare, Plus, Send, Settings2, X } from "lucide-react";
 import { sileo } from "../toaster";
@@ -37,7 +39,9 @@ export default function SolicitudesPanel({ session }) {
   const [areaDraft, setAreaDraft] = useState(EMPTY_AREA);
   const [editingArea, setEditingArea] = useState(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
-  const canManageAreas = ["administrador", "gerente"].includes(session?.rol);
+  const canWrite = session?.permisos?.includes("solicitudes:write");
+  const canReadRoles = session?.permisos?.includes("roles:read");
+  const canManageAreas = canWrite && ["administrador", "gerente"].includes(session?.rol);
 
   const load = useCallback(async (quiet = false) => {
     if (!quiet) setLoading(true);
@@ -55,7 +59,7 @@ export default function SolicitudesPanel({ session }) {
 
   const loadAreas = useCallback(async () => {
     try {
-      const [areaData, roleData] = await Promise.all([request("/api/areas-solicitudes"), canManageAreas ? request("/api/roles") : Promise.resolve([])]);
+      const [areaData, roleData] = await Promise.all([request("/api/areas-solicitudes"), canManageAreas && canReadRoles ? request("/api/roles") : Promise.resolve([])]);
       const activeAreas = Array.isArray(areaData) ? areaData : [];
       setAreas(activeAreas);
       setRoles(Array.isArray(roleData) ? roleData.filter((role) => role.estado === "activo") : []);
@@ -64,7 +68,7 @@ export default function SolicitudesPanel({ session }) {
     } catch (error) {
       setAreaError(error.message);
     }
-  }, [canManageAreas]);
+  }, [canManageAreas, canReadRoles]);
 
   useEffect(() => { load(); loadAreas(); }, [load, loadAreas]);
   useEffect(() => {
@@ -176,7 +180,8 @@ export default function SolicitudesPanel({ session }) {
     { id: "ordenes", label: "Órdenes", icon: ClipboardList },
     ...(canManageAreas ? [{ id: "areas", label: "Áreas y responsables", icon: Settings2 }] : []),
   ];
-  const canProcess = Boolean(selected && (canManageAreas || areas.find((area) => area.slug === selected.area)?.roles.includes(session?.rol)));
+  const canDeleteSelected = canWrite && Boolean(selected && (canManageAreas || selected.solicitanteCorreo?.toLowerCase() === session?.correo?.toLowerCase()));
+  const canProcess = canWrite && Boolean(selected && (canManageAreas || areas.find((area) => area.slug === selected.area)?.roles.includes(session?.rol)));
   const actions = selected ? ({
     pendiente: [["en_revision", "Iniciar revisión"]],
     en_revision: [["aprobada", "Aprobar"], ["rechazada", "Rechazar"]],
@@ -186,7 +191,7 @@ export default function SolicitudesPanel({ session }) {
 
   return (
     <>
-      <Topbar title="Órdenes internas" subtitle="Solicitudes de trabajo con responsables, aprobaciones y seguimiento compartido." session={session} action={view === "ordenes" ? <button type="button" className={adminStyles.primaryBtn} onClick={() => setShowCreate((value) => !value)}><Plus size={16} /> Nueva orden</button> : null} />
+      <Topbar title="Órdenes internas" subtitle="Solicitudes de trabajo con responsables, aprobaciones y seguimiento compartido." session={session} action={canWrite && view === "ordenes" ? <button type="button" className={adminStyles.primaryBtn} onClick={() => setShowCreate((value) => !value)}><Plus size={16} /> Nueva orden</button> : null} />
       <div className={adminStyles.body}>
         <SectionTabs tabs={areaTabs} activeTab={view} onTabChange={setView} label="Órdenes y configuración de áreas" />
 
@@ -244,7 +249,7 @@ export default function SolicitudesPanel({ session }) {
               {!selected ? <div className={styles.empty}><ArrowRight size={20} /><span>Selecciona una orden para revisar el detalle y conversar con el área responsable.</span></div> : <>
                 <div className={styles.detailHead}><span className={styles.eyebrow}>{areaName(selected.area)} · {selected.id}</span><h3>{selected.titulo}</h3><span className={`${styles.status} ${styles[`status_${selected.estado}`]}`}>{STATUS_LABELS[selected.estado]}</span><p>{selected.descripcion}</p><div className={styles.meta}><span>Solicitó <strong>{selected.solicitanteNombre}</strong></span><span>Prioridad <strong>{PRIORITY_LABELS[selected.prioridad]}</strong></span><span>Actualizada <strong>{new Date(selected.updatedAt).toLocaleString("es-HN", { dateStyle: "medium", timeStyle: "short" })}</strong></span>{selected.responsableCorreo && <span>Responsable <strong>{selected.responsableCorreo}</strong></span>}</div></div>
                 {canProcess && actions.length > 0 && <div className={styles.actions}>{actions.map(([estado, label]) => <button key={estado} type="button" className={estado === "rechazada" ? styles.rejectButton : adminStyles.primaryBtn} disabled={saving} onClick={() => updateStatus(estado)}>{estado === "aprobada" || estado === "completada" ? <Check size={15} /> : <ArrowRight size={15} />}{label}</button>)}</div>}
-                <div className={styles.orderDanger}>
+                {canDeleteSelected && <div className={styles.orderDanger}>
                   {confirmingDelete ? (
                     <>
                       <span>¿Eliminar esta orden con sus comentarios y adjuntos?</span>
@@ -254,8 +259,8 @@ export default function SolicitudesPanel({ session }) {
                   ) : (
                     <button type="button" className={styles.deleteOrder} onClick={() => setConfirmingDelete(true)}>Eliminar orden</button>
                   )}
-                </div>
-                <div className={styles.thread}><h4>Comentarios y seguimiento</h4><div className={styles.messages}>{selected.comentarios?.length ? selected.comentarios.map((entry) => <article key={entry.id} className={styles.message}><div><strong>{entry.autorNombre}</strong><span>{entry.autorRol}</span><time>{new Date(entry.createdAt).toLocaleString("es-HN", { dateStyle: "short", timeStyle: "short" })}</time></div><p>{entry.mensaje}</p></article>) : <p className={styles.noMessages}>Aún no hay comentarios. Usa este espacio para aclarar o actualizar la solicitud.</p>}</div><form className={styles.commentForm} onSubmit={sendComment}><textarea rows={3} maxLength={3000} value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Escribe una actualización o pregunta para el equipo…" aria-label="Nuevo comentario" required /><button type="submit" className={adminStyles.primaryBtn} disabled={saving || !comment.trim()}><Send size={15} /> Enviar comentario</button></form></div>
+                </div>}
+                <div className={styles.thread}><h4>Comentarios y seguimiento</h4><div className={styles.messages}>{selected.comentarios?.length ? selected.comentarios.map((entry) => <article key={entry.id} className={styles.message}><div><strong>{entry.autorNombre}</strong><span>{entry.autorRol}</span><time>{new Date(entry.createdAt).toLocaleString("es-HN", { dateStyle: "short", timeStyle: "short" })}</time></div><p>{entry.mensaje}</p></article>) : <p className={styles.noMessages}>Aún no hay comentarios. Usa este espacio para aclarar o actualizar la solicitud.</p>}</div><form className={styles.commentForm} onSubmit={sendComment}><textarea rows={3} maxLength={3000} value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Escribe una actualización o pregunta para el equipo…" aria-label="Nuevo comentario" disabled={!canWrite} required /><button type="submit" className={adminStyles.primaryBtn} disabled={!canWrite || saving || !comment.trim()}><Send size={15} /> Enviar comentario</button></form></div>
               </>}
             </section>
           </div>

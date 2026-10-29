@@ -1,6 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { apiFetch as fetch } from "@/lib/api-fetch";
+
+import { useEffect, useRef, useState } from "react";
+import { setThemeMode } from "../theme-toggle";
 import { Settings, ShieldCheck } from "lucide-react";
 import styles from "./admin-experience.module.css";
 import { useToast } from "./admin-ui";
@@ -8,6 +11,8 @@ import { Topbar } from "./topbar";
 
 export default function AjustesSection({ session, workers = [] }) {
   const [settings, setSettings] = useState(null);
+  const savedTheme = useRef(null);
+  const canWrite = session?.permisos?.includes("ajustes:write");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -18,21 +23,25 @@ export default function AjustesSection({ session, workers = [] }) {
     fetch("/api/configuracion", { cache: "no-store" }).then(async (response) => {
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || "No se pudo cargar la configuración.");
-      if (active) setSettings(data);
+      if (active) {
+        setSettings(data);
+        savedTheme.current = data.theme;
+      }
     }).catch((loadError) => { if (active) setError(loadError.message); }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, []);
 
   async function handleSave(event) {
     event.preventDefault();
-    if (!settings || saving) return;
-    const previousTheme = settings.theme;
+    if (!settings || saving || !canWrite) return;
+    const previousTheme = savedTheme.current;
     setSaving(true);
     try {
       const response = await fetch("/api/configuracion", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(settings) });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || "No se pudo guardar la configuración.");
       setSettings(data);
+      savedTheme.current = data.theme;
       // El tema solo se aplica cuando el usuario lo cambia y guarda: antes se
       // imponía al abrir la sección y el sitio cambiaba de color "de la nada".
       if (data.theme && data.theme !== previousTheme) {
@@ -66,6 +75,7 @@ export default function AjustesSection({ session, workers = [] }) {
               <label className={styles.field}>
                 Nombre de la empresa
                 <input
+                  disabled={!canWrite}
                   type="text"
                   value={settings.companyName}
                   onChange={(event) => changeField("companyName", event.target.value)}
@@ -74,6 +84,7 @@ export default function AjustesSection({ session, workers = [] }) {
               <label className={styles.field}>
                 Email de contacto
                 <input
+                  disabled={!canWrite}
                   type="email"
                   value={settings.email}
                   onChange={(event) => changeField("email", event.target.value)}
@@ -82,6 +93,7 @@ export default function AjustesSection({ session, workers = [] }) {
               <label className={styles.field}>
                 Teléfono
                 <input
+                  disabled={!canWrite}
                   type="tel"
                   value={settings.phone}
                   onChange={(event) => changeField("phone", event.target.value)}
@@ -90,6 +102,7 @@ export default function AjustesSection({ session, workers = [] }) {
               <label className={styles.field}>
                 WhatsApp de cotizaciones
                 <input
+                  disabled={!canWrite}
                   type="tel"
                   value={settings.whatsapp}
                   onChange={(event) => changeField("whatsapp", event.target.value)}
@@ -98,14 +111,14 @@ export default function AjustesSection({ session, workers = [] }) {
               </label>
               <label className={styles.field}>
                 Moneda
-                <select value={settings.currency} onChange={(event) => changeField("currency", event.target.value)}>
+                <select disabled={!canWrite} value={settings.currency} onChange={(event) => changeField("currency", event.target.value)}>
                   <option value="L">Lempiras (L)</option>
                   <option value="USD">Dólares (USD)</option>
                 </select>
               </label>
               <label className={styles.field}>
                 Tema
-                <select value={settings.theme} onChange={(event) => changeField("theme", event.target.value)}>
+                <select disabled={!canWrite} value={settings.theme} onChange={(event) => changeField("theme", event.target.value)}>
                   <option value="light">Claro</option>
                   <option value="dark">Oscuro</option>
                   <option value="system">Automático (según la hora)</option>
@@ -117,7 +130,7 @@ export default function AjustesSection({ session, workers = [] }) {
             </div>
 
             <footer className={styles.modalActions}>
-              <button type="submit" className={styles.submit} disabled={saving}>
+              <button type="submit" className={styles.submit} disabled={saving || !canWrite}>
                 {saving ? "Guardando…" : "Guardar cambios"}
               </button>
             </footer>

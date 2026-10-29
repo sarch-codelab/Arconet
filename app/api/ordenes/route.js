@@ -5,7 +5,7 @@ import { requirePermission, requireSession } from '@/lib/dal';
 import { getClientSession } from '@/lib/client-session';
 import { writeLog } from '@/lib/logs';
 import { checkRateLimit } from '@/lib/rate-limit';
-import { descontarStock } from '@/lib/stock-ventas';
+import { descontarStock, isStockSale } from '@/lib/stock-ventas';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -161,7 +161,7 @@ export async function POST(request) {
         // Una venta descuenta inventario al emitirse; una cotización no toca
         // existencias. El descuento comparte transacción con la orden: si no
         // hay stock suficiente, la venta no se crea.
-        if (creada.tipo === "venta" && creada.items.length) {
+        if (isStockSale(creada) && creada.items.length) {
           await descontarStock(tx, {
             referencia: `venta:${creada.id}`,
             items: creada.items,
@@ -175,7 +175,7 @@ export async function POST(request) {
       },
       { timeout: 20_000 },
     );
-    await writeLog("panel", `Venta creada con inventario descontado: ${orden.id}`, {
+    await writeLog("panel", `${orden.tipo === "venta" ? "Venta" : "Cotización"} creada ${isStockSale(orden) ? "con descuento de inventario" : "sin afectar inventario"}: ${orden.id}`, {
       actor: guard.session?.correo,
       ruta: "/api/ordenes",
       detalle: { ordenId: orden.id, tipo: orden.tipo, monto: String(orden.monto) },

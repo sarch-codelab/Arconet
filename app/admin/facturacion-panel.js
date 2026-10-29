@@ -1,5 +1,10 @@
 "use client";
 
+import { previewDocumentClick } from "@/lib/api-document";
+import { resolveFiscalTab } from "@/lib/admin-navigation";
+
+import { apiFetch as fetch } from "@/lib/api-fetch";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
@@ -26,18 +31,8 @@ const TABS = [
   { id: "config", label: "Configuración", icon: Settings2, title: "CAI, serie y datos fiscales" },
 ];
 
-// Cuando el panel vive dentro de la sección unificada "Ventas", las pills
-// externas usan ids propios ("facturas", "cotizaciones", ...). Este mapa traduce
-// esos ids al sub-tab interno equivalente para que la navegación funcione.
-const EXTERNAL_TO_INTERNAL = {
-  facturas: "documentos",
-  cotizaciones: "documentos",
-  ventas: "documentos",
-  pendientes: "documentos",
-  aprobadas: "documentos",
-  completadas: "documentos",
-  todas: "documentos",
-};
+// Las píldoras comerciales pertenecen al padre; las fiscales son locales.
+const SALES_TABS = new Set(["facturas", "cotizaciones", "ventas", "pendientes", "aprobadas", "completadas", "todas"]);
 
 const IMPUESTOS = [
   { value: "15", label: "ISV 15%" },
@@ -96,20 +91,20 @@ async function request(url, options) {
 
 export default function FacturacionPanel({ session, productos: productosIniciales = [], hideTopbar = false, chromeOnly = false, tabs, activeTab: controlledTab, onTabChange }) {
   const [innerTab, setInnerTab] = useState("documentos");
-  // El tab real solo puede ser uno de los internos; si viene un id externo
-  // (p. ej. "facturas" desde la sección Ventas) se traduce con el mapa.
-  const tab = EXTERNAL_TO_INTERNAL[controlledTab] ?? innerTab;
+  // Las píldoras fiscales mantienen su selección aunque Ventas siga en «Facturas».
+  const tab = resolveFiscalTab(controlledTab, innerTab);
+  const canWrite = session?.permisos?.includes("facturacion:write");
+  const canReadClientes = session?.permisos?.includes("clientes:read");
+  const canReadProductos = session?.permisos?.includes("productos:read");
   const setTab = (next) => {
-    if (!EXTERNAL_TO_INTERNAL[next]) {
-      // Sub-filtro interno (documentos/nueva/libro/config): no notifica afuera
-      // para no cerrar el panel.
+    if (TABS.some(item => item.id === next)) {
       setInnerTab(next);
+      if (TABS.some(item => item.id === controlledTab)) onTabChange?.(next);
       return;
     }
-    // Pill externa: si es "facturas" muestra el panel; cualquier otra hace que
-    // VentasSection monte CotizacionesSection en su lugar.
-    onTabChange?.(next);
+    if (SALES_TABS.has(next)) onTabChange?.(next);
   };
+
   const [documentos, setDocumentos] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [productos, setProductos] = useState(productosIniciales);
@@ -134,8 +129,8 @@ export default function FacturacionPanel({ session, productos: productosIniciale
     try {
       const [docs, cli, prod, cfg] = await Promise.all([
         request("/api/facturacion/documentos"),
-        request("/api/clientes?take=500"),
-        request("/api/productos?take=500"),
+        canReadClientes ? request("/api/clientes?take=500") : Promise.resolve([]),
+        canReadProductos ? request("/api/productos?take=500") : Promise.resolve([]),
         request("/api/facturacion/config"),
       ]);
       setDocumentos(Array.isArray(docs) ? docs : []);
@@ -156,7 +151,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [canReadClientes, canReadProductos]);
 
   const cargarLibro = useCallback(async () => {
     try {
@@ -377,7 +372,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
           </div>
         )}
 
-        <SectionTabs tabs={TABS} activeTab={tab} onTabChange={setTab} label="Secciones de facturación" />
+        <SectionTabs tabs={TABS.filter(item => item.id !== "nueva" || canWrite)} activeTab={tab} onTabChange={setTab} label="Secciones de facturación" />
 
         {error ? <p className={styles.error} role="alert">{error}</p> : null}
 
@@ -457,13 +452,14 @@ export default function FacturacionPanel({ session, productos: productosIniciale
                           </button>
                           <a
                             className={adminStyles.ghostBtn}
-                            href={`/api/facturacion/documentos/${encodeURIComponent(doc.id)}/pdf?auto=1`}
-                            target="_blank"
+                            href={`/api/facturacion/documentos/${encodeURIComponent(doc.id)}/pdf`}
+                            data-no-transition="true"
+                            onClick={event => previewDocumentClick(event, "admin")?.catch(error => sileo.error({ title: error.message }))}
                             rel="noopener noreferrer"
                           >
                             <Download size={14} /> Imprimir
                           </a>
-                          {doc.estado !== "anulado" ? (
+                          {canWrite && doc.estado !== "anulado" ? (
                             <button type="button" className={adminStyles.dangerBtn} onClick={() => anular(doc)}>
                               <Ban size={14} /> Anular
                             </button>
@@ -671,7 +667,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
               <button
                 type="submit"
                 className={adminStyles.primaryBtn}
-                disabled={guardando || !clienteId || !lineasValidas}
+                disabled={!canWrite || guardando || !clienteId || !lineasValidas}
               >
                 <Receipt size={16} /> {guardando ? "Emitiendo…" : "Emitir factura"}
               </button>
@@ -700,12 +696,16 @@ export default function FacturacionPanel({ session, productos: productosIniciale
               <a
                 className={adminStyles.ghostBtn}
                 href={`/api/facturacion/libro-ventas?desde=${desde}&hasta=${hasta}&formato=csv`}
+                data-no-transition="true"
+                onClick={event => previewDocumentClick(event, "admin")?.catch(error => sileo.error({ title: error.message }))}
               >
                 <Download size={14} /> CSV
               </a>
               <a
                 className={adminStyles.ghostBtn}
                 href={`/api/facturacion/libro-ventas?desde=${desde}&hasta=${hasta}&formato=xlsx`}
+                data-no-transition="true"
+                onClick={event => previewDocumentClick(event, "admin")?.catch(error => sileo.error({ title: error.message }))}
               >
                 <Download size={14} /> Excel
               </a>
@@ -783,7 +783,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
                   CAI
                   <input
                     type="text"
-                    value={configDraft.cai}
+                    disabled={!canWrite} value={configDraft.cai}
                     onChange={(event) => setConfigDraft({ ...configDraft, cai: event.target.value })}
                     placeholder="XXXXXXXX-XXXXXX-XXXXXXXX-XXXXXXXX"
                   />
@@ -792,7 +792,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
                   Serie / establecimiento
                   <input
                     type="text"
-                    value={configDraft.serie}
+                    disabled={!canWrite} value={configDraft.serie}
                     onChange={(event) => setConfigDraft({ ...configDraft, serie: event.target.value })}
                     placeholder="001-001-01"
                   />
@@ -802,7 +802,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
                   <input
                     type="number"
                     min="1"
-                    value={configDraft.correlativo}
+                    disabled={!canWrite} value={configDraft.correlativo}
                     onChange={(event) => setConfigDraft({ ...configDraft, correlativo: event.target.value })}
                     placeholder="1"
                   />
@@ -814,7 +814,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
                   RTN del emisor
                   <input
                     type="text"
-                    value={configDraft.nit}
+                    disabled={!canWrite} value={configDraft.nit}
                     onChange={(event) => setConfigDraft({ ...configDraft, nit: event.target.value })}
                   />
                 </label>
@@ -822,7 +822,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
                   Razón social
                   <input
                     type="text"
-                    value={configDraft.nombre}
+                    disabled={!canWrite} value={configDraft.nombre}
                     onChange={(event) => setConfigDraft({ ...configDraft, nombre: event.target.value })}
                     placeholder="Arconet, S.A."
                   />
@@ -831,14 +831,14 @@ export default function FacturacionPanel({ session, productos: productosIniciale
                   Dirección fiscal
                   <input
                     type="text"
-                    value={configDraft.direccion}
+                    disabled={!canWrite} value={configDraft.direccion}
                     onChange={(event) => setConfigDraft({ ...configDraft, direccion: event.target.value })}
                   />
                 </label>
               </div>
 
               <div className={adminStyles.modalActions}>
-                <button type="submit" className={adminStyles.primaryBtn} disabled={guardando}>
+                <button type="submit" className={adminStyles.primaryBtn} disabled={!canWrite || guardando}>
                   {guardando ? "Guardando…" : "Guardar configuración"}
                 </button>
               </div>

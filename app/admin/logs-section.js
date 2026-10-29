@@ -1,5 +1,7 @@
 "use client";
 
+import { apiFetch as fetch } from "@/lib/api-fetch";
+
 import { useCallback, useEffect, useState } from "react";
 import { AlertTriangle, ArrowLeft, ArrowRight, Info, Pause, Play, RefreshCw, ScrollText, Search } from "lucide-react";
 import styles from "./admin-experience.module.css";

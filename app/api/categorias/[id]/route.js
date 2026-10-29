@@ -95,7 +95,8 @@ export async function DELETE(_request, { params }) {
     }
 
     const productos = await prisma.producto.count({
-      where: { categoria: categoria.nombre },
+      // El catálogo y el contador de la UI excluyen las bajas definitivas.
+      where: { categoria: categoria.nombre, archivado: false },
     });
     if (productos > 0) {
       return Response.json(

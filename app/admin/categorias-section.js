@@ -22,6 +22,8 @@ const EMPTY_CATEGORY = {
 };
 
 export default function CategoriasSection({ categorias = [], setCategorias, products = [], setProducts, workers = [], session }) {
+  const canWrite = session?.permisos?.includes("categorias:write");
+  const canDelete = session?.permisos?.includes("categorias:delete");
   const [activeTab, setActiveTab] = useState("all");
   const [query, setQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -176,7 +178,7 @@ export default function CategoriasSection({ categorias = [], setCategorias, prod
         title="Categorías"
         subtitle="Administra las categorías del catálogo: nombre, foto, orden y visibilidad."
         action={
-          <button type="button" className={styles.primaryBtn} onClick={openCreate}>
+          <button type="button" className={styles.primaryBtn} disabled={!canWrite} onClick={openCreate}>
             <Plus size={16} /> Nueva categoría
           </button>
         }
@@ -270,7 +272,7 @@ export default function CategoriasSection({ categorias = [], setCategorias, prod
                       <div className={styles.rowActions}>
                         <button
                           type="button"
-                          onClick={() => openEdit(category)}
+                          disabled={!canWrite} onClick={() => openEdit(category)}
                           aria-label={`Editar ${category.nombre}`}
                           title="Editar"
                         >
@@ -279,7 +281,7 @@ export default function CategoriasSection({ categorias = [], setCategorias, prod
                         <button
                           type="button"
                           className={styles.danger}
-                          onClick={() => requestDelete(category)}
+                          disabled={!canDelete} onClick={() => requestDelete(category)}
                           aria-label={`Eliminar ${category.nombre}`}
                           title="Eliminar"
                         >

@@ -37,7 +37,8 @@ const EMPTY_WORKER = {
   password: "",
 };
 
-export default function WorkersSection({ workers = [], setWorkers, roles = [], session }) {
+export default function WorkersSection({ workers = [], setWorkers, roles = [], sucursales = [], session }) {
+  const branches = useMemo(() => sucursales.length ? sucursales.map(item => ({ id: item.id, label: item.nombre })) : BRANCHES, [sucursales]);
   const [activeTab, setActiveTab] = useState("all");
   const roleName = (slug) => roles.find((item) => item.slug === slug)?.nombre || slug;
   const [query, setQuery] = useState("");
@@ -52,7 +53,8 @@ export default function WorkersSection({ workers = [], setWorkers, roles = [], s
   const { show } = useToast();
   const { goTo } = useContext(AdminContext);
 
-  const canWriteWorkers = (session?.permisos || []).includes("trabajadores:write");
+  const canWrite = (session?.permisos || []).includes("trabajadores:write");
+  const canDelete = session?.permisos?.includes("trabajadores:delete");
 
   // Accion rapida: alternar activo/inactivo sin abrir el modal.
   async function toggleWorkerState(worker) {
@@ -120,12 +122,12 @@ export default function WorkersSection({ workers = [], setWorkers, roles = [], s
   const stats = useMemo(() => {
     const total = workers.length;
     const activos = workers.filter((worker) => worker.estado === "activo").length;
-    const perBranch = BRANCHES.map((item) => ({
+    const perBranch = branches.map((item) => ({
       ...item,
       count: workers.filter((worker) => worker.sucursal === item.id).length,
     }));
     return { total, activos, perBranch };
-  }, [workers]);
+  }, [workers, branches]);
 
   const hasFilters =
     query.trim() !== "" || branch !== "all" || role !== "all" || status !== "all";
@@ -142,6 +144,7 @@ export default function WorkersSection({ workers = [], setWorkers, roles = [], s
     const firstActiveRole = roles.find((r) => r.estado === "activo" && r.slug !== SUPER_ROLE);
     setDraft({
       ...EMPTY_WORKER,
+      sucursal: branches[0]?.id || "",
       id: newWorkerId(),
       rol: firstActiveRole ? (firstActiveRole.slug || firstActiveRole.nombre) : "tecnico",
     });
@@ -225,7 +228,7 @@ export default function WorkersSection({ workers = [], setWorkers, roles = [], s
         title="Trabajadores"
         subtitle="Personal de Arconet por sucursal, rol y estado."
         action={
-          <button type="button" className={styles.primaryBtn} onClick={openCreate}>
+          <button type="button" className={styles.primaryBtn} disabled={!canWrite} onClick={openCreate}>
             <Plus size={16} /> Nuevo trabajador
           </button>
         }
@@ -281,7 +284,7 @@ export default function WorkersSection({ workers = [], setWorkers, roles = [], s
             aria-label="Filtrar por sucursal"
           >
             <option value="all">Todas las sucursales</option>
-            {BRANCHES.map((item) => (
+            {branches.map((item) => (
               <option key={item.id} value={item.id}>{item.label}</option>
             ))}
           </select>
@@ -348,7 +351,7 @@ export default function WorkersSection({ workers = [], setWorkers, roles = [], s
                         <span>{worker.telefono || "—"}</span>
                       </div>
                     </td>
-                    <td data-label="Sucursal">{branchLabel(worker.sucursal)}</td>
+                    <td data-label="Sucursal">{branchLabel(worker.sucursal, branches)}</td>
                     <td data-label="Rol"><span className={styles.role}>{roleName(worker.rol)}</span></td>
                     <td data-label="Estado">
                       <span className={`${styles.pill} ${styles[`status_${worker.estado}`]}`}>
@@ -358,7 +361,7 @@ export default function WorkersSection({ workers = [], setWorkers, roles = [], s
                     <td data-label="Ingreso">{formatDate(worker.ingreso)}</td>
                     <td data-label="Acciones">
                       <div className={styles.rowActions}>
-                        {canWriteWorkers && (
+                        {canWrite && (
                           <button
                             type="button"
                             onClick={() => toggleWorkerState(worker)}
@@ -375,7 +378,7 @@ export default function WorkersSection({ workers = [], setWorkers, roles = [], s
                         )}
                         <button
                           type="button"
-                          onClick={() => openEdit(worker)}
+                          disabled={!canWrite} onClick={() => openEdit(worker)}
                           aria-label={`Editar ${worker.nombre}`}
                           title="Editar"
                         >
@@ -384,7 +387,7 @@ export default function WorkersSection({ workers = [], setWorkers, roles = [], s
                         <button
                           type="button"
                           className={styles.danger}
-                          onClick={() => setConfirmWorker(worker)}
+                          disabled={!canDelete} onClick={() => setConfirmWorker(worker)}
                           aria-label={`Eliminar ${worker.nombre}`}
                           title="Eliminar"
                         >
@@ -494,7 +497,7 @@ export default function WorkersSection({ workers = [], setWorkers, roles = [], s
                 <label className={styles.field}>
                   Sucursal
                   <select value={draft.sucursal} onChange={(event) => changeField("sucursal", event.target.value)}>
-                    {BRANCHES.map((item) => (
+                    {branches.map((item) => (
                       <option key={item.id} value={item.id}>{item.label}</option>
                     ))}
                   </select>

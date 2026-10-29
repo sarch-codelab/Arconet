@@ -1,3 +1,4 @@
+import { apiFetch as fetch } from "@/lib/api-fetch";
 import { slugify } from '@/lib/categorias';
 
 export const CATEGORY_STATUSES = [

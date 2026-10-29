@@ -7,6 +7,7 @@ const eslintConfig = [
     ignores: [
       ".next/**",
       "node_modules/**",
+      ".local/**",
       "ops/backups/**",
       "prisma/migrations/**",
       // Cliente generado por Prisma: no es código propio, no debe ensuciar el lint.
@@ -14,6 +15,11 @@ const eslintConfig = [
     ],
   },
   ...next,
+  {
+    // Impedir que vuelva un ReferenceError por un manejador sin importar.
+    files: ["app/admin/**/*.js"],
+    rules: { "no-undef": "error" },
+  },
   {
     rules: {
       // Proyecto en JS; los avisos de tipos estrictos no aplican.

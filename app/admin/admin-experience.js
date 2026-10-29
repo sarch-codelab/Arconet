@@ -1,5 +1,7 @@
 "use client";
 
+import { apiFetch as fetch } from "@/lib/api-fetch";
+
 import { useRouter } from "next/navigation";
 import { Suspense, lazy, useEffect, useState } from "react";
 import styles from "./admin-experience.module.css";
@@ -7,6 +9,7 @@ import { AdminContext, NAV } from "./admin-nav";
 import { SectionErrorBoundary } from "./error-boundary";
 import { useAdminSmoothScroll } from "./use-smooth-scroll";
 import { canAccessSection } from '@/lib/permisos';
+import { adminSectionUrl, defaultAdminSection, normalizeAdminSection, resolveAdminSection } from '@/lib/admin-navigation';
 import { clearSession, fetchWorkers } from "./workers-store";
 import { fetchProducts } from "./products-store";
 import { fetchCategorias } from "./categories-store";
@@ -41,14 +44,15 @@ export function AdminLogin() {
   );
 }
 
-export function AdminPanel({ session, initialSection }) {
+export function AdminPanel({ session, initialSection, onLoggedOut }) {
   const router = useRouter();
 
   const handleLogout = async () => {
-    clearSession();
     try {
       await fetch("/api/auth/logout", { method: "POST" });
     } catch {}
+    clearSession();
+    onLoggedOut?.();
     router.replace("/admin");
   };
 
@@ -67,7 +71,7 @@ export function AdminPanel({ session, initialSection }) {
 function AdminShell({ session, onLogout, initialSection }) {
   // La seccion inicial llega desde el servidor para que el HTML renderizado y
   // el primer render del cliente coincidan (sin desajuste de hidratacion).
-  const [section, setSection] = useState(initialSection || "trabajadores");
+  const [section, setSection] = useState(() => defaultAdminSection(session?.permisos, initialSection));
   const [workers, setWorkers] = useState([]);
   const [products, setProducts] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -82,57 +86,46 @@ function AdminShell({ session, onLogout, initialSection }) {
   const canOpen = (id) => canAccessSection(session?.permisos, id);
 
   useEffect(() => {
-    // El hash solo existe en el cliente: se sincroniza tras el montaje.
-    const hash = window.location.hash.replace("#", "").trim();
-    if (hash && hash !== section && canOpen(hash)) setSection(hash);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const syncLocation = () => {
+      const next = resolveAdminSection(window.location.href, session?.permisos, initialSection);
+      setSection(next);
+      const canonical = adminSectionUrl(window.location.href, next);
+      if (canonical !== window.location.href) window.history.replaceState(window.history.state, "", canonical);
+    };
+    syncLocation();
+    window.addEventListener("popstate", syncLocation);
+    return () => window.removeEventListener("popstate", syncLocation);
+  }, [initialSection, session?.permisos]);
 
   useEffect(() => {
-    fetchWorkers()
-      .then((remote) => setWorkers(remote))
-      .catch(() => {});
-    fetchProducts()
-      .then((remote) => setProducts(remote))
-      .catch(() => {});
-    fetchCategorias()
-      .then((remote) => setCategorias(remote))
-      .catch(() => {});
-    fetchRoles()
-      .then((remote) => setRoles(remote))
-      .catch(() => {});
-    fetchSucursales()
-      .then((remote) => setSucursales(remote))
-      .catch(() => {});
-    fetchOrders()
-      .then((remote) => setOrders(remote))
-      .catch(() => {});
-    fetchClientes()
-      .then((remote) => setClientes(remote))
-      .catch(() => {});
-
-    const handlePopState = () => {
-      const sp = new URLSearchParams(window.location.search);
-      const s = sp.get("section");
-      if (s && canOpen(s)) setSection(s);
+    let active = true;
+    const load = (permission, fetcher, setter) => {
+      if (!session?.permisos?.includes(permission)) return;
+      fetcher().then((remote) => { if (active) setter(remote); }).catch(() => {});
     };
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
+    load("trabajadores:read", fetchWorkers, setWorkers);
+    load("productos:read", fetchProducts, setProducts);
+    load("categorias:read", fetchCategorias, setCategorias);
+    load("roles:read", fetchRoles, setRoles);
+    load("sucursales:read", fetchSucursales, setSucursales);
+    load("ordenes:read", fetchOrders, setOrders);
+    load("clientes:read", fetchClientes, setClientes);
+    return () => { active = false; };
+  }, [session?.permisos]);
 
   const goTo = (id) => {
+    id = normalizeAdminSection(id);
     if (!canOpen(id)) return;
     setSection(id);
     scrollToTop();
     if (typeof window !== "undefined") {
-      const url = new URL(window.location.href);
-      url.searchParams.set("section", id);
-      window.history.pushState({}, "", url.toString());
+      window.history.pushState(window.history.state, "", adminSectionUrl(window.location.href, id));
     }
   };
 
   const goToWithTransition = (id) => {
-    if (id === section) {
+    id = normalizeAdminSection(id);
+    if (!canOpen(id) || id === section) {
       return;
     }
     if (typeof window === "undefined") {
@@ -169,6 +162,7 @@ function AdminShell({ session, onLogout, initialSection }) {
             <WorkersSection
               workers={workers}
               setWorkers={setWorkers}
+              sucursales={sucursales}
               roles={roles}
               session={session}
             />
@@ -248,7 +242,7 @@ function AdminShell({ session, onLogout, initialSection }) {
           ) : section === "ajustes" ? (
             <AjustesSection session={session} workers={workers} />
           ) : section === "mi-perfil" ? (
-            <MiPerfilSection session={session} workers={workers} />
+            <MiPerfilSection session={session} workers={workers} sucursales={sucursales} />
           ) : section === "roles" ? (
             <RolesSection
               roles={roles}

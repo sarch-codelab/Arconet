@@ -1,3 +1,4 @@
+import { apiFetch as fetch } from "@/lib/api-fetch";
 export const PRODUCT_CATEGORIES = [
   "Soluciones de Preconectorizado",
   "Herrajes",

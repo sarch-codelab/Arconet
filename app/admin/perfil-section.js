@@ -1,5 +1,7 @@
 "use client";
 
+import { apiFetch as fetch } from "@/lib/api-fetch";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Activity, Calendar, Camera, Lock, LogIn, Pencil, Phone, RotateCw, Save, ShieldCheck, User, Users, X } from "lucide-react";
 import styles from "./admin-experience.module.css";
@@ -9,7 +11,7 @@ import { branchLabel, formatDate, initials, statusLabel } from "./workers-store"
 import { Topbar, SectionTabs } from "./topbar";
 import { SECTION_NAV_CONFIG } from "./admin-nav";
 
-export default function MiPerfilSection({ session, workers = [] }) {
+export default function MiPerfilSection({ session, workers = [], sucursales = [] }) {
   const [activeTab, setActiveTab] = useState("all");
   const [editMode, setEditMode] = useState(false);
   const [profile, setProfile] = useState(null);
@@ -24,6 +26,12 @@ export default function MiPerfilSection({ session, workers = [] }) {
     if (!session?.correo) return null;
     return workers.find((w) => w.correo?.toLowerCase() === session.correo.toLowerCase()) || null;
   }, [profile, workers, session?.correo]);
+
+  const [formData, setFormData] = useState({
+    nombre: session?.nombre || "",
+    correo: session?.correo || "",
+    telefono: myWorker?.telefono || "",
+  });
 
   const refreshProfile = useCallback(async () => {
     try {
@@ -52,11 +60,7 @@ export default function MiPerfilSection({ session, workers = [] }) {
   }, []);
   useEffect(() => { if (activeTab === "security") refreshSessions(); }, [activeTab, refreshSessions]);
 
-  const [formData, setFormData] = useState({
-    nombre: session?.nombre || "",
-    correo: session?.correo || "",
-    telefono: myWorker?.telefono || "",
-  });
+
   const [photoPreview, setPhotoPreview] = useState(null);
   const [saving, setSaving] = useState(false);
   const [securityModals, setSecurityModals] = useState({ password: false });
@@ -268,9 +272,9 @@ export default function MiPerfilSection({ session, workers = [] }) {
                           {profile?.rolNombre || session?.rolNombre || session?.rol || "Usuario"}
                         </span>
                         {myWorker?.sucursal ? (
-                          <span className={styles.badge}>{branchLabel(myWorker.sucursal)}</span>
+                          <span className={styles.badge}>{branchLabel(myWorker.sucursal, sucursales)}</span>
                         ) : session?.sucursal ? (
-                          <span className={styles.badge}>{branchLabel(session.sucursal)}</span>
+                          <span className={styles.badge}>{branchLabel(session.sucursal, sucursales)}</span>
                         ) : null}
                       </p>
                       <p className={styles.profileEmail}>{profile?.correo || session?.correo}</p>
@@ -334,7 +338,7 @@ export default function MiPerfilSection({ session, workers = [] }) {
                     <div className={styles.detailCard}>
                       <span className={styles.detailLabel}>Sucursal</span>
                       <span className={styles.detailValue}>
-                        {myWorker?.sucursal ? branchLabel(myWorker.sucursal) : (session?.sucursal ? branchLabel(session.sucursal) : "Matriz")}
+                        {myWorker?.sucursal ? branchLabel(myWorker.sucursal, sucursales) : (session?.sucursal ? branchLabel(session.sucursal, sucursales) : "Matriz")}
                       </span>
                     </div>
                     <div className={styles.detailCard}>

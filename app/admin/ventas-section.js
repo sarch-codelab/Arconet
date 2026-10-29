@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import CotizacionesSection from "./cotizaciones-section";
 import FacturacionPanel from "./facturacion-panel";
 import { AdminContext, SECTION_NAV_CONFIG } from "./admin-nav";
 import { Topbar } from "./topbar";
+import { allowedSalesTabs } from "@/lib/admin-navigation";
 
 /**
  * Seccion unificada de Ventas.
@@ -25,7 +26,10 @@ import { Topbar } from "./topbar";
 export default function VentasSection({ orders, setOrders, clientes, setClientes, products, workers, session }) {
   // La pestana inicial es "Todas": al entrar a Ventas se ve el flujo completo
   // (cotizaciones + ventas) en lugar de un subconjunto.
-  const [activeTab, setActiveTab] = useState("todas");
+  const tabs = useMemo(() => allowedSalesTabs(SECTION_NAV_CONFIG.ventas?.tabs || [], session?.permisos), [session?.permisos]);
+  const [activeTab, setActiveTab] = useState(() => tabs[0]?.id || "todas");
+  // Extender, no reemplazar: Topbar necesita section/goTo/session del shell.
+  const adminContext = useContext(AdminContext);
 
   // El buscador global de la cabecera, al pulsar Enter aqui, filtra la lista
   // actual en vez de solo saltar de seccion (ver topbar.js).
@@ -39,7 +43,7 @@ export default function VentasSection({ orders, setOrders, clientes, setClientes
   }, []);
 
   return (
-    <AdminContext.Provider value={{ applyVentasSearch }}>
+    <AdminContext.Provider value={{ ...adminContext, applyVentasSearch }}>
       <Topbar
         chromeOnly
         title="Ventas"
@@ -53,7 +57,7 @@ export default function VentasSection({ orders, setOrders, clientes, setClientes
           productos={products}
           hideTopbar
           chromeOnly
-          tabs={SECTION_NAV_CONFIG.ventas?.tabs}
+          tabs={tabs}
           activeTab={activeTab}
           onTabChange={setActiveTab}
         />
@@ -68,7 +72,7 @@ export default function VentasSection({ orders, setOrders, clientes, setClientes
           session={session}
           hideTopbar
           chromeOnly
-          tabs={SECTION_NAV_CONFIG.ventas?.tabs}
+          tabs={tabs}
           activeTab={activeTab}
           onTabChange={setActiveTab}
         />

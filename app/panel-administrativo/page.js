@@ -1,8 +1,10 @@
+import { isLocalPreviewAuthEnabled } from "@/lib/local-preview-auth";
+import LocalPreviewEntry from "../admin/local-preview-entry";
 import { redirect } from "next/navigation";
 import { getSession } from '@/lib/session';
 import { getPermisos } from '@/lib/dal';
 import { prisma } from '@/lib/prisma';
-import { PERMISSION_MODULES, canAccessSection } from '@/lib/permisos';
+import { defaultAdminSection } from '@/lib/admin-navigation';
 import { AdminPanel } from "../admin/admin-experience";
 
 export const metadata = {
@@ -16,6 +18,10 @@ export const dynamic = "force-dynamic";
 
 export default async function PanelAdministrativoPage({ searchParams }) {
   const session = await getSession();
+  if (isLocalPreviewAuthEnabled()) {
+    const params = (await searchParams) || {};
+    return <LocalPreviewEntry protectedPage hasCookieSession={Boolean(session)} requestedSection={typeof params.section === "string" ? params.section : ""} />;
+  }
   if (!session) {
     // Sin sesion no hay panel: se envia al login interno (que a su vez redirige
     // al panel si la sesion reaparece). Nunca a /admin como pagina muerta.
@@ -32,12 +38,7 @@ export default async function PanelAdministrativoPage({ searchParams }) {
   // primera seccion permitida (Mi perfil siempre lo esta).
   const params = (await searchParams) || {};
   const requested = typeof params.section === "string" ? params.section.trim() : "";
-  const initialSection = canAccessSection(permisos, requested)
-    ? requested
-    : canAccessSection(permisos, "resumen")
-      ? "resumen"
-      : PERMISSION_MODULES.map((module) => module.section).find((id) => canAccessSection(permisos, id)) ||
-        "mi-perfil";
+  const initialSection = defaultAdminSection(permisos, requested);
 
   return (
     <AdminPanel

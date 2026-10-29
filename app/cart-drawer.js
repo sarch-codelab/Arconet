@@ -18,11 +18,13 @@ import {
 import { buildCartMessage, useCart } from "./cart-context";
 import { sileo } from "./toaster";
 import styles from "./cart.module.css";
-import { CONTACT_EMAIL } from '@/lib/contact';
+import { useContact } from "./contact-provider";
+import { copyText } from "@/lib/clipboard";
 
 const SUBJECT = "Solicitud de cotización — Arconet";
 
 export default function CartDrawer() {
+  const { email: CONTACT_EMAIL } = useContact();
   const { items, count, isOpen, close, setQuantity, removeItem, clear } = useCart();
   const [copied, setCopied] = useState(false);
   const [whatsappNumber, setWhatsappNumber] = useState("");
@@ -58,26 +60,16 @@ export default function CartDrawer() {
   const mailHref = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(SUBJECT)}&body=${encodeURIComponent(message)}`;
 
   const copyOrder = async () => {
-    try {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(message);
-      } else {
-        const area = document.createElement("textarea");
-        area.value = message;
-        area.setAttribute("readonly", "");
-        area.style.position = "fixed";
-        area.style.top = "-1000px";
-        area.style.opacity = "0";
-        document.body.appendChild(area);
-        area.select();
-        document.execCommand("copy");
-        document.body.removeChild(area);
-      }
-    } catch {
-      /* portapapeles no disponible */
+    const success = await copyText(message);
+    setCopied(success);
+    if (success) {
+      sileo.success({ title: "Pedido copiado al portapapeles." });
+    } else {
+      sileo.error({
+        title: "No se pudo copiar el pedido.",
+        description: "El navegador restringe el portapapeles. Abre la vista previa en una pestaña nueva o usa Enviar por correo.",
+      });
     }
-    setCopied(true);
-    sileo.success({ title: "Pedido copiado al portapapeles." });
   };
 
   return (

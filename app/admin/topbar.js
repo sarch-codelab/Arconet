@@ -1,5 +1,7 @@
 "use client";
 
+import { apiFetch as fetch } from "@/lib/api-fetch";
+
 import Link from "next/link";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Bell, ExternalLink, HelpCircle, LogOut, Search, User, MessageSquare, AlertTriangle, CheckCircle, X } from "lucide-react";

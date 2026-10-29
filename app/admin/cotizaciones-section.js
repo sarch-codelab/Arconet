@@ -1,6 +1,8 @@
 "use client";
 
-import { useContext, useEffect, useMemo, useState } from "react";
+import { openApiDocument } from "@/lib/api-document";
+
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, Check, FileText, Pencil, Plus, Printer, Search, Trash2, TrendingUp, X } from "lucide-react";
 import styles from "./admin-experience.module.css";
 import { useToast, notifyError, ConfirmDialog } from "./admin-ui";
@@ -23,6 +25,8 @@ import { Topbar, SectionTabs } from "./topbar";
 import { SECTION_NAV_CONFIG } from "./admin-nav";
 
 export default function CotizacionesSection({ orders = [], setOrders, clientes = [], setClientes, products = [], workers = [], session, hideTopbar = false, chromeOnly = false, tabs, activeTab: controlledTab, onTabChange }) {
+  const canWrite = session?.permisos?.includes("ordenes:write");
+  const canDelete = session?.permisos?.includes("ordenes:delete");
   const [innerTab, setInnerTab] = useState("todas");
   const activeTab = controlledTab ?? innerTab;
   // Pestana inicial "Todas": sin filtro de tipo (se ven cotizaciones y ventas).
@@ -30,6 +34,8 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
   const [status, setStatus] = useState("all");
   const [type, setType] = useState("all");
   const [modalOpen, setModalOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const submitting = useRef(false);
 
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState({
@@ -176,7 +182,8 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
     setModalOpen(true);
   }
 
-  function closeModal() {
+  function closeModal(force = false) {
+    if (submitting.current && force !== true) return;
     setModalOpen(false);
     setEditingId(null);
     setNewClientMode(false);
@@ -205,50 +212,58 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
 
   async function submitOrder(event) {
     event.preventDefault();
-    if ((!newClientMode && !draft.clienteId) || (newClientMode && newClient.nombre.trim().length < 2) || (!newClientMode && !draft.cliente.trim())) {
-      notifyError("El cliente es obligatorio.");
-      return;
-    }
-    const items = draft.items.map((line) => ({ ...line, cantidad: Number(line.cantidad), precio: Number(line.precio) }));
-    let clienteId = draft.clienteId;
-    let clienteNombre = draft.cliente.trim();
-    if (newClientMode) {
-      try {
-        const savedClient = await createCliente({ id: newClienteId(), nombre: newClient.nombre.trim(), rtn: newClient.rtn.trim(), correo: newClient.correo.trim(), telefono: newClient.telefono.trim(), estado: "prospecto" });
-        setClientes((current) => [savedClient, ...current]);
-        clienteId = savedClient.id;
-        clienteNombre = savedClient.nombre;
-      } catch (error) {
-        notifyError(error.message || "No se pudo registrar el cliente.");
+    if (!canWrite || submitting.current) return;
+    submitting.current = true;
+    setSaving(true);
+    try {
+      if ((!newClientMode && !draft.clienteId) || (newClientMode && newClient.nombre.trim().length < 2) || (!newClientMode && !draft.cliente.trim())) {
+        notifyError("El cliente es obligatorio.");
         return;
       }
-    }
-    const computedTotal = items.reduce((sum, line) => sum + line.cantidad * line.precio, 0);
-    const payload = {
-      ...draft,
-      clienteId,
-      cliente: clienteNombre,
-      items,
-      monto: items.length ? computedTotal : Number(draft.monto) || 0,
-    };
-    let saved;
-    try {
-      if (editingId) {
-        saved = await updateOrder(editingId, payload);
-        setOrders((current) =>
-          current.map((order) => (order.id === editingId ? saved : order)),
-        );
-        show("Orden actualizada.");
-      } else {
-        saved = await createOrder(payload);
-        setOrders((current) => [saved, ...current]);
-        show("Orden creada.");
+      const items = draft.items.map((line) => ({ ...line, cantidad: Number(line.cantidad), precio: Number(line.precio) }));
+      let clienteId = draft.clienteId;
+      let clienteNombre = draft.cliente.trim();
+      if (newClientMode) {
+        try {
+          const savedClient = await createCliente({ id: newClienteId(), nombre: newClient.nombre.trim(), rtn: newClient.rtn.trim(), correo: newClient.correo.trim(), telefono: newClient.telefono.trim(), estado: "prospecto" });
+          setClientes((current) => [savedClient, ...current]);
+          clienteId = savedClient.id;
+          clienteNombre = savedClient.nombre;
+        } catch (error) {
+          notifyError(error.message || "No se pudo registrar el cliente.");
+          return;
+        }
       }
-    } catch (error) {
-      notifyError(error.message || "No se pudo guardar la orden.");
-      return;
+      const computedTotal = items.reduce((sum, line) => sum + line.cantidad * line.precio, 0);
+      const payload = {
+        ...draft,
+        clienteId,
+        cliente: clienteNombre,
+        items,
+        monto: items.length ? computedTotal : Number(draft.monto) || 0,
+      };
+      let saved;
+      try {
+        if (editingId) {
+          saved = await updateOrder(editingId, payload);
+          setOrders((current) =>
+            current.map((order) => (order.id === editingId ? saved : order)),
+          );
+          show("Orden actualizada.");
+        } else {
+          saved = await createOrder(payload);
+          setOrders((current) => [saved, ...current]);
+          show("Orden creada.");
+        }
+      } catch (error) {
+        notifyError(error.message || "No se pudo guardar la orden.");
+        return;
+      }
+      closeModal(true);
+    } finally {
+      submitting.current = false;
+      setSaving(false);
     }
-    closeModal();
   }
 
   return (
@@ -259,11 +274,11 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
           title="Ventas"
           subtitle="Crea cotizaciones o ventas comerciales con productos del catálogo. Las ventas descuentan inventario; las facturas fiscales se emiten en la pestaña Facturas."
           action={
-            <div className={styles.salesActionRow}>
-              <button type="button" className={`${styles.ghostBtn} ${styles.salesActionBtn}`} onClick={() => openCreate("cotizacion")}>
+            <div className={styles.salesActionRow} role="group" aria-label="Crear documento comercial">
+              <button type="button" className={`${styles.ghostBtn} ${styles.salesActionBtn}`} disabled={!canWrite || saving} onClick={() => openCreate("cotizacion")}>
                 <Plus size={16} /> Nueva cotización
               </button>
-              <button type="button" className={`${styles.primaryBtn} ${styles.salesActionBtn}`} onClick={() => openCreate("venta")}>
+              <button type="button" className={`${styles.primaryBtn} ${styles.salesActionBtn}`} disabled={!canWrite || saving} onClick={() => openCreate("venta")}>
                 <Plus size={16} /> Nueva venta
               </button>
             </div>
@@ -286,11 +301,11 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
             </div>
             {/* Contenedor propio (salesActionRow): evita herdar el ancho de la
                 barra global y que los botones desborden la pantalla en móvil. */}
-            <div className={styles.salesActionRow}>
-              <button type="button" className={`${styles.ghostBtn} ${styles.salesActionBtn}`} onClick={() => openCreate("cotizacion")}>
+            <div className={styles.salesActionRow} role="group" aria-label="Crear documento comercial">
+              <button type="button" className={`${styles.ghostBtn} ${styles.salesActionBtn}`} disabled={!canWrite || saving} onClick={() => openCreate("cotizacion")}>
                 <Plus size={16} /> Nueva cotización
               </button>
-              <button type="button" className={`${styles.primaryBtn} ${styles.salesActionBtn}`} onClick={() => openCreate("venta")}>
+              <button type="button" className={`${styles.primaryBtn} ${styles.salesActionBtn}`} disabled={!canWrite || saving} onClick={() => openCreate("venta")}>
                 <Plus size={16} /> Nueva venta
               </button>
             </div>
@@ -398,7 +413,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
                       <div className={styles.rowActions}>
                         <button
                           type="button"
-                          onClick={() => window.open(`/api/ordenes/${encodeURIComponent(order.id)}/documento`, "_blank", "noopener,noreferrer")}
+                          onClick={() => openApiDocument(`/api/ordenes/${encodeURIComponent(order.id)}/documento`).catch(error => notifyError(error?.message || "No se pudo abrir el documento."))}
                           aria-label={`Imprimir o guardar PDF de ${order.id}`}
                           title="Imprimir o guardar como PDF"
                         >
@@ -406,7 +421,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
                         </button>
                         <button
                           type="button"
-                          onClick={() => openEdit(order)}
+                          disabled={!canWrite || saving} onClick={() => openEdit(order)}
                           aria-label={`Editar ${order.id}`}
                           title="Editar"
                         >
@@ -415,7 +430,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
                         <button
                           type="button"
                           className={styles.danger}
-                          onClick={() => setConfirmOrder(order)}
+                          disabled={!canDelete} onClick={() => setConfirmOrder(order)}
                           aria-label={`Eliminar ${order.id}`}
                           title="Eliminar"
                         >
@@ -457,7 +472,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
                 <p className={styles.eyebrow}>{editingId ? "Editar" : "Nueva"}</p>
                 <h2>{editingId ? "Editar documento" : draft.tipo === "venta" ? "Crear venta comercial" : "Crear cotización"}</h2>
               </div>
-              <button type="button" className={styles.iconBtn} onClick={closeModal} aria-label="Cerrar">
+              <button type="button" className={styles.iconBtn} disabled={saving} onClick={closeModal} aria-label="Cerrar">
                 <X size={18} />
               </button>
             </header>
@@ -479,7 +494,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
                     changeField("cliente", cliente ? cliente.nombre : "");
                   }}>
                     <option value="">Seleccionar cliente</option>
-                    <option value="__nuevo__">Cliente eventual / no registrado</option>
+                    <option value="__nuevo__" disabled={!session?.permisos?.includes("clientes:write")}>Cliente eventual / no registrado</option>
                     {clientes.map((cliente) => (
                       <option key={cliente.id} value={cliente.id}>{cliente.nombre}</option>
                     ))}
@@ -533,7 +548,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
                     <select className={styles.select} value={line.productoId || ""} onChange={(event) => updateLine(index, "productoId", event.target.value)} aria-label={`Producto de la línea ${index + 1}`}>
                       {products.filter((item) => item.estado === "activo" || item.id === line.productoId).map((item) => <option key={item.id} value={item.id}>{item.nombre} · {formatPrice(item.precio)}</option>)}
                     </select>
-                    <input className={styles.lineQuantity} type="number" min="0.001" step="0.001" value={line.cantidad} onChange={(event) => updateLine(index, "cantidad", event.target.value)} aria-label="Cantidad" />
+                    <input className={styles.lineQuantity} type="number" min={line.productoId ? "1" : "0.001"} step={line.productoId ? "1" : "0.001"} value={line.cantidad} onChange={(event) => updateLine(index, "cantidad", event.target.value)} aria-label="Cantidad" />
                     <button type="button" className={styles.clearBtn} onClick={() => setDraft((prev) => ({ ...prev, items: prev.items.filter((_, lineIndex) => lineIndex !== index) }))}>Quitar</button>
                   </div>)}
                   <button type="button" className={styles.ghostBtn} onClick={addCatalogItem} disabled={!products.some((item) => item.estado === "activo")}>Añadir producto real del catálogo</button>
@@ -552,11 +567,11 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
 
 
               <footer className={styles.modalActions}>
-                <button type="button" className={styles.ghostBtn} onClick={closeModal}>
+                <button type="button" className={styles.ghostBtn} disabled={saving} onClick={closeModal}>
                   Cancelar
                 </button>
-                <button type="submit" className={styles.submit}>
-                  {editingId ? "Guardar cambios" : draft.tipo === "venta" ? "Crear venta comercial" : "Crear cotización"}
+                <button type="submit" className={styles.submit} disabled={saving}>
+                  {saving ? "Guardando…" : editingId ? "Guardar cambios" : draft.tipo === "venta" ? "Crear venta comercial" : "Crear cotización"}
                 </button>
               </footer>
             </form>
@@ -566,10 +581,10 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
 
       {confirmOrder && (
         <ConfirmDialog
-          title="Eliminar cotización"
+          title={confirmOrder.tipo === "venta" ? "Eliminar venta" : "Eliminar cotización"}
           message={
             <>
-              ¿Seguro que deseas eliminar la cotización <strong>{confirmOrder.id}</strong>? Esta
+              ¿Seguro que deseas eliminar {confirmOrder.tipo === "venta" ? "la venta" : "la cotización"} <strong>{confirmOrder.id}</strong>? Esta
               acción no se puede deshacer.
             </>
           }
@@ -580,9 +595,9 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
               setOrders((current) =>
                 current.filter((order) => order.id !== confirmOrder.id),
               );
-              show("Cotización eliminada.");
+              show(confirmOrder.tipo === "venta" ? "Venta eliminada." : "Cotización eliminada.");
             } catch (error) {
-              show(error.message || "No se pudo eliminar la cotización.", "error");
+              show(error.message || "No se pudo eliminar el documento.", "error");
             }
             setConfirmOrder(null);
           }}

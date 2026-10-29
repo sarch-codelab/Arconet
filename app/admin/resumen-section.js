@@ -6,8 +6,13 @@ import styles from "./admin-experience.module.css";
 import { formatDate } from "./workers-store";
 import { formatPrice, formatStock } from "./products-store";
 import { Topbar } from "./topbar";
+import { summarizeCommercialOrders } from "@/lib/admin-summary";
 
 export default function ResumenSection({ workers = [], products = [], sucursales = [], orders = [], session }) {
+  const canReadWorkers = session?.permisos?.includes("trabajadores:read");
+  const canReadProducts = session?.permisos?.includes("productos:read");
+  const canReadOrders = session?.permisos?.includes("ordenes:read");
+  const canReadBranches = session?.permisos?.includes("sucursales:read");
   const stats = useMemo(() => {
     const workersTotal = workers.length;
     const workersActivos = workers.filter((worker) => worker.estado === "activo").length;
@@ -18,10 +23,11 @@ export default function ResumenSection({ workers = [], products = [], sucursales
     const sucursalesActivas = sucursales.filter((sucursal) => sucursal.estado === "activo").length;
     const totalStock = products.reduce((sum, product) => sum + Number(product.stock || 0), 0);
     const totalValue = products.reduce((sum, product) => sum + (Number(product.precio || 0) * Number(product.stock || 0)), 0);
-    const ordersTotal = orders.length;
-    const ordersPendientes = orders.filter((order) => order.estado === "pendiente").length;
-    const ordersAprobadas = orders.filter((order) => order.estado === "aprobada").length;
-    const ordersMonto = orders.reduce((sum, order) => sum + Number(order.monto || 0), 0);
+    const commercial = summarizeCommercialOrders(orders);
+    const ordersTotal = commercial.quotes;
+    const ordersPendientes = commercial.pendingQuotes;
+    const ordersVentas = commercial.sales;
+    const ordersMonto = commercial.salesAmount;
 
     return {
       workersTotal,
@@ -35,7 +41,7 @@ export default function ResumenSection({ workers = [], products = [], sucursales
       totalValue,
       ordersTotal,
       ordersPendientes,
-      ordersAprobadas,
+      ordersVentas,
       ordersMonto,
     };
   }, [workers, products, sucursales, orders]);
@@ -67,27 +73,27 @@ export default function ResumenSection({ workers = [], products = [], sucursales
         <section className={styles.stats} aria-label="Estadísticas generales">
           <article className={styles.statCard}>
             <span className={styles.statIcon}><Users size={18} /></span>
-            <strong className={styles.statValue}>{stats.workersTotal}</strong>
+            <strong className={styles.statValue}>{canReadWorkers ? stats.workersTotal : "—"}</strong>
             <span className={styles.statLabel}>Trabajadores</span>
-            <small>{stats.workersActivos} activos</small>
+            <small>{canReadWorkers ? `${stats.workersActivos} activos` : "Sin permiso de consulta"}</small>
           </article>
           <article className={styles.statCard}>
             <span className={styles.statIcon}><Package size={18} /></span>
-            <strong className={styles.statValue}>{stats.productsTotal}</strong>
+            <strong className={styles.statValue}>{canReadProducts ? stats.productsTotal : "—"}</strong>
             <span className={styles.statLabel}>Productos</span>
-            <small>{stats.productsActivos} activos</small>
+            <small>{canReadProducts ? `${stats.productsActivos} activos` : "Sin permiso de consulta"}</small>
           </article>
           <article className={styles.statCard}>
             <span className={styles.statIcon}><FileText size={18} /></span>
-            <strong className={styles.statValue}>{stats.ordersTotal}</strong>
+            <strong className={styles.statValue}>{canReadOrders ? stats.ordersTotal : "—"}</strong>
             <span className={styles.statLabel}>Cotizaciones</span>
-            <small>{stats.ordersPendientes} pendientes</small>
+            <small>{canReadOrders ? `${stats.ordersPendientes} pendientes` : "Sin permiso de consulta"}</small>
           </article>
           <article className={styles.statCard}>
             <span className={styles.statIcon}><TrendingUp size={18} /></span>
-            <strong className={styles.statValue}>{formatPrice(stats.ordersMonto)}</strong>
-            <span className={styles.statLabel}>Ventas pendientes</span>
-            <small>{stats.ordersAprobadas} aprobadas</small>
+            <strong className={styles.statValue}>{canReadOrders ? formatPrice(stats.ordersMonto) : "—"}</strong>
+            <span className={styles.statLabel}>Ventas comerciales</span>
+            <small>{canReadOrders ? `${stats.ordersVentas} ventas no canceladas` : "Sin permiso de consulta"}</small>
           </article>
         </section>
 
@@ -113,7 +119,7 @@ export default function ResumenSection({ workers = [], products = [], sucursales
                   ))}
                 </div>
               ) : (
-                <p className={styles.emptyText}>No hay productos con stock bajo.</p>
+                <p className={styles.emptyText}>{canReadProducts ? "No hay productos con stock bajo." : "No tienes permiso para consultar productos."}</p>
               )}
             </div>
           </section>
@@ -136,7 +142,7 @@ export default function ResumenSection({ workers = [], products = [], sucursales
                   ))}
                 </div>
               ) : (
-                <p className={styles.emptyText}>No hay ingresos recientes registrados.</p>
+                <p className={styles.emptyText}>{canReadWorkers ? "No hay ingresos recientes registrados." : "No tienes permiso para consultar trabajadores."}</p>
               )}
             </div>
           </section>
@@ -148,13 +154,14 @@ export default function ResumenSection({ workers = [], products = [], sucursales
           </header>
           <div className={styles.cardBody}>
             <div className={styles.grid3}>
+              {!canReadBranches && <p className={styles.emptyText}>No tienes permiso para consultar sucursales.</p>}
               {sucursales.map((sucursal) => {
                 const sucursalWorkers = workers.filter((worker) => worker.sucursal === sucursal.id);
                 return (
                   <article key={sucursal.id} className={styles.miniCard}>
                     <strong>{sucursal.nombre}</strong>
                     <div className={styles.miniStats}>
-                      <span>{sucursalWorkers.length} trabajadores</span>
+                      <span>{canReadWorkers ? sucursalWorkers.length : "—"} trabajadores</span>
                       <span className={sucursal.estado === "activo" ? styles.statusOk : styles.statusInactive}>
                         {sucursal.estado === "activo" ? "Activa" : "Inactiva"}
                       </span>

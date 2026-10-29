@@ -1,3 +1,4 @@
+import { isLocalPreviewAuthEnabled } from "@/lib/local-preview-auth";
 import { prisma } from '@/lib/prisma';
 import { verifyPassword } from '@/lib/auth';
 import { createClientSession } from '@/lib/client-session';
@@ -74,12 +75,12 @@ export async function POST(request) {
       ciudad: account.cliente.ciudad || "",
       direccion: account.cliente.direccion || "",
     };
-    await createClientSession(session, body?.recordarme !== false);
+    const token = await createClientSession(session, body?.recordarme !== false);
     await writeLog("auth", `Acceso de cliente: ${correo}`, {
       actor: correo,
       ruta: "/api/cliente-auth/login",
     });
-    return Response.json(session);
+    return Response.json({ ...session, ...(isLocalPreviewAuthEnabled() ? { localPreviewToken: token } : {}) }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("POST /api/cliente-auth/login", error?.message);
     return Response.json({ error: "Servicio no disponible. Intenta más tarde." }, { status: 503 });
