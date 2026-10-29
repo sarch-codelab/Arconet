@@ -1,5 +1,8 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
+// Solo se prueban helpers fiscales puros y transacciones inyectadas. No crear
+// Prisma ni exigir un cliente generado en el checkout limpio de CI.
+vi.mock("../lib/prisma", () => ({ prisma: {} }));
 import { parsePrices, priceAt, validatePriceSet } from "../lib/precios";
 import {
   resolveCatalogPrices,

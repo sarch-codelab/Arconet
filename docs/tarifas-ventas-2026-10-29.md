@@ -60,6 +60,8 @@ Entorno aislado: Next.js, PostgreSQL 17 en loopback y Chromium. Sin SMTP externo
 | Comprobación tras build y reinicio | Precios a 390 px operativo; 16 productos y 3 órdenes semilla intactos, sin JS/API inesperadas |
 | Documentos HTTP tras reinicio | Los **6 formatos válidos** (`auto`, `carta`, `media-hoja`, `media-carta`, `ticket-80`, `ticket-58`), con formato solicitado, logo embebido y sin `window.open` |
 
+La primera ejecución de CI detectó que el nuevo test de helpers fiscales importaba indirectamente un cliente Prisma todavía no generado. Se reprodujo el fallo en una copia limpia de los archivos versionados, sin `generated/`, y se aisló la dependencia de BD con un mock en ese test unitario. La suite completa se volvió a ejecutar en esa copia limpia, sin generar Prisma; no se omitieron pruebas ni se relajaron los controles de CI.
+
 El build se hizo con una URL de validación sin base accesible: catálogo/sitemap registraron sus fallbacks existentes de BD no disponible, sin impedir la compilación. El funcionamiento con PostgreSQL real se comprobó por separado en el entorno local y después del reinicio. La comprobación de formatos valida el HTML generado, no la salida física de cada modelo de impresora.
 
 ### Casos funcionales y de seguridad ejecutados
