@@ -62,6 +62,7 @@ model Usuario {
   bloqueadoHasta    DateTime?
   twoFactorSecret  String?
   twoFactorEnabled Boolean   @default(false)
+  temaPanel    String    @default("system")
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   sucursal     Sucursal? @relation(fields: [sucursalId], references: [id])
@@ -350,6 +351,7 @@ model Bodega {
   sucursal    Sucursal? @relation(fields: [sucursalId], references: [id])
   stock       ProductoStock[]
   movimientos MovimientoKardex[]
+  recepciones RecepcionCompra[]
 
   @@index([estado])
   @@index([sucursalId])
@@ -416,6 +418,19 @@ model OrdenCompra {
   id             String            @id @default(cuid())
   numero         String            @unique // OC-2026-0001
   proveedorId    String
+  tipo           String            @default("compra") // compra | cotizacion (a proveedor)
+  requeridoA     String?
+  terminos       String            @default("contado") // contado | credito; no implica pago
+  diasCredito    Int               @default(0)
+  fechaVencimiento DateTime?
+  facturaProveedor String?
+  envio          String?
+  moneda         String            @default("HNL")
+  impuesto       Decimal           @default(0) @db.Decimal(12, 2)
+  cotizacionOrigenId String?        @unique
+  cotizacionOrigen OrdenCompra?    @relation("CompraDesdeCotizacion", fields: [cotizacionOrigenId], references: [id], onDelete: Restrict)
+  compraGenerada OrdenCompra?      @relation("CompraDesdeCotizacion")
+  recepciones    RecepcionCompra[]
   estado         String            @default("borrador") // borrador | enviada | parcial | recibida | cancelada
   fecha          DateTime          @default(now())
   fechaEsperada  DateTime?
@@ -442,6 +457,7 @@ model OrdenCompraItem {
   cantidad          Int
   cantidadRecibida  Int          @default(0)
   costoUnitario     Decimal      @db.Decimal(12, 2)
+  impuestoPorcentaje Decimal    @default(0) @db.Decimal(5, 2)
   ordenCompra       OrdenCompra  @relation(fields: [ordenCompraId], references: [id], onDelete: Cascade)
   producto          Producto?    @relation(fields: [productoId], references: [id])
 
@@ -636,4 +652,21 @@ model TokenAcceso {
 
   @@index([correo, tipo, usadoAt])
   @@index([expiraAt])
+}
+
+// Cada entrega de proveedor es inmutable y lleva una clave de idempotencia.
+model RecepcionCompra {
+  id            String      @id @default(cuid())
+  ordenCompraId String
+  requestId     String      @unique
+  huella        String
+  bodegaId      String
+  detalle       Json
+  notas         String?
+  actor         String?
+  createdAt     DateTime    @default(now())
+  ordenCompra   OrdenCompra @relation(fields: [ordenCompraId], references: [id])
+  bodega        Bodega      @relation(fields: [bodegaId], references: [id])
+
+  @@index([ordenCompraId, createdAt])
 }

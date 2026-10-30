@@ -9,6 +9,7 @@ import { useToast } from "./admin-ui";
 import { compressImage } from "./image-utils";
 import { branchLabel, formatDate, initials, statusLabel } from "./workers-store";
 import { Topbar, SectionTabs } from "./topbar";
+import { AppearanceSettings } from "./admin-preferences";
 import { SECTION_NAV_CONFIG } from "./admin-nav";
 
 export default function MiPerfilSection({ session, workers = [], sucursales = [] }) {
@@ -205,6 +206,8 @@ export default function MiPerfilSection({ session, workers = [], sucursales = []
           onTabChange={setActiveTab}
           label="Secciones de mi perfil"
         />
+
+        {["all", "appearance"].includes(activeTab) ? <AppearanceSettings /> : null}
 
         {activeTab === "all" && (
           <section className={styles.card} aria-label="Perfil de usuario">

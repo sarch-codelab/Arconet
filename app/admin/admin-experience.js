@@ -6,10 +6,11 @@ import { useRouter } from "next/navigation";
 import { Suspense, lazy, useEffect, useState } from "react";
 import styles from "./admin-experience.module.css";
 import { AdminContext, NAV } from "./admin-nav";
+import { AdminPreferences } from "./admin-preferences";
 import { SectionErrorBoundary } from "./error-boundary";
 import { useAdminSmoothScroll } from "./use-smooth-scroll";
 import { canAccessSection } from '@/lib/permisos';
-import { adminSectionUrl, defaultAdminSection, normalizeAdminSection, resolveAdminSection } from '@/lib/admin-navigation';
+import { adminSectionUrl, defaultAdminSection, normalizeAdminSection, resolveAdminSection, resolveInventoryView } from '@/lib/admin-navigation';
 import { clearSession, fetchWorkers } from "./workers-store";
 import { fetchProducts } from "./products-store";
 import { fetchCategorias } from "./categories-store";
@@ -20,7 +21,6 @@ import { fetchClientes } from "./clientes-store";
 
 const RolesSection = lazy(() => import("./roles-section"));
 const WorkersSection = lazy(() => import("./workers-section"));
-const ProductsSection = lazy(() => import("./products-section"));
 const SucursalesSection = lazy(() => import("./sucursales-section"));
 const CategoriasSection = lazy(() => import("./categorias-section"));
 const ClientesSection = lazy(() => import("./clientes-section"));
@@ -31,7 +31,7 @@ const LogsSection = lazy(() => import("./logs-section"));
 const MiPerfilSection = lazy(() => import("./perfil-section"));
 const AjustesSection = lazy(() => import("./ajustes-section"));
 const SolicitudesPanel = lazy(() => import("./solicitudes-panel"));
-const InventarioPanel = lazy(() => import("./inventario-panel"));
+const InventarioPanel = lazy(() => import("./inventario-section"));
 const LoginView = lazy(() => import("./login-view"));
 
 
@@ -57,11 +57,11 @@ export function AdminPanel({ session, initialSection, onLoggedOut }) {
   };
 
   return (
-    <AdminShell
+    <AdminPreferences key={session?.correo} account={session?.correo}><AdminShell
       session={session}
       onLogout={handleLogout}
       initialSection={initialSection}
-    />
+    /></AdminPreferences>
   );
 }
 
@@ -72,6 +72,7 @@ function AdminShell({ session, onLogout, initialSection }) {
   // La seccion inicial llega desde el servidor para que el HTML renderizado y
   // el primer render del cliente coincidan (sin desajuste de hidratacion).
   const [section, setSection] = useState(() => defaultAdminSection(session?.permisos, initialSection));
+  const [inventoryView, setInventoryView] = useState("");
   const [workers, setWorkers] = useState([]);
   const [products, setProducts] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -90,6 +91,7 @@ function AdminShell({ session, onLogout, initialSection }) {
       const next = resolveAdminSection(window.location.href, session?.permisos, initialSection);
       setSection(next);
       const canonical = adminSectionUrl(window.location.href, next);
+      setInventoryView(resolveInventoryView(session?.permisos, new URL(canonical).searchParams.get("view")));
       if (canonical !== window.location.href) window.history.replaceState(window.history.state, "", canonical);
     };
     syncLocation();
@@ -114,22 +116,25 @@ function AdminShell({ session, onLogout, initialSection }) {
   }, [session?.permisos]);
 
   const goTo = (id) => {
+    const requested = id;
     id = normalizeAdminSection(id);
     if (!canOpen(id)) return;
     setSection(id);
     scrollToTop();
     if (typeof window !== "undefined") {
-      window.history.pushState(window.history.state, "", adminSectionUrl(window.location.href, id));
+      const destination = adminSectionUrl(window.location.href, requested);
+      setInventoryView(resolveInventoryView(session?.permisos, new URL(destination).searchParams.get("view")));
+      window.history.pushState(window.history.state, "", destination);
     }
   };
 
-  const goToWithTransition = (id) => {
-    id = normalizeAdminSection(id);
-    if (!canOpen(id) || id === section) {
+  const goToWithTransition = (requested) => {
+    const id = normalizeAdminSection(requested);
+    if (!canOpen(id) || (id === section && !["productos", "compras"].includes(requested))) {
       return;
     }
     if (typeof window === "undefined") {
-      goTo(id);
+      goTo(requested);
       return;
     }
     const label = NAV.find((item) => item.id === id)?.label || "";
@@ -138,7 +143,7 @@ function AdminShell({ session, onLogout, initialSection }) {
         detail: {
           message: label,
           hold: 260,
-          onCovered: () => goTo(id),
+          onCovered: () => goTo(requested),
         },
       }),
     );
@@ -164,14 +169,6 @@ function AdminShell({ session, onLogout, initialSection }) {
               setWorkers={setWorkers}
               sucursales={sucursales}
               roles={roles}
-              session={session}
-            />
-          ) : section === "productos" ? (
-            <ProductsSection
-              products={products}
-              setProducts={setProducts}
-              categorias={categorias}
-              workers={workers}
               session={session}
             />
           ) : section === "categorias" ? (
@@ -212,7 +209,10 @@ function AdminShell({ session, onLogout, initialSection }) {
             </Suspense>
           ) : section === "inventario" ? (
             <Suspense fallback={<div className={styles.body}>Cargando inventario…</div>}>
-              <InventarioPanel session={session} productos={products} />
+              <InventarioPanel session={session} products={products} setProducts={setProducts} categorias={categorias} workers={workers} view={inventoryView} onViewChange={view => {
+                setInventoryView(view);
+                const url = new URL(window.location.href); url.searchParams.set("view", view); window.history.pushState(window.history.state, "", url.href);
+              }} />
             </Suspense>
           ) : section === "facturacion" ? (
             // Seccion antigua unificada en "Ventas": redirige para no romper

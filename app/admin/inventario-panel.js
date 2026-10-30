@@ -77,14 +77,16 @@ function formatNumero(value) {
   return Number.isFinite(numero) ? numero.toLocaleString("es-HN") : "—";
 }
 
-export default function InventarioPanel({ session, productos: productosIniciales = [] }) {
+export default function InventarioPanel({ session, productos: productosIniciales = [], navigation, activeTab, onTabChange }) {
   const permisos = Array.isArray(session?.permisos) ? session.permisos : [];
   const canWrite = permisos.includes("inventario:write");
   const canDelete = permisos.includes("inventario:delete");
   // Este permiso de apoyo no depende de exports del módulo de navegación:
   // Inventario debe poder montar también al recuperar un bundle anterior.
   const canReadProductos = permisos.includes("productos:read") || permisos.includes("inventario:read");
-  const [tab, setTab] = useState("stock");
+  const [internalTab, setInternalTab] = useState("stock");
+  const tab = activeTab || internalTab;
+  const setTab = onTabChange || setInternalTab;
   const [stock, setStock] = useState([]);
   const [bodegas, setBodegas] = useState([]);
   const [productos, setProductos] = useState(productosIniciales);
@@ -293,7 +295,7 @@ export default function InventarioPanel({ session, productos: productosIniciales
       />
 
       <div className={adminStyles.body}>
-        <SectionTabs tabs={TABS} activeTab={tab} onTabChange={setTab} label="Secciones de inventario" />
+        {navigation || <SectionTabs tabs={TABS} activeTab={tab} onTabChange={setTab} label="Secciones de inventario" />}
 
         {error ? <p className={styles.error} role="alert">{error}</p> : null}
 

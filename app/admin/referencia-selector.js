@@ -14,7 +14,7 @@ async function lookup(kind, params, signal) {
   signal.addEventListener("abort", cancel, { once: true });
   const timer = setTimeout(() => { timedOut = true; cancel(); }, 12000);
   try {
-    const response = await apiFetch(`/api/ventas/${kind}?${new URLSearchParams(params)}`, { cache: "no-store", signal: controller.signal });
+    const response = await apiFetch(`${kind === "compras-productos" ? "/api/compras/productos" : kind === "proveedores" ? "/api/compras/proveedores" : `/api/ventas/${kind}`}?${new URLSearchParams(params)}`, { cache: "no-store", signal: controller.signal });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || "No se pudo realizar la búsqueda.");
     if (!Array.isArray(data.items)) throw new Error("La búsqueda devolvió una respuesta inválida.");
@@ -29,6 +29,8 @@ async function lookup(kind, params, signal) {
 }
 
 function detail(kind, item) {
+  if (kind === "proveedores") return [Object.hasOwn(item, "rtn") ? item.rtn ? `ID / RTN: ${item.rtn}` : "Sin identificación registrada" : "Consultando proveedor…", item.contacto || item.telefono || item.email].filter(Boolean).join(" · ");
+  if (kind === "compras-productos") return [item.sku, Object.hasOwn(item, "costo") ? item.costo == null ? "Costo por acordar" : `Costo ${formatPrice(item.costo)}` : "Consultando costo…", item.unidad].filter(Boolean).join(" · ");
   if (kind === "clientes" && !Object.hasOwn(item, "rtn")) return "Consultando identificación guardada…";
   if (kind === "productos" && !Object.hasOwn(item, "precio")) return "Consultando SKU y tarifas del catálogo…";
   return kind === "clientes" ? clientIdentity(item) : [

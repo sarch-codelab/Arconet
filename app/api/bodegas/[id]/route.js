@@ -48,8 +48,9 @@ export async function DELETE(_request, { params }) {
   const { id } = await params;
   try {
     const movimientos = await prisma.movimientoKardex.count({ where: { bodegaId: id } });
-    if (movimientos > 0) {
-      // Con historial de kardex no se borra: se desactiva para conservar la auditoría.
+    const recepciones = await prisma.recepcionCompra.count({ where: { bodegaId: id } });
+    if (movimientos > 0 || recepciones > 0) {
+      // Con historial de kardex o recepción no se borra: se desactiva para conservar la auditoría.
       const bodega = await prisma.bodega.update({ where: { id }, data: { estado: "inactivo" } });
       await writeLog("panel", `Bodega desactivada: ${bodega.nombre}`, {
         actor: guard.session.correo,
@@ -72,6 +73,7 @@ export async function DELETE(_request, { params }) {
     return Response.json({ ok: true });
   } catch (error) {
     if (error?.code === "P2025") return Response.json({ error: "Bodega no encontrada." }, { status: 404 });
+    if (error?.code === "P2003") return Response.json({ error: "La bodega acaba de registrar actividad. Actualiza y desactívala para conservar el historial." }, { status: 409 });
     console.error("DELETE /api/bodegas/[id]", error);
     return Response.json({ error: "No se pudo eliminar la bodega." }, { status: 500 });
   }
