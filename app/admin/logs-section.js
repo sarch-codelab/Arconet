@@ -30,6 +30,8 @@ const LOG_PAGE_SIZE = 50;
 const LOG_REFRESH_MS = 30_000;
 
 export default function LogsSection({ session, workers = [] }) {
+  const scoped = !session?.permisos?.includes("logs:read");
+  const endpoint = scoped ? "/api/inventario/logs" : "/api/logs";
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -48,7 +50,7 @@ export default function LogsSection({ session, workers = [] }) {
         if (categoriaApi !== "todas") params.set("categoria", categoriaApi);
         if (filtroNivel !== "todos") params.set("nivel", filtroNivel);
         const query = params.toString();
-        const res = await fetch(`/api/logs${query ? `?${query}` : ""}`, {
+        const res = await fetch(`${endpoint}${query ? `?${query}` : ""}`, {
           cache: "no-store",
         });
         if (!res.ok) throw new Error("No se pudieron obtener los logs");
@@ -64,7 +66,7 @@ export default function LogsSection({ session, workers = [] }) {
         setRefreshing(false);
       }
     },
-    [],
+    [endpoint],
   );
 
   // Al cambiar filtros se vuelve a la primera pagina.
@@ -87,8 +89,8 @@ export default function LogsSection({ session, workers = [] }) {
   return (
     <>
       <Topbar
-        title="Logs del sistema"
-        subtitle="Registro de actividad de autenticación, API, base de datos y panel."
+        title={scoped ? "Registros de Inventario" : "Logs del sistema"}
+        subtitle={scoped ? "Movimientos y actividad de Bodega y abastecimiento autorizados. Sin registros de Ventas ni del sistema." : "Registro de actividad de autenticación, API, base de datos y panel."}
         action={
           <div className={styles.logsActions}>
             <button
@@ -121,7 +123,7 @@ export default function LogsSection({ session, workers = [] }) {
 
       <div className={styles.body}>
         <SectionTabs
-          tabs={SECTION_NAV_CONFIG.logs?.tabs}
+          tabs={scoped ? [{ id: "all", label: "Área de Inventario", icon: ScrollText }] : SECTION_NAV_CONFIG.logs?.tabs}
           activeTab={tab}
           onTabChange={setTab}
           label="Filtros de registros"

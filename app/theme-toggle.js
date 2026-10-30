@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
+import { resolvePanelTheme } from "@/lib/panel-theme";
 import { Clock, Moon, Sun } from "lucide-react";
 
 export const THEME_KEY = "arconet-theme";
@@ -20,6 +21,8 @@ export function resolveTheme(mode, date = new Date()) {
 
 function applyTheme(theme) {
   if (typeof document === "undefined") return;
+  const panel = document.documentElement.dataset.adminTheme;
+  if (panel) theme = resolvePanelTheme(panel, window.matchMedia?.("(prefers-color-scheme: dark)").matches);
   document.documentElement.setAttribute("data-theme", theme);
   document.documentElement.style.colorScheme = theme;
 }
@@ -63,6 +66,12 @@ export function setThemeMode(next) {
   else window.localStorage.setItem(THEME_KEY, next);
   syncAutoTimer();
   listeners.forEach((listener) => listener());
+}
+
+export function setAdminTheme(mode) {
+  if (mode) document.documentElement.dataset.adminTheme = mode;
+  else delete document.documentElement.dataset.adminTheme;
+  applyTheme(resolveTheme(currentMode));
 }
 
 export function cycleThemeMode() {
@@ -110,7 +119,7 @@ export default function ThemeToggle() {
   const { mode, theme, label, Icon, cycle } = useThemeMode();
   // En el panel el botón flotante quedaba encima de tablas y formularios:
   // robaba clics y cambiaba el tema sin querer. Ahí el tema se controla desde
-  // Ajustes, así que el botón flotante no se muestra.
+  // Mi perfil (Apariencia), así que el botón flotante no se muestra.
   const [hidden, setHidden] = useState(false);
 
   useEffect(() => {

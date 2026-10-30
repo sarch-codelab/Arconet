@@ -88,10 +88,10 @@ export default function RolesSection({ roles = [], setRoles, workers = [], sessi
       const current = new Set(prev.permisos);
       if (current.has(perm)) {
         current.delete(perm);
-        if (action === "read") module.actions.forEach((a) => current.delete(`${module.id}:${a}`));
+        if (action === "read") module.actions.filter(a => a !== "receive").forEach((a) => current.delete(`${module.id}:${a}`));
       } else {
         current.add(perm);
-        if (action !== "read") current.add(`${module.id}:read`);
+        if (action !== "read" && action !== "receive") current.add(`${module.id}:read`);
       }
       return { ...prev, permisos: [...current] };
     });
@@ -427,6 +427,7 @@ export default function RolesSection({ roles = [], setRoles, workers = [], sessi
                   </p>
                 ) : (
                   <div className={styles.permMatrixWrap}>
+                    <p className={styles.permMatrixNote}>Inventario: Ver incluye el resumen y registros de su área, no reportes/logs globales. Recibir mercadería es independiente de ver costos de compras y requiere también Inventario: Ver y Crear/editar.</p>
                     <table className={styles.permMatrix}>
                       <thead>
                         <tr>

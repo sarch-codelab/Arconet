@@ -1,3 +1,4 @@
+import { checkedCommercialTotal, sameCommercialAmounts, sameCatalogQuantities } from "@/lib/ventas-form";
 import { resolveCatalogPrices } from "@/lib/precios-service";
 import { prisma } from '@/lib/prisma';
 import { parseOrden } from '@/lib/ordenes';
@@ -52,16 +53,21 @@ export async function PATCH(request, { params }) {
           const error = new Error("El documento cambió desde que abriste el formulario. Recarga antes de guardar.");
           error.status = 409; throw error;
         }
+        const finalItems = items ?? existente.items;
+        if (!finalItems.length && (existente.items.length > 0 || (ordenData.tipo === "venta" && existente.tipo !== "venta"))) {
+          const error = new Error("Añade al menos un producto o concepto; no se puede vaciar el detalle ni convertir una solicitud sin líneas en venta.");
+          error.status = 400; throw error;
+        }
         const descontabaStock = isStockSale(existente);
         const debeDescontarStock = isStockSale({ ...existente, ...ordenData });
         const cambiaInventario = descontabaStock !== debeDescontarStock ||
-          (Boolean(items) && (descontabaStock || debeDescontarStock));
+          (Boolean(items) && !sameCatalogQuantities(existente.items, items) && (descontabaStock || debeDescontarStock));
         const pricedItems = items ? await resolveCatalogPrices(tx, items, { previous: existente.items, editing: true }) : undefined;
-        const amountChanged = pricedItems && (pricedItems.length !== existente.items.length || pricedItems.some((line, index) => {
-          const old = existente.items[index];
-          return line.productoId !== old.productoId || Number(line.cantidad) !== Number(old.cantidad) || Number(line.precio) !== Number(old.precio);
-        }));
-        const amount = pricedItems?.length ? (amountChanged ? pricedItems.reduce((total, line) => total + line.cantidad * line.precio, 0) : existente.monto) : pricedItems ? ordenData.monto ?? 0 : existente.items.length ? existente.monto : ordenData.monto;
+        const amountChanged = pricedItems && !sameCommercialAmounts(existente.items, pricedItems);
+        // Editar cabecera nunca cambia un importe histórico sin detalle, ni
+        // un snapshot existente. Sólo las líneas financieras nuevas/cambiadas
+        // recalculan el total; el monto del navegador no es una alternativa.
+        const amount = amountChanged && pricedItems.length ? checkedCommercialTotal(pricedItems) : existente.monto;
         const actualizada = await tx.orden.update({
           where: { id },
           data: {

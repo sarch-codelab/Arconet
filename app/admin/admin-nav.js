@@ -50,7 +50,6 @@ export const AdminContext = createContext({
 export const NAV = [
   { id: "trabajadores", label: "Trabajadores", icon: Users },
   { id: "roles", label: "Roles", icon: ShieldCheck },
-  { id: "productos", label: "Productos", icon: Package },
   { id: "categorias", label: "Categorías", icon: Tags },
   { id: "sucursales", label: "Sucursales", icon: Building2 },
   { id: "clientes", label: "Clientes", icon: User },
@@ -180,6 +179,7 @@ export const SECTION_NAV_CONFIG = {
       { id: "all", label: "Perfil", icon: User, title: "Mi perfil de usuario" },
       { id: "activity", label: "Actividad", icon: Activity, title: "Mi actividad reciente" },
       { id: "security", label: "Seguridad", icon: ShieldCheck, title: "Seguridad de mi cuenta" },
+      { id: "appearance", label: "Apariencia", icon: Settings, title: "Tema personal del panel" },
     ],
   },
   ajustes: {

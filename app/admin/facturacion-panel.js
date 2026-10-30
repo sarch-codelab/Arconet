@@ -1,13 +1,17 @@
 "use client";
 
 import PrecioSelector from "./precio-selector";
+import ClienteSelector from "./cliente-selector";
+import ReferenciaSelector from "./referencia-selector";
+import { fiscalPreviewTotals, validCommercialLine, MAX_DOCUMENT_AMOUNT } from "@/lib/ventas-form";
+import salesStyles from "./ventas-form.module.css";
 import { priceAt } from "@/lib/precios";
 import { previewDocumentClick } from "@/lib/api-document";
 import { resolveFiscalTab } from "@/lib/admin-navigation";
 
 import { apiFetch as fetch } from "@/lib/api-fetch";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   Ban,
@@ -45,10 +49,11 @@ const IMPUESTOS = [
 const TIPO_LABEL = { factura: "Factura", nota_credito: "Nota de crédito", nota_debito: "Nota de débito" };
 
 let lineaSeq = 0;
-function nuevaLinea(impuesto = 15) {
+function nuevaLinea(impuesto = 15, kind = "producto") {
   lineaSeq += 1;
   return {
     key: `linea-${lineaSeq}`,
+    kind,
     productoId: "",
     nivelPrecio: "normal",
     descripcion: "",
@@ -92,24 +97,14 @@ async function request(url, options) {
   return data;
 }
 
-export default function FacturacionPanel({ session, productos: productosIniciales = [], hideTopbar = false, chromeOnly = false, tabs, activeTab: controlledTab, onTabChange }) {
+export default function FacturacionPanel({ session, productos: productosIniciales = [], hideTopbar = false, chromeOnly = false, tabs, activeTab: controlledTab, onTabChange, onClientCreated }) {
   const [innerTab, setInnerTab] = useState("documentos");
   // Las píldoras fiscales mantienen su selección aunque Ventas siga en «Facturas».
   const tab = resolveFiscalTab(controlledTab, innerTab);
   const canWrite = session?.permisos?.includes("facturacion:write");
-  const canReadClientes = session?.permisos?.includes("clientes:read");
-  const canReadProductos = session?.permisos?.includes("productos:read");
-  const setTab = (next) => {
-    if (TABS.some(item => item.id === next)) {
-      setInnerTab(next);
-      if (TABS.some(item => item.id === controlledTab)) onTabChange?.(next);
-      return;
-    }
-    if (SALES_TABS.has(next)) onTabChange?.(next);
-  };
+  const canRead = session?.permisos?.includes("facturacion:read");
 
   const [documentos, setDocumentos] = useState([]);
-  const [clientes, setClientes] = useState([]);
   const [productos, setProductos] = useState(productosIniciales);
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -119,26 +114,36 @@ export default function FacturacionPanel({ session, productos: productosIniciale
   const [detalle, setDetalle] = useState(null);
 
   const [clienteId, setClienteId] = useState("");
+  const [clientSnapshot, setClientSnapshot] = useState(null);
+  const [clientBusy, setClientBusy] = useState(false);
+  const [clientCreating, setClientCreating] = useState(false);
+  const submitting = useRef(false);
   const [impuesto, setImpuesto] = useState(15);
-  const [lineas, setLineas] = useState([nuevaLinea(15)]);
+  const [lineas, setLineas] = useState([]);
 
   const [libro, setLibro] = useState(null);
   const [desde, setDesde] = useState(inicioMesISO());
   const [hasta, setHasta] = useState(hoyISO());
   const [configDraft, setConfigDraft] = useState({ cai: "", serie: "", correlativo: "", nit: "", nombre: "", direccion: "" });
 
+  const setTab = (next) => {
+    if (guardando || clientBusy) return;
+    if (TABS.some(item => item.id === next)) {
+      setInnerTab(next);
+      if (TABS.some(item => item.id === controlledTab)) onTabChange?.(next);
+      return;
+    }
+    if (SALES_TABS.has(next)) onTabChange?.(next);
+  };
+
   const cargar = useCallback(async () => {
     setLoading(true);
     try {
-      const [docs, cli, prod, cfg] = await Promise.all([
-        request("/api/facturacion/documentos"),
-        canReadClientes ? request("/api/clientes?take=500") : Promise.resolve([]),
-        canReadProductos ? request("/api/productos?take=500") : Promise.resolve([]),
-        request("/api/facturacion/config"),
+      const [docs, cfg] = await Promise.all([
+        canRead ? request("/api/facturacion/documentos") : Promise.resolve([]),
+        canRead ? request("/api/facturacion/config") : Promise.resolve(null),
       ]);
       setDocumentos(Array.isArray(docs) ? docs : []);
-      setClientes(Array.isArray(cli) ? cli : []);
-      setProductos(Array.isArray(prod) ? prod : []);
       setConfig(cfg || null);
       setConfigDraft({
         cai: cfg?.cai || "",
@@ -154,7 +159,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
     } finally {
       setLoading(false);
     }
-  }, [canReadClientes, canReadProductos]);
+  }, [canRead]);
 
   const cargarLibro = useCallback(async () => {
     try {
@@ -183,35 +188,22 @@ export default function FacturacionPanel({ session, productos: productosIniciale
     );
   }, [documentos, query]);
 
-  const totales = useMemo(() => {
-    let subtotal = 0;
-    let descuento = 0;
-    let impuestoTotal = 0;
-    for (const linea of lineas) {
-      const cantidad = Number(linea.cantidad) || 0;
-      const precio = Number(linea.precio) || 0;
-      const desc = Number(linea.descuento) || 0;
-      const base = Math.max(0, cantidad * precio - desc);
-      subtotal += base;
-      descuento += desc;
-      impuestoTotal += (base * (Number(linea.impuestoPorcentaje) || 0)) / 100;
-    }
-    const redondear = (value) => Math.round((value + Number.EPSILON) * 100) / 100;
-    return {
-      subtotal: redondear(subtotal),
-      descuento: redondear(descuento),
-      impuesto: redondear(impuestoTotal),
-      total: redondear(subtotal + impuestoTotal),
-    };
-  }, [lineas]);
+  const totales = useMemo(() => fiscalPreviewTotals(lineas), [lineas]);
 
-  const lineasValidas = lineas.length > 0 && lineas.every(
-    (linea) =>
-      linea.descripcion.trim() &&
-      Number(linea.cantidad) > 0 &&
-      linea.precio !== "" &&
-      Number(linea.precio) >= 0,
+  const lineasValidas = totales.total <= MAX_DOCUMENT_AMOUNT && lineas.length > 0 && lineas.every(linea =>
+    validCommercialLine({ ...linea, nombre: linea.descripcion }) &&
+    Number.isFinite(Number(linea.descuento)) && Number(linea.descuento) >= 0 &&
+    Number(linea.descuento) <= Number(linea.cantidad) * Number(linea.precio)
   );
+
+  function rememberProduct(product) {
+    setProductos(current => [product, ...current.filter(item => item.id !== product.id)]);
+  }
+
+  function selectClient(client) {
+    setClienteId(client?.id || "");
+    setClientSnapshot(client);
+  }
 
   function cambiarLinea(key, campo, valor) {
     setLineas((current) =>
@@ -223,14 +215,14 @@ export default function FacturacionPanel({ session, productos: productosIniciale
     );
   }
 
-  function elegirProducto(key, productoId) {
-    const producto = productos.find((item) => item.id === productoId);
+  function elegirProducto(key, producto) {
+    if (producto) rememberProduct(producto);
     setLineas((current) =>
       current.map((linea) =>
         linea.key === key
           ? {
               ...linea,
-              productoId,
+              productoId: producto?.id || "",
               nivelPrecio: "normal",
               descuento: "",
               descripcion: producto ? producto.nombre : "",
@@ -241,17 +233,18 @@ export default function FacturacionPanel({ session, productos: productosIniciale
     );
   }
 
-  function agregarLinea() {
-    setLineas((current) => [...current, nuevaLinea(impuesto)]);
+  function agregarLinea(kind) {
+    const line = nuevaLinea(impuesto, kind);
+    setLineas(current => current.length >= 100 ? current : [...current, line]);
   }
 
   function quitarLinea(key) {
-    setLineas((current) => (current.length > 1 ? current.filter((linea) => linea.key !== key) : current));
+    setLineas(current => current.filter(linea => linea.key !== key));
   }
 
   async function emitir(event) {
     event.preventDefault();
-    if (guardando) return;
+    if (!canWrite || submitting.current || clientBusy || clientCreating) return;
     if (!clienteId) {
       sileo.error({ title: "Selecciona un cliente" });
       return;
@@ -260,6 +253,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
       sileo.error({ title: "Revisa las líneas", description: "Cada línea necesita descripción, cantidad y precio." });
       return;
     }
+    submitting.current = true;
     setGuardando(true);
     try {
       const payload = {
@@ -285,7 +279,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
         description: `Total ${money(doc.total)}. El inventario se descontó de la bodega principal.`,
         duration: 7000,
       });
-      setLineas([nuevaLinea(impuesto)]);
+      setLineas([]);
       await cargar();
       setTab("documentos");
     } catch (err) {
@@ -295,6 +289,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
         duration: 8000,
       });
     } finally {
+      submitting.current = false;
       setGuardando(false);
     }
   }
@@ -325,7 +320,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
 
   async function guardarConfig(event) {
     event.preventDefault();
-    if (guardando) return;
+    if (!canWrite || submitting.current || clientBusy || clientCreating) return;
     setGuardando(true);
     try {
       await request("/api/facturacion/config", {
@@ -489,207 +484,176 @@ export default function FacturacionPanel({ session, productos: productosIniciale
           </>
         )}
 
-        {tab === "nueva" && (
-          <form className={styles.invoiceGrid} onSubmit={emitir}>
-            <section className={adminStyles.card}>
-              <header className={adminStyles.cardHeader}>
-                <div>
-                  <p className={adminStyles.eyebrow}>Datos</p>
-                  <h3>Cliente e impuesto</h3>
+        <div hidden={tab !== "nueva"}>
+          <form onSubmit={emitir}>
+            <fieldset className={styles.invoiceGrid} disabled={guardando || !canWrite} aria-label="Nueva factura">
+              <section className={adminStyles.card}>
+                <header className={adminStyles.cardHeader}>
+                  <div>
+                    <p className={adminStyles.eyebrow}>Datos</p>
+                    <h3>Cliente e impuesto</h3>
+                  </div>
+                </header>
+                <div className={`${adminStyles.form} ${adminStyles.cardBody}`}>
+                  <ClienteSelector value={clienteId} fallback={clientSnapshot} onChange={selectClient} onCreated={onClientCreated} session={session} disabled={guardando || !canWrite} onBusyChange={setClientBusy} onModeChange={setClientCreating} />
+
+                  <label className={adminStyles.field}>
+                    Impuesto por defecto
+                    <select
+                      value={String(impuesto)}
+                      onChange={(event) => {
+                        const valor = Number(event.target.value);
+                        setImpuesto(valor);
+                        setLineas((current) =>
+                          current.map((linea) => ({ ...linea, impuestoPorcentaje: String(valor) })),
+                        );
+                      }}
+                    >
+                      {IMPUESTOS.map((opcion) => (
+                        <option key={opcion.value} value={opcion.value}>{opcion.label}</option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <p className={adminStyles.fieldHint}>
+                    Al emitir se descuenta el inventario de la bodega principal por cada
+                    producto del catálogo. Las líneas libres no afectan existencias.
+                  </p>
                 </div>
-              </header>
-              <div className={`${adminStyles.form} ${adminStyles.cardBody}`}>
-                <label className={adminStyles.field}>
-                  Cliente
-                  <select value={clienteId} onChange={(event) => setClienteId(event.target.value)} required>
-                    <option value="">Selecciona un cliente</option>
-                    {clientes.map((cliente) => (
-                      <option key={cliente.id} value={cliente.id}>
-                        {cliente.nombre}{cliente.rtn ? ` · ${cliente.rtn}` : ""}
-                      </option>
-                    ))}
-                  </select>
-                  {!clientes.length ? (
-                    <small className={adminStyles.fieldHint}>
-                      No hay clientes registrados. Créalos en la sección Clientes antes de facturar.
-                    </small>
-                  ) : null}
-                </label>
+              </section>
 
-                <label className={adminStyles.field}>
-                  Impuesto por defecto
-                  <select
-                    value={String(impuesto)}
-                    onChange={(event) => {
-                      const valor = Number(event.target.value);
-                      setImpuesto(valor);
-                      setLineas((current) =>
-                        current.map((linea) => ({ ...linea, impuestoPorcentaje: String(valor) })),
-                      );
-                    }}
-                  >
-                    {IMPUESTOS.map((opcion) => (
-                      <option key={opcion.value} value={opcion.value}>{opcion.label}</option>
-                    ))}
-                  </select>
-                </label>
+              <section className={`${adminStyles.card} ${styles.linesCard}`}>
+                <header className={adminStyles.cardHeader}>
+                  <div>
+                    <p className={adminStyles.eyebrow}>Detalle</p>
+                    <h3>Líneas de la factura</h3>
+                  </div>
+                  <div className={salesStyles.actions}>
+                    <button type="button" className={adminStyles.ghostBtn} onClick={() => agregarLinea("producto")} disabled={lineas.length >= 100}><Plus size={15} /> Añadir producto</button>
+                    <button type="button" className={adminStyles.ghostBtn} onClick={() => agregarLinea("concepto")} disabled={lineas.length >= 100}><Plus size={15} /> Añadir concepto / servicio</button>
+                  </div>
+                </header>
 
-                <p className={adminStyles.fieldHint}>
-                  Al emitir se descuenta el inventario de la bodega principal por cada
-                  producto del catálogo. Las líneas libres no afectan existencias.
-                </p>
-              </div>
-            </section>
+                <div className={adminStyles.cardBody}>
+                  {!lineas.length && <p className={salesStyles.hint}>Añade productos del catálogo o conceptos / servicios para calcular el total de la factura.</p>}
+                  {lineas.map((linea) => {
+                    const producto = productos.find((item) => item.id === linea.productoId);
+                    return (
+                      <div className={styles.linea} key={linea.key}>
+                        <div className={styles.lineaTop}>
+                          {linea.kind === "producto" ? <ReferenciaSelector kind="productos" label="Producto" value={linea.productoId} fallback={producto} onChange={product => elegirProducto(linea.key, product)} onResolved={rememberProduct} disabled={guardando || !canWrite} /> : <strong className={salesStyles.hint}>Concepto / servicio</strong>}
+                          <button
+                            type="button"
+                            className={adminStyles.dangerBtn}
+                            onClick={() => quitarLinea(linea.key)}
+                            aria-label="Quitar línea"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
 
-            <section className={`${adminStyles.card} ${styles.linesCard}`}>
-              <header className={adminStyles.cardHeader}>
-                <div>
-                  <p className={adminStyles.eyebrow}>Detalle</p>
-                  <h3>Líneas de la factura</h3>
+                        <label className={adminStyles.field}>
+                          Descripción
+                          <input
+                            type="text"
+                            value={linea.descripcion}
+                            onChange={(event) => cambiarLinea(linea.key, "descripcion", event.target.value)}
+                            placeholder="Detalle del producto o servicio"
+                            required
+                          />
+                        </label>
+
+                        {linea.productoId && <label className={adminStyles.field}>Tarifa de venta<PrecioSelector product={producto} value={linea.nivelPrecio} onChange={value => cambiarLinea(linea.key, "nivelPrecio", value)} label="Tarifa de venta" disabled={guardando || !canWrite} /></label>}
+                        <div className={styles.lineaGrid}>
+                          <label className={adminStyles.field}>
+                            Cantidad
+                            <input
+                              type="number"
+                              min={linea.kind === "producto" ? "1" : "0.001"}
+                              step={linea.kind === "producto" ? "1" : "0.001"}
+                              value={linea.cantidad}
+                              onChange={(event) => cambiarLinea(linea.key, "cantidad", event.target.value)}
+                              required
+                            />
+                          </label>
+                          <label className={adminStyles.field}>
+                            Precio unitario
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={linea.precio}
+                              readOnly={Boolean(linea.productoId)}
+                              onChange={(event) => cambiarLinea(linea.key, "precio", event.target.value)}
+                              placeholder="0.00"
+                              required
+                            />
+                          </label>
+                          <label className={adminStyles.field}>
+                            Descuento
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={linea.descuento}
+                              disabled={Boolean(linea.productoId) && !session?.permisos?.includes("precios:write")}
+                              onChange={(event) => cambiarLinea(linea.key, "descuento", event.target.value)}
+                              placeholder="0.00"
+                            />
+                          </label>
+                          <label className={adminStyles.field}>
+                            Impuesto
+                            <select
+                              value={linea.impuestoPorcentaje}
+                              onChange={(event) => cambiarLinea(linea.key, "impuestoPorcentaje", event.target.value)}
+                            >
+                              {IMPUESTOS.map((opcion) => (
+                                <option key={opcion.value} value={opcion.value}>{opcion.label}</option>
+                              ))}
+                            </select>
+                          </label>
+                        </div>
+
+                      </div>
+                    );
+                  })}
                 </div>
-                <button type="button" className={adminStyles.ghostBtn} onClick={agregarLinea}>
-                  <Plus size={15} /> Agregar línea
+              </section>
+
+              <section className={styles.resumen}>
+                <div className={styles.resumenFila}>
+                  <span>Subtotal neto</span>
+                  <strong>{money(totales.subtotal)}</strong>
+                </div>
+                <div className={styles.resumenFila}>
+                  <span>Descuento</span>
+                  <strong>− {money(totales.descuento)}</strong>
+                </div>
+                <div className={styles.resumenFila}>
+                  <span>ISV</span>
+                  <strong>{money(totales.impuesto)}</strong>
+                </div>
+                <div className={`${styles.resumenFila} ${styles.resumenTotal}`}>
+                  <span>Total</span>
+                  <strong>{money(totales.total)}</strong>
+                </div>
+
+                {totales.total > MAX_DOCUMENT_AMOUNT && <p className={salesStyles.error} role="alert">El total supera el importe máximo permitido. Reduce cantidades o precios.</p>}
+                <button
+                  type="submit"
+                  className={adminStyles.primaryBtn}
+                  disabled={!canWrite || guardando || clientBusy || clientCreating || !clienteId || !lineasValidas}
+                >
+                  <Receipt size={16} /> {guardando ? "Emitiendo…" : "Emitir factura"}
                 </button>
-              </header>
-
-              <div className={adminStyles.cardBody}>
-                {lineas.map((linea) => {
-                  const producto = productos.find((item) => item.id === linea.productoId);
-                  const stock = Number(producto?.stock || 0);
-                  const excede = Boolean(linea.productoId) && Number(linea.cantidad) > stock;
-                  return (
-                    <div className={styles.linea} key={linea.key}>
-                      <div className={styles.lineaTop}>
-                        <label className={adminStyles.field}>
-                          Producto (opcional)
-                          <select
-                            value={linea.productoId}
-                            onChange={(event) => elegirProducto(linea.key, event.target.value)}
-                          >
-                            <option value="">Concepto libre</option>
-                            {productos.filter(item => item.estado === "activo").map((item) => (
-                              <option key={item.id} value={item.id}>
-                                {item.nombre} · stock {item.stock}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                        <button
-                          type="button"
-                          className={adminStyles.dangerBtn}
-                          onClick={() => quitarLinea(linea.key)}
-                          aria-label="Quitar línea"
-                          disabled={lineas.length === 1}
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-
-                      <label className={adminStyles.field}>
-                        Descripción
-                        <input
-                          type="text"
-                          value={linea.descripcion}
-                          onChange={(event) => cambiarLinea(linea.key, "descripcion", event.target.value)}
-                          placeholder="Detalle del producto o servicio"
-                          required
-                        />
-                      </label>
-
-                      {linea.productoId && <label className={adminStyles.field}>Tarifa de venta<PrecioSelector product={producto} value={linea.nivelPrecio} onChange={value => cambiarLinea(linea.key, "nivelPrecio", value)} label="Tarifa de venta" /></label>}
-                      <div className={styles.lineaGrid}>
-                        <label className={adminStyles.field}>
-                          Cantidad
-                          <input
-                            type="number"
-                            min="1"
-                            step="1"
-                            value={linea.cantidad}
-                            onChange={(event) => cambiarLinea(linea.key, "cantidad", event.target.value)}
-                            required
-                          />
-                        </label>
-                        <label className={adminStyles.field}>
-                          Precio unitario
-                          <input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={linea.precio}
-                            readOnly={Boolean(linea.productoId)}
-                            onChange={(event) => cambiarLinea(linea.key, "precio", event.target.value)}
-                            placeholder="0.00"
-                            required
-                          />
-                        </label>
-                        <label className={adminStyles.field}>
-                          Descuento
-                          <input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={linea.descuento}
-                            disabled={Boolean(linea.productoId) && !session?.permisos?.includes("precios:write")}
-                            onChange={(event) => cambiarLinea(linea.key, "descuento", event.target.value)}
-                            placeholder="0.00"
-                          />
-                        </label>
-                        <label className={adminStyles.field}>
-                          Impuesto
-                          <select
-                            value={linea.impuestoPorcentaje}
-                            onChange={(event) => cambiarLinea(linea.key, "impuestoPorcentaje", event.target.value)}
-                          >
-                            {IMPUESTOS.map((opcion) => (
-                              <option key={opcion.value} value={opcion.value}>{opcion.label}</option>
-                            ))}
-                          </select>
-                        </label>
-                      </div>
-
-                      {excede ? (
-                        <p className={styles.lineaAviso} role="alert">
-                          <AlertTriangle size={13} /> Solo hay {stock} en inventario: la factura será rechazada.
-                        </p>
-                      ) : null}
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-
-            <section className={styles.resumen}>
-              <div className={styles.resumenFila}>
-                <span>Subtotal</span>
-                <strong>{money(totales.subtotal)}</strong>
-              </div>
-              <div className={styles.resumenFila}>
-                <span>Descuento</span>
-                <strong>− {money(totales.descuento)}</strong>
-              </div>
-              <div className={styles.resumenFila}>
-                <span>ISV</span>
-                <strong>{money(totales.impuesto)}</strong>
-              </div>
-              <div className={`${styles.resumenFila} ${styles.resumenTotal}`}>
-                <span>Total</span>
-                <strong>{money(totales.total)}</strong>
-              </div>
-
-              <button
-                type="submit"
-                className={adminStyles.primaryBtn}
-                disabled={!canWrite || guardando || !clienteId || !lineasValidas}
-              >
-                <Receipt size={16} /> {guardando ? "Emitiendo…" : "Emitir factura"}
-              </button>
-              <p className={adminStyles.fieldHint}>
-                Se guarda la huella del documento y se descuenta inventario. Si el
-                stock no alcanza, la factura no se emite.
-              </p>
-            </section>
+                <p className={adminStyles.fieldHint}>
+                  Se guarda la huella del documento y se descuenta inventario. Si el
+                  stock no alcanza, la factura no se emite.
+                </p>
+              </section>
+            </fieldset>
           </form>
-        )}
+        </div>
 
         {tab === "libro" && (
           <>
@@ -918,7 +882,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
               </table>
 
               <div className={styles.resumen}>
-                <div className={styles.resumenFila}><span>Subtotal</span><strong>{money(detalle.subtotal)}</strong></div>
+                <div className={styles.resumenFila}><span>Subtotal neto</span><strong>{money(detalle.subtotal)}</strong></div>
                 <div className={styles.resumenFila}><span>Descuento</span><strong>− {money(detalle.descuento)}</strong></div>
                 <div className={styles.resumenFila}><span>ISV</span><strong>{money(detalle.impuesto)}</strong></div>
                 <div className={`${styles.resumenFila} ${styles.resumenTotal}`}><span>Total</span><strong>{money(detalle.total)}</strong></div>

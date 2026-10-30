@@ -6,6 +6,7 @@ import styles from "./admin-experience.module.css";
 import { formatDate } from "./workers-store";
 import { formatPrice, formatStock } from "./products-store";
 import { Topbar } from "./topbar";
+import InventorySummary from "./inventory-summary";
 import { summarizeCommercialOrders } from "@/lib/admin-summary";
 
 export default function ResumenSection({ workers = [], products = [], sucursales = [], orders = [], session }) {
@@ -60,6 +61,8 @@ export default function ResumenSection({ workers = [], products = [], sucursales
       .slice(0, 5);
   }, [products]);
 
+  if (session?.permisos?.includes("inventario:read") && !session?.permisos?.includes("reportes:read")) return <><Topbar title="Resumen de Bodega" subtitle="Existencias, alertas, recepciones y movimientos de las áreas autorizadas." session={session} /><div className={styles.body}><InventorySummary /></div></>;
+
   return (
     <>
       <Topbar
@@ -70,6 +73,7 @@ export default function ResumenSection({ workers = [], products = [], sucursales
       />
 
       <div className={styles.body}>
+        {session?.permisos?.includes("inventario:read") ? <InventorySummary /> : null}
         <section className={styles.stats} aria-label="Estadísticas generales">
           <article className={styles.statCard}>
             <span className={styles.statIcon}><Users size={18} /></span>

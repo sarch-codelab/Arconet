@@ -1,3 +1,4 @@
+import { checkedCommercialTotal } from "@/lib/ventas-form";
 import { resolveCatalogPrices } from "@/lib/precios-service";
 import { prisma } from '@/lib/prisma';
 import { newOrderId, parseOrden } from '@/lib/ordenes';
@@ -154,7 +155,7 @@ export async function POST(request) {
           data: {
             id: newOrderId(),
             ...ordenData,
-            monto: pricedItems?.length ? pricedItems.reduce((total, line) => total + line.cantidad * line.precio, 0) : ordenData.monto ?? 0,
+            monto: pricedItems?.length ? checkedCommercialTotal(pricedItems) : ordenData.monto ?? 0,
             items: pricedItems?.length ? { create: pricedItems } : undefined,
           },
           include: { cliente: true, items: true },

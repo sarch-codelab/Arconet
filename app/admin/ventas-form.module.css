@@ -1,0 +1,154 @@
+.picker, .clientPicker {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  color: var(--text-main);
+}
+
+.label, .quickField {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.picker .input, .quickField input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-card);
+  color: var(--text-main);
+  font: inherit;
+  font-size: 16px;
+}
+
+.input:focus, .quickField input:focus {
+  outline: 2px solid var(--blue);
+  outline-offset: 1px;
+}
+
+.picker button, .quickForm button {
+  min-height: 44px;
+  white-space: normal;
+}
+
+.clear {
+  flex: none;
+  width: 44px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-card-subtle);
+  color: var(--text-main);
+  cursor: pointer;
+}
+
+.results {
+  display: grid;
+  gap: 3px;
+  max-height: 230px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 5px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+}
+
+.option {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-main);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.option:hover, .option[aria-selected="true"] {
+  border-color: var(--blue);
+  background: var(--blue-light);
+}
+
+.option strong { font-size: 13px; }
+.option span, .hint, .error { font-size: 12px; line-height: 1.55; overflow-wrap: anywhere; }
+.option span, .hint { color: var(--text-muted); }
+.error { color: var(--text-danger); }
+
+.actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.actions button { white-space: normal; }
+
+.quickForm {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card-subtle);
+}
+
+.quickForm h3 { margin: 0; font-size: 14px; }
+.quickForm p { margin: 0; }
+.quickGrid { display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.quickField { display: grid; gap: 6px; min-width: 0; }
+
+.lines { display: grid; gap: 12px; min-width: 0; }
+.line {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card-subtle);
+}
+.lineHead { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.lineHead strong { font-size: 13px; }
+.lineHead button { flex: none; width: auto; min-height: 44px; }
+.lineGrid { display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); min-width: 0; }
+.lineGrid > *, .line > * { min-width: 0; }
+
+.total {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card-subtle);
+  color: var(--text-main);
+  font-size: 14px;
+}
+.total output, .lineTotal { font-variant-numeric: tabular-nums; }
+.total output { font-weight: 750; font-size: 21px; }
+.lineTotal { color: var(--text-muted); font-size: 12px; text-align: right; }
+
+/* Evita el ancho intrínseco del control de fecha de Safari en móvil. */
+.commercialForm .dateInput { box-sizing: border-box; min-width: 0; max-width: 100%; width: 100%; }
+.dateInput::-webkit-date-and-time-value { text-align: left; }
+
+@media (max-width: 480px) {
+  .quickGrid, .lineGrid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 900px) {
+  /* Supera la tipografía heredada de fieldGrid: Safari no debe ampliar
+     el formulario al enfocar un campo de menos de 16px. */
+  .commercialForm input, .commercialForm select, .commercialForm textarea { font-size: 16px !important; }
+}

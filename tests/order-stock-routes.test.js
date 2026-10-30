@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
-  prisma: { orden: { findUnique: vi.fn(), findMany: vi.fn() }, clienteCuenta: { findUnique: vi.fn() }, $transaction: vi.fn() },
+  prisma: { orden: { findUnique: vi.fn(), findMany: vi.fn(), create: vi.fn() }, clienteCuenta: { findUnique: vi.fn() }, $transaction: vi.fn() },
   tx: { producto: { findMany: vi.fn() }, $executeRaw: vi.fn(), orden: { findUnique: vi.fn(), update: vi.fn(), create: vi.fn(), delete: vi.fn() } },
   requirePermission: vi.fn(), requireSession: vi.fn(), getClientSession: vi.fn(),
   descontarStock: vi.fn(), revertirStock: vi.fn(), writeLog: vi.fn(),
@@ -138,4 +138,91 @@ it('rechaza un formulario desactualizado antes de tocar líneas o inventario', a
   existing.updatedAt = new Date('2026-10-29T20:00:00.000Z');
   expect((await patch({ updatedAt: '2026-10-29T19:00:00.000Z', items })).status).toBe(409);
   expect(mocks.tx.orden.update).not.toHaveBeenCalled(); expect(mocks.revertirStock).not.toHaveBeenCalled();
+});
+
+describe('detalle obligatorio sin romper históricos ni solicitudes del portal', () => {
+  it.each([{}, { items: [] }])('rechaza un nuevo documento comercial sin líneas: %j', async detail => {
+    const response = await POST(request({ clienteId: 'qa-c', tipo: 'venta', monto: 12500, ...detail }));
+    expect(response.status).toBe(400);
+    expect(mocks.prisma.$transaction).not.toHaveBeenCalled();
+    expect(mocks.descontarStock).not.toHaveBeenCalled();
+  });
+  it('permite una venta de conceptos, cantidades fraccionarias y total autoritativo', async () => {
+    const response = await POST(request({ tipo: 'venta', clienteId: 'qa-c', monto: 9999, items: [{ nombre: 'Visita técnica', cantidad: 0.5, precio: 100.5 }] }));
+    expect(response.status).toBe(201);
+    expect(await response.json()).toMatchObject({ monto: 50.25, items: [{ productoId: '', cantidad: 0.5, precio: 100.5 }] });
+    expect(mocks.tx.producto.findMany).not.toHaveBeenCalled();
+  });
+  it('POST y PATCH suman los importes redondeados de cada línea', async () => {
+    const detail = [{ nombre: 'Servicio A', cantidad: 0.003, precio: 5 }, { nombre: 'Servicio B', cantidad: 0.003, precio: 5 }];
+    expect((await (await POST(request({ clienteId: 'qa-c', items: detail }))).json()).monto).toBe(0.04);
+    expect((await (await patch({ items: detail })).json()).monto).toBe(0.04);
+  });
+  it('no permite borrar todo el detalle y sustituirlo por un monto libre', async () => {
+    expect((await patch({ items: [], monto: 9999 })).status).toBe(400);
+    expect(mocks.tx.orden.update).not.toHaveBeenCalled();
+    expect(mocks.revertirStock).not.toHaveBeenCalled();
+  });
+  it.each([{}, { items: [] }])('editar cabecera de un histórico sin líneas conserva su importe: %j', async detail => {
+    existing.items = []; existing.monto = 45000;
+    const response = await patch({ ...detail, notas: 'Seguimiento', monto: 0.01 });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ monto: 45000, notas: 'Seguimiento', items: [] });
+    expect(mocks.descontarStock).not.toHaveBeenCalled();
+  });
+  it.each([{}, { items: [] }])('una solicitud vacía necesita detalle antes de convertirse en venta: %j', async detail => {
+    existing.items = [];
+    expect((await patch({ ...detail, tipo: 'venta' })).status).toBe(400);
+    expect(mocks.tx.orden.update).not.toHaveBeenCalled();
+  });
+  it('añadir líneas a un histórico sí sustituye el importe viejo por el cálculo', async () => {
+    existing.items = []; existing.monto = 45000;
+    const response = await patch({ items, tipo: 'venta' });
+    expect(response.status).toBe(200); expect((await response.json()).monto).toBe(25);
+    expect(mocks.descontarStock).toHaveBeenCalledOnce();
+  });
+  it('la cuenta de cliente aún puede solicitar una cotización sin productos ni tarifa', async () => {
+    mocks.getClientSession.mockResolvedValue({ clienteId: 'qa-c', correo: 'cliente@example.invalid' });
+    mocks.prisma.orden.create.mockResolvedValue({ id: 'solicitud-qa', clienteId: 'qa-c', tipo: 'cotizacion', monto: 0, items: [] });
+    const response = await POST(request({ tipo: 'cotizacion', proyecto: 'Proyecto de prueba', descripcion: 'Solicito una visita', urgencia: 'normal', presupuesto: '' }));
+    expect(response.status).toBe(201); expect((await response.json()).monto).toBe(0);
+    expect(mocks.prisma.orden.create).toHaveBeenCalledOnce();
+    expect(mocks.requirePermission).not.toHaveBeenCalled();
+    expect(mocks.prisma.$transaction).not.toHaveBeenCalled();
+    expect(mocks.descontarStock).not.toHaveBeenCalled();
+  });
+});
+
+
+it('enviar las mismas líneas al editar cabecera de una venta no mueve stock', async () => {
+  existing.tipo = 'venta';
+  const response = await patch({ items, notas: 'Sólo cabecera' });
+  expect(response.status).toBe(200);
+  expect(mocks.revertirStock).not.toHaveBeenCalled(); expect(mocks.descontarStock).not.toHaveBeenCalled();
+});
+it('editar cabecera de una venta histórica sin detalle tampoco revierte movimientos', async () => {
+  existing.tipo = 'venta'; existing.items = [];
+  expect((await patch({ items: [], notas: 'Histórico', monto: 0 })).status).toBe(200);
+  expect(mocks.revertirStock).not.toHaveBeenCalled(); expect(mocks.descontarStock).not.toHaveBeenCalled();
+});
+
+it('verifica el límite con los precios autoritativos, no sólo con los importes enviados', async () => {
+  mocks.tx.producto.findMany.mockResolvedValue([{ id: 'qa-p', nombre: 'Equipo', precio: 9999999999.99, archivado: false, estado: 'activo' }]);
+  const response = await POST(request({ clienteId: 'qa-c', items: [{ ...items[0], cantidad: 2, precio: 0.01 }] }));
+  expect(response.status).toBe(400); expect(mocks.tx.orden.create).not.toHaveBeenCalled();
+});
+it('actualizar sólo la tarifa de una venta cambia el total, no sus existencias', async () => {
+  existing.tipo = 'venta'; existing.items = [{ ...items[0], id: 'linea-guardada' }];
+  const response = await patch({ items: [{ ...existing.items[0], nivelPrecio: 'mayorista', actualizarPrecio: true }] });
+  expect(response.status).toBe(200); expect((await response.json()).monto).toBe(20);
+  expect(mocks.revertirStock).not.toHaveBeenCalled(); expect(mocks.descontarStock).not.toHaveBeenCalled();
+});
+
+it('reordenar líneas con su snapshot conserva el importe histórico y no mueve stock', async () => {
+  const product = { ...items[0], id: 'linea-guardada', nivelPrecio: 'normal', precioBase: 30 };
+  const service = { nombre: 'Servicio', cantidad: 0.5, precio: 60 };
+  existing.tipo = 'venta'; existing.monto = 50; existing.items = [product, service];
+  const response = await patch({ items: [service, { ...product, itemOriginalId: product.id }] });
+  expect(response.status).toBe(200); expect((await response.json()).monto).toBe(50);
+  expect(mocks.revertirStock).not.toHaveBeenCalled(); expect(mocks.descontarStock).not.toHaveBeenCalled();
 });

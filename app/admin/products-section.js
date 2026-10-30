@@ -47,7 +47,7 @@ const EMPTY_PRODUCT = {
   descripcion: "",
 };
 
-export default function ProductsSection({ products = [], setProducts, categorias = [], workers = [], session }) {
+export default function ProductsSection({ products = [], setProducts, categorias = [], workers = [], session, navigation }) {
   const [activeTab, setActiveTab] = useState("all");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
@@ -343,6 +343,7 @@ export default function ProductsSection({ products = [], setProducts, categorias
       />
 
       <div className={styles.body}>
+        {navigation}
         <SectionTabs
           tabs={SECTION_NAV_CONFIG.productos?.tabs}
           activeTab={activeTab}
