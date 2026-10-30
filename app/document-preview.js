@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   closeDocumentPreview,
   getDocumentPreview,
@@ -10,6 +10,63 @@ import {
 import { rememberPrintPaperPreference } from "@/lib/print-preference";
 import { useBodyScrollLock } from "./admin/use-body-scroll-lock";
 import styles from "./document-preview.module.css";
+
+function DocumentFrame({ preview, frameRef, onLoad }) {
+  const [status, setStatus] = useState("loading");
+  const [attempt, setAttempt] = useState(0);
+  const isHtml = typeof preview.html === "string";
+
+  useEffect(() => {
+    if (status !== "loading") return;
+    // Un iframe bloqueado no siempre dispara error. No dejarlo blanco sin fin.
+    const timeout = setTimeout(() => setStatus("error"), 12_000);
+    return () => clearTimeout(timeout);
+  }, [status, attempt]);
+
+  function loaded(event) {
+    if (isHtml) {
+      try {
+        const doc = event.currentTarget.contentDocument;
+        // Algunos motores notifican primero el about:blank inicial.
+        if (doc?.URL === "about:blank") return;
+        if (!doc?.querySelector("main.sheet")?.textContent.trim()) {
+          setStatus("error");
+          return;
+        }
+      } catch {
+        setStatus("error");
+        return;
+      }
+    }
+    onLoad(event);
+    setStatus("ready");
+  }
+
+  return (
+    <div className={styles.content} aria-busy={status === "loading"}>
+      <iframe
+        key={attempt}
+        ref={frameRef}
+        className={`${styles.frame} ${status !== "ready" ? styles.framePending : ""}`}
+        src={isHtml ? undefined : preview.url}
+        srcDoc={isHtml ? preview.html : undefined}
+        title="Documento para imprimir"
+        referrerPolicy="no-referrer"
+        loading="eager"
+        aria-hidden={status !== "ready"}
+        onLoad={loaded}
+        onError={() => setStatus("error")}
+      />
+      {status === "loading" ? <p className={styles.loading} role="status">Cargando vista previa…</p> : null}
+      {status === "error" ? (
+        <div className={styles.error} role="alert">
+          <p>No se pudo mostrar la vista previa. Reintenta cargar el documento o guarda una copia.</p>
+          <button type="button" onClick={() => { setStatus("loading"); setAttempt(value => value + 1); }}>Reintentar vista previa</button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 export default function DocumentPreview() {
   const preview = useSyncExternalStore(subscribeDocumentPreview, getDocumentPreview, getServerDocumentPreview);
@@ -46,7 +103,8 @@ export default function DocumentPreview() {
   function saveCopy(event) {
     let doc;
     try { doc = frameRef.current?.contentDocument; } catch { return; }
-    if (doc?.contentType !== "text/html") return; // PDF: descarga nativa.
+    // Si el motor no cargó el documento, descargar el original, no about:blank.
+    if (typeof preview.html !== "string" || !doc?.querySelector("main.sheet")) return;
     event.preventDefault();
     const html = doc.documentElement.cloneNode(true);
     const selectedPaper = doc.getElementById("paper-size")?.value;
@@ -94,15 +152,7 @@ export default function DocumentPreview() {
         </div>
       </header>
       {preview.url ? (
-        <iframe
-          key={preview.url}
-          ref={frameRef}
-          className={styles.frame}
-          src={preview.url}
-          title="Documento para imprimir"
-          referrerPolicy="no-referrer"
-          onLoad={frameLoaded}
-        />
+        <DocumentFrame key={preview.url} preview={preview} frameRef={frameRef} onLoad={frameLoaded} />
       ) : <p className={styles.loading} role="status">Preparando documento…</p>}
       <p className={styles.help}>
         Deja «Automático» o elige el papel y pulsa «Imprimir / Guardar como PDF».

@@ -54,6 +54,34 @@ describe("documentos sin ventanas emergentes", () => {
     expect(getDocumentPreview()).toMatchObject({ url: "blob:https://preview.example.test/documento", filename: "arconet-documento.html" });
     expect(window.open).not.toHaveBeenCalled();
   });
+  it("entrega el HTML UTF-8 al iframe sin navegar al blob, conservando la copia descargable", async () => {
+    const html = '<!doctype html><html><body><main class="sheet">Cotización · Cámara · L 285.00</main></body></html>';
+    request.mockResolvedValue(new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8" } }));
+    await openApiDocument(path);
+    expect(getDocumentPreview()).toMatchObject({ html, url: "blob:https://preview.example.test/documento" });
+    const [blob] = URL.createObjectURL.mock.calls[0];
+    expect(await blob.text()).toBe(html);
+    expect(anchor.click).not.toHaveBeenCalled();
+    expect(window.open).not.toHaveBeenCalled();
+  });
+  it.each(["", " \n\t"])('rechaza HTML vacío en lugar de dejar un visor blanco: %j', async html => {
+    request.mockResolvedValue(new Response(html, { headers: { "Content-Type": "text/html" } }));
+    await expect(openApiDocument(path)).rejects.toThrow("está vacío");
+    expect(getDocumentPreview()).toBeNull();
+    expect(URL.createObjectURL).not.toHaveBeenCalled();
+  });
+  it("no reabre ni conserva HTML que termina de leerse después de cerrar", async () => {
+    let finishReading;
+    const text = vi.fn(() => new Promise(resolve => { finishReading = resolve; }));
+    request.mockResolvedValue({ ok: true, headers: new Headers({ "Content-Type": "text/html" }), blob: async () => ({ type: "text/html", text }) });
+    const opening = openApiDocument(path);
+    await vi.waitFor(() => expect(text).toHaveBeenCalledOnce());
+    closeDocumentPreview();
+    finishReading('<main class="sheet">Documento tardío</main>');
+    await opening;
+    expect(getDocumentPreview()).toBeNull();
+    expect(URL.createObjectURL).not.toHaveBeenCalled();
+  });
   it("también funciona si window.open devuelve null", async () => {
     window.open.mockReturnValue(null);
     rememberLocalPreviewSession("admin", "payload.firma");
@@ -120,6 +148,7 @@ describe("documentos sin ventanas emergentes", () => {
     request.mockResolvedValue(new Response("pdf", { headers: { "Content-Type": "application/pdf" } }));
     await openApiDocument(path);
     expect(getDocumentPreview()?.filename).toBe("arconet-documento.pdf");
+    expect(getDocumentPreview()).not.toHaveProperty("html");
     expect(anchor.click).not.toHaveBeenCalled();
   });
   it("cierra el visor de carga y comunica un acceso denegado", async () => {
