@@ -10,6 +10,7 @@ const PROTECTED_API = [
   "/api/sucursales",
   "/api/trabajadores",
   "/api/ordenes",
+  "/api/ventas",
   "/api/roles",
   "/api/logs",
   "/api/monitor",

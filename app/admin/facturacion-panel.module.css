@@ -49,6 +49,10 @@
 }
 
 .invoiceGrid {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
   display: grid;
   gap: 18px;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) minmax(260px, 320px);
@@ -81,9 +85,12 @@
   gap: 10px;
 }
 
-.lineaTop > label {
+.lineaTop > :first-child {
   flex: 1;
+  min-width: 0;
 }
+
+.linesCard > header { flex-wrap: wrap; }
 
 .lineaGrid {
   display: grid;
@@ -211,4 +218,8 @@
   .lineaGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+@media (max-width: 900px) {
+  .invoiceGrid input, .invoiceGrid select, .invoiceGrid textarea { font-size: 16px; }
 }

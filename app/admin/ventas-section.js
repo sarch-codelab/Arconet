@@ -58,6 +58,7 @@ export default function VentasSection({ orders, setOrders, clientes, setClientes
         <FacturacionPanel
           session={session}
           productos={products}
+          onClientCreated={client => setClientes?.(current => [client, ...current.filter(item => item.id !== client.id)])}
           hideTopbar
           chromeOnly
           tabs={tabs}

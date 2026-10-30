@@ -2,6 +2,10 @@
 
 import { priceAt } from "@/lib/precios";
 import PrecioSelector from "./precio-selector";
+import ClienteSelector from "./cliente-selector";
+import ReferenciaSelector from "./referencia-selector";
+import salesStyles from "./ventas-form.module.css";
+import { commercialTotal, sameCommercialAmounts, validCommercialLine, MAX_DOCUMENT_AMOUNT } from "@/lib/ventas-form";
 import { openApiDocument } from "@/lib/api-document";
 
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
@@ -20,7 +24,7 @@ import {
   orderTypeLabel,
   formatOrderDate,
 } from "./orders-store";
-import { createCliente, newClienteId, initialsCliente } from "./clientes-store";
+import { initialsCliente } from "./clientes-store";
 import { formatPrice } from "./products-store";
 import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
 import { Topbar, SectionTabs } from "./topbar";
@@ -52,8 +56,24 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
     notas: "",
   });
   const [confirmOrder, setConfirmOrder] = useState(null);
-  const [newClientMode, setNewClientMode] = useState(false);
-  const [newClient, setNewClient] = useState({ nombre: "", rtn: "", correo: "", telefono: "" });
+  const [clientCreating, setClientCreating] = useState(false);
+  const [clientBusy, setClientBusy] = useState(false);
+  const [clientSnapshot, setClientSnapshot] = useState(null);
+  const [catalog, setCatalog] = useState({});
+  const lineSequence = useRef(0);
+  const originalOrder = editingId ? orders.find(order => order.id === editingId) : null;
+  const keepSavedAmount = Boolean(originalOrder && sameCommercialAmounts(originalOrder.items || [], draft.items));
+  const total = keepSavedAmount ? Number(draft.monto) : commercialTotal(draft.items);
+  const legacyHeaderOnly = Boolean(originalOrder && !originalOrder.items?.length && !draft.items.length && draft.tipo === originalOrder.tipo);
+  const validLines = draft.items.length > 0 && draft.items.every(validCommercialLine) && total <= MAX_DOCUMENT_AMOUNT;
+  const busy = saving || clientBusy;
+
+  function catalogProduct(id) { return catalog[id] || products.find(product => product.id === id); }
+  function rememberProduct(product) { setCatalog(current => ({ ...current, [product.id]: product })); }
+  function selectClient(client) {
+    setClientSnapshot(client);
+    setDraft(current => ({ ...current, clienteId: client?.id || "", cliente: client?.nombre || "" }));
+  }
   const { show } = useToast();
 
   // El buscador global de la cabecera delega aqui (ver ventas-section.js):
@@ -173,43 +193,51 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
       notas: "",
     });
     setEditingId(null);
-    setNewClientMode(false);
-    setNewClient({ nombre: "", rtn: "", correo: "", telefono: "" });
+    setClientCreating(false);
+    setClientBusy(false);
+    setClientSnapshot(null);
     setModalOpen(true);
   }
 
   function openEdit(order) {
-    setDraft({ ...order });
+    setDraft({ ...order, notas: order.notas || "", items: (order.items || []).map(line => ({ ...line, key: line.id || `saved-${++lineSequence.current}`, kind: line.productoId ? "producto" : "concepto" })) });
+    setClientSnapshot(clientes.find(client => client.id === order.clienteId) || { id: order.clienteId, nombre: order.cliente });
+    setClientCreating(false);
+    setClientBusy(false);
     setEditingId(order.id);
     setModalOpen(true);
   }
 
   function closeModal(force = false) {
-    if (submitting.current && force !== true) return;
+    if ((submitting.current || clientBusy) && force !== true) return;
     setModalOpen(false);
     setEditingId(null);
-    setNewClientMode(false);
+    setClientCreating(false);
   }
 
   function changeField(field, value) {
     setDraft((prev) => ({ ...prev, [field]: value }));
   }
 
-  function addCatalogItem() {
-    const product = products.find((item) => item.estado === "activo");
-    if (!product) return;
-    setDraft((prev) => ({ ...prev, items: [...prev.items, { productoId: product.id, nombre: product.nombre, cantidad: 1, precio: Number(product.precio) || 0, nivelPrecio: "normal", actualizarPrecio: true }] }));
+  function addLine(kind) {
+    const key = `new-${++lineSequence.current}`;
+    setDraft(previous => previous.items.length >= 100 ? previous : ({ ...previous, items: [...previous.items, {
+      key, kind, productoId: "", nombre: "", cantidad: "1", precio: "", nivelPrecio: "normal", actualizarPrecio: true,
+    }] }));
+  }
+
+  function selectProduct(index, product) {
+    if (product) rememberProduct(product);
+    setDraft(previous => ({ ...previous, items: previous.items.map((line, lineIndex) => lineIndex === index ? {
+      ...line, productoId: product?.id || "", nombre: product?.nombre || "", precio: product ? Number(product.precio) : "", nivelPrecio: "normal", actualizarPrecio: true,
+    } : line) }));
   }
 
   function updateLine(index, field, value) {
-    setDraft((prev) => ({ ...prev, items: prev.items.map((line, lineIndex) => {
+    setDraft(previous => ({ ...previous, items: previous.items.map((line, lineIndex) => {
       if (lineIndex !== index) return line;
-      if (field === "productoId") {
-        const product = products.find((item) => item.id === value);
-        return product ? { ...line, productoId: product.id, nombre: product.nombre, precio: Number(product.precio) || 0, nivelPrecio: "normal", actualizarPrecio: true } : line;
-      }
       if (field === "nivelPrecio" || field === "actualizarPrecio") {
-        const product = products.find(item => item.id === line.productoId);
+        const product = catalogProduct(line.productoId);
         const level = field === "nivelPrecio" ? value : line.nivelPrecio || "normal";
         const price = priceAt(product, level);
         return price == null ? line : { ...line, nivelPrecio: level, precio: price, actualizarPrecio: true };
@@ -220,36 +248,19 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
 
   async function submitOrder(event) {
     event.preventDefault();
-    if (!canWrite || submitting.current) return;
+    if (!canWrite || submitting.current || clientBusy) return;
+    if (clientCreating) { notifyError("Guarda o cancela el alta del cliente antes de guardar el documento."); return; }
+    if (!draft.clienteId) { notifyError("Busca y selecciona un cliente."); return; }
+    if (!validLines && !legacyHeaderOnly) { notifyError("Añade al menos un producto o concepto y completa sus cantidades y precios."); return; }
     submitting.current = true;
     setSaving(true);
     try {
-      if ((!newClientMode && !draft.clienteId) || (newClientMode && newClient.nombre.trim().length < 2) || (!newClientMode && !draft.cliente.trim())) {
-        notifyError("El cliente es obligatorio.");
-        return;
-      }
-      const items = draft.items.map((line) => ({ ...line, cantidad: Number(line.cantidad), precio: Number(line.precio) }));
-      let clienteId = draft.clienteId;
-      let clienteNombre = draft.cliente.trim();
-      if (newClientMode) {
-        try {
-          const savedClient = await createCliente({ id: newClienteId(), nombre: newClient.nombre.trim(), rtn: newClient.rtn.trim(), correo: newClient.correo.trim(), telefono: newClient.telefono.trim(), estado: "prospecto" });
-          setClientes((current) => [savedClient, ...current]);
-          clienteId = savedClient.id;
-          clienteNombre = savedClient.nombre;
-        } catch (error) {
-          notifyError(error.message || "No se pudo registrar el cliente.");
-          return;
-        }
-      }
-      const computedTotal = items.reduce((sum, line) => sum + line.cantidad * line.precio, 0);
-      const payload = {
-        ...draft,
-        clienteId,
-        cliente: clienteNombre,
-        items,
-        monto: items.length ? computedTotal : Number(draft.monto) || 0,
-      };
+      const items = draft.items.map(line => ({
+        ...(line.id ? { id: line.id } : {}),
+        productoId: line.productoId || null, nombre: line.nombre.trim(), cantidad: Number(line.cantidad), precio: Number(line.precio),
+        ...(line.productoId ? { nivelPrecio: line.nivelPrecio || "normal", actualizarPrecio: line.actualizarPrecio === true } : {}),
+      }));
+      const payload = { ...draft, items, monto: total };
       let saved;
       try {
         if (editingId) {
@@ -480,43 +491,28 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
                 <p className={styles.eyebrow}>{editingId ? "Editar" : "Nueva"}</p>
                 <h2>{editingId ? "Editar documento" : draft.tipo === "venta" ? "Crear venta comercial" : "Crear cotización"}</h2>
               </div>
-              <button type="button" className={styles.iconBtn} disabled={saving} onClick={closeModal} aria-label="Cerrar">
+              <button type="button" className={styles.iconBtn} disabled={busy} onClick={closeModal} aria-label="Cerrar">
                 <X size={18} />
               </button>
             </header>
 
-            <form className={styles.form} onSubmit={submitOrder}>
+            <form className={`${styles.form} ${salesStyles.commercialForm}`} onSubmit={submitOrder}>
               <div className={styles.fieldGrid}>
-                <label className={styles.field}>
-                  Cliente
-                  <select value={newClientMode ? "__nuevo__" : draft.clienteId} onChange={(event) => {
-                    if (event.target.value === "__nuevo__") {
-                      setNewClientMode(true);
-                      changeField("clienteId", "");
-                      changeField("cliente", "");
-                      return;
-                    }
-                    setNewClientMode(false);
-                    const cliente = clientes.find((c) => c.id === event.target.value);
-                    changeField("clienteId", event.target.value);
-                    changeField("cliente", cliente ? cliente.nombre : "");
-                  }}>
-                    <option value="">Seleccionar cliente</option>
-                    <option value="__nuevo__" disabled={!session?.permisos?.includes("clientes:write")}>Cliente eventual / no registrado</option>
-                    {clientes.map((cliente) => (
-                      <option key={cliente.id} value={cliente.id}>{cliente.nombre}</option>
-                    ))}
-                  </select>
-                </label>
-                {newClientMode && <>
-                  <label className={styles.field}>Nombre o razón social<input value={newClient.nombre} onChange={(event) => setNewClient((current) => ({ ...current, nombre: event.target.value }))} required /></label>
-                  <label className={styles.field}>RTN (opcional)<input value={newClient.rtn} onChange={(event) => setNewClient((current) => ({ ...current, rtn: event.target.value }))} /></label>
-                  <label className={styles.field}>Correo (opcional)<input type="email" value={newClient.correo} onChange={(event) => setNewClient((current) => ({ ...current, correo: event.target.value }))} /></label>
-                  <label className={styles.field}>Teléfono (opcional)<input type="tel" value={newClient.telefono} onChange={(event) => setNewClient((current) => ({ ...current, telefono: event.target.value }))} /></label>
-                </>}
+                <div className={styles.spanFull}>
+                  <ClienteSelector
+                    value={draft.clienteId}
+                    fallback={clientSnapshot}
+                    onChange={selectClient}
+                    onCreated={client => setClientes?.(current => [client, ...current.filter(item => item.id !== client.id)])}
+                    session={session}
+                    disabled={saving}
+                    onBusyChange={setClientBusy}
+                    onModeChange={setClientCreating}
+                  />
+                </div>
                 <label className={styles.field}>
                   Tipo
-                  <select value={draft.tipo} onChange={(event) => changeField("tipo", event.target.value)}>
+                  <select disabled={busy} value={draft.tipo} onChange={(event) => changeField("tipo", event.target.value)}>
                     {ORDER_TYPES.map((item) => (
                       <option key={item.id} value={item.id}>{item.label}</option>
                     ))}
@@ -526,49 +522,69 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
                   Fecha
                   <input
                     type="date"
+                    className={salesStyles.dateInput}
+                    disabled={busy}
                     value={draft.fecha}
                     onChange={(event) => changeField("fecha", event.target.value)}
                   />
                 </label>
                 <label className={styles.field}>
                   Estado
-                  <select value={draft.estado} onChange={(event) => changeField("estado", event.target.value)}>
+                  <select disabled={busy} value={draft.estado} onChange={(event) => changeField("estado", event.target.value)}>
                     {ORDER_STATUSES.map((item) => (
                       <option key={item.id} value={item.id}>{item.label}</option>
                     ))}
                   </select>
                 </label>
-                <label className={styles.field}>
-                  Monto (L)
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={draft.items.length ? draft.items.reduce((sum, line) => sum + Number(line.cantidad || 0) * Number(line.precio || 0), 0).toFixed(2) : draft.monto}
-                    onChange={(event) => changeField("monto", event.target.value)}
-                    placeholder="0.00"
-                    readOnly={draft.items.length > 0}
-                  />
-                </label>
-                <div className={`${styles.field} ${styles.spanFull}`}>
-                  <span>Productos de catálogo</span>
-                  {draft.items.map((line, index) => <div key={`${index}-${line.productoId}`} className={styles.toolbar}>
-                    <select className={styles.select} value={line.productoId || ""} onChange={(event) => updateLine(index, "productoId", event.target.value)} aria-label={`Producto de la línea ${index + 1}`}>
-                      {products.filter((item) => item.estado === "activo" || item.id === line.productoId).map((item) => <option key={item.id} value={item.id}>{item.nombre} · {formatPrice(item.precio)}</option>)}
-                    </select>
-                    {line.productoId && <PrecioSelector className={styles.select} product={products.find(item => item.id === line.productoId)} value={line.nivelPrecio || "normal"} onChange={value => updateLine(index, "nivelPrecio", value)} label={`Tarifa de la línea ${index + 1}`} snapshot={editingId && !line.actualizarPrecio ? line.precio : null} />}
-                    {editingId && line.productoId && !line.actualizarPrecio && <button type="button" className={styles.ghostBtn} onClick={() => updateLine(index, "actualizarPrecio", true)}>Actualizar tarifa</button>}
-                    <span>{formatPrice(line.precio)} c/u</span>
-                    <input className={styles.lineQuantity} type="number" min={line.productoId ? "1" : "0.001"} step={line.productoId ? "1" : "0.001"} value={line.cantidad} onChange={(event) => updateLine(index, "cantidad", event.target.value)} aria-label="Cantidad" />
-                    <button type="button" className={styles.clearBtn} onClick={() => setDraft((prev) => ({ ...prev, items: prev.items.filter((_, lineIndex) => lineIndex !== index) }))}>Quitar</button>
+                <section className={`${salesStyles.lines} ${styles.spanFull}`} aria-label="Productos y conceptos">
+                  <div className={salesStyles.lineHead}><strong>Productos o conceptos</strong><small className={salesStyles.hint}>{draft.items.length} / 100</small></div>
+                  {!draft.items.length && <p className={salesStyles.hint}>{legacyHeaderOnly
+                    ? "Documento anterior o solicitud sin detalle: se conserva su importe guardado al editar la cabecera. Añade líneas para detallarlo o convertirlo en venta."
+                    : "Añade un producto del catálogo o un concepto / servicio. El total se calcula con las cantidades y tarifas."}</p>}
+                  {draft.items.map((line, index) => <div key={line.key || line.id} className={salesStyles.line}>
+                    <div className={salesStyles.lineHead}>
+                      <strong>{line.kind === "concepto" ? "Concepto / servicio" : "Producto"} {index + 1}</strong>
+                      <button type="button" className={styles.clearBtn} disabled={busy} onClick={() => setDraft(previous => ({ ...previous, items: previous.items.filter((_, position) => position !== index) }))} aria-label={`Quitar línea ${index + 1}`}>Quitar</button>
+                    </div>
+                    {line.kind === "producto" ? <ReferenciaSelector
+                      kind="productos"
+                      label={`Producto de la línea ${index + 1}`}
+                      value={line.productoId}
+                      fallback={catalogProduct(line.productoId) || { id: line.productoId, nombre: line.nombre }}
+                      disabled={busy}
+                      onChange={product => selectProduct(index, product)}
+                      onResolved={rememberProduct}
+                    /> : <label className={styles.field}>Concepto o servicio
+                      <input maxLength={1000} value={line.nombre} onChange={event => updateLine(index, "nombre", event.target.value)} placeholder="Ej. Instalación, visita técnica…" required disabled={busy} />
+                    </label>}
+                    <div className={salesStyles.lineGrid}>
+                      {line.productoId && <label className={styles.field}>Tarifa
+                        <PrecioSelector product={catalogProduct(line.productoId)} value={line.nivelPrecio || "normal"} onChange={value => updateLine(index, "nivelPrecio", value)} label={`Tarifa de la línea ${index + 1}`} snapshot={editingId && !line.actualizarPrecio ? line.precio : null} disabled={busy} />
+                      </label>}
+                      {line.kind === "concepto" && <label className={styles.field}>Precio unitario (L)
+                        <input type="number" min="0" step="0.01" value={line.precio} onChange={event => updateLine(index, "precio", event.target.value)} placeholder="0.00" required disabled={busy} />
+                      </label>}
+                      <label className={styles.field}>Cantidad
+                        <input type="number" min={line.kind === "producto" ? "1" : "0.001"} step={line.kind === "producto" ? "1" : "0.001"} value={line.cantidad} onChange={event => updateLine(index, "cantidad", event.target.value)} aria-label={`Cantidad de la línea ${index + 1}`} required disabled={busy} />
+                      </label>
+                    </div>
+                    {editingId && line.productoId && !line.actualizarPrecio && <button type="button" className={styles.ghostBtn} disabled={busy || priceAt(catalogProduct(line.productoId), line.nivelPrecio || "normal") == null} onClick={() => updateLine(index, "actualizarPrecio", true)}>Actualizar tarifa</button>}
+                    <div className={salesStyles.lineTotal}>Importe de línea: {formatPrice(commercialTotal([line]))}</div>
                   </div>)}
-                  <button type="button" className={styles.ghostBtn} onClick={addCatalogItem} disabled={!products.some((item) => item.estado === "activo")}>Añadir producto real del catálogo</button>
-                  <small>Elige normal, descuento o mayorista para cada producto. Al editar se conserva el precio guardado; «Actualizar tarifa» aplica el catálogo vigente. El servidor valida el importe al guardar. Al guardar una venta se descuenta el inventario; una venta comercial no sustituye el comprobante fiscal autorizado, que se emite en Facturación.</small>
-                </div>
+                  <div className={salesStyles.actions}>
+                    <button type="button" className={styles.ghostBtn} onClick={() => addLine("producto")} disabled={busy || draft.items.length >= 100}><Plus size={15} /> Añadir producto</button>
+                    <button type="button" className={styles.ghostBtn} onClick={() => addLine("concepto")} disabled={busy || draft.items.length >= 100}><Plus size={15} /> Añadir concepto / servicio</button>
+                  </div>
+                  <small className={salesStyles.hint}>Valor 1: venta normal; Valor 2: descuento; Valor 3: mayorista. Los precios guardados se conservan al editar, salvo que elijas otra tarifa o «Actualizar tarifa». Las ventas descuentan inventario; los conceptos no. La factura fiscal se emite en Facturas.</small>
+                  <div className={salesStyles.total}><span>{legacyHeaderOnly ? "Importe histórico" : keepSavedAmount && total !== commercialTotal(draft.items) ? "Total guardado" : "Total calculado"}</span><output aria-label="Total del documento" aria-live="polite">{formatPrice(total)}</output></div>
+                  {total > MAX_DOCUMENT_AMOUNT && <p className={salesStyles.error} role="alert">El total supera el importe máximo permitido. Reduce cantidades o precios.</p>}
+                  {keepSavedAmount && draft.items.length > 0 && total !== commercialTotal(draft.items) && <small className={salesStyles.hint}>Se conserva el importe histórico del documento. Se recalculará al cambiar productos, cantidades o precios.</small>}
+                </section>
                 <label className={`${styles.field} ${styles.spanFull}`}>
                   Notas
                   <textarea
                     value={draft.notas}
+                    disabled={busy}
                     onChange={(event) => changeField("notas", event.target.value)}
                     placeholder={draft.tipo === "venta" ? "Condiciones de pago, entrega y observaciones..." : "Detalles de la cotización..."}
                     rows={3}
@@ -578,10 +594,10 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
 
 
               <footer className={styles.modalActions}>
-                <button type="button" className={styles.ghostBtn} disabled={saving} onClick={closeModal}>
+                <button type="button" className={styles.ghostBtn} disabled={busy} onClick={closeModal}>
                   Cancelar
                 </button>
-                <button type="submit" className={styles.submit} disabled={saving}>
+                <button type="submit" className={styles.submit} disabled={busy || clientCreating || !draft.clienteId || (!validLines && !legacyHeaderOnly)}>
                   {saving ? "Guardando…" : editingId ? "Guardar cambios" : draft.tipo === "venta" ? "Crear venta comercial" : "Crear cotización"}
                 </button>
               </footer>

@@ -8,10 +8,12 @@ export default function PrecioSelector({
   label = "Tarifa",
   snapshot,
   className,
+  disabled = false,
 }) {
   return (
     <select
       className={className}
+      disabled={disabled}
       value={value || "normal"}
       onChange={(event) => onChange(event.target.value)}
       aria-label={label}
