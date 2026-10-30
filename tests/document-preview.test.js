@@ -20,6 +20,16 @@ describe("ciclo de vida del visor de impresión", () => {
     closeDocumentPreview();
     expect(listener).toHaveBeenCalledTimes(2);
   });
+  it("conserva el HTML solo en memoria para srcdoc, sin exponerlo en SSR", () => {
+    const { id } = beginDocumentPreview();
+    const html = '<main class="sheet">Factura privada L 285.00</main>';
+    showDocumentPreview(id, "blob:descarga", "factura.html", html);
+    expect(getDocumentPreview()).toEqual({ id, url: "blob:descarga", filename: "factura.html", html });
+    expect(getServerDocumentPreview()).toBeNull();
+    closeDocumentPreview();
+    expect(getDocumentPreview()).toBeNull();
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:descarga");
+  });
   it("cancela la carga anterior al abrir otro documento", () => {
     const first = beginDocumentPreview();
     const second = beginDocumentPreview();

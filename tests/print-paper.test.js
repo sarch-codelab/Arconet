@@ -51,7 +51,8 @@ describe("formatos de impresoras de recibos y hojas", () => {
   });
   it("el selector solo notifica el formato, no envía documentos ni sesiones", () => {
     const html = renderOrderDocument({ order, settings });
-    expect(html).toContain("{type:'arconet:print-paper',paper:this.value},window.location.origin");
+    expect(html).toContain("{type:'arconet:print-paper',paper:this.value},window.parent.location.origin");
+    expect(html).not.toContain("postMessage({type:'arconet:print-paper',paper:this.value},'*')");
     expect(html).not.toContain("localPreviewToken");
     expect(html).not.toContain("localStorage");
     expect(html).not.toContain("window.open");
