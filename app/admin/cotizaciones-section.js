@@ -2,6 +2,7 @@
 
 import { salesDocuments, salesSummary, fiscalTypeLabel } from "@/lib/sales-documents";
 import { priceAt } from "@/lib/precios";
+import { localCalendarDate } from "@/lib/calendar-date";
 import PrecioSelector from "./precio-selector";
 import ClienteSelector from "./cliente-selector";
 import ReferenciaSelector from "./referencia-selector";
@@ -51,7 +52,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
     tipo: "cotizacion",
     clienteId: "",
     cliente: "",
-    fecha: new Date().toISOString().split("T")[0],
+    fecha: localCalendarDate(),
     monto: "",
     estado: "pendiente",
     items: [],
@@ -171,7 +172,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
       tipo: documentType,
       clienteId: "",
       cliente: "",
-      fecha: new Date().toISOString().split("T")[0],
+      fecha: localCalendarDate(),
       monto: "",
       estado: "pendiente",
       items: [],
@@ -418,23 +419,23 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
                           <button type="button" onClick={() => onFiscalDetail?.(order.fiscal)} aria-label={`Ver ${order.numero}`} title="Ver factura"><Eye size={15} /></button>
                           {order.estado !== "cancelada" && canAnnulFiscal && <button type="button" className={styles.danger} onClick={() => onFiscalAnnul?.(order.fiscal)} aria-label={`Anular ${order.numero}`} title="Anular con motivo"><X size={15} /></button>}
                         </> : <>
-                        <button
+                        {canWrite && <button
                           type="button"
-                          disabled={!canWrite || saving} onClick={() => openEdit(order)}
+                          disabled={saving} onClick={() => openEdit(order)}
                           aria-label={`Editar ${order.id}`}
                           title="Editar"
                         >
                           <Pencil size={15} />
-                        </button>
-                        <button
+                        </button>}
+                        {canDelete && <button
                           type="button"
                           className={styles.danger}
-                          disabled={!canDelete} onClick={() => setConfirmOrder(order)}
+                          disabled={saving} onClick={() => setConfirmOrder(order)}
                           aria-label={`Eliminar ${order.id}`}
                           title="Eliminar"
                         >
                           <Trash2 size={15} />
-                        </button>
+                        </button>}
                         </>}
                       </div>
                     </td>

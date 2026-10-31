@@ -257,15 +257,15 @@ export default function ClientesSection({ clientes = [], setClientes, workers = 
                         >
                           <Pencil size={15} />
                         </button>
-                        <button
+                        {canDelete && <button
                           type="button"
                           className={styles.danger}
-                          disabled={!canDelete} onClick={() => setConfirmCliente(cliente)}
+                          onClick={() => setConfirmCliente(cliente)}
                           aria-label={`Eliminar ${cliente.nombre}`}
                           title="Eliminar"
                         >
                           <Trash2 size={15} />
-                        </button>
+                        </button>}
                       </div>
                     </td>
                   </tr>

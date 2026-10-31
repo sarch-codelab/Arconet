@@ -6,6 +6,7 @@ import CotizacionesSection from "./cotizaciones-section";
 import FacturacionPanel from "./facturacion-panel";
 import PreciosPanel from "./precios-panel";
 import SalesDialog from "./sales-dialog";
+import { fetchProducts } from "./products-store";
 import { AdminContext, SECTION_NAV_CONFIG } from "./admin-nav";
 import { Topbar } from "./topbar";
 import { allowedSalesTabs, allowedSalesCreationModes } from "@/lib/admin-navigation";
@@ -32,6 +33,10 @@ export default function VentasSection({ orders = [], setOrders, clientes = [], s
   const quoteEditor = useRef(null);
   const fiscalEditor = useRef(null);
   const canCloseFiscal = () => fiscalEditor.current?.canClose() !== false;
+  const refreshInventory = useCallback(async () => {
+    if (!permisos.includes("productos:read") || !setProducts) return;
+    setProducts(await fetchProducts());
+  }, [permisos, setProducts]);
   const dialogTitle = fiscalView === "nueva" ? "Nueva venta" : fiscalView === "libro" ? "Libro de ventas" : fiscalView === "config" ? "Configuración fiscal" : "Detalle de venta";
 
   function createQuote() {
@@ -50,7 +55,7 @@ export default function VentasSection({ orders = [], setOrders, clientes = [], s
     </div>}
     {canReadFiscal && <div className={styles.fiscalTools} role="group" aria-label="Gestión fiscal">
       <button type="button" className={adminStyles.ghostBtn} onClick={() => setFiscalView("libro")}><BookOpen size={15} /> Libro de ventas</button>
-      <button type="button" className={adminStyles.ghostBtn} onClick={() => setFiscalView("config")}><Settings size={15} /> Configuración fiscal</button>
+      {permisos.includes("facturacion:write") && <button type="button" className={adminStyles.ghostBtn} onClick={() => setFiscalView("config")}><Settings size={15} /> Configuración fiscal</button>}
     </div>}
   </>;
   const fiscalNotice = canReadFiscal && (fiscalStatus.error ? <div className={styles.loadError} role="alert">
@@ -79,7 +84,7 @@ export default function VentasSection({ orders = [], setOrders, clientes = [], s
         embedded editorRef={fiscalEditor} hideTopbar session={session} clientes={clientes} productos={products} workers={workers}
         activeTab={fiscalView === "libro" || fiscalView === "config" ? fiscalView : "documentos"}
         onTabChange={setFiscalView} saleEditorOpen={fiscalView === "nueva"} detailOnly={fiscalView === "detalle"}
-        onSaleEditorClose={() => setFiscalView(null)}
+        onSaleEditorClose={() => setFiscalView(null)} onInventoryChanged={refreshInventory}
         onClientCreated={client => setClientes?.(current => [client, ...current.filter(item => item.id !== client.id)])}
         onDocumentsChange={setFiscalDocuments} onStatusChange={setFiscalStatus}
       />

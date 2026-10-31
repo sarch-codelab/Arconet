@@ -620,6 +620,11 @@
   display: block;
 }
 
+/* La misma marca original, blanca sólo en el tema oscuro del panel. */
+:global(html[data-theme="dark"]) .topbarBrandImg {
+  filter: brightness(0) invert(1);
+}
+
 /* Center Pill Navigation */
 .centerPillNav {
   grid-area: pills;

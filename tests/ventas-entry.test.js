@@ -7,6 +7,7 @@ import CotizacionesSection from "../app/admin/cotizaciones-section";
 import FacturacionPanel from "../app/admin/facturacion-panel";
 import { allowedSalesCreationModes } from "../lib/admin-navigation";
 import { ALL_PERMISSIONS } from "../lib/permisos";
+import { DEFAULT_SALES_PERMISSIONS } from "../lib/roles-defaults";
 
 const commercial = ["ordenes:read", "ordenes:write"];
 const fiscal = ["facturacion:read", "facturacion:write"];
@@ -125,5 +126,51 @@ describe("consulta fiscal integrada sin convertir históricos", () => {
   it("el contenedor fiscal no filtra históricos comerciales a un rol sin ordenes:read", () => {
     const html = render(VentasSection, { orders: [{ id: "COMERCIAL-PRIVADO-QA", tipo: "venta", cliente: "Privado", monto: 99 }], session: { permisos: fiscal } });
     expect(html).not.toContain("COMERCIAL-PRIVADO-QA");
+  });
+});
+
+
+describe("regresión del rol Ventas real, no un administrador", () => {
+  it("el rol usado por el seed ofrece las dos acciones sin administración fiscal", () => {
+    const html = render(VentasSection, { session: { rol: "ventas", permisos: DEFAULT_SALES_PERMISSIONS } });
+    expect(buttons(html, "Nueva venta")).toHaveLength(1);
+    expect(buttons(html, "Nueva cotización")).toHaveLength(1);
+    expect(buttons(html, "Facturas")).toHaveLength(0);
+    expect(buttons(html, "Configuración fiscal")).toHaveLength(0);
+    expect(DEFAULT_SALES_PERMISSIONS).not.toContain("facturacion:write");
+    expect(DEFAULT_SALES_PERMISSIONS).not.toContain("precios:write");
+    expect(DEFAULT_SALES_PERMISSIONS).not.toContain("inventario:write");
+    expect(allowedSalesCreationModes(DEFAULT_SALES_PERMISSIONS)).toEqual(["fiscal"]);
+  });
+  it("el editor de ventas está habilitado con emisión operativa, sin enlace de configuración", () => {
+    const html = render(FacturacionPanel, { embedded: true, saleEditorOpen: true, session: { permisos: DEFAULT_SALES_PERMISSIONS } });
+    expect(html).toContain('aria-label="Nueva venta · Factura fiscal"');
+    expect(html).not.toMatch(/<fieldset[^>]*disabled/);
+    expect(html).toContain("Añadir producto");
+    expect(html).toContain("Emitir factura");
+    expect(html).not.toContain("Ir a Configuración");
+  });
+  it("el operador consulta/imprime una factura sin botones de anular, editar o eliminar", () => {
+    const doc = { id: "FY-OPERATIVA", tipo: "factura", fecha: "2026-10-30", estado: "emitido", total: 115, items: [] };
+    const html = render(CotizacionesSection, { fiscalDocuments: [doc], session: { permisos: DEFAULT_SALES_PERMISSIONS } });
+    expect(html).toContain('aria-label="Ver FY-OPERATIVA"');
+    expect(html).toContain('aria-label="Imprimir o guardar PDF de FY-OPERATIVA"');
+    for (const action of ["Anular", "Editar", "Eliminar"]) expect(html).not.toContain(`aria-label="${action} FY-OPERATIVA"`);
+  });
+});
+
+
+describe("acciones comerciales limitadas por rol", () => {
+  const legacy = { id: "LEGADO-QA", tipo: "venta", estado: "completada", cliente: "QA", monto: 75, fecha: "2026-10-30" };
+  it("Ventas puede mantener el histórico sin ofrecer eliminación", () => {
+    const html = render(CotizacionesSection, { orders: [legacy], session: { permisos: DEFAULT_SALES_PERMISSIONS } });
+    expect(html).toContain('aria-label="Editar LEGADO-QA"');
+    expect(html).not.toContain('aria-label="Eliminar LEGADO-QA"');
+  });
+  it("sólo lectura no presenta edición ni eliminación deshabilitadas", () => {
+    const html = render(CotizacionesSection, { orders: [legacy], session: { permisos: ["ordenes:read"] } });
+    expect(html).not.toContain('aria-label="Editar LEGADO-QA"');
+    expect(html).not.toContain('aria-label="Eliminar LEGADO-QA"');
+    expect(html).toContain('aria-label="Imprimir o guardar PDF de LEGADO-QA"');
   });
 });

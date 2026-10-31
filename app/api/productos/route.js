@@ -1,8 +1,9 @@
 import { validatePriceSet, priceSnapshot } from "@/lib/precios";
 import { prisma } from '@/lib/prisma';
 import { newProductoId, parseProducto } from '@/lib/productos';
-import { toProducto } from '@/lib/serialize';
-import { requirePermission, requireSession } from '@/lib/dal';
+import { toProducto, toProductoForRead } from '@/lib/serialize';
+import { canReadProductCost } from '@/lib/permisos';
+import { getPermisos, requirePermission, requireSession } from '@/lib/dal';
 import { writeLog } from '@/lib/logs';
 import { aplicarMovimiento, bodegaPrincipal } from '@/lib/inventario';
 
@@ -34,6 +35,7 @@ export async function GET(request) {
   }
 
   try {
+    const permisos = await getPermisos(guard.session);
     const productos = await prisma.producto.findMany({
       where,
       orderBy: { updatedAt: "desc" },
@@ -41,12 +43,12 @@ export async function GET(request) {
       skip,
       select: {
         id: true, nombre: true, sku: true, codigoBarras: true, categoria: true, marca: true,
-        unidad: true, descripcion: true, precio: true, precioDescuento: true, precioMayorista: true, preciosUpdatedAt: true, preciosUpdatedBy: true, costo: true, stock: true,
+        unidad: true, descripcion: true, precio: true, precioDescuento: true, precioMayorista: true, preciosUpdatedAt: true, preciosUpdatedBy: true, costo: canReadProductCost(permisos), stock: true,
         stockMinimo: true, ubicacion: true, peso: true, estado: true, foto: true, fotos: true, updatedAt: true,
       },
     });
 
-    return Response.json(productos.map(toProducto));
+    return Response.json(productos.map(producto => toProductoForRead(producto, permisos)), { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
     console.error("GET /api/productos", error?.message);
     return Response.json({ error: "No se pudieron obtener los productos." }, { status: 500 });

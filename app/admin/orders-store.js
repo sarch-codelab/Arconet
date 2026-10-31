@@ -1,5 +1,6 @@
 import { apiFetch as fetch } from "@/lib/api-fetch";
 import { nanoid } from "nanoid";
+import { formatCalendarOrInstant } from "@/lib/calendar-date";
 
 export const ORDER_STATUSES = [
   { id: "pendiente", label: "Pendiente" },
@@ -59,11 +60,5 @@ export function orderTypeLabel(typeId) {
 }
 
 export function formatOrderDate(dateString) {
-  if (!dateString) return "—";
-  const date = new Date(dateString);
-  return date.toLocaleDateString("es-HN", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  return formatCalendarOrInstant(dateString);
 }
