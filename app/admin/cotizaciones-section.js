@@ -1,5 +1,6 @@
 "use client";
 
+import { salesDocuments, salesSummary, fiscalTypeLabel } from "@/lib/sales-documents";
 import { priceAt } from "@/lib/precios";
 import PrecioSelector from "./precio-selector";
 import ClienteSelector from "./cliente-selector";
@@ -8,11 +9,10 @@ import salesStyles from "./ventas-form.module.css";
 import { commercialTotal, sameCommercialAmounts, validCommercialLine, MAX_DOCUMENT_AMOUNT } from "@/lib/ventas-form";
 import { openApiDocument } from "@/lib/api-document";
 
-import { useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
-import { AlertTriangle, Check, FileText, Pencil, Plus, Printer, Search, Trash2, TrendingUp, X } from "lucide-react";
+import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
+import { AlertTriangle, Check, Eye, FileText, Pencil, Plus, Printer, Search, Trash2, TrendingUp, X } from "lucide-react";
 import styles from "./admin-experience.module.css";
 import { useToast, notifyError, ConfirmDialog } from "./admin-ui";
-import { AdminContext } from "./admin-nav";
 import {
   createOrder,
   deleteOrder,
@@ -30,8 +30,10 @@ import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
 import { Topbar, SectionTabs } from "./topbar";
 import { SECTION_NAV_CONFIG } from "./admin-nav";
 
-export default function CotizacionesSection({ orders = [], setOrders, clientes = [], setClientes, products = [], workers = [], session, hideTopbar = false, chromeOnly = false, hideCreateActions = false, editorRef, tabs, activeTab: controlledTab, onTabChange }) {
+export default function CotizacionesSection({ orders = [], setOrders, clientes = [], setClientes, products = [], workers = [], session, hideTopbar = false, chromeOnly = false, hideCreateActions = false, editorRef, tabs, activeTab: controlledTab, onTabChange, headerActions, hideList = false, listNotice, fiscalDocuments = [], onFiscalDetail, onFiscalAnnul }) {
   const canWrite = session?.permisos?.includes("ordenes:write");
+  const canAnnulFiscal = session?.permisos?.includes("facturacion:write");
+  const documents = useMemo(() => salesDocuments(orders, fiscalDocuments), [orders, fiscalDocuments]);
   const canDelete = session?.permisos?.includes("ordenes:delete");
   const [innerTab, setInnerTab] = useState("todas");
   const activeTab = controlledTab ?? innerTab;
@@ -78,16 +80,11 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
 
   // El buscador global de la cabecera delega aqui (ver ventas-section.js):
   // al pulsar Enter copia su termino al filtro de esta lista.
-  const adminCtx = useContext(AdminContext);
   useEffect(() => {
-    // Enter en el buscador global -> filtra esta lista (seccion Ventas).
-    if (typeof adminCtx?.applyVentasSearch === "function") {
-      adminCtx.applyVentasSearch = (term) => setQuery(String(term || ""));
-    }
     const onGlobalSearch = (event) => setQuery(String(event.detail || ""));
     window.addEventListener("arconet:ventas-search", onGlobalSearch);
     return () => window.removeEventListener("arconet:ventas-search", onGlobalSearch);
-  }, [adminCtx]);
+  }, []);
 
   useEscapeKey(modalOpen, () => closeModal());
   useBodyScrollLock(modalOpen);
@@ -104,18 +101,14 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
   const searchTerms = useMemo(() => normalize(query).split(/\s+/).filter(Boolean), [query]);
 
   const handleTabChange = useCallback((tabId) => {
-    if (tabId === "facturas" || tabId === "precios") {
-      // La pestaña "Facturas" monta el panel fiscal completo; no toca los
-      // filtros de cotizaciones ni el estado interno de esta lista.
+    if (tabId === "precios") {
       onTabChange?.(tabId);
       return;
     }
     setInnerTab(tabId);
     onTabChange?.(tabId);
-    // Las facturas fiscales viven en la pestana "Facturas" de esta misma
-    // seccion; aqui solo hay cotizaciones y ventas comerciales.
     if (tabId === "todas") {
-      // Pestana inicial "Todas": cotizaciones y ventas, nunca facturas fiscales.
+      // Ambas fuentes se consultan en el mismo listado.
       setStatus("all");
       setType("all");
     } else if (tabId === "cotizaciones") {
@@ -137,9 +130,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
   }, [onTabChange]);
 
   const filtered = useMemo(() => {
-    return orders.filter((order) => {
-      // Nunca mostrar facturas fiscales aqui: pertenecen a Facturacion.
-      if (order.tipo === "factura") return false;
+    return documents.filter((order) => {
       if (status !== "all" && order.estado !== status) return false;
       if (type !== "all" && order.tipo !== type) return false;
       if (!searchTerms.length) return true;
@@ -147,6 +138,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
       // RTN/correo/telefono del cliente, notas y productos de las lineas.
       const haystack = normalize([
         order.id,
+        order.numero,
         order.cliente,
         order.notas,
         order.clienteObj?.nombre,
@@ -157,18 +149,9 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
       ].join(" "));
       return searchTerms.every((term) => haystack.includes(term));
     });
-  }, [orders, searchTerms, status, type]);
+  }, [documents, searchTerms, status, type]);
 
-  const stats = useMemo(() => {
-    // Las facturas fiscales no cuentan aqui: pertenecen a Facturacion.
-    const comerciales = orders.filter((order) => order.tipo !== "factura");
-    const cotizaciones = comerciales.filter((order) => order.tipo === "cotizacion");
-    const total = cotizaciones.length;
-    const pendientes = cotizaciones.filter((order) => order.estado === "pendiente").length;
-    const aprobadas = cotizaciones.filter((order) => order.estado === "aprobada").length;
-    const totalMonto = comerciales.reduce((sum, order) => sum + Number(order.monto || 0), 0);
-    return { total, pendientes, aprobadas, totalMonto };
-  }, [orders]);
+  const stats = useMemo(() => salesSummary(documents), [documents]);
 
   const hasFilters = query.trim() !== "" || status !== "all" || type !== "all";
 
@@ -181,8 +164,8 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
   }
 
   const openCreate = useCallback((documentType = "cotizacion") => {
-    if (!canWrite || submitting.current || clientBusy) return;
-    handleTabChange(documentType === "venta" ? "ventas" : "cotizaciones");
+    if (documentType !== "cotizacion" || !canWrite || submitting.current || clientBusy) return;
+    handleTabChange("cotizaciones");
     setDraft({
       id: newOrderId(),
       tipo: documentType,
@@ -294,14 +277,11 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
         <Topbar
           chromeOnly={chromeOnly}
           title="Ventas"
-          subtitle="Crea cotizaciones o ventas comerciales con productos del catálogo. Nueva venta permite elegir el comprobante comercial o fiscal. Las cotizaciones no descuentan inventario."
+          subtitle="Crea cotizaciones o facturas fiscales con productos del catálogo y servicios. Nueva venta incluye ISV y descuenta inventario. Las cotizaciones no descuentan inventario."
           action={!hideCreateActions &&
             <div className={styles.salesActionRow} role="group" aria-label="Crear documento comercial">
               <button type="button" className={`${styles.ghostBtn} ${styles.salesActionBtn}`} disabled={!canWrite || saving} onClick={() => openCreate("cotizacion")}>
                 <Plus size={16} /> Nueva cotización
-              </button>
-              <button type="button" className={`${styles.primaryBtn} ${styles.salesActionBtn}`} disabled={!canWrite || saving} onClick={() => openCreate("venta")}>
-                <Plus size={16} /> Nueva venta
               </button>
             </div>
           }
@@ -319,22 +299,15 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
           <div className={styles.sectionSubBar}>
             <div className={styles.topbarTitle}>
               <h1>Ventas</h1>
-              <p>Crea cotizaciones o ventas comerciales con productos del catálogo. Nueva venta permite elegir el comprobante comercial o fiscal. Las cotizaciones no descuentan inventario.</p>
+              <p>Crea cotizaciones o facturas fiscales con productos del catálogo y servicios. Nueva venta incluye ISV y descuenta inventario. Las cotizaciones no descuentan inventario.</p>
+              {headerActions}
             </div>
-            {/* Contenedor propio (salesActionRow): evita herdar el ancho de la
-                barra global y que los botones desborden la pantalla en móvil. */}
-            {!hideCreateActions && <div className={styles.salesActionRow} role="group" aria-label="Crear documento comercial">
-              <button type="button" className={`${styles.ghostBtn} ${styles.salesActionBtn}`} disabled={!canWrite || saving} onClick={() => openCreate("cotizacion")}>
-                <Plus size={16} /> Nueva cotización
-              </button>
-              <button type="button" className={`${styles.primaryBtn} ${styles.salesActionBtn}`} disabled={!canWrite || saving} onClick={() => openCreate("venta")}>
-                <Plus size={16} /> Nueva venta
-              </button>
-            </div>}
           </div>
         )}
 
-        <section className={styles.stats} aria-label="Resumen de cotizaciones">
+        {listNotice}
+        {!hideList && <>
+        <section className={styles.stats} aria-label="Resumen de cotizaciones y ventas">
           <article className={styles.statCard}>
             <span className={styles.statIcon}><FileText size={18} /></span>
             <strong className={styles.statValue}>{stats.total}</strong>
@@ -347,8 +320,8 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
           </article>
           <article className={styles.statCard}>
             <span className={styles.statIcon}><Check size={18} /></span>
-            <strong className={styles.statValue}>{stats.aprobadas}</strong>
-            <span className={styles.statLabel}>Aprobadas</span>
+            <strong className={styles.statValue}>{stats.ventas}</strong>
+            <span className={styles.statLabel}>Ventas</span>
           </article>
           <article className={styles.statCard}>
             <span className={styles.statIcon}><TrendingUp size={18} /></span>
@@ -364,8 +337,8 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Buscar por cliente o notas"
-              aria-label="Buscar cotizaciones"
+              placeholder="Buscar por número, cliente o notas"
+              aria-label="Buscar cotizaciones y ventas"
             />
           </label>
           <select
@@ -376,7 +349,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
           >
             <option value="all">Todos los tipos</option>
             {ORDER_TYPES.map((item) => (
-              <option key={item.id} value={item.id}>{item.label}</option>
+              <option key={item.id} value={item.id}>{item.id === "venta" ? "Ventas" : item.label}</option>
             ))}
           </select>
           <select
@@ -397,7 +370,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
           )}
         </section>
 
-        <section className={styles.tableCard} aria-label="Listado de cotizaciones">
+        <section className={styles.tableCard} aria-label="Listado de cotizaciones y ventas">
           <div className={styles.tableWrap}>
             <table className={styles.table}>
               <thead>
@@ -413,8 +386,8 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
               </thead>
               <tbody>
                 {filtered.map((order) => (
-                  <tr key={order.id}>
-                    <td data-label="Documento" className={styles.cellMain}><code>{order.id}</code></td>
+                  <tr key={order.sourceKey}>
+                    <td data-label="Documento" className={styles.cellMain}><code>{order.numero || order.id}</code>{order.fiscal && (!order.fiscal.cai || !order.fiscal.correlativo) && <small className={salesStyles.pendingFiscal}>Pendiente de CAI · sin validez fiscal</small>}</td>
                     <td data-label="Cliente">
                       <div className={styles.person}>
                         <span className={styles.avatar}>{initialsCliente(order.cliente)}</span>
@@ -423,24 +396,28 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
                         </span>
                       </div>
                     </td>
-                    <td data-label="Tipo"><span className={styles.role}>{orderTypeLabel(order.tipo)}</span></td>
+                    <td data-label="Tipo"><span className={styles.role}>{order.fiscal ? fiscalTypeLabel(order.fiscal) : order.tipo === "venta" ? "Venta comercial (histórica)" : orderTypeLabel(order.tipo)}</span></td>
                     <td data-label="Fecha">{formatOrderDate(order.fecha)}</td>
                     <td className={styles.priceCell} data-label="Monto">{formatPrice(order.monto)}</td>
                     <td data-label="Estado">
                       <span className={`${styles.pill} ${styles[`status_${order.estado}`]}`}>
-                        {orderStatusLabel(order.estado)}
+                        {order.fiscal ? order.estado === "cancelada" ? "Anulada" : "Emitida" : orderStatusLabel(order.estado)}
                       </span>
                     </td>
                     <td data-label="Acciones">
                       <div className={styles.rowActions}>
                         <button
                           type="button"
-                          onClick={() => openApiDocument(`/api/ordenes/${encodeURIComponent(order.id)}/documento`).catch(error => notifyError(error?.message || "No se pudo abrir el documento."))}
+                          onClick={() => openApiDocument(order.fiscal ? `/api/facturacion/documentos/${encodeURIComponent(order.id)}/pdf` : `/api/ordenes/${encodeURIComponent(order.id)}/documento`).catch(error => notifyError(error?.message || "No se pudo abrir el documento."))}
                           aria-label={`Imprimir o guardar PDF de ${order.id}`}
                           title="Imprimir o guardar como PDF"
                         >
                           <Printer size={15} />
                         </button>
+                        {order.fiscal ? <>
+                          <button type="button" onClick={() => onFiscalDetail?.(order.fiscal)} aria-label={`Ver ${order.numero}`} title="Ver factura"><Eye size={15} /></button>
+                          {order.estado !== "cancelada" && canAnnulFiscal && <button type="button" className={styles.danger} onClick={() => onFiscalAnnul?.(order.fiscal)} aria-label={`Anular ${order.numero}`} title="Anular con motivo"><X size={15} /></button>}
+                        </> : <>
                         <button
                           type="button"
                           disabled={!canWrite || saving} onClick={() => openEdit(order)}
@@ -458,6 +435,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
                         >
                           <Trash2 size={15} />
                         </button>
+                        </>}
                       </div>
                     </td>
                   </tr>
@@ -468,16 +446,17 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
             {!filtered.length && (
               <div className={styles.empty}>
                 <span className={styles.emptyIcon}><FileText size={22} /></span>
-                <strong>{type === "venta" ? "Sin ventas" : "Sin cotizaciones"}</strong>
+                <strong>{type === "venta" ? "Sin ventas" : type === "cotizacion" ? "Sin cotizaciones" : "Sin documentos"}</strong>
                 <p>
                   {hasFilters
                     ? "No hay resultados con esos filtros. Prueba ajustarlos."
-                    : type === "venta" ? "Aún no has creado ventas comerciales." : "Aún no has creado cotizaciones. Crea la primera."}
+                    : type === "venta" ? "Aún no has emitido ventas." : type === "cotizacion" ? "Aún no has creado cotizaciones. Crea la primera." : "Aún no hay cotizaciones ni ventas registradas."}
                 </p>
               </div>
             )}
           </div>
         </section>
+        </>}
       </div>
 
       {modalOpen && (
@@ -514,12 +493,8 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
                   />
                 </div>
                 <label className={styles.field}>
-                  Tipo
-                  <select disabled={busy} value={draft.tipo} onChange={(event) => changeField("tipo", event.target.value)}>
-                    {ORDER_TYPES.map((item) => (
-                      <option key={item.id} value={item.id}>{item.label}</option>
-                    ))}
-                  </select>
+                  Tipo de documento
+                  <input readOnly value={draft.tipo === "venta" ? "Venta comercial histórica" : "Cotización"} />
                 </label>
                 <label className={styles.field}>
                   Fecha
@@ -542,7 +517,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
                 <section className={`${salesStyles.lines} ${styles.spanFull}`} aria-label="Productos y conceptos">
                   <div className={salesStyles.lineHead}><strong>Productos o conceptos</strong><small className={salesStyles.hint}>{draft.items.length} / 100</small></div>
                   {!draft.items.length && <p className={salesStyles.hint}>{legacyHeaderOnly
-                    ? "Documento anterior o solicitud sin detalle: se conserva su importe guardado al editar la cabecera. Añade líneas para detallarlo o convertirlo en venta."
+                    ? "Documento anterior o solicitud sin detalle: se conserva su importe guardado al editar la cabecera. Puedes añadir líneas para detallar el documento; al cambiar cantidades o precios se recalcula su importe."
                     : "Añade un producto del catálogo o un concepto / servicio. El total se calcula con las cantidades y tarifas."}</p>}
                   {draft.items.map((line, index) => <div key={line.key || line.id} className={salesStyles.line}>
                     <div className={salesStyles.lineHead}>
@@ -578,7 +553,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
                     <button type="button" className={styles.ghostBtn} onClick={() => addLine("producto")} disabled={busy || draft.items.length >= 100}><Plus size={15} /> Añadir producto</button>
                     <button type="button" className={styles.ghostBtn} onClick={() => addLine("concepto")} disabled={busy || draft.items.length >= 100}><Plus size={15} /> Añadir concepto / servicio</button>
                   </div>
-                  <small className={salesStyles.hint}>Valor 1: venta normal; Valor 2: descuento; Valor 3: mayorista. Los precios guardados se conservan al editar, salvo que elijas otra tarifa o «Actualizar tarifa». Las ventas descuentan inventario; los conceptos no. Este comprobante no es fiscal. Si necesitas factura fiscal, cancela y elige Nueva venta → Factura fiscal antes de guardar.</small>
+                  <small className={salesStyles.hint}>Valor 1: venta normal; Valor 2: descuento; Valor 3: mayorista. Los precios guardados se conservan al editar, salvo que elijas otra tarifa o «Actualizar tarifa». Las cotizaciones no descuentan inventario. Los precios de los históricos se conservan. Para emitir una factura fiscal, usa Nueva venta.</small>
                   <div className={salesStyles.total}><span>{legacyHeaderOnly ? "Importe histórico" : keepSavedAmount && total !== commercialTotal(draft.items) ? "Total guardado" : "Total calculado"}</span><output aria-label="Total del documento" aria-live="polite">{formatPrice(total)}</output></div>
                   {total > MAX_DOCUMENT_AMOUNT && <p className={salesStyles.error} role="alert">El total supera el importe máximo permitido. Reduce cantidades o precios.</p>}
                   {keepSavedAmount && draft.items.length > 0 && total !== commercialTotal(draft.items) && <small className={salesStyles.hint}>Se conserva el importe histórico del documento. Se recalculará al cambiar productos, cantidades o precios.</small>}

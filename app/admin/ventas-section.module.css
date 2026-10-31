@@ -1,50 +1,42 @@
 .actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin: 20px 28px 0;
-}
-
-.kindDialog {
-  width: min(540px, calc(100vw - 32px));
-  max-height: calc(100dvh - 32px);
-  box-sizing: border-box;
-  overflow: auto;
-  margin: auto;
-  padding: 24px;
-  border: 1px solid var(--border, #d4dbe5);
-  border-radius: 18px;
-  color: var(--text-main, #17233a);
-  background: var(--bg-card, #fff);
-  box-shadow: 0 24px 80px #0004;
-}
-
-.kindDialog::backdrop { background: #0b152b99; }
-.kindDialog h2 { margin: 0 0 10px; font-size: 22px; }
-.kindDialog p { margin: 0 0 18px; line-height: 1.5; }
-.choices { display: grid; gap: 12px; margin-bottom: 18px; }
-
-.choices button {
   display: grid;
-  grid-template-columns: 24px 1fr;
-  gap: 6px 12px;
-  padding: 18px;
-  text-align: left;
-  border: 1px solid var(--border, #d4dbe5);
-  border-radius: 12px;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  font: inherit;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: min(100%, 420px);
+  margin-top: 16px;
 }
+.actions.singleAction { grid-template-columns: minmax(0, 1fr); width: min(100%, 210px); }
+.actions button { box-sizing: border-box; width: 100%; min-width: 0; min-height: 44px; white-space: nowrap; }
+.actions svg, .fiscalTools svg { flex: none; }
+.fiscalTools { display: flex; flex-wrap: wrap; gap: 6px 10px; margin-top: 10px; }
+.fiscalTools button { min-height: 44px; font-size: 12px; padding: 6px 10px; white-space: normal; }
+.loading { margin: 0; color: var(--text-muted); font-size: 12px; }
+.loadError { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; color: var(--text-danger); font-size: 13px; overflow-wrap: anywhere; }
 
-.choices strong { align-self: center; }
-.choices span { grid-column: 2; font-size: 13px; line-height: 1.5; }
-.choices button:hover { border-color: var(--blue, #2c6cf6); }
-.choices button:focus-visible { outline: 3px solid var(--blue, #2c6cf6); outline-offset: 3px; }
+.dialog {
+  box-sizing: border-box;
+  width: min(700px, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
+  max-height: calc(100svh - 32px);
+  margin: auto;
+  padding: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: var(--bg-card);
+  color: var(--text-main);
+  box-shadow: 0 25px 60px rgb(0 0 0 / 25%);
+}
+.dialog::backdrop { background: rgb(0 0 0 / 50%); backdrop-filter: blur(4px); }
+.dialog:not([open]) { display: none; }
+.dialog > header { position: sticky; top: 0; z-index: 2; background: var(--bg-card); }
+.dialog > header > div { min-width: 0; }
+.dialog h2 { overflow-wrap: anywhere; }
 
-@media (max-width: 640px) {
-  .actions { margin: 16px 16px 0; gap: 8px; }
-  .kindDialog { padding: 20px; }
-  .choices button { padding: 14px; }
+@media (max-width: 480px) {
+  .actions { gap: 8px; }
+  .actions button { gap: 5px; padding-inline: 8px; font-size: clamp(11px, 3.4vw, 13px); }
+  .actions svg { width: 14px; height: 14px; }
 }

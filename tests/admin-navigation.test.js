@@ -54,11 +54,11 @@ describe('píldoras internas y permisos de Ventas', () => {
   it('un vendedor no ve facturación sin su permiso fiscal', () => {
     expect(allowedSalesTabs(tabs, ['ordenes:read'])).toEqual(tabs.slice(0, -1));
   });
-  it('un rol fiscal no monta cotizaciones ni llama APIs comerciales prohibidas', () => {
-    expect(allowedSalesTabs(tabs, ['facturacion:read'])).toEqual([{ id: 'facturas' }]);
+  it('un rol fiscal consulta ventas en las píldoras compartidas, sin conceder cotizaciones', () => {
+    expect(allowedSalesTabs(tabs, ['facturacion:read'])).toEqual([{ id: 'todas' }, { id: 'ventas' }, { id: 'completadas' }]);
   });
-  it('conserva las siete pestañas para administración', () => {
-    expect(allowedSalesTabs(tabs, ALL_PERMISSIONS)).toEqual(tabs);
+  it('retira Facturas incluso para administración', () => {
+    expect(allowedSalesTabs(tabs, ALL_PERMISSIONS)).toEqual(tabs.slice(0, -1));
   });
   it('no muestra pestañas con permisos ausentes o solo de escritura', () => {
     for (const permisos of [undefined, null, [], ['ordenes:write'], ['facturacion:write']]) {
@@ -96,7 +96,7 @@ describe('pestaña independiente de tarifas en Ventas', () => {
     expect(allowedSalesTabs(tabs, ['precios:read'])).toEqual([{ id: 'precios' }]);
   });
   it('los permisos comerciales/fiscales no conceden gestión de tarifas', () => {
-    expect(allowedSalesTabs(tabs, ['ordenes:read', 'facturacion:read'])).toEqual([{ id: 'todas' }, { id: 'facturas' }]);
+    expect(allowedSalesTabs(tabs, ['ordenes:read', 'facturacion:read'])).toEqual([{ id: 'todas' }]);
     expect(allowedSalesTabs(tabs, ['precios:write'])).toEqual([]);
   });
 });

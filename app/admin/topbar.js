@@ -310,7 +310,11 @@ export function Topbar({
               value={searchVal}
               onChange={(e) => setSearchVal(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && searchResults[0]) {
+                if (e.key === "Enter" && activeSection === "ventas") {
+                  e.preventDefault();
+                  adminCtx?.applyVentasSearch?.(searchVal);
+                  setSearchOpen(false);
+                } else if (e.key === "Enter" && searchResults[0]) {
                   adminCtx?.goTo?.(searchResults[0].section);
                   setSearchOpen(false);
                 } else if (e.key === "Escape") setSearchOpen(false);
@@ -565,7 +569,12 @@ export function Topbar({
               value={searchVal}
               onChange={(event) => setSearchVal(event.target.value)}
               onKeyDown={(event) => {
-                if (event.key === "Enter" && searchResults[0]) {
+                if (event.key === "Enter" && activeSection === "ventas") {
+                  event.preventDefault();
+                  adminCtx?.applyVentasSearch?.(searchVal);
+                  setSearchOpen(false);
+                  setMobileSearchOpen(false);
+                } else if (event.key === "Enter" && searchResults[0]) {
                   adminCtx?.goTo?.(searchResults[0].section);
                   setSearchOpen(false);
                   setMobileSearchOpen(false);

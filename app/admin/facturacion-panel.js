@@ -11,7 +11,7 @@ import { resolveFiscalTab } from "@/lib/admin-navigation";
 
 import { apiFetch as fetch } from "@/lib/api-fetch";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   Ban,
@@ -96,7 +96,7 @@ async function request(url, options) {
   return data;
 }
 
-export default function FacturacionPanel({ session, productos: productosIniciales = [], hideTopbar = false, chromeOnly = false, tabs, activeTab: controlledTab, onTabChange, onClientCreated, saleEditorOpen, onSaleEditorClose }) {
+export default function FacturacionPanel({ session, productos: productosIniciales = [], hideTopbar = false, chromeOnly = false, tabs, activeTab: controlledTab, onTabChange, onClientCreated, saleEditorOpen, onSaleEditorClose, embedded = false, editorRef, detailOnly = false, onDocumentsChange, onStatusChange }) {
   const [innerTab, setInnerTab] = useState("documentos");
   // Las píldoras fiscales mantienen su selección aunque Ventas siga en «Facturas».
   const tab = resolveFiscalTab(controlledTab, innerTab);
@@ -132,7 +132,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
   const setTab = (next) => {
     if (guardando || clientBusy) return;
     if (TABS.some(item => item.id === next)) {
-      if (editorOpen) onSaleEditorClose?.();
+      if (editorOpen && !embedded) onSaleEditorClose?.();
       setInnerTab(next);
       if (TABS.some(item => item.id === controlledTab)) onTabChange?.(next);
       return;
@@ -147,7 +147,9 @@ export default function FacturacionPanel({ session, productos: productosIniciale
         canRead ? request("/api/facturacion/documentos") : Promise.resolve([]),
         canRead ? request("/api/facturacion/config") : Promise.resolve(null),
       ]);
-      setDocumentos(Array.isArray(docs) ? docs : []);
+      const records = Array.isArray(docs) ? docs : [];
+      setDocumentos(records);
+      onDocumentsChange?.(records);
       setConfig(cfg || null);
       setConfigDraft({
         cai: cfg?.cai || "",
@@ -163,7 +165,9 @@ export default function FacturacionPanel({ session, productos: productosIniciale
     } finally {
       setLoading(false);
     }
-  }, [canRead]);
+  }, [canRead, onDocumentsChange]);
+
+  useEffect(() => { onStatusChange?.({ loading, error }); }, [loading, error, onStatusChange]);
 
   const cargarLibro = useCallback(async () => {
     try {
@@ -248,7 +252,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
 
   async function emitir(event) {
     event.preventDefault();
-    if (!canWrite || submitting.current || clientBusy || clientCreating) return;
+    if (!canWrite || !canRead || loading || error || submitting.current || clientBusy || clientCreating) return;
     if (!clienteId) {
       sileo.error({ title: "Selecciona un cliente" });
       return;
@@ -283,6 +287,9 @@ export default function FacturacionPanel({ session, productos: productosIniciale
         description: `Total ${money(doc.total)}. El inventario se descontó de la bodega principal.`,
         duration: 7000,
       });
+      const records = [doc, ...documentos.filter(record => record.id !== doc.id)].slice(0, 100);
+      setDocumentos(records);
+      onDocumentsChange?.(records);
       setLineas([]);
       await cargar();
       setInnerTab("documentos");
@@ -300,6 +307,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
   }
 
   async function anular(documento) {
+    if (!canWrite || !canRead || submitting.current || guardando) return;
     const motivo = window.prompt(
       `Motivo de anulación de ${documento.correlativo || "la factura"}:`,
     );
@@ -308,6 +316,8 @@ export default function FacturacionPanel({ session, productos: productosIniciale
       sileo.error({ title: "La anulación requiere un motivo" });
       return;
     }
+    submitting.current = true;
+    setGuardando(true);
     try {
       await request(`/api/facturacion/documentos/${encodeURIComponent(documento.id)}`, {
         method: "PATCH",
@@ -320,12 +330,16 @@ export default function FacturacionPanel({ session, productos: productosIniciale
       await cargar();
     } catch (err) {
       sileo.error({ title: "No se pudo anular", description: err.message });
+    } finally {
+      submitting.current = false;
+      setGuardando(false);
     }
   }
 
   async function guardarConfig(event) {
     event.preventDefault();
     if (!canWrite || submitting.current || clientBusy || clientCreating) return;
+    submitting.current = true;
     setGuardando(true);
     try {
       await request("/api/facturacion/config", {
@@ -340,14 +354,85 @@ export default function FacturacionPanel({ session, productos: productosIniciale
     } catch (err) {
       sileo.error({ title: "No se pudo guardar", description: err.message });
     } finally {
+      submitting.current = false;
       setGuardando(false);
     }
   }
 
+  useImperativeHandle(editorRef, () => ({
+    canClose: () => !submitting.current && !guardando && !clientBusy,
+    openDetail: documento => setDetalle(documento),
+    annul: anular,
+    refresh: cargar,
+    refreshProduct: product => {
+      if (!product?.id) return;
+      rememberProduct(product);
+      // Sólo el borrador sin emitir: los documentos guardados nunca se tocan.
+      setLineas(current => current.map(line => line.productoId !== product.id ? line : {
+        ...line, precio: priceAt(product, line.nivelPrecio) == null ? "" : String(priceAt(product, line.nivelPrecio)),
+      }));
+    },
+  }));
+
+  const detailContent = detalle ? (<div className={styles.detalleBody}>
+              <div className={styles.detalleMeta}>
+                <span>Número / referencia</span>
+                <strong>{detalle.correlativo || `Pendiente de CAI · ${detalle.id}`}</strong>
+                <span>RTN del cliente</span>
+                <strong>{detalle.cliente?.rtn || "No registrado"}</strong>
+                <span>Cliente</span>
+                <strong>{detalle.cliente?.nombre || "—"}</strong>
+                <span>Fecha</span>
+                <strong>{formatFecha(detalle.fecha)}</strong>
+                <span>Estado</span>
+                <strong>{detalle.estado === "anulado" ? "Anulada" : "Emitida"}</strong>
+                {detalle.motivoAnulacion ? (
+                  <>
+                    <span>Motivo</span>
+                    <strong>{detalle.motivoAnulacion}</strong>
+                  </>
+                ) : null}
+              </div>
+
+              <table className={adminStyles.table}>
+                <thead>
+                  <tr>
+                    <th>Descripción</th>
+                    <th>Cant.</th>
+                    <th>Precio</th>
+                    <th>ISV</th>
+                    <th>Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(detalle.items || []).map((item) => (
+                    <tr key={item.id}>
+                      <td data-label="Descripción">{item.descripcion}</td>
+                      <td data-label="Cant.">{Number(item.cantidad)}</td>
+                      <td data-label="Precio">{money(item.precio)}</td>
+                      <td data-label="ISV">{Number(item.impuestoPorcentaje)}%</td>
+                      <td data-label="Subtotal">{money(item.subtotal)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <div className={styles.resumen}>
+                <div className={styles.resumenFila}><span>Subtotal neto</span><strong>{money(detalle.subtotal)}</strong></div>
+                <div className={styles.resumenFila}><span>Descuento</span><strong>− {money(detalle.descuento)}</strong></div>
+                <div className={styles.resumenFila}><span>ISV</span><strong>{money(detalle.impuesto)}</strong></div>
+                <div className={`${styles.resumenFila} ${styles.resumenTotal}`}><span>Total</span><strong>{money(detalle.total)}</strong></div>
+              </div>
+
+              {detalle.pdfHash ? (
+                <p className={styles.hash}>Huella SHA-256: <code>{detalle.pdfHash}</code></p>
+              ) : null}
+            </div>) : null;
+
   const sinRango = !config?.tieneRango;
 
   return (
-    <>
+    <div className={embedded ? styles.embedded : undefined}>
       {!hideTopbar && (
         <Topbar
           chromeOnly={chromeOnly}
@@ -381,11 +466,11 @@ export default function FacturacionPanel({ session, productos: productosIniciale
           </div>
         )}
 
-        <SectionTabs tabs={TABS} activeTab={editorOpen ? "" : tab} onTabChange={setTab} label="Secciones de facturación" />
+        {!embedded && <SectionTabs tabs={TABS} activeTab={editorOpen ? "" : tab} onTabChange={setTab} label="Secciones de facturación" />}
 
         {error ? <p className={styles.error} role="alert">{error}</p> : null}
 
-        {sinRango ? (
+        {sinRango && !detailOnly && !loading ? (
           <div className={styles.warning} role="status">
             <AlertTriangle size={16} />
             <p>
@@ -404,7 +489,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
           </div>
         ) : null}
 
-        {!editorOpen && tab === "documentos" && (
+        {!embedded && !editorOpen && tab === "documentos" && (
           <>
             <div className={adminStyles.toolbar}>
               <label className={adminStyles.search}>
@@ -486,7 +571,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
         )}
 
         <div hidden={!editorOpen}>
-          <button type="button" className={adminStyles.ghostBtn} disabled={guardando || clientBusy} onClick={closeEditor}>Volver a Facturas · conservar borrador</button>
+          {!embedded && <button type="button" className={adminStyles.ghostBtn} disabled={guardando || clientBusy} onClick={closeEditor}>Cerrar · conservar borrador</button>}
           <form onSubmit={emitir}>
             <fieldset className={styles.invoiceGrid} disabled={guardando || !canWrite} aria-label="Nueva venta · Factura fiscal">
               <section className={adminStyles.card}>
@@ -538,10 +623,10 @@ export default function FacturacionPanel({ session, productos: productosIniciale
 
                 <div className={adminStyles.cardBody}>
                   {!lineas.length && <p className={salesStyles.hint}>Añade productos del catálogo o conceptos / servicios para calcular el total de la factura.</p>}
-                  {lineas.map((linea) => {
+                  {lineas.map((linea, index) => {
                     const producto = productos.find((item) => item.id === linea.productoId);
                     return (
-                      <div className={styles.linea} key={linea.key}>
+                      <div className={styles.linea} key={linea.key} role="group" aria-label={`Línea ${index + 1}`}>
                         <div className={styles.lineaTop}>
                           {linea.kind === "producto" ? <ReferenciaSelector kind="productos" label="Producto" value={linea.productoId} fallback={producto} onChange={product => elegirProducto(linea.key, product)} onResolved={rememberProduct} disabled={guardando || !canWrite} /> : <strong className={salesStyles.hint}>Concepto / servicio</strong>}
                           <button
@@ -637,14 +722,14 @@ export default function FacturacionPanel({ session, productos: productosIniciale
                 </div>
                 <div className={`${styles.resumenFila} ${styles.resumenTotal}`}>
                   <span>Total</span>
-                  <strong>{money(totales.total)}</strong>
+                  <output aria-label="Total de la venta" aria-live="polite">{money(totales.total)}</output>
                 </div>
 
                 {totales.total > MAX_DOCUMENT_AMOUNT && <p className={salesStyles.error} role="alert">El total supera el importe máximo permitido. Reduce cantidades o precios.</p>}
                 <button
                   type="submit"
                   className={adminStyles.primaryBtn}
-                  disabled={!canWrite || guardando || clientBusy || clientCreating || !clienteId || !lineasValidas}
+                  disabled={!canWrite || loading || Boolean(error) || guardando || clientBusy || clientCreating || !clienteId || !lineasValidas}
                 >
                   <Receipt size={16} /> {guardando ? "Emitiendo…" : "Emitir factura"}
                 </button>
@@ -825,7 +910,8 @@ export default function FacturacionPanel({ session, productos: productosIniciale
         )}
       </div>
 
-      {detalle ? (
+      {embedded && detailOnly ? detailContent : null}
+      {detalle && !embedded ? (
         <div
           className={adminStyles.overlay}
           role="presentation"
@@ -844,59 +930,10 @@ export default function FacturacionPanel({ session, productos: productosIniciale
               </button>
             </header>
 
-            <div className={styles.detalleBody}>
-              <div className={styles.detalleMeta}>
-                <span>Cliente</span>
-                <strong>{detalle.cliente?.nombre || "—"}</strong>
-                <span>Fecha</span>
-                <strong>{formatFecha(detalle.fecha)}</strong>
-                <span>Estado</span>
-                <strong>{detalle.estado === "anulado" ? "Anulada" : "Emitida"}</strong>
-                {detalle.motivoAnulacion ? (
-                  <>
-                    <span>Motivo</span>
-                    <strong>{detalle.motivoAnulacion}</strong>
-                  </>
-                ) : null}
-              </div>
-
-              <table className={adminStyles.table}>
-                <thead>
-                  <tr>
-                    <th>Descripción</th>
-                    <th>Cant.</th>
-                    <th>Precio</th>
-                    <th>ISV</th>
-                    <th>Subtotal</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(detalle.items || []).map((item) => (
-                    <tr key={item.id}>
-                      <td data-label="Descripción">{item.descripcion}</td>
-                      <td data-label="Cant.">{Number(item.cantidad)}</td>
-                      <td data-label="Precio">{money(item.precio)}</td>
-                      <td data-label="ISV">{Number(item.impuestoPorcentaje)}%</td>
-                      <td data-label="Subtotal">{money(item.subtotal)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              <div className={styles.resumen}>
-                <div className={styles.resumenFila}><span>Subtotal neto</span><strong>{money(detalle.subtotal)}</strong></div>
-                <div className={styles.resumenFila}><span>Descuento</span><strong>− {money(detalle.descuento)}</strong></div>
-                <div className={styles.resumenFila}><span>ISV</span><strong>{money(detalle.impuesto)}</strong></div>
-                <div className={`${styles.resumenFila} ${styles.resumenTotal}`}><span>Total</span><strong>{money(detalle.total)}</strong></div>
-              </div>
-
-              {detalle.pdfHash ? (
-                <p className={styles.hash}>Huella SHA-256: <code>{detalle.pdfHash}</code></p>
-              ) : null}
-            </div>
+            {detailContent}
           </div>
         </div>
       ) : null}
-    </>
+    </div>
   );
 }
