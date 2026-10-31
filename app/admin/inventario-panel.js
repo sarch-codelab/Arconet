@@ -1,6 +1,8 @@
 "use client";
 
 import { apiFetch as fetch } from "@/lib/api-fetch";
+import { canReadProductCost } from "@/lib/permisos";
+import { formatPrice } from "./products-store";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -87,6 +89,8 @@ export default function InventarioPanel({ session, productos: productosIniciales
   // Este permiso de apoyo no depende de exports del módulo de navegación:
   // Inventario debe poder montar también al recuperar un bundle anterior.
   const canReadProductos = permisos.includes("productos:read") || permisos.includes("inventario:read");
+  // El costo unitario sólo se pinta a quien puede verlo; el API ya lo omite.
+  const canVerCosto = canReadProductCost(permisos);
   const [internalTab, setInternalTab] = useState("stock");
   const tab = activeTab || internalTab;
   const setTab = onTabChange || setInternalTab;
@@ -492,8 +496,10 @@ export default function InventarioPanel({ session, productos: productosIniciales
                     <th>Producto</th>
                     <th>Bodega</th>
                     <th>Movimiento</th>
+                    {canVerCosto ? <th>Costo</th> : null}
                     <th>Saldo</th>
                     <th>Motivo</th>
+                    <th>Registró</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -526,10 +532,20 @@ export default function InventarioPanel({ session, productos: productosIniciales
                         <td data-label="Movimiento">
                           <strong>{signo}{formatNumero(Math.abs(item.cantidad))}</strong>
                         </td>
+                        {canVerCosto ? (
+                          <td data-label="Costo">
+                            {item.costoUnitario === null || item.costoUnitario === undefined
+                              ? "—"
+                              : formatPrice(item.costoUnitario)}
+                          </td>
+                        ) : null}
                         <td data-label="Saldo">{formatNumero(item.saldoAnterior)} → {formatNumero(item.saldoDespues)}</td>
                         <td data-label="Motivo">
                           {item.motivo || "—"}
                           {item.referencia ? <><br /><small>{item.referencia}</small></> : null}
+                        </td>
+                        <td data-label="Registró">
+                          <small>{item.actor || "—"}</small>
                         </td>
                       </tr>
                     );

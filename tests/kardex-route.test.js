@@ -9,7 +9,8 @@ const m = {
   bodegaFindMany: vi.fn(),
 };
 
-vi.mock("@/lib/dal", () => ({ requirePermission: async () => ({ session: {}, response: null }) }));
+let permisos = ["inventario:read"];
+vi.mock("@/lib/dal", () => ({ requirePermission: async () => ({ session: {}, permisos, response: null }) }));
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     movimientoKardex: { findMany: m.findMany, count: m.count },
@@ -22,6 +23,7 @@ const { GET } = await import("../app/api/inventario/kardex/route");
 const pedir = (query = "") => GET(new Request(`http://local/api/inventario/kardex${query}`));
 
 beforeEach(() => {
+  permisos = ["inventario:read"];
   m.findMany.mockReset();
   m.count.mockReset();
   m.bodegaFindMany.mockReset();
@@ -98,5 +100,40 @@ describe("Kardex: la transferencia muestra a qué bodega llegó", () => {
     m.findMany.mockResolvedValue([]);
     await pedir("?take=9999");
     expect(m.findMany.mock.calls[0][0].take).toBe(500);
+  });
+
+  it("oculta el costo unitario a quien sólo puede ver inventario", async () => {
+    m.findMany.mockResolvedValue([
+      {
+        id: "k3", fecha: new Date("2026-10-31T10:00:00Z"), tipo: "entrada",
+        producto: { id: "p1", nombre: "Cable QA", sku: "QA-1" },
+        bodega: { id: "b-sps", nombre: "Bodega principal" },
+        bodegaDestinoId: null, cantidad: 5, saldoAnterior: 0, saldoDespues: 5,
+        costoUnitario: 42.5, actor: "bodega@arconet.local", motivo: "Compra",
+      },
+    ]);
+    m.count.mockResolvedValue(1);
+
+    const json = await (await pedir()).json();
+    expect(json.movimientos[0].costoUnitario).toBeNull();
+    // El actor sí es visible: sirve para auditar quién registró el movimiento.
+    expect(json.movimientos[0].actor).toBe("bodega@arconet.local");
+  });
+
+  it("entrega el costo a quien tiene permiso de compras o escritura de productos", async () => {
+    permisos = ["inventario:read", "compras:read"];
+    m.findMany.mockResolvedValue([
+      {
+        id: "k4", fecha: new Date("2026-10-31T10:00:00Z"), tipo: "entrada",
+        producto: { id: "p1", nombre: "Cable QA", sku: "QA-1" },
+        bodega: { id: "b-sps", nombre: "Bodega principal" },
+        bodegaDestinoId: null, cantidad: 5, saldoAnterior: 0, saldoDespues: 5,
+        costoUnitario: 42.5, actor: "admin@arconet.local",
+      },
+    ]);
+    m.count.mockResolvedValue(1);
+
+    const json = await (await pedir()).json();
+    expect(Number(json.movimientos[0].costoUnitario)).toBe(42.5);
   });
 });

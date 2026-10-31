@@ -1,5 +1,6 @@
 import { requirePermission } from '@/lib/dal';
 import { prisma } from '@/lib/prisma';
+import { canReadProductCost } from '@/lib/permisos';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -8,6 +9,9 @@ export const dynamic = "force-dynamic";
 export async function GET(request) {
   const guard = await requirePermission("inventario:read");
   if (guard.response) return guard.response;
+  // El costo de compra es información sensible: se entrega con la misma regla
+  // que /api/productos, no por el simple hecho de poder ver el Kardex.
+  const puedeVerCosto = canReadProductCost(guard.permisos);
   const { searchParams } = new URL(request.url);
   const take = Math.min(Math.max(Number(searchParams.get("take")) || 100, 1), 500);
   const skip = Math.max(Number(searchParams.get("skip")) || 0, 0);
@@ -67,7 +71,7 @@ export async function GET(request) {
         cantidad: m.cantidad,
         saldoAnterior: m.saldoAnterior,
         saldoDespues: m.saldoDespues,
-        costoUnitario: m.costoUnitario,
+        costoUnitario: puedeVerCosto ? m.costoUnitario : null,
         referencia: m.referencia,
         motivo: m.motivo,
         actor: m.actor,
