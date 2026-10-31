@@ -136,12 +136,11 @@ export const SECTION_NAV_CONFIG = {
       // "Todas" va primero: es la pestana inicial al entrar a Ventas.
       { id: "todas", label: "Todas", icon: BarChart3, title: "Cotizaciones y ventas" },
       { id: "cotizaciones", label: "Cotizaciones", icon: FileText, title: "Solo cotizaciones" },
-      { id: "ventas", label: "Ventas", icon: TrendingUp, title: "Ventas comerciales (descuentan inventario)" },
+      { id: "ventas", label: "Ventas", icon: TrendingUp, title: "Facturas fiscales e históricos comerciales" },
       { id: "pendientes", label: "Pendientes", icon: Clock, title: "En revisión" },
       { id: "aprobadas", label: "Aprobadas", icon: Check, title: "Aprobadas" },
       { id: "completadas", label: "Completadas", icon: Check, title: "Completadas" },
       { id: "precios", label: "Precios", icon: TrendingUp, title: "Tres precios de venta: normal, descuento y mayorista" },
-      { id: "facturas", label: "Facturas", icon: Receipt, title: "Facturación fiscal: facturas con CAI, libro de ventas y configuración" },
     ],
   },
   resumen: {

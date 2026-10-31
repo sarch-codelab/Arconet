@@ -110,9 +110,9 @@
   display: grid;
   gap: 10px;
   padding: 20px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   border-radius: 14px;
-  background: #ffffff;
+  background: var(--bg-card);
   align-self: start;
   position: sticky;
   top: 16px;
@@ -123,24 +123,24 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  color: #626a76;
+  color: var(--text-muted);
   font-size: 12.5px;
 }
 
 .resumenFila strong {
-  color: #111827;
+  color: var(--text-main);
   font-variant-numeric: tabular-nums;
 }
 
 .resumenTotal {
   padding-top: 10px;
-  border-top: 1px solid #e5e7eb;
-  color: #111827;
+  border-top: 1px solid var(--border);
+  color: var(--text-main);
   font-size: 14px;
   font-weight: 700;
 }
 
-.resumenTotal strong {
+.resumenTotal strong, .resumenTotal output {
   font-size: 18px;
 }
 
@@ -148,7 +148,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #626a76;
+  color: var(--text-muted);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -156,10 +156,10 @@
 
 .fechaCampo input {
   padding: 8px 10px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background: #ffffff;
-  color: #111827;
+  background: var(--bg-card);
+  color: var(--text-main);
   font: inherit;
   font-size: 12px;
 }
@@ -179,23 +179,23 @@
 }
 
 .detalleMeta span {
-  color: #6a7480;
+  color: var(--text-muted);
 }
 
 .detalleMeta strong {
-  color: #111827;
+  color: var(--text-main);
   font-weight: 600;
 }
 
 .hash {
-  color: #6a7480;
+  color: var(--text-muted);
   font-size: 11px;
   line-height: 1.5;
   word-break: break-all;
 }
 
 .hash code {
-  color: #111827;
+  color: var(--text-main);
   font-size: 10.5px;
 }
 
@@ -223,3 +223,18 @@
 @media (max-width: 900px) {
   .invoiceGrid input, .invoiceGrid select, .invoiceGrid textarea { font-size: 16px; }
 }
+
+/* El mismo formulario fiscal vive ahora dentro de Nueva venta, no en una
+   pantalla/píldora independiente. Una columna evita scroll lateral móvil. */
+.embedded { min-width: 0; }
+.embedded > div { padding: 16px; }
+.embedded .invoiceGrid { grid-template-columns: minmax(0, 1fr); margin: 0; }
+.embedded .invoiceGrid > * { min-width: 0; }
+.embedded .detalleBody { padding: 0; }
+.embedded .detalleMeta { overflow-wrap: anywhere; }
+.embedded input, .embedded select, .embedded textarea { box-sizing: border-box; max-width: 100%; min-width: 0; }
+@media (max-width: 900px) {
+  .embedded input, .embedded select, .embedded textarea { font-size: 16px !important; }
+}
+
+.embedded .resumen { position: static; }

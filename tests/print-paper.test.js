@@ -4,14 +4,15 @@ import { renderFiscalDocument, renderOrderDocument } from "../lib/print-document
 import { documento, order, settings } from "./fixtures/print-documents";
 
 describe("formatos de impresoras de recibos y hojas", () => {
-  it("automático deja el tamaño al driver y adapta la distribución de rollos", () => {
+  it("automático deja el tamaño al driver sin confundir el ancho del iframe con un rollo", () => {
     const css = printPageRule("auto");
     expect(css).toContain("size:auto");
-    expect(css).toContain("@media print and (max-width:100mm)");
-    expect(css).toContain("margin:5mm");
+    expect(css).not.toContain("max-width:100mm");
+    expect(css).toContain("margin:12mm");
     const html = renderFiscalDocument({ documento, settings });
     expect(html).toContain('data-paper="auto"');
-    expect(html).toContain('body[data-paper="auto"] .items tr{display:grid');
+    expect(html).not.toContain('body[data-paper="auto"] .items tr{display:grid');
+    expect(html).toContain('body[data-layout="receipt"] .items tr{display:grid');
   });
   it.each(["ticket-80", "ticket-58"])("%s genera un rollo de largo variable sin contador de hojas", paper => {
     expect(printPageRule(paper, 245.2)).toContain(`size:${PRINT_PAPERS[paper].width}mm 246mm`);

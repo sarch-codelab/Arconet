@@ -18,13 +18,14 @@ async function request(path, options) {
     throw new Error(data.error || "No se pudo completar la operación.");
   return data;
 }
-export default function PreciosPanel({
+export default function PreciosPanel({ hideNavigation = false,
   products = [],
   setProducts,
   session,
   tabs,
   activeTab,
   onTabChange,
+  onPriceSaved,
 }) {
   const canWrite = session?.permisos?.includes("precios:write");
   const [rows, setRows] = useState(products);
@@ -137,6 +138,7 @@ export default function PreciosPanel({
           row.id === product.id ? { ...row, ...product } : row,
         ),
       );
+      onPriceSaved?.(product);
       show(
         "Los tres precios de venta se guardaron. Los documentos anteriores conservan sus importes.",
       );
@@ -150,12 +152,12 @@ export default function PreciosPanel({
   }
   return (
     <div className={adminStyles.body}>
-      <SectionTabs
+      {!hideNavigation && <SectionTabs
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={onTabChange}
         label="Secciones de ventas"
-      />
+      />}
       <header className={styles.header}>
         <div>
           <h1>Precios de venta</h1>

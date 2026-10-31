@@ -120,7 +120,28 @@ describe('impresión natural sin relleno dependiente de beforeprint', () => {
   it('CSS print prevalece sobre una altura inline heredada, sin depender de JavaScript ni del papel de medición', () => {
     const html = renderOrderDocument({ order, settings });
     expect(html).toContain('@media print{.sheet .items.form-grid{height:auto!important;min-height:0!important}.sheet .grid-filler{display:none!important;height:0!important}');
-    expect(html).toContain('.document-end{display:flow-root;break-inside:avoid;page-break-inside:avoid}');
+    expect(html).toContain('.document-end{display:block;break-inside:auto;page-break-inside:auto}');
+    expect(html).toContain('.sheet{display:block;width:auto;height:auto!important;min-height:0!important');
     expect(html).not.toContain('paper.height-2*paper.margin');
+  });
+});
+
+describe('cierre fragmentable compatible con WebKit/AirPrint', () => {
+  it.each(['auto', 'carta', 'media-carta', 'media-hoja', 'ticket-80', 'ticket-58'])('%s elimina flotantes y no trata todo el cierre como una sola pieza', paper => {
+    const html = renderFiscalDocument({ documento, settings, paper });
+    expect(html).not.toContain('float:right');
+    expect(html).not.toContain('.document-end{break-inside:avoid');
+    expect(html).not.toContain('.sheet{display:flow-root');
+    expect(html).toContain('<table class="closing-table" role="presentation">');
+    expect(html).toContain('class="closing-memo"');
+    expect(html).toContain('class="closing-totals"');
+    expect(html).toContain('-webkit-text-size-adjust:100%');
+    expect(html).toContain('.doc-header{display:table;width:100%;table-layout:fixed}');
+  });
+  it('no oculta productos, autorización, firma ni huella al permitir saltos naturales', () => {
+    const lines = Array.from({ length: 120 }, (_, i) => ({ ...documento.items[0], descripcion: `LINEA-UNICA-${i + 1}` }));
+    const html = renderFiscalDocument({ documento: { ...documento, items: lines }, settings });
+    for (const text of ['LINEA-UNICA-120', 'Autorización fiscal', 'Firma / recibido conforme', documento.pdfHash]) expect(html).toContain(text);
+    expect(html).not.toMatch(/(?:max-height|height):[0-9]+(?:mm|px).*overflow:hidden/);
   });
 });
