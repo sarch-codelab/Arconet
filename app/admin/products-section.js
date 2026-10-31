@@ -11,8 +11,7 @@ import { compressImage } from "./image-utils";
 import BarcodeScanner from "./barcode-scan";
 import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
 import { DialogBackdrop } from "./admin-overlay";
-import { Topbar, SectionTabs } from "./topbar";
-import { SECTION_NAV_CONFIG } from "./admin-nav";
+import { Topbar } from "./topbar";
 import {
   PRODUCT_CATEGORIES,
   PRODUCT_STATUSES,
@@ -49,7 +48,6 @@ const EMPTY_PRODUCT = {
 };
 
 export default function ProductsSection({ products = [], setProducts, categorias = [], workers = [], session, navigation }) {
-  const [activeTab, setActiveTab] = useState("all");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [status, setStatus] = useState("all");
@@ -145,31 +143,6 @@ export default function ProductsSection({ products = [], setProducts, categorias
     return [...set].sort((a, b) => a.localeCompare(b, "es"));
   }, [products, bodegaOptions, canReadWarehouses]);
 
-  const handleTabChange = (tabId) => {
-    setActiveTab(tabId);
-    if (tabId === "all") {
-      setStatus("all");
-      setCategory("all");
-      setStockOnly("all");
-    } else if (tabId === "active") {
-      setStatus("activo");
-      setCategory("all");
-      setStockOnly("in");
-    } else if (tabId === "out") {
-      setStatus("all");
-      setCategory("all");
-      setStockOnly("out");
-    } else if (tabId === "fiber") {
-      setStatus("all");
-      setCategory("Componentes pasivos");
-      setStockOnly("all");
-    } else if (tabId === "prices") {
-      setStatus("all");
-      setCategory("all");
-      setStockOnly("all");
-    }
-  };
-
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return products.filter((product) => {
@@ -201,7 +174,6 @@ export default function ProductsSection({ products = [], setProducts, categorias
     setCategory("all");
     setStatus("all");
     setStockOnly("all");
-    setActiveTab("all");
   }
 
   function openCreate() {
@@ -345,12 +317,6 @@ export default function ProductsSection({ products = [], setProducts, categorias
 
       <div className={styles.body}>
         {navigation}
-        <SectionTabs
-          tabs={SECTION_NAV_CONFIG.productos?.tabs}
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          label="Filtros de productos"
-        />
 
         <section className={styles.stats} aria-label="Resumen">
           <article className={styles.statCard}>
@@ -407,6 +373,18 @@ export default function ProductsSection({ products = [], setProducts, categorias
             {PRODUCT_STATUSES.map((item) => (
               <option key={item.id} value={item.id}>{item.label}</option>
             ))}
+          </select>
+          {/* Antes eran pestañas ("En Stock" / "Agotados") que se confundían
+              con la navegación de Inventario; aquí filtran la tabla. */}
+          <select
+            className={styles.select}
+            value={stockOnly}
+            onChange={(event) => setStockOnly(event.target.value)}
+            aria-label="Filtrar por existencias"
+          >
+            <option value="all">Todas las existencias</option>
+            <option value="in">En stock</option>
+            <option value="out">Agotados</option>
           </select>
           {hasFilters && (
             <button type="button" className={styles.clearBtn} onClick={clearFilters}>

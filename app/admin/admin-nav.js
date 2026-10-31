@@ -14,10 +14,8 @@ import {
   Database,
   FileText,
   Key,
-  Layers,
   LayoutDashboard,
   MapPin,
-  Package,
   Receipt,
   Server,
   Settings,
@@ -84,15 +82,15 @@ export const SECTION_NAV_CONFIG = {
       { id: "all", label: "Roles", icon: ShieldCheck, title: "Todos los roles" },
     ],
   },
+  // Productos ya no lleva una segunda fila de píldoras: arriba está la
+  // sub-navegación de Inventario (Productos, Stock, Kardex…) y debajo viven los
+  // filtros reales del listado. Antes se pintaban las dos filas, ambas
+  // empezando por "Productos", así que parecía un botón duplicado. "En Stock"
+  // y "Agotados" ahora son opciones del filtro de existencias, junto a
+  // categoría y estado, en vez de pestañas que competían con la navegación.
   productos: {
     brandName: "Productos",
-    tabs: [
-      { id: "all", label: "Productos", icon: Package, title: "Catálogo completo" },
-      { id: "active", label: "En Stock", icon: Check, title: "Productos disponibles" },
-      { id: "out", label: "Agotados", icon: AlertTriangle, title: "Productos agotados" },
-      { id: "fiber", label: "Pasivos", icon: Layers, title: "Componentes pasivos" },
-      { id: "prices", label: "Tarifas", icon: TrendingUp, title: "Precios y stock" },
-    ],
+    tabs: [],
   },
   categorias: {
     brandName: "Categorías",

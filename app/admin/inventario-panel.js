@@ -36,6 +36,9 @@ const TIPOS = [
 ];
 
 const TIPO_LABEL = Object.fromEntries(TIPOS.map((tipo) => [tipo.id, tipo.label]));
+// El Kardex ya no se corta en 200 filas sin avisar: se pagina contra el API,
+// que devuelve { total, take, skip, movimientos }.
+const KARDEX_PAGE_SIZE = 100;
 const EMPTY_MOVIMIENTO = {
   tipo: "entrada",
   productoId: "",
@@ -99,6 +102,10 @@ export default function InventarioPanel({ session, productos: productosIniciales
   const [kardexProducto, setKardexProducto] = useState("");
   const [kardexBodega, setKardexBodega] = useState("");
   const [kardexTipo, setKardexTipo] = useState("");
+  const [kardexDesde, setKardexDesde] = useState("");
+  const [kardexHasta, setKardexHasta] = useState("");
+  const [kardexPagina, setKardexPagina] = useState(0);
+  const [kardexTotal, setKardexTotal] = useState(0);
   const [movimiento, setMovimiento] = useState(EMPTY_MOVIMIENTO);
   const [guardando, setGuardando] = useState(false);
   const [bodegaDraft, setBodegaDraft] = useState(EMPTY_BODEGA);
@@ -126,17 +133,20 @@ export default function InventarioPanel({ session, productos: productosIniciales
   }, [canReadProductos]);
 
   const cargarKardex = useCallback(async () => {
-    const params = new URLSearchParams({ take: "200" });
+    const params = new URLSearchParams({ take: String(KARDEX_PAGE_SIZE), skip: String(kardexPagina * KARDEX_PAGE_SIZE) });
     if (kardexProducto) params.set("productoId", kardexProducto);
     if (kardexBodega) params.set("bodegaId", kardexBodega);
     if (kardexTipo) params.set("tipo", kardexTipo);
+    if (kardexDesde) params.set("desde", kardexDesde);
+    if (kardexHasta) params.set("hasta", kardexHasta);
     try {
       const data = await request(`/api/inventario/kardex?${params}`);
       setMovimientos(Array.isArray(data?.movimientos) ? data.movimientos : []);
+      setKardexTotal(Number(data?.total) || 0);
     } catch (err) {
       setError(err.message || "No se pudo cargar el kardex.");
     }
-  }, [kardexProducto, kardexBodega, kardexTipo]);
+  }, [kardexProducto, kardexBodega, kardexTipo, kardexDesde, kardexHasta, kardexPagina]);
 
   useEffect(() => {
     cargarBase();
@@ -421,7 +431,7 @@ export default function InventarioPanel({ session, productos: productosIniciales
               <select
                 className={adminStyles.select}
                 value={kardexProducto}
-                onChange={(event) => setKardexProducto(event.target.value)}
+                onChange={(event) => { setKardexProducto(event.target.value); setKardexPagina(0); }}
                 aria-label="Filtrar kardex por producto"
               >
                 <option value="">Todos los productos</option>
@@ -432,7 +442,7 @@ export default function InventarioPanel({ session, productos: productosIniciales
               <select
                 className={adminStyles.select}
                 value={kardexBodega}
-                onChange={(event) => setKardexBodega(event.target.value)}
+                onChange={(event) => { setKardexBodega(event.target.value); setKardexPagina(0); }}
                 aria-label="Filtrar kardex por bodega"
               >
                 <option value="">Todas las bodegas</option>
@@ -443,7 +453,7 @@ export default function InventarioPanel({ session, productos: productosIniciales
               <select
                 className={adminStyles.select}
                 value={kardexTipo}
-                onChange={(event) => setKardexTipo(event.target.value)}
+                onChange={(event) => { setKardexTipo(event.target.value); setKardexPagina(0); }}
                 aria-label="Filtrar kardex por tipo"
               >
                 <option value="">Todos los tipos</option>
@@ -451,6 +461,26 @@ export default function InventarioPanel({ session, productos: productosIniciales
                   <option key={tipo.id} value={tipo.id}>{tipo.label}</option>
                 ))}
               </select>
+              <label className={adminStyles.field}>
+                <span>Desde</span>
+                <input
+                  type="date"
+                  className={adminStyles.input}
+                  value={kardexDesde}
+                  onChange={(event) => { setKardexDesde(event.target.value); setKardexPagina(0); }}
+                  aria-label="Filtrar kardex desde la fecha"
+                />
+              </label>
+              <label className={adminStyles.field}>
+                <span>Hasta</span>
+                <input
+                  type="date"
+                  className={adminStyles.input}
+                  value={kardexHasta}
+                  onChange={(event) => { setKardexHasta(event.target.value); setKardexPagina(0); }}
+                  aria-label="Filtrar kardex hasta la fecha"
+                />
+              </label>
             </div>
 
             <div className={adminStyles.tableWrap}>
@@ -478,7 +508,21 @@ export default function InventarioPanel({ session, productos: productosIniciales
                           <br />
                           <small>{item.producto?.sku || ""}</small>
                         </td>
-                        <td data-label="Bodega">{item.bodega?.nombre || "—"}</td>
+                        <td data-label="Bodega">
+                          {item.bodega?.nombre || "—"}
+                          {item.tipo === "transferencia" && item.bodegaDestino ? (
+                            <>
+                              {" → "}
+                              <strong>{item.bodegaDestino.nombre}</strong>
+                            </>
+                          ) : null}
+                          {item.tipo === "transferencia" && !item.bodegaDestino && item.bodegaDestinoId ? (
+                            <>
+                              {" → "}
+                              <small>{item.bodegaDestinoId}</small>
+                            </>
+                          ) : null}
+                        </td>
                         <td data-label="Movimiento">
                           <strong>{signo}{formatNumero(Math.abs(item.cantidad))}</strong>
                         </td>
@@ -499,6 +543,31 @@ export default function InventarioPanel({ session, productos: productosIniciales
                 </div>
               ) : null}
             </div>
+
+            {kardexTotal > KARDEX_PAGE_SIZE ? (
+              <div className={adminStyles.pagination} aria-label="Paginación del kardex">
+                <button
+                  type="button"
+                  className={adminStyles.ghostBtn}
+                  onClick={() => setKardexPagina((p) => Math.max(p - 1, 0))}
+                  disabled={kardexPagina === 0}
+                >
+                  Anterior
+                </button>
+                <span className={adminStyles.pageInfo}>
+                  Mostrando {kardexPagina * KARDEX_PAGE_SIZE + 1}–
+                  {Math.min((kardexPagina + 1) * KARDEX_PAGE_SIZE, kardexTotal)} de {formatNumero(kardexTotal)}
+                </span>
+                <button
+                  type="button"
+                  className={adminStyles.ghostBtn}
+                  onClick={() => setKardexPagina((p) => p + 1)}
+                  disabled={(kardexPagina + 1) * KARDEX_PAGE_SIZE >= kardexTotal}
+                >
+                  Siguiente
+                </button>
+              </div>
+            ) : null}
           </>
         )}
 

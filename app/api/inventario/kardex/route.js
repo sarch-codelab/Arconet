@@ -39,6 +39,19 @@ export async function GET(request) {
       }),
       prisma.movimientoKardex.count({ where }),
     ]);
+
+    // MovimientoKardex guarda el destino como id suelto (no hay relación), así
+    // que se resuelven los nombres en una sola consulta. Sin esto el Kardex no
+    // podía mostrar a qué bodega llegó una transferencia.
+    const destinosIds = [...new Set(movimientos.map((m) => m.bodegaDestinoId).filter(Boolean))];
+    const destinos = destinosIds.length
+      ? await prisma.bodega.findMany({
+          where: { id: { in: destinosIds } },
+          select: { id: true, nombre: true, codigo: true },
+        })
+      : [];
+    const destinoPorId = new Map(destinos.map((b) => [b.id, b]));
+
     return Response.json({
       total,
       take,
@@ -50,6 +63,7 @@ export async function GET(request) {
         producto: m.producto,
         bodega: m.bodega,
         bodegaDestinoId: m.bodegaDestinoId,
+        bodegaDestino: m.bodegaDestinoId ? destinoPorId.get(m.bodegaDestinoId) || null : null,
         cantidad: m.cantidad,
         saldoAnterior: m.saldoAnterior,
         saldoDespues: m.saldoDespues,
