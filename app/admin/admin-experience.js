@@ -234,13 +234,7 @@ function AdminShell({ session, onLogout, initialSection }) {
               <SolicitudesPanel session={session} />
             </Suspense>
           ) : section === "resumen" ? (
-            <ResumenSection
-              workers={workers}
-              products={products}
-              sucursales={sucursales}
-              orders={orders}
-              session={session}
-            />
+            <ResumenSection session={session} />
           ) : section === "ajustes" ? (
             <AjustesSection session={session} workers={workers} />
           ) : section === "mi-perfil" ? (
