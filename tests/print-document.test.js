@@ -159,3 +159,17 @@ describe("fecha de calendario de cotización sin corrimiento en impresión", () 
     expect(html).not.toContain("29/10/2026");
   });
 });
+
+
+describe("configuración empresarial fijada al emitir", () => {
+  it("la reimpresión conserva emisor, contacto y rango del documento aunque Ajustes cambie", () => {
+    const captured = { ...documento, cai: "CAI-QA-ANTERIOR", serie: "999-999-01", fiscalSnapshot: { version: 1, nombre: "EMISOR QA ORIGINAL", nit: "RTN QA ORIGINAL", direccion: "DIRECCIÓN QA ORIGINAL", email: "original@qa.local", phone: "TEL QA ORIGINAL", rangoInicio: "999-999-01-000000001", rangoFin: "999-999-01-000000003", fechaLimite: "2099-12-31" } };
+    const html = renderFiscalDocument({ documento: captured, settings: { ...settings, "fiscal.nombre": "EMISOR NUEVO NO COPIAR", "fiscal.cai": "CAI NUEVO NO COPIAR", "fiscal.rangoFin": "999-999-01-000000999", email: "nuevo@qa.local" } });
+    for (const value of ["EMISOR QA ORIGINAL", "RTN QA ORIGINAL", "DIRECCIÓN QA ORIGINAL", "original@qa.local", "999-999-01-000000003"]) expect(html).toContain(value);
+    expect(html).not.toMatch(/EMISOR NUEVO NO COPIAR|CAI NUEVO NO COPIAR|nuevo@qa.local|999-999-01-000000999/);
+  });
+  it("una instantánea sin dato no recibe el contacto futuro como si fuera histórico", () => {
+    const html = renderFiscalDocument({ documento: { ...documento, fiscalSnapshot: { version: 1, nombre: "QA", nit: null, email: null, phone: null } }, settings: { ...settings, email: "futuro@qa.local" } });
+    expect(html).not.toContain("futuro@qa.local"); expect(html).toContain("No registrado");
+  });
+});

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { AlertTriangle, Check, Pencil, Plus, Search, Trash2, Users, X } from "lucide-react";
 import styles from "./admin-experience.module.css";
+import filters from "./list-filters.module.css";
 import { Avatar, useToast, notifyError, ConfirmDialog } from "./admin-ui";
 import { compressImage } from "./image-utils";
 import {
@@ -15,7 +16,7 @@ import {
 } from "./clientes-store";
 import { formatDate } from "./workers-store";
 import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
-import { Topbar } from "./topbar";
+import { Topbar, SectionMarker } from "./topbar";
 
 export default function ClientesSection({ clientes = [], setClientes, workers = [], session }) {
   const canWrite = session?.permisos?.includes("clientes:write");
@@ -160,6 +161,7 @@ export default function ClientesSection({ clientes = [], setClientes, workers = 
       />
 
       <div className={styles.body}>
+        <SectionMarker label="Clientes" icon={Users} />
         <section className={styles.stats} aria-label="Resumen de clientes">
           <article className={styles.statCard}>
             <span className={styles.statIcon}><Users size={18} /></span>
@@ -178,7 +180,7 @@ export default function ClientesSection({ clientes = [], setClientes, workers = 
           </article>
         </section>
 
-        <section className={styles.toolbar} aria-label="Filtros">
+        <section className={`${styles.toolbar} ${filters.bar}`} aria-label="Filtros de clientes">
           <label className={styles.search}>
             <Search size={16} />
             <input

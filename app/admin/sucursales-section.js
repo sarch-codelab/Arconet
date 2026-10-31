@@ -3,9 +3,10 @@
 import { useMemo, useState } from "react";
 import { Building2, Check, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import styles from "./admin-experience.module.css";
+import filters from "./list-filters.module.css";
 import { useToast, notifyError, ConfirmDialog } from "./admin-ui";
 import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
-import { Topbar } from "./topbar";
+import { Topbar, SectionMarker } from "./topbar";
 import {
   createSucursal,
   deleteSucursal,
@@ -18,6 +19,7 @@ export default function SucursalesSection({ sucursales = [], setSucursales, work
   const canWrite = session?.permisos?.includes("sucursales:write");
   const canDelete = session?.permisos?.includes("sucursales:delete");
   const [query, setQuery] = useState("");
+  const [status, setStatus] = useState("all");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState({
@@ -40,13 +42,14 @@ export default function SucursalesSection({ sucursales = [], setSucursales, work
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return sucursales.filter((sucursal) => {
+      if (status !== "all" && sucursal.estado !== status) return false;
       if (!q) return true;
       return [sucursal.nombre, sucursal.codigo, sucursal.ciudad, sucursal.responsable]
         .join(" ")
         .toLowerCase()
         .includes(q);
     });
-  }, [sucursales, query]);
+  }, [sucursales, query, status]);
 
   const stats = useMemo(() => {
     const total = sucursales.length;
@@ -127,6 +130,7 @@ export default function SucursalesSection({ sucursales = [], setSucursales, work
       />
 
       <div className={styles.body}>
+        <SectionMarker label="Sucursales" icon={Building2} />
         <section className={styles.stats} aria-label="Resumen de sucursales">
           <article className={styles.statCard}>
             <span className={styles.statIcon}><Building2 size={18} /></span>
@@ -140,7 +144,7 @@ export default function SucursalesSection({ sucursales = [], setSucursales, work
           </article>
         </section>
 
-        <section className={styles.toolbar} aria-label="Filtros">
+        <section className={`${styles.toolbar} ${filters.bar}`} aria-label="Filtros de sucursales">
           <label className={styles.search}>
             <Search size={16} />
             <input
@@ -151,8 +155,11 @@ export default function SucursalesSection({ sucursales = [], setSucursales, work
               aria-label="Buscar sucursales"
             />
           </label>
-          {query.trim() !== "" && (
-            <button type="button" className={styles.clearBtn} onClick={() => setQuery("")}>
+          <select className={styles.select} aria-label="Filtrar sucursales por estado" value={status} onChange={event => setStatus(event.target.value)}>
+            <option value="all">Todos los estados</option><option value="activo">Activas</option><option value="inactivo">Inactivas</option>
+          </select>
+          {(query.trim() !== "" || status !== "all") && (
+            <button type="button" className={styles.clearBtn} onClick={() => { setQuery(""); setStatus("all"); }}>
               <X size={14} /> Limpiar
             </button>
           )}

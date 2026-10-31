@@ -11,14 +11,15 @@ import {
 } from '@/lib/permisos';
 import { ROLE_STATUSES, rolSlug, createRol, deleteRol, updateRol } from "./roles-store";
 import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
-import { Topbar, SectionTabs } from "./topbar";
-import { SECTION_NAV_CONFIG, NAV } from "./admin-nav";
+import { Topbar, SectionMarker } from "./topbar";
+import filters from "./list-filters.module.css";
+import { NAV } from "./admin-nav";
 
 const EMPTY_ROLE = { nombre: "", slug: "", descripcion: "", permisos: [], estado: "activo" };
 
 
 export default function RolesSection({ roles = [], setRoles, workers = [], session }) {
-  const [activeTab, setActiveTab] = useState("all");
+  const [status, setStatus] = useState("all");
   const [query, setQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -46,14 +47,13 @@ export default function RolesSection({ roles = [], setRoles, workers = [], sessi
   const filtered = useMemo(() => {
     const q = query.trim().toLocaleLowerCase("es");
     return roles.filter((role) => {
-      if (activeTab === "active" && role.estado !== "activo") return false;
-      if (activeTab === "inactive" && role.estado !== "inactivo") return false;
+      if (status !== "all" && role.estado !== status) return false;
       if (!q) return true;
       return `${role.nombre} ${role.slug} ${role.descripcion || ""}`
         .toLocaleLowerCase("es")
         .includes(q);
     });
-  }, [roles, activeTab, query]);
+  }, [roles, status, query]);
 
   const isSuperRole = (role) => role?.slug === SUPER_ROLE;
   const visibleSections = (role) =>
@@ -172,12 +172,7 @@ export default function RolesSection({ roles = [], setRoles, workers = [], sessi
       />
 
       <div className={styles.body}>
-        <SectionTabs
-          tabs={SECTION_NAV_CONFIG.roles?.tabs}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          label="Filtros de roles"
-        />
+        <SectionMarker label="Roles" icon={ShieldCheck} />
 
         <section className={styles.stats} aria-label="Resumen de roles">
           <article className={styles.statCard}>
@@ -202,7 +197,7 @@ export default function RolesSection({ roles = [], setRoles, workers = [], sessi
           </article>
         </section>
 
-        <section className={styles.toolbar} aria-label="Buscar roles">
+        <section className={`${styles.toolbar} ${filters.bar}`} aria-label="Filtros de roles">
           <label className={styles.search}>
             <Search size={16} />
             <input
@@ -213,8 +208,11 @@ export default function RolesSection({ roles = [], setRoles, workers = [], sessi
               aria-label="Buscar roles"
             />
           </label>
-          {query && (
-            <button type="button" className={styles.clearBtn} onClick={() => setQuery("")}>
+          <select className={styles.select} aria-label="Filtrar roles por estado" value={status} onChange={event => setStatus(event.target.value)}>
+            <option value="all">Todos los estados</option><option value="activo">Activos</option><option value="inactivo">Inactivos</option>
+          </select>
+          {(query || status !== "all") && (
+            <button type="button" className={styles.clearBtn} onClick={() => { setQuery(""); setStatus("all"); }}>
               <X size={14} /> Limpiar
             </button>
           )}
@@ -427,7 +425,7 @@ export default function RolesSection({ roles = [], setRoles, workers = [], sessi
                   </p>
                 ) : (
                   <div className={styles.permMatrixWrap}>
-                    <p className={styles.permMatrixNote}>Inventario: Ver incluye el resumen y registros de su área, no reportes/logs globales. Recibir mercadería es independiente de ver costos de compras y requiere también Inventario: Ver y Crear/editar. Facturación: Emitir ventas permite facturar sin gestionar CAI ni anulaciones; Crear/editar conserva la gestión fiscal completa. Resumen se adapta a las áreas con lectura; los importes consolidados requieren Reportes y lectura del área, no sólo acceso al Resumen.</p>
+                    <p className={styles.permMatrixNote}>Inventario: Ver incluye el resumen y registros de su área, no reportes/logs globales. Recibir mercadería es independiente de ver costos de compras y requiere también Inventario: Ver y Crear/editar. Facturación: Emitir ventas permite facturar sin anulaciones. Crear/editar gestiona documentos; CAI, rango y datos empresariales se modifican exclusivamente con lectura y escritura de Ajustes. Resumen se adapta a las áreas con lectura; los importes consolidados requieren Reportes y lectura del área, no sólo acceso al Resumen.</p>
                     <table className={styles.permMatrix}>
                       <thead>
                         <tr>

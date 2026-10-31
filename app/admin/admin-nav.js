@@ -76,19 +76,12 @@ export const SECTION_NAV_CONFIG = {
     brandName: "Personal",
     tabs: [
       { id: "all", label: "Trabajadores", icon: Users, title: "Todos los trabajadores" },
-      { id: "active", label: "Activos", icon: Check, title: "Personal activo" },
-      { id: "sps", label: "San Pedro", icon: Building2, title: "Sede San Pedro Sula" },
-      { id: "roles", label: "Roles", icon: ShieldCheck, title: "Roles y permisos del sistema" },
-      { id: "ceiba", label: "La Ceiba", icon: MapPin, title: "Sede La Ceiba" },
-      { id: "gerencia", label: "Gerencia", icon: ShieldCheck, title: "Personal de gerencia" },
     ],
   },
   roles: {
     brandName: "Roles",
     tabs: [
       { id: "all", label: "Roles", icon: ShieldCheck, title: "Todos los roles" },
-      { id: "active", label: "Activos", icon: Check, title: "Roles que se pueden asignar" },
-      { id: "inactive", label: "Inactivos", icon: Clock, title: "Roles desactivados" },
     ],
   },
   productos: {
@@ -105,29 +98,18 @@ export const SECTION_NAV_CONFIG = {
     brandName: "Categorías",
     tabs: [
       { id: "all", label: "Categorías", icon: Tags, title: "Todas las categorías" },
-      { id: "active", label: "Activas", icon: Check, title: "Categorías visibles en el catálogo" },
-      { id: "used", label: "Con productos", icon: Package, title: "Categorías con productos asignados" },
-      { id: "empty", label: "Vacías", icon: Layers, title: "Categorías sin productos" },
     ],
   },
   sucursales: {
     brandName: "Sucursales",
     tabs: [
       { id: "all", label: "Sucursales", icon: Building2, title: "Todas las sucursales" },
-      { id: "sps", label: "SPS Norte", icon: MapPin, title: "Sede San Pedro Sula" },
-      { id: "ceiba", label: "Ceiba Atl.", icon: MapPin, title: "Sede La Ceiba" },
-      { id: "warehouses", label: "Almacenes", icon: Package, title: "Bodegas principales" },
-      { id: "routes", label: "Rutas", icon: Truck, title: "Rutas de entrega" },
     ],
   },
   clientes: {
     brandName: "Clientes",
     tabs: [
       { id: "all", label: "Clientes", icon: User, title: "Directorio de clientes" },
-      { id: "active", label: "Activos", icon: Check, title: "Cuentas activas" },
-      { id: "companies", label: "Empresas", icon: Building2, title: "Clientes corporativos" },
-      { id: "orders", label: "Cotizados", icon: FileText, title: "Con cotizaciones recientes" },
-      { id: "growth", label: "Actividad", icon: TrendingUp, title: "Actividad comercial" },
     ],
   },
   ventas: {

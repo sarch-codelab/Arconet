@@ -1,0 +1,9 @@
+.bar.bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.bar > label { flex: 1 1 280px; min-width: 0; }
+.bar > select { flex: 0 1 220px; min-width: 150px; max-width: 100%; }
+@media (max-width: 700px) {
+  .bar > label { flex-basis: 100%; }
+  .bar > select { flex: 1 1 140px; min-width: 0; font-size: 16px; }
+}
+
+@media (max-width: 900px) { .bar.bar input, .bar.bar select { font-size: 16px; } }

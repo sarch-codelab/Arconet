@@ -4406,3 +4406,6 @@
     font-size: 0.8rem;
   }
 }
+
+/* La píldora única de los listados es una etiqueta, no otro filtro. */
+.sectionMarker .pillItem { cursor: default; }

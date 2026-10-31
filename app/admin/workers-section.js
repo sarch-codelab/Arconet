@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Building2, Check, Pencil, Plus, RotateCw, Search, Trash2, Users, X } from "lucide-react";
 import styles from "./admin-experience.module.css";
 import { Avatar, useToast, notifyError, ConfirmDialog } from "./admin-ui";
@@ -16,10 +16,10 @@ import {
   statusLabel,
   updateWorker,
 } from "./workers-store";
-import { SUPER_ROLE, canAccessSection } from '@/lib/permisos';
+import { SUPER_ROLE } from '@/lib/permisos';
 import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
-import { Topbar, SectionTabs } from "./topbar";
-import { SECTION_NAV_CONFIG, AdminContext } from "./admin-nav";
+import { Topbar, SectionMarker } from "./topbar";
+import filters from "./list-filters.module.css";
 
 const EMPTY_WORKER = {
   id: "",
@@ -39,7 +39,6 @@ const EMPTY_WORKER = {
 
 export default function WorkersSection({ workers = [], setWorkers, roles = [], sucursales = [], session }) {
   const branches = useMemo(() => sucursales.length ? sucursales.map(item => ({ id: item.id, label: item.nombre })) : BRANCHES, [sucursales]);
-  const [activeTab, setActiveTab] = useState("all");
   const roleName = (slug) => roles.find((item) => item.slug === slug)?.nombre || slug;
   const [query, setQuery] = useState("");
   const [branch, setBranch] = useState("all");
@@ -51,7 +50,6 @@ export default function WorkersSection({ workers = [], setWorkers, roles = [], s
   const [confirmWorker, setConfirmWorker] = useState(null);
   const [busyId, setBusyId] = useState(null);
   const { show } = useToast();
-  const { goTo } = useContext(AdminContext);
 
   const canWrite = (session?.permisos || []).includes("trabajadores:write");
   const canDelete = session?.permisos?.includes("trabajadores:delete");
@@ -75,35 +73,6 @@ export default function WorkersSection({ workers = [], setWorkers, roles = [], s
 
   useEscapeKey(modalOpen, () => closeModal());
   useBodyScrollLock(modalOpen);
-
-  const handleTabChange = (tabId) => {
-    if (tabId === "roles") {
-      goTo("roles");
-      return;
-    }
-    setActiveTab(tabId);
-    if (tabId === "all") {
-      setStatus("all");
-      setBranch("all");
-      setRole("all");
-    } else if (tabId === "active") {
-      setStatus("activo");
-      setBranch("all");
-      setRole("all");
-    } else if (tabId === "sps") {
-      setBranch("sps");
-      setStatus("all");
-      setRole("all");
-    } else if (tabId === "ceiba") {
-      setBranch("ceiba");
-      setStatus("all");
-      setRole("all");
-    } else if (tabId === "gerencia") {
-      setRole("gerente");
-      setStatus("all");
-      setBranch("all");
-    }
-  };
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -137,7 +106,6 @@ export default function WorkersSection({ workers = [], setWorkers, roles = [], s
     setBranch("all");
     setRole("all");
     setStatus("all");
-    setActiveTab("all");
   }
 
   function openCreate() {
@@ -237,14 +205,7 @@ export default function WorkersSection({ workers = [], setWorkers, roles = [], s
       />
 
       <div className={styles.body}>
-        <SectionTabs
-          tabs={SECTION_NAV_CONFIG.trabajadores?.tabs.filter(
-            (tab) => tab.id !== "roles" || canAccessSection(session?.permisos, "roles"),
-          )}
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          label="Filtros de trabajadores"
-        />
+        <SectionMarker label="Trabajadores" icon={Users} />
 
         <section className={styles.stats} aria-label="Resumen de trabajadores">
           <article className={styles.statCard}>
@@ -266,7 +227,7 @@ export default function WorkersSection({ workers = [], setWorkers, roles = [], s
           ))}
         </section>
 
-        <section className={styles.toolbar} aria-label="Filtros">
+        <section className={`${styles.toolbar} ${filters.bar}`} aria-label="Filtros de trabajadores">
           <label className={styles.search}>
             <Search size={16} />
             <input
@@ -295,11 +256,9 @@ export default function WorkersSection({ workers = [], setWorkers, roles = [], s
             aria-label="Filtrar por rol"
           >
             <option value="all">Todos los roles</option>
-            {roles
-              .filter((r) => r.estado === "activo")
-              .map((item) => (
-                <option key={item.id} value={item.slug || item.nombre}>{item.nombre}</option>
-              ))}
+            {[...new Set([...roles.map(item => item.slug || item.nombre), ...workers.map(item => item.rol)])].filter(Boolean).map(slug => (
+              <option key={slug} value={slug}>{roleName(slug)}</option>
+            ))}
           </select>
           <select
             className={styles.select}
