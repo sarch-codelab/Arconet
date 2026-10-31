@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Camera, ImageUp, ScanLine, X } from "lucide-react";
 import styles from "./barcode-scan.module.css";
+import { enableDragScroll, registerOpenDialog } from "./drag-scroll";
+import { useBodyScrollLock } from "./use-body-scroll-lock";
 
 /**
  * Botón + overlay para leer el código de barras con la cámara del teléfono.
@@ -246,6 +248,22 @@ export default function BarcodeScanner({ onDetect, disabled = false }) {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [open, close]);
 
+  // La hoja del escaner tambien es una emergente del panel: bloquea el scroll
+  // de fondo, detiene el scroll suave de la pagina y admite deslice con el
+  // mouse (por ejemplo, cuando la vista previa de la camara es alta en una
+  // tableta).
+  useBodyScrollLock(open);
+  useEffect(() => {
+    if (!open) return undefined;
+    const unregister = registerOpenDialog();
+    return unregister;
+  }, [open]);
+  const sheetRef = useRef(null);
+  useEffect(() => {
+    if (!open || !sheetRef.current) return undefined;
+    return enableDragScroll(sheetRef.current);
+  }, [open]);
+
   // Escaneo de respaldo por imagen: funciona en cualquier equipo (webcam que
   // no levanta permisos, sin camara, o codigo impreso fotografiable). Usa el
   // decodificador ZXing sobre un frame estatico.
@@ -314,7 +332,7 @@ export default function BarcodeScanner({ onDetect, disabled = false }) {
       {open && typeof document !== "undefined" && createPortal(
         <div className={styles.layer} role="dialog" aria-modal="true" aria-label="Escáner de código de barras">
           <button type="button" className={styles.backdrop} aria-label="Cerrar escáner" onClick={close} />
-          <div className={styles.sheet}>
+          <div ref={sheetRef} className={styles.sheet} data-drag-scroll="" data-lenis-prevent="">
             <header className={styles.head}>
               <h3><Camera size={16} aria-hidden="true" /> Escanear código</h3>
               <button type="button" className={styles.close} onClick={close} aria-label="Cerrar">

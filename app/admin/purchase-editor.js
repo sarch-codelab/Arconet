@@ -11,6 +11,7 @@ import {
 } from "@/lib/compras-form";
 import { MAX_DOCUMENT_AMOUNT } from "@/lib/ventas-form";
 import { useBodyScrollLock, useEscapeKey } from "./use-body-scroll-lock";
+import { DialogBackdrop } from "./admin-overlay";
 import admin from "./admin-experience.module.css";
 import styles from "./compras-panel.module.css";
 const today = businessPurchaseDate;
@@ -129,9 +130,16 @@ export default function PurchaseEditor({ initial, tipo, onSaved, onClose }) {
     }
   }
   return (
-    <div className={styles.backdrop}>
+    <DialogBackdrop
+      className={styles.backdrop}
+      onDismiss={() => {
+        if (!blocked && !creating) onClose();
+      }}
+    >
       <section
         className={styles.modal}
+        data-drag-scroll=""
+        data-lenis-prevent=""
         role="dialog"
         aria-modal="true"
         aria-label={
@@ -487,6 +495,6 @@ export default function PurchaseEditor({ initial, tipo, onSaved, onClose }) {
           </footer>
         </form>
       </section>
-    </div>
+    </DialogBackdrop>
   );
 }

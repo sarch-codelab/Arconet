@@ -6,6 +6,7 @@ import styles from "./admin-experience.module.css";
 import filters from "./list-filters.module.css";
 import { useToast, notifyError, ConfirmDialog } from "./admin-ui";
 import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
+import { DialogBackdrop } from "./admin-overlay";
 import { Topbar, SectionMarker } from "./topbar";
 import {
   createSucursal,
@@ -247,14 +248,8 @@ export default function SucursalesSection({ sucursales = [], setSucursales, work
       </div>
 
       {modalOpen && (
-        <div
-          className={styles.overlay}
-          role="presentation"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) closeModal();
-          }}
-        >
-          <div className={styles.modal} role="dialog" aria-modal="true" aria-label={editingId ? "Editar sucursal" : "Nueva sucursal"}>
+        <DialogBackdrop onDismiss={closeModal}>
+          <div className={styles.modal} data-drag-scroll="" data-lenis-prevent="" role="dialog" aria-modal="true" aria-label={editingId ? "Editar sucursal" : "Nueva sucursal"}>
             <header className={styles.modalHead}>
               <div>
                 <p className={styles.eyebrow}>{editingId ? "Editar" : "Nueva"}</p>
@@ -358,7 +353,7 @@ export default function SucursalesSection({ sucursales = [], setSucursales, work
               </footer>
             </form>
           </div>
-        </div>
+        </DialogBackdrop>
       )}
 
       {confirmSucursal && (

@@ -28,6 +28,7 @@ import {
 import { initialsCliente } from "./clientes-store";
 import { formatPrice } from "./products-store";
 import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
+import { DialogBackdrop } from "./admin-overlay";
 import { Topbar, SectionTabs } from "./topbar";
 import { SECTION_NAV_CONFIG } from "./admin-nav";
 
@@ -461,14 +462,8 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
       </div>
 
       {modalOpen && (
-        <div
-          className={`${styles.overlay} ${styles.centeredOverlay}`}
-          role="presentation"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) closeModal();
-          }}
-        >
-          <div className={styles.modal} role="dialog" aria-modal="true" aria-label={editingId ? "Editar documento" : draft.tipo === "venta" ? "Nueva venta comercial" : "Nueva cotización"}>
+        <DialogBackdrop className={`${styles.overlay} ${styles.centeredOverlay}`} onDismiss={closeModal}>
+          <div className={styles.modal} data-drag-scroll="" data-lenis-prevent="" role="dialog" aria-modal="true" aria-label={editingId ? "Editar documento" : draft.tipo === "venta" ? "Nueva venta comercial" : "Nueva cotización"}>
             <header className={styles.modalHead}>
               <div>
                 <p className={styles.eyebrow}>{editingId ? "Editar" : "Nueva"}</p>
@@ -582,7 +577,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
               </footer>
             </form>
           </div>
-        </div>
+        </DialogBackdrop>
       )}
 
       {confirmOrder && (

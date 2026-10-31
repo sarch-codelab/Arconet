@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
+import { countOpenDialogs, subscribeToOpenDialogs } from "./drag-scroll";
 
 /**
  * Scroll suave del panel administrativo.
@@ -31,6 +32,7 @@ export function useAdminSmoothScroll() {
     let lenis = null;
     let cancelled = false;
     let detachNative = null;
+    let detachDialogs = null;
 
     // Lenis devuelve `progress = 1` mientras todavia no conoce el limite de
     // scroll, por eso el valor inicial se lee del documento.
@@ -54,6 +56,14 @@ export function useAdminSmoothScroll() {
           respectReducedMotion: true,
           smoothWheel: true,
           syncTouch: false,
+          // Red de seguridad para emergentes fuera del panel (Vista previa de
+          // impresion, dialogos del catalogo): la rueda sobre cualquier capa
+          // modal usa el scroll nativo del navegador. Sin esto, Lenis consume
+          // el evento de rueda de la pagina y cancela (preventDefault) el
+          // desplazamiento del dialogo: el mouse "no detectaba" la emergente.
+          prevent: (node) =>
+            typeof node.closest === "function" &&
+            Boolean(node.closest("[data-admin-overlay], dialog[open]")),
         });
 
         lenis.on("scroll", (instance) => {
@@ -62,6 +72,19 @@ export function useAdminSmoothScroll() {
           setProgress(value);
         });
         lenisRef.current = lenis;
+        // Con una emergente abierta, la rueda debe desplazar el dialogo y no
+        // la pagina de fondo. `stop()` detiene la interpolacion sin tocar el
+        // desplazamiento del documento, de modo que al cerrar todo sigue
+        // donde estaba. (Antes, la rueda dentro de un modal con la pagina
+        // bloqueada igual movia el fondo: parecia que la emergente "no
+        // detectaba" el mouse.)
+        detachDialogs = subscribeToOpenDialogs((count) => {
+          if (count > 0) lenis.stop();
+          else lenis.start();
+        });
+        // La suscripcion entrega el valor actual al registrarse, asi que un
+        // montaje tardio tambien queda bloqueado aqui.
+        if (countOpenDialogs() > 0) lenis.stop();
         setProgress(0);
 
         requestAnimationFrame(() => {
@@ -86,6 +109,7 @@ export function useAdminSmoothScroll() {
     return () => {
       cancelled = true;
       detachNative?.();
+      detachDialogs?.();
       lenis?.destroy();
       lenisRef.current = null;
     };

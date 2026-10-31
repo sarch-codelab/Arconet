@@ -32,6 +32,7 @@ import {
 import { sileo } from "../toaster";
 import { SectionTabs, Topbar } from "./topbar";
 import adminStyles from "./admin-experience.module.css";
+import { DialogBackdrop } from "./admin-overlay";
 import styles from "./facturacion-panel.module.css";
 
 const TABS = [
@@ -843,14 +844,8 @@ export default function FacturacionPanel({ session, productos: productosIniciale
 
       {embedded && detailOnly ? detailContent : null}
       {detalle && !embedded ? (
-        <div
-          className={adminStyles.overlay}
-          role="presentation"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setDetalle(null);
-          }}
-        >
-          <div className={adminStyles.modal} role="dialog" aria-modal="true" aria-label="Detalle de la factura">
+        <DialogBackdrop className={`${adminStyles.overlay} ${adminStyles.centeredOverlay}`} onDismiss={() => setDetalle(null)}>
+          <div className={`${adminStyles.modal} ${adminStyles.modalWide}`} data-drag-scroll="" data-lenis-prevent="" role="dialog" aria-modal="true" aria-label="Detalle de la factura">
             <header className={adminStyles.modalHead}>
               <div>
                 <p className={adminStyles.eyebrow}>{TIPO_LABEL[detalle.tipo] || detalle.tipo}</p>
@@ -863,7 +858,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
 
             {detailContent}
           </div>
-        </div>
+        </DialogBackdrop>
       ) : null}
     </div>
   );

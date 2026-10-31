@@ -11,6 +11,7 @@ import {
 } from '@/lib/permisos';
 import { ROLE_STATUSES, rolSlug, createRol, deleteRol, updateRol } from "./roles-store";
 import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
+import { DialogBackdrop } from "./admin-overlay";
 import { Topbar, SectionMarker } from "./topbar";
 import filters from "./list-filters.module.css";
 import { NAV } from "./admin-nav";
@@ -330,15 +331,11 @@ export default function RolesSection({ roles = [], setRoles, workers = [], sessi
       </div>
 
       {modalOpen && (
-        <div
-          className={styles.overlay}
-          role="presentation"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) closeModal();
-          }}
-        >
+        <DialogBackdrop onDismiss={closeModal}>
           <div
             className={`${styles.modal} ${styles.modalWide}`}
+            data-drag-scroll=""
+            data-lenis-prevent=""
             role="dialog"
             aria-modal="true"
             aria-label={editingId ? "Editar rol" : "Nuevo rol"}
@@ -491,7 +488,7 @@ export default function RolesSection({ roles = [], setRoles, workers = [], sessi
               </footer>
             </form>
           </div>
-        </div>
+        </DialogBackdrop>
       )}
 
       {confirmRole && (

@@ -8,6 +8,7 @@ import { compressImage } from "./image-utils";
 import { CATEGORY_STATUSES, categorySlug, createCategoria, deleteCategoria, updateCategoria } from "./categories-store";
 import { formatPrice } from "./products-store";
 import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
+import { DialogBackdrop } from "./admin-overlay";
 import { Topbar, SectionMarker } from "./topbar";
 import filters from "./list-filters.module.css";
 
@@ -312,14 +313,8 @@ export default function CategoriasSection({ categorias = [], setCategorias, prod
       </div>
 
       {modalOpen && (
-        <div
-          className={styles.overlay}
-          role="presentation"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) closeModal();
-          }}
-        >
-          <div className={styles.modal} role="dialog" aria-modal="true" aria-label={editingId ? "Editar categoría" : "Nueva categoría"}>
+        <DialogBackdrop onDismiss={closeModal}>
+          <div className={styles.modal} data-drag-scroll="" data-lenis-prevent="" role="dialog" aria-modal="true" aria-label={editingId ? "Editar categoría" : "Nueva categoría"}>
             <header className={styles.modalHead}>
               <div>
                 <p className={styles.eyebrow}>{editingId ? "Editar" : "Nueva"}</p>
@@ -417,7 +412,7 @@ export default function CategoriasSection({ categorias = [], setCategorias, prod
               </footer>
             </form>
           </div>
-        </div>
+        </DialogBackdrop>
       )}
 
       {confirmCategory && (

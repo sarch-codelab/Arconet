@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import { useBodyScrollLock, useEscapeKey } from "./use-body-scroll-lock";
+import { DialogBackdrop } from "./admin-overlay";
 import { AlertTriangle } from "lucide-react";
 import styles from "./admin-experience.module.css";
 import { sileo } from "../toaster";
@@ -59,14 +60,12 @@ export function ConfirmDialog({ title, message, onCancel, onConfirm }) {
   };
 
   return (
-    <div
-      className={styles.overlay}
-      role="presentation"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onCancel();
-      }}
-    >
-      <div ref={dialogRef} onKeyDown={containFocus} className={styles.confirm} role="dialog" aria-modal="true" aria-label={title}>
+    /*
+     * Se monta en <body> (portal) para que ninguna seccion con
+     * `overflow: hidden` recorte el velo, y admite deslice con el mouse.
+     */
+    <DialogBackdrop onDismiss={onCancel}>
+      <div ref={dialogRef} onKeyDown={containFocus} className={styles.confirm} data-drag-scroll="" data-lenis-prevent="" role="dialog" aria-modal="true" aria-label={title}>
         <span className={styles.confirmIcon}><AlertTriangle size={22} /></span>
         <h3>{title}</h3>
         <p>{message}</p>
@@ -79,6 +78,6 @@ export function ConfirmDialog({ title, message, onCancel, onConfirm }) {
           </button>
         </div>
       </div>
-    </div>
+    </DialogBackdrop>
   );
 }

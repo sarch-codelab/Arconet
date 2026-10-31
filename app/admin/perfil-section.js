@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Activity, Calendar, Camera, Lock, LogIn, Pencil, Phone, RotateCw, Save, ShieldCheck, User, Users, X } from "lucide-react";
 import styles from "./admin-experience.module.css";
 import { useToast } from "./admin-ui";
+import { DialogBackdrop } from "./admin-overlay";
 import { compressImage } from "./image-utils";
 import { branchLabel, formatDate, initials, statusLabel } from "./workers-store";
 import { Topbar, SectionTabs } from "./topbar";
@@ -422,8 +423,8 @@ export default function MiPerfilSection({ session, workers = [], sucursales = []
 
         {/* Modales de seguridad */}
         {securityModals.password && (
-          <div className={styles.overlay} onClick={() => closeSecurityModal("password")} role="presentation">
-            <div className={styles.modal} role="dialog" aria-modal="true" aria-label="Cambiar contraseña" onClick={(e) => e.stopPropagation()}>
+          <DialogBackdrop onDismiss={() => closeSecurityModal("password")}>
+            <div className={styles.modal} data-drag-scroll="" data-lenis-prevent="" role="dialog" aria-modal="true" aria-label="Cambiar contraseña">
               <h3><Lock size={20} /> Cambiar contraseña</h3>
               <form onSubmit={handlePasswordSave}>
                 <div className={styles.modalField}>
@@ -444,12 +445,12 @@ export default function MiPerfilSection({ session, workers = [], sucursales = []
                 </footer>
               </form>
             </div>
-          </div>
+          </DialogBackdrop>
         )}
 
         {twoFactorFlow && (
-          <div className={styles.overlay} role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setTwoFactorFlow(null); }}>
-            <div className={styles.modal} role="dialog" aria-modal="true" aria-label="Verificación en dos pasos">
+          <DialogBackdrop onDismiss={() => setTwoFactorFlow(null)}>
+            <div className={styles.modal} data-drag-scroll="" data-lenis-prevent="" role="dialog" aria-modal="true" aria-label="Verificación en dos pasos">
               <h3><ShieldCheck size={20} /> {twoFactorFlow.mode === "setup" ? "Configurar verificación en dos pasos" : "Desactivar verificación en dos pasos"}</h3>
               {twoFactorFlow.mode === "setup" ? <div className={styles.twofaSetup}><p>Agrega esta clave manualmente en tu aplicación de autenticación. La clave se guarda cifrada.</p><code className={styles.totpSecret}>{twoFactorFlow.secret}</code><a className={styles.clearBtn} href={twoFactorFlow.uri}>Abrir en una aplicación compatible</a><p className={styles.twofaNote}>Ingresa el código actual para confirmar la configuración.</p></div> : <div className={styles.modalField}><label>Contraseña actual</label><input type="password" autoComplete="current-password" value={twoFactorFlow.password} onChange={(event) => setTwoFactorFlow((current) => ({ ...current, password: event.target.value }))} required /></div>}
               <form onSubmit={submitTwoFactor}>
@@ -457,7 +458,7 @@ export default function MiPerfilSection({ session, workers = [], sucursales = []
                 <footer className={styles.modalActions}><button type="button" className={styles.ghostBtn} onClick={() => setTwoFactorFlow(null)}>Cancelar</button><button type="submit" className={styles.submit} disabled={saving}>{saving ? "Verificando…" : twoFactorFlow.mode === "setup" ? "Activar" : "Desactivar"}</button></footer>
               </form>
             </div>
-          </div>
+          </DialogBackdrop>
         )}
 
       </div>

@@ -8,6 +8,7 @@ import {
 } from "@/lib/compras-form";
 import { previewDocumentClick } from "@/lib/api-document";
 import { useBodyScrollLock, useEscapeKey } from "./use-body-scroll-lock";
+import { DialogBackdrop } from "./admin-overlay";
 import PurchaseEditor from "./purchase-editor";
 import admin from "./admin-experience.module.css";
 import styles from "./compras-panel.module.css";
@@ -74,9 +75,16 @@ function ReceivingEditor({ order, onClose, onSaved }) {
     }
   }
   return (
-    <div className={styles.backdrop}>
+    <DialogBackdrop
+      className={styles.backdrop}
+      onDismiss={() => {
+        if (!lock.current) onClose();
+      }}
+    >
       <section
         className={styles.modal}
+        data-drag-scroll=""
+        data-lenis-prevent=""
         role="dialog"
         aria-modal="true"
         aria-label="Recibir mercadería"
@@ -180,7 +188,7 @@ function ReceivingEditor({ order, onClose, onSaved }) {
           </footer>
         </form>
       </section>
-    </div>
+    </DialogBackdrop>
   );
 }
 function PurchaseDetail({ order, receiving, onClose, canWrite, onUpdated }) {
@@ -220,7 +228,12 @@ function PurchaseDetail({ order, receiving, onClose, canWrite, onUpdated }) {
     if (!savingRef.current) onClose();
   });
   return (
-    <div className={styles.backdrop}>
+    <DialogBackdrop
+      className={styles.backdrop}
+      onDismiss={() => {
+        if (!saving) onClose();
+      }}
+    >
       <section
         className={styles.modal}
         role="dialog"
@@ -383,7 +396,7 @@ function PurchaseDetail({ order, receiving, onClose, canWrite, onUpdated }) {
           </>
         ) : null}
       </section>
-    </div>
+    </DialogBackdrop>
   );
 }
 export default function ComprasPanel({ view, session, onViewChange }) {

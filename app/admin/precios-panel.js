@@ -7,6 +7,7 @@ import { formatPrice } from "./products-store";
 import { useToast } from "./admin-ui";
 import { SectionTabs } from "./topbar";
 import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
+import { DialogBackdrop } from "./admin-overlay";
 import adminStyles from "./admin-experience.module.css";
 import styles from "./precios-panel.module.css";
 const amount = (value) =>
@@ -243,14 +244,11 @@ export default function PreciosPanel({ hideNavigation = false,
         ))}
       </div>
       {selected && (
-        <div
-          className={`${adminStyles.overlay} ${adminStyles.centeredOverlay}`}
-          onClick={(event) => {
-            if (event.target === event.currentTarget) close();
-          }}
-        >
+        <DialogBackdrop className={`${adminStyles.overlay} ${adminStyles.centeredOverlay}`} onDismiss={close}>
           <div
             className={adminStyles.modal}
+            data-drag-scroll=""
+            data-lenis-prevent=""
             role="dialog"
             aria-modal="true"
             aria-label={canWrite ? "Editar precios" : "Historial de precios"}
@@ -367,7 +365,7 @@ export default function PreciosPanel({ hideNavigation = false,
               </section>
             </form>
           </div>
-        </div>
+        </DialogBackdrop>
       )}
     </div>
   );

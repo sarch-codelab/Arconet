@@ -18,6 +18,7 @@ import {
 } from "./workers-store";
 import { SUPER_ROLE } from '@/lib/permisos';
 import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
+import { DialogBackdrop } from "./admin-overlay";
 import { Topbar, SectionMarker } from "./topbar";
 import filters from "./list-filters.module.css";
 
@@ -375,14 +376,8 @@ export default function WorkersSection({ workers = [], setWorkers, roles = [], s
       </div>
 
       {modalOpen && (
-        <div
-          className={styles.overlay}
-          role="presentation"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) closeModal();
-          }}
-        >
-          <div className={styles.modal} role="dialog" aria-modal="true" aria-label={editingId ? "Editar trabajador" : "Nuevo trabajador"}>
+        <DialogBackdrop onDismiss={closeModal}>
+          <div className={styles.modal} data-drag-scroll="" data-lenis-prevent="" role="dialog" aria-modal="true" aria-label={editingId ? "Editar trabajador" : "Nuevo trabajador"}>
             <header className={styles.modalHead}>
               <div>
                 <p className={styles.eyebrow}>{editingId ? "Editar" : "Nuevo"}</p>
@@ -531,7 +526,7 @@ export default function WorkersSection({ workers = [], setWorkers, roles = [], s
               </footer>
             </form>
           </div>
-        </div>
+        </DialogBackdrop>
       )}
 
       {confirmWorker && (

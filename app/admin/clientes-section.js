@@ -16,6 +16,7 @@ import {
 } from "./clientes-store";
 import { formatDate } from "./workers-store";
 import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
+import { DialogBackdrop } from "./admin-overlay";
 import { Topbar, SectionMarker } from "./topbar";
 
 export default function ClientesSection({ clientes = [], setClientes, workers = [], session }) {
@@ -291,14 +292,8 @@ export default function ClientesSection({ clientes = [], setClientes, workers = 
       </div>
 
       {modalOpen && (
-        <div
-          className={styles.overlay}
-          role="presentation"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) closeModal();
-          }}
-        >
-          <div className={styles.modal} role="dialog" aria-modal="true" aria-label={editingId ? "Editar cliente" : "Nuevo cliente"}>
+        <DialogBackdrop onDismiss={closeModal}>
+          <div className={styles.modal} data-drag-scroll="" data-lenis-prevent="" role="dialog" aria-modal="true" aria-label={editingId ? "Editar cliente" : "Nuevo cliente"}>
             <header className={styles.modalHead}>
               <div>
                 <p className={styles.eyebrow}>{editingId ? "Editar" : "Nuevo"}</p>
@@ -425,7 +420,7 @@ export default function ClientesSection({ clientes = [], setClientes, workers = 
               </footer>
             </form>
           </div>
-        </div>
+        </DialogBackdrop>
       )}
 
       {confirmCliente && (

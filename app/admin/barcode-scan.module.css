@@ -50,6 +50,11 @@
 .sheet {
   position: relative;
   width: min(460px, 100%);
+  max-height: calc(100vh - 40px);
+  max-height: calc(100svh - 40px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   display: grid;
   gap: 12px;
   padding: 16px;
@@ -58,6 +63,11 @@
   color: var(--text-main, #111827);
   border: 1px solid var(--border, #e5e7eb);
   box-shadow: var(--shadow-elevated, 0 24px 60px rgba(0, 0, 0, 0.35));
+}
+
+/* Deslice con el mouse mientras se arrastra el contenido de la hoja. */
+.layer:has(.sheet[data-drag-scroll]:active) {
+  cursor: grabbing;
 }
 
 :global(html[data-theme="dark"]) .sheet {

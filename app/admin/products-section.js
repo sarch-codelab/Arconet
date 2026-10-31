@@ -10,6 +10,7 @@ import { Avatar, useToast, notifyError, ConfirmDialog } from "./admin-ui";
 import { compressImage } from "./image-utils";
 import BarcodeScanner from "./barcode-scan";
 import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
+import { DialogBackdrop } from "./admin-overlay";
 import { Topbar, SectionTabs } from "./topbar";
 import { SECTION_NAV_CONFIG } from "./admin-nav";
 import {
@@ -510,14 +511,8 @@ export default function ProductsSection({ products = [], setProducts, categorias
       </div>
 
       {modalOpen && (
-        <div
-          className={styles.overlay}
-          role="presentation"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) closeModal();
-          }}
-        >
-          <div className={styles.modal} role="dialog" aria-modal="true" aria-label={editingId ? "Editar producto" : "Nuevo producto"}>
+        <DialogBackdrop onDismiss={closeModal}>
+          <div className={styles.modal} data-drag-scroll="" data-lenis-prevent="" role="dialog" aria-modal="true" aria-label={editingId ? "Editar producto" : "Nuevo producto"}>
             <header className={styles.modalHead}>
               <div>
                 <p className={styles.eyebrow}>{editingId ? "Editar" : "Nuevo"}</p>
@@ -761,7 +756,7 @@ export default function ProductsSection({ products = [], setProducts, categorias
               </footer>
             </form>
           </div>
-        </div>
+        </DialogBackdrop>
       )}
 
       {confirmProduct && (
