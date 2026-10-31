@@ -207,7 +207,7 @@ export default function TerminosExperience() {
             </Link>
             <nav className={styles.navigation} aria-label="Navegación principal">
               <Link href="/">Inicio</Link>
-              <Link href="/catalogo">Catálogo</Link>
+              <Link href="/tienda">Catálogo</Link>
               <Link className={styles.navigationActive} href="#terminos" aria-current="page">Términos</Link>
               <Link href="/privacidad">Privacidad</Link>
               <Link href="/contacto">Contacto</Link>

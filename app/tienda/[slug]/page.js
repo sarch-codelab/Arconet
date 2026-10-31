@@ -17,12 +17,12 @@ export async function generateMetadata({ params }) {
   return {
     title: `${family.title} | Arconet`,
     description: family.summary,
-    alternates: { canonical: `/catalogo/${slug}` },
+    alternates: { canonical: `/tienda/${slug}` },
     openGraph: {
       type: "website",
       title: `${family.title} | Arconet`,
       description: family.summary,
-      url: `/catalogo/${slug}`,
+      url: `/tienda/${slug}`,
       images: [{ url: "/arconet.png", width: 2172, height: 362, alt: "Arconet" }],
     },
   };}

@@ -112,7 +112,7 @@ export default function GarantiasPage() {
             </Link>
             <nav className={styles.navigation} aria-label="Navegación principal">
               <Link href="/">Inicio</Link>
-              <Link href="/catalogo">Catálogo</Link>
+              <Link href="/tienda">Catálogo</Link>
               <Link href="/terminos">Términos</Link>
               <Link href="/privacidad">Privacidad</Link>
               <Link className={styles.navigationActive} href="/garantias" aria-current="page">Garantías</Link>

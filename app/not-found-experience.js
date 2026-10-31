@@ -9,13 +9,13 @@ import MobileSiteMenu from "./mobile-site-menu";
 const NAVIGATION = [
   { href: "/", label: "Inicio" },
   { href: "/#soluciones", label: "Soluciones" },
-  { href: "/catalogo", label: "Catálogo" },
+  { href: "/tienda", label: "Catálogo" },
   { href: "/contacto", label: "Contacto" },
 ];
 
 const SUGGESTIONS = [
   { href: "/", icon: Home, label: "Inicio", text: "Vuelve a la portada y conoce Arconet." },
-  { href: "/catalogo", icon: Compass, label: "Catálogo", text: "Explora equipos, familias y soluciones." },
+  { href: "/tienda", icon: Compass, label: "Catálogo", text: "Explora equipos, familias y soluciones." },
   { href: "/contacto", icon: LifeBuoy, label: "Contacto", text: "Cuéntanos qué necesitas y te orientamos." },
 ];
 
@@ -58,7 +58,7 @@ export default function NotFoundExperience() {
             <p>No pudimos encontrar lo que buscabas. Puede que el enlace haya cambiado o que la página ya no exista.</p>
             <div className={styles.heroActions}>
               <a className={styles.primaryAction} href="/">Volver al inicio <span><ArrowRight size={16} /></span></a>
-              <a className={styles.secondaryAction} href="/catalogo">Explorar catálogo</a>
+              <a className={styles.secondaryAction} href="/tienda">Explorar catálogo</a>
             </div>
           </div>
 

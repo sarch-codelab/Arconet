@@ -107,7 +107,7 @@ export default function CartDrawer() {
             <p className={styles.emptyHint}>
               Suma líneas del catálogo y armamos tu pedido o cotización en un solo lugar.
             </p>
-            <Link className={styles.emptyButton} href="/catalogo#catalogo-items" onClick={close}>
+            <Link className={styles.emptyButton} href="/tienda#catalogo-items" onClick={close}>
               Explorar catálogo <ArrowUpRight size={15} />
             </Link>
           </div>

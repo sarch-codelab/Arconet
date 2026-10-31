@@ -22,8 +22,8 @@ function readStoredItems() {
       .map((item) => {
         const slug = String(item.slug);
         const detailHref = item.href || (slug.startsWith("p-")
-          ? `/catalogo/producto/${encodeURIComponent(slug)}`
-          : "/catalogo");
+          ? `/tienda/producto/${encodeURIComponent(slug)}`
+          : "/tienda");
         return {
           key: item.key || itemKey(slug, item.presentation || "Estándar"),
           slug,
@@ -76,7 +76,7 @@ export function CartProvider({ children }) {
         {
           key,
           slug: entry.slug,
-          href: entry.href || "/catalogo",
+          href: entry.href || "/tienda",
           title: entry.title || entry.slug,
           category: entry.category || "",
           index: entry.index || "",

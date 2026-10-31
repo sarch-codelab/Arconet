@@ -20,7 +20,7 @@ async function getCategoria(slug) {
       estado: categoria.estado,
     };
   } catch (error) {
-    console.error("GET /catalogo/categoria/[slug]", error);
+    console.error("GET /tienda/categoria/[slug]", error);
     return null;
   }
 }
@@ -43,12 +43,12 @@ export async function generateMetadata({ params }) {
   return {
     title: `${nombre} | Arconet`,
     description: descripcion,
-    alternates: { canonical: `/catalogo/categoria/${categoria?.slug || slug}` },
+    alternates: { canonical: `/tienda/categoria/${categoria?.slug || slug}` },
     openGraph: {
       type: "website",
       title: `${nombre} | Arconet`,
       description: descripcion,
-      url: `/catalogo/categoria/${categoria?.slug || slug}`,
+      url: `/tienda/categoria/${categoria?.slug || slug}`,
       images: [{ url: "/arconet.png", width: 2172, height: 362, alt: "Arconet" }],
     },
   };

@@ -10,7 +10,7 @@ import styles from "./mobile-site-menu.module.css";
 const LINKS = [
   ["Inicio", "/"],
   ["Soluciones", "/#soluciones"],
-  ["Catálogo", "/catalogo"],
+  ["Catálogo", "/tienda"],
   ["La empresa", "/#empresa"],
   ["Contacto", "/contacto"],
   ["Ayuda", "/ayuda"],

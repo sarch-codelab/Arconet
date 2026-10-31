@@ -368,7 +368,7 @@ export default function CategoriasSection({ categorias = [], setCategorias, prod
                   <small className={styles.fieldHint}>
                     {editingId
                       ? "El enlace no cambia al renombrar la categoría."
-                      : `Se verá en /catalogo/categoria/${slugPreview || "..."}`}
+                      : `Se verá en /tienda/categoria/${slugPreview || "..."}`}
                   </small>
                 </label>
                 <label className={`${styles.field} ${styles.spanFull}`}>

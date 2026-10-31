@@ -33,7 +33,7 @@ async function getProduct(id) {
       actualizado: producto.updatedAt ? new Date(producto.updatedAt).toISOString() : null,
     };
   } catch (error) {
-    console.error("GET /catalogo/producto/[id]", error);
+    console.error("GET /tienda/producto/[id]", error);
     return null;
   }
 }
@@ -57,12 +57,12 @@ export async function generateMetadata({ params }) {
   return {
     title: `${product.nombre} | Arconet`,
     description,
-    alternates: { canonical: `/catalogo/producto/${product.id}` },
+    alternates: { canonical: `/tienda/producto/${product.id}` },
     openGraph: {
       type: "website",
       title: `${product.nombre} | Arconet`,
       description,
-      url: `/catalogo/producto/${product.id}`,
+      url: `/tienda/producto/${product.id}`,
       images: [{ url: "/arconet.png", width: 2172, height: 362, alt: "Arconet" }],
     },
   };

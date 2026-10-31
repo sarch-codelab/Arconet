@@ -24,7 +24,7 @@ import MobileSiteMenu from "../mobile-site-menu";
 const NAVIGATION = [
   { href: "/", label: "Inicio" },
   { href: "/#soluciones", label: "Soluciones" },
-  { href: "/catalogo", label: "Catálogo" },
+  { href: "/tienda", label: "Catálogo" },
   { href: "#formulario", label: "Contacto" },
 ];
 
@@ -297,7 +297,7 @@ export default function ContactExperience() {
 
       <section className={styles.lastWord} data-reveal>
         <span>Honduras · Conectividad que acerca</span>
-        <a href="/catalogo">Explorar el catálogo <ArrowRight size={16} /></a>
+        <a href="/tienda">Explorar el catálogo <ArrowRight size={16} /></a>
       </section>
 
       <Footer />

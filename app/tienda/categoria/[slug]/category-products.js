@@ -45,7 +45,7 @@ import Footer from "../../../footer";
 import MobileSiteMenu from "../../../mobile-site-menu";
 
 const NAVIGATION = [
-  { href: "/catalogo#catalogo-items", label: "Catálogo" },
+  { href: "/tienda#catalogo-items", label: "Catálogo" },
 ];
 
 const SUPPORT_ITEMS = [
@@ -149,7 +149,7 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
     addItem(
       {
         slug: product.id,
-        href: `/catalogo/producto/${product.id}`,
+        href: `/tienda/producto/${product.id}`,
         title: product.nombre,
         category: product.categoria,
         index: "01",
@@ -167,7 +167,7 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
         <h1>No encontramos esa categoría.</h1>
         <p>Puede que haya cambiado de nombre. Te ayudamos a encontrarla en un minuto.</p>
         <div className={styles.missingActions}>
-          <Link className={styles.primaryButton} href="/catalogo">Volver al catálogo <ArrowRight size={16} /></Link>
+          <Link className={styles.primaryButton} href="/tienda">Volver al catálogo <ArrowRight size={16} /></Link>
           <Link className={styles.ghostDarkButton} href="/#contacto">Escribir al equipo <ArrowUpRight size={16} /></Link>
         </div>
       </main>
@@ -207,7 +207,7 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
       </header>
 
       <div className={styles.breadcrumb}>
-        <Link href="/catalogo">Catálogo</Link>
+        <Link href="/tienda">Catálogo</Link>
         <ChevronRight size={13} aria-hidden="true" />
         <span>{family.category}</span>
       </div>
@@ -285,7 +285,7 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
         ) : filteredProducts.length === 0 ? (
           <div className={styles.emptyState}>
             <p>No hay productos disponibles en esta categoría.</p>
-            <Link className={styles.primaryButton} href="/catalogo">Ver todo el catálogo <ArrowRight size={16} /></Link>
+            <Link className={styles.primaryButton} href="/tienda">Ver todo el catálogo <ArrowRight size={16} /></Link>
           </div>
         ) : (
           <ul className={styles.productsGrid}>
@@ -351,7 +351,7 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
                       </div>
                     </div>
 
-                    <Link className={styles.familyLink} href={`/catalogo/producto/${product.id}`}>
+                    <Link className={styles.familyLink} href={`/tienda/producto/${product.id}`}>
                       Ver detalle y cotizar <ArrowUpRight size={16} />
                     </Link>
 

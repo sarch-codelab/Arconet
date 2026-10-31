@@ -3,14 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUp, Mail, MapPin, Phone } from "lucide-react";
-import { FAMILIES } from "./catalogo/catalogo-data";
+import { FAMILIES } from "./tienda/catalogo-data";
 import styles from "./footer.module.css";
 import { useContact } from "./contact-provider";
 
 const COMPANY_LINKS = [
   { href: "/", label: "Inicio" },
   { href: "/#empresa", label: "La empresa" },
-  { href: "/catalogo", label: "Catálogo" },
+  { href: "/tienda", label: "Catálogo" },
   { href: "/contacto", label: "Contacto" },
   { href: "/ayuda", label: "Ayuda y preguntas frecuentes" },
   { href: "/terminos", label: "Términos de uso" },
@@ -79,7 +79,7 @@ export default function Footer() {
           <ul className={styles.colList}>
             {FAMILIES.map((family) => (
               <li key={family.slug}>
-                <Link className={styles.colLink} href={`/catalogo/${family.slug}`}>
+                <Link className={styles.colLink} href={`/tienda/${family.slug}`}>
                   {family.title}
                 </Link>
               </li>

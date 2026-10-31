@@ -19,7 +19,7 @@ export default function manifest() {
     ],
     shortcuts: [
       { name: "Portal de clientes", short_name: "Mi cuenta", url: "/login", icons: [{ src: "/icon-192.png", sizes: "192x192" }] },
-      { name: "Catálogo", short_name: "Catálogo", url: "/catalogo", icons: [{ src: "/icon-192.png", sizes: "192x192" }] },
+      { name: "Catálogo", short_name: "Catálogo", url: "/tienda", icons: [{ src: "/icon-192.png", sizes: "192x192" }] },
     ],
   };
 }

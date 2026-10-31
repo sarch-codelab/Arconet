@@ -29,21 +29,21 @@ const NAVIGATION = [
   { id: "inicio", label: "Inicio", mega: false, href: "/" },
   { id: "familias", label: "Soluciones", mega: true, href: "#familias", megaGroups: [
     { title: "Red óptica y FTTH", links: [
-      { label: "Soluciones de Preconectorizado", href: "/catalogo/soluciones-de-preconectorizado" },
-      { label: "Cajas de Distribución y Emplazamiento", href: "/catalogo/cajas-de-distribucion-y-emplazamiento" },
-      { label: "Soluciones activas y Accesorios FTTH", href: "/catalogo/soluciones-activas-y-accesorios-ftth" },
-      { label: "Componentes pasivos", href: "/catalogo/componentes-pasivos" },
-      { label: "Microcables y Microproductos", href: "/catalogo/microcables-y-microproductos" }
+      { label: "Soluciones de Preconectorizado", href: "/tienda/soluciones-de-preconectorizado" },
+      { label: "Cajas de Distribución y Emplazamiento", href: "/tienda/cajas-de-distribucion-y-emplazamiento" },
+      { label: "Soluciones activas y Accesorios FTTH", href: "/tienda/soluciones-activas-y-accesorios-ftth" },
+      { label: "Componentes pasivos", href: "/tienda/componentes-pasivos" },
+      { label: "Microcables y Microproductos", href: "/tienda/microcables-y-microproductos" }
     ]},
     { title: "Infraestructura", links: [
-      { label: "Gabinetes y Racks", href: "/catalogo/gabinetes-y-racks" },
-      { label: "Herrajes", href: "/catalogo/herrajes" },
-      { label: "Escaleras", href: "/catalogo/escaleras" },
-      { label: "Optical Distribution Frame - ODF", href: "/catalogo/optical-distribution-frame-odf" }
+      { label: "Gabinetes y Racks", href: "/tienda/gabinetes-y-racks" },
+      { label: "Herrajes", href: "/tienda/herrajes" },
+      { label: "Escaleras", href: "/tienda/escaleras" },
+      { label: "Optical Distribution Frame - ODF", href: "/tienda/optical-distribution-frame-odf" }
     ]},
     { title: "Medición y herramientas", links: [
-      { label: "Instrumentos de medición óptica", href: "/catalogo/instrumentos-de-medicion-optica" },
-      { label: "Herramientas y kits", href: "/catalogo/herramientas-y-kits" }
+      { label: "Instrumentos de medición óptica", href: "/tienda/instrumentos-de-medicion-optica" },
+      { label: "Herramientas y kits", href: "/tienda/herramientas-y-kits" }
     ]},
     { title: "Más de Arconet", links: [
       { label: "La empresa", href: "/#empresa" },
@@ -587,14 +587,17 @@ export default function CatalogoExperience() {
         </div>
       </section>
 
-      <section className={styles.exampleSection} aria-label="Categoría">
+      {/* id="catalogo-items": el carrito y las migas de pan enlazan aquí
+          (/tienda#catalogo-items). Faltaba, así que esos enlaces aterrizaban
+          arriba de la página en vez de en la lista de líneas. */}
+      <section id="catalogo-items" className={styles.exampleSection} aria-label="Catálogo">
         <div className={styles.exampleHeading} data-reveal>
           <p className={styles.sectionEyebrow}><i /> Catálogo</p>
-          <h2>Categoría</h2>
+          <h2>Líneas de producto</h2>
         </div>
         <div className={styles.exampleGrid}>
           {examples.map((example) => (
-            <Link className={styles.exampleCard} href={`/catalogo/categoria/${example.slug}`} key={example.title} data-reveal>
+            <Link className={styles.exampleCard} href={`/tienda/categoria/${example.slug}`} key={example.title} data-reveal>
               <div className={styles.exampleVisual}>
                 <Image
                   src={example.image}

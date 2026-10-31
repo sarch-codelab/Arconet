@@ -1,6 +1,6 @@
 const baseUrl = process.env.APP_ORIGIN || "https://arconethn.com";
 
-import { FAMILIES } from "./catalogo/catalogo-data";
+import { FAMILIES } from "./tienda/catalogo-data";
 import { prisma } from '@/lib/prisma';
 
 // Se regenera cada hora (ISR) para reflejar productos y categorías nuevos.
@@ -33,14 +33,14 @@ async function loadDynamicEntries() {
     );
 
     const categoryEntries = categorias.map((categoria) => ({
-      url: `${baseUrl}/catalogo/categoria/${categoria.slug}`,
+      url: `${baseUrl}/tienda/categoria/${categoria.slug}`,
       lastModified: categoria.updatedAt,
       changeFrequency: "weekly",
       priority: 0.6,
     }));
 
     const productEntries = productos.map((producto) => ({
-      url: `${baseUrl}/catalogo/producto/${producto.id}`,
+      url: `${baseUrl}/tienda/producto/${producto.id}`,
       lastModified: producto.updatedAt,
       changeFrequency: "weekly",
       priority: 0.5,
@@ -57,7 +57,7 @@ export default async function sitemap() {
   const now = new Date();
 
   const familyEntries = FAMILIES.map((family) => ({
-    url: `${baseUrl}/catalogo/${family.slug}`,
+    url: `${baseUrl}/tienda/${family.slug}`,
     lastModified: now,
     changeFrequency: "monthly",
     priority: 0.6,
@@ -73,7 +73,7 @@ export default async function sitemap() {
       priority: 1,
     },
     {
-      url: `${baseUrl}/catalogo`,
+      url: `${baseUrl}/tienda`,
       lastModified: now,
       changeFrequency: "weekly",
       priority: 0.9,

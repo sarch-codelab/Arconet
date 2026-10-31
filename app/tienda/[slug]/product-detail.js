@@ -25,8 +25,8 @@ import styles from "./product-detail.module.css";
 import Footer from "../../footer";
 
 const NAVIGATION = [
-  { href: "/catalogo#familias", label: "Soluciones" },
-  { href: "/catalogo#catalogo-items", label: "Catálogo" },
+  { href: "/tienda#familias", label: "Soluciones" },
+  { href: "/tienda#catalogo-items", label: "Catálogo" },
   { href: "/#empresa", label: "La empresa" },
   { href: "/contacto", label: "Contacto" },
   { href: "/terminos", label: "Términos" },
@@ -145,7 +145,7 @@ export default function ProductDetail({ slug }) {
     addItem(
       {
         slug: family.slug,
-        href: `/catalogo/${family.slug}`,
+        href: `/tienda/${family.slug}`,
         title: family.title,
         category: family.category,
         index: family.index,
@@ -163,7 +163,7 @@ export default function ProductDetail({ slug }) {
         <h1>No encontramos esa línea.</h1>
         <p>Puede que haya cambiado de nombre. Te ayudamos a encontrarla en un minuto.</p>
         <div className={styles.missingActions}>
-          <Link className={styles.primaryButton} href="/catalogo">Volver al catálogo <ArrowRight size={16} /></Link>
+          <Link className={styles.primaryButton} href="/tienda">Volver al catálogo <ArrowRight size={16} /></Link>
           <Link className={styles.ghostDarkButton} href="/#contacto">Escribir al equipo <ArrowUpRight size={16} /></Link>
         </div>
       </main>
@@ -222,11 +222,11 @@ export default function ProductDetail({ slug }) {
       </header>
 
       <div className={styles.breadcrumb}>
-        <Link href="/catalogo">Catálogo</Link>
+        <Link href="/tienda">Catálogo</Link>
         <ChevronRight size={13} aria-hidden="true" />
         {family.category !== family.title && (
           <>
-            <Link href="/catalogo#catalogo-items">{family.category}</Link>
+            <Link href="/tienda#catalogo-items">{family.category}</Link>
             <ChevronRight size={13} aria-hidden="true" />
           </>
         )}
@@ -481,14 +481,14 @@ export default function ProductDetail({ slug }) {
             <p className={styles.sectionEyebrow}><i /> También podrías necesitar</p>
             <h2>Otras líneas del catálogo</h2>
           </div>
-          <Link className={styles.textLink} href="/catalogo">Ver todo el catálogo <ArrowRight size={15} /></Link>
+          <Link className={styles.textLink} href="/tienda">Ver todo el catálogo <ArrowRight size={15} /></Link>
         </div>
 
         <div className={styles.relatedGrid}>
           {related.map((item) => {
             const ItemIcon = item.icon;
             return (
-              <Link className={styles.relatedCard} href={`/catalogo/${item.slug}`} key={item.id}>
+              <Link className={styles.relatedCard} href={`/tienda/${item.slug}`} key={item.id}>
                 <div className={`${styles.relatedVisual} ${styles[item.visual]}`}>
                   {item.image ? (
                     <Image

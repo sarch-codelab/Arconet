@@ -90,7 +90,7 @@ export default function ProductPage({ product }) {
     return () => { active = false; };
   }, []);
   const NAVIGATION = [
-    { href: "/catalogo", label: "Soluciones" },
+    { href: "/tienda", label: "Soluciones" },
     { href: "/#empresa", label: "La empresa" },
     { href: "/contacto", label: "Contacto" },
   ];
@@ -136,7 +136,7 @@ export default function ProductPage({ product }) {
     addItem(
       {
         slug: product.id,
-        href: `/catalogo/producto/${product.id}`,
+        href: `/tienda/producto/${product.id}`,
         title: product.nombre,
         category: product.categoria,
         image: product.foto || "",
@@ -200,9 +200,9 @@ export default function ProductPage({ product }) {
       <div className={styles.breadcrumb}>
         <Link href="/">Inicio</Link>
         <span className={styles.separator}>/</span>
-        <Link href="/catalogo">Catálogo</Link>
+        <Link href="/tienda">Catálogo</Link>
         <span className={styles.separator}>/</span>
-        <Link href="/catalogo#catalogo-items">{product.categoria}</Link>
+        <Link href="/tienda#catalogo-items">{product.categoria}</Link>
         <span className={styles.separator}>/</span>
         <span>{product.nombre}</span>
       </div>
@@ -346,7 +346,7 @@ export default function ProductPage({ product }) {
               <p className={styles.eyebrow}><i /> Misma categoría</p>
               <h2>También te puede servir</h2>
             </div>
-            <Link className={styles.relatedAll} href="/catalogo">
+            <Link className={styles.relatedAll} href="/tienda">
               Ver catálogo completo <ArrowRight size={15} aria-hidden="true" />
             </Link>
           </div>
@@ -355,7 +355,7 @@ export default function ProductPage({ product }) {
             {related.map((item) => (
               <Link
                 key={item.id}
-                href={`/catalogo/producto/${item.id}`}
+                href={`/tienda/producto/${item.id}`}
                 className={styles.relatedCard}
               >
                 <div className={styles.relatedMedia}>

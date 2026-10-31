@@ -112,7 +112,7 @@ export default function PrivacyPage() {
             </Link>
             <nav className={styles.navigation} aria-label="Navegación principal">
               <Link href="/">Inicio</Link>
-              <Link href="/catalogo">Catálogo</Link>
+              <Link href="/tienda">Catálogo</Link>
               <Link href="/terminos">Términos</Link>
               <Link className={styles.navigationActive} href="/privacidad" aria-current="page">Privacidad</Link>
               <Link href="/contacto">Contacto</Link>

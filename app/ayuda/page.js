@@ -35,7 +35,7 @@ export default function AyudaPage() {
           <header className={styles.heroHeader}>
             <Link className={styles.logoTab} href="/" aria-label="Arconet, inicio"><Image src="/arconet.png" alt="Arconet" width={2172} height={362} priority /></Link>
             <nav className={styles.navigation} aria-label="Navegación principal">
-              <Link href="/">Inicio</Link><Link href="/catalogo">Catálogo</Link><Link href="/terminos">Términos</Link><Link href="/privacidad">Privacidad</Link><Link href="/contacto">Contacto</Link>
+              <Link href="/">Inicio</Link><Link href="/tienda">Catálogo</Link><Link href="/terminos">Términos</Link><Link href="/privacidad">Privacidad</Link><Link href="/contacto">Contacto</Link>
             </nav>
             <div className={styles.headerActionTab}><MobileSiteMenu /><Link className={styles.headerAction} href="/contacto">Hablemos <span><ArrowUpRight size={15} /></span></Link></div>
           </header>
