@@ -427,7 +427,7 @@ export default function RolesSection({ roles = [], setRoles, workers = [], sessi
                   </p>
                 ) : (
                   <div className={styles.permMatrixWrap}>
-                    <p className={styles.permMatrixNote}>Inventario: Ver incluye el resumen y registros de su área, no reportes/logs globales. Recibir mercadería es independiente de ver costos de compras y requiere también Inventario: Ver y Crear/editar. Facturación: Emitir ventas permite facturar sin gestionar CAI ni anulaciones; Crear/editar conserva la gestión fiscal completa.</p>
+                    <p className={styles.permMatrixNote}>Inventario: Ver incluye el resumen y registros de su área, no reportes/logs globales. Recibir mercadería es independiente de ver costos de compras y requiere también Inventario: Ver y Crear/editar. Facturación: Emitir ventas permite facturar sin gestionar CAI ni anulaciones; Crear/editar conserva la gestión fiscal completa. Resumen se adapta a las áreas con lectura; los importes consolidados requieren Reportes y lectura del área, no sólo acceso al Resumen.</p>
                     <table className={styles.permMatrix}>
                       <thead>
                         <tr>

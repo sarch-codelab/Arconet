@@ -146,10 +146,9 @@ export const SECTION_NAV_CONFIG = {
   resumen: {
     brandName: "Resumen",
     tabs: [
-      { id: "all", label: "Resumen", icon: LayoutDashboard, title: "Visión general" },
-      { id: "sales", label: "Ventas", icon: TrendingUp, title: "Cotizaciones e ingresos" },
-      { id: "stock", label: "Stock", icon: Package, title: "Inventario" },
-      { id: "team", label: "Equipo", icon: Users, title: "Personal" },
+      // Los filtros de área se construyen con el DTO autorizado del Resumen;
+      // no ofrecer Ventas, Stock o Personal a todos los roles por defecto.
+      { id: "all", label: "Resumen", icon: LayoutDashboard, title: "Visión de tus áreas" },
     ],
   },
   monitoreo: {

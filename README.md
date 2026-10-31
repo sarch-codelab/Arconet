@@ -220,3 +220,14 @@ ops/            Backups, watchdog y utilidades del servidor Windows
 
 La cobertura, correcciones y límites de la auditoría local están en
 [`docs/auditoria-panel-2026-10-29.md`](docs/auditoria-panel-2026-10-29.md).
+
+### Resumen adaptativo por permisos
+
+El panel ofrece un resumen de las áreas que la cuenta puede leer, incluidos
+roles personalizados, sin otorgar reportes globales por mostrar esa pantalla.
+Los importes consolidados requieren `reportes:read` y lectura de su área;
+Bodega conserva sus indicadores operativos sin ventas ni costos ajenos.
+Las cifras se agregan en el servidor, incluyen facturas fiscales sin duplicar
+históricos y mantienen separadas monedas, cotizaciones y cobros confirmados.
+Consulta el alcance, pruebas y límites en
+[`docs/resumen-adaptativo-por-permisos-2026-10-31.md`](docs/resumen-adaptativo-por-permisos-2026-10-31.md).

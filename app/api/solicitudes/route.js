@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { requirePermission } from '@/lib/dal';
-import { canSeeAllSolicitudes, fechaLimiteSLA, newSolicitudId, PRIORIDADES_SOLICITUD, createSolicitudNotifications, registrarEventoSolicitud } from '@/lib/solicitudes-internas';
+import { solicitudesReadWhere, fechaLimiteSLA, newSolicitudId, PRIORIDADES_SOLICITUD, createSolicitudNotifications, registrarEventoSolicitud } from '@/lib/solicitudes-internas';
 import { writeLog } from '@/lib/logs';
 
 export const runtime = "nodejs";
@@ -9,15 +9,12 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const guard = await requirePermission("solicitudes:read");
   if (guard.response) return guard.response;
-  const email = guard.session.correo.toLowerCase();
   try {
     const areas = await prisma.areaSolicitud.findMany({
       where: { roles: { has: guard.session.rol } },
       select: { slug: true },
     });
-    const where = canSeeAllSolicitudes(guard.session)
-      ? {}
-      : { OR: [{ solicitanteCorreo: { equals: email, mode: "insensitive" } }, { responsableCorreo: { equals: email, mode: "insensitive" } }, ...(areas.length ? [{ area: { in: areas.map((area) => area.slug) } }] : [])] };
+    const where = solicitudesReadWhere(guard.session, areas.map(area => area.slug));
     const requests = await prisma.solicitudInterna.findMany({
       where,
       orderBy: { updatedAt: "desc" },

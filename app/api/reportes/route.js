@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { requirePermission } from '@/lib/dal';
 import { balanceVentas } from '@/lib/ventas';
+import { canReadProductCost } from '@/lib/permisos';
 import { csvResponse, xlsxResponse } from '@/lib/export';
 
 export const runtime = "nodejs";
@@ -37,6 +38,12 @@ export async function GET(request) {
   const reporte = searchParams.get("reporte") || "ventas";
   const formato = searchParams.get("formato");
   const { desde, hasta, where } = parseRango(searchParams);
+  // Reportes globales no equivale a leer cualquier área. Mantener el mismo
+  // límite de módulos y costos que el resumen y el catálogo autenticado.
+  if ((["ventas", "pagos"].includes(reporte) && !guard.permisos?.includes("ordenes:read")) ||
+      (reporte === "inventario" && !guard.permisos?.includes("inventario:read"))) {
+    return Response.json({ error: "No autorizado para consultar el área de este reporte." }, { status: 403 });
+  }
 
   try {
     if (reporte === "ventas") {
@@ -104,27 +111,27 @@ export async function GET(request) {
     }
 
     if (reporte === "inventario") {
+      const canReadCost = canReadProductCost(guard.permisos);
+      const canReadPrice = guard.permisos?.includes("productos:read") || guard.permisos?.includes("precios:read");
       const productos = await prisma.producto.findMany({
         where: { estado: { not: "inactivo" } },
         orderBy: { nombre: "asc" },
-        select: { id: true, nombre: true, sku: true, unidad: true, stock: true, stockMinimo: true, costo: true, precio: true },
+        select: { id: true, nombre: true, sku: true, unidad: true, stock: true, stockMinimo: true, costo: canReadCost, precio: Boolean(canReadPrice) },
       });
       const filas = productos.map((p) => ({
-        ...p,
-        costo: Number(p.costo ?? 0),
-        precio: Number(p.precio),
-        valorizado: p.stock * Number(p.costo ?? 0),
+        id: p.id, nombre: p.nombre, sku: p.sku, unidad: p.unidad, stock: p.stock, stockMinimo: p.stockMinimo,
+        ...(canReadPrice ? { precio: Number(p.precio) } : {}),
+        ...(canReadCost ? { costo: Number(p.costo ?? 0), valorizado: p.stock * Number(p.costo ?? 0) } : {}),
         alerta: p.stock <= p.stockMinimo && p.stockMinimo > 0,
       }));
       if (formato) {
-        const headers = ["SKU", "Producto", "Unidad", "Stock", "Mínimo", "Costo", "Valorizado", "Alerta"];
-        const rows = filas.map((f) => [f.sku, f.nombre, f.unidad, f.stock, f.stockMinimo, f.costo, f.valorizado, f.alerta ? "Sí" : "No"]);
+        const headers = ["SKU", "Producto", "Unidad", "Stock", "Mínimo", ...(canReadCost ? ["Costo", "Valorizado"] : []), "Alerta"];
+        const rows = filas.map((f) => [f.sku, f.nombre, f.unidad, f.stock, f.stockMinimo, ...(canReadCost ? [f.costo, f.valorizado] : []), f.alerta ? "Sí" : "No"]);
         if (formato === "csv") return csvResponse(`inventario-${stamp()}.csv`, headers, rows);
         return xlsxResponse(`inventario-${stamp()}.xls`, "Inventario", headers, rows);
       }
-      const valorizado = filas.reduce((sum, f) => sum + f.valorizado, 0);
       const enAlerta = filas.filter((f) => f.alerta).length;
-      return Response.json({ valorizado, enAlerta, total: filas.length, filas });
+      return Response.json({ ...(canReadCost ? { valorizado: filas.reduce((sum, f) => sum + f.valorizado, 0) } : {}), enAlerta, total: filas.length, filas });
     }
 
     return Response.json({ error: "Reporte desconocido. Usá: ventas, pagos, inventario." }, { status: 400 });
