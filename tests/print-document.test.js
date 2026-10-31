@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PRINT_PAPERS, documentDate, esc, logoDataUrl, normalizePaper, printOptions, renderFiscalDocument, renderOrderDocument } from '../lib/print-document';
+import { PRINT_PAPERS, documentDate, esc, logoDataUrl, normalizePaper, printOptions, renderFiscalDocument, renderOrderDocument, renderPurchaseDocument } from '../lib/print-document';
 import { documento, order, settings } from './fixtures/print-documents';
 
 describe('plantilla de impresión compartida',()=>{
@@ -95,5 +95,32 @@ describe('plantilla de impresión compartida',()=>{
   it('conserva fechas de calendario sin desplazarlas por el huso horario',()=>{
     expect(documentDate('2026-12-31')).toBe('31/12/2026');expect(documentDate(null)).toBe('No registrada');
     expect(documentDate('2026-10-28T02:00:00Z')).toBe('27/10/2026');
+  });
+});
+
+
+describe('impresión natural sin relleno dependiente de beforeprint', () => {
+  const purchase = { ...order, numero: 'OC-QA', tipo: 'compra', proveedor: order.cliente, subtotal: 190, impuesto: 28.5, total: 218.5, items: [{ ...order.items[0], costoUnitario: 100 }] };
+  it.each([
+    ['venta', () => renderOrderDocument({ order: { ...order, tipo: 'venta' }, settings })],
+    ['cotización', () => renderOrderDocument({ order, settings })],
+    ['fiscal', () => renderFiscalDocument({ documento, settings })],
+    ['compra', () => renderPurchaseDocument({ order: purchase, settings })],
+  ])('%s no genera filas vacías ni altura calculada, y contiene todo el cierre', (_kind, render) => {
+    const html = render();
+    expect(html).not.toContain('<tr class="grid-filler"');
+    expect(html).not.toContain('grid.style.height');
+    expect(html).not.toContain('print-measure');
+    const closing = html.match(/<section class="document-end"[^>]*>([\s\S]+?)<\/main>/)?.[1];
+    expect(closing).toContain('class="totals"');
+    expect(closing).toContain('Firma / recibido conforme');
+    expect(closing).toContain('class="amount-words"');
+    expect(closing).toContain('class="footer"');
+  });
+  it('CSS print prevalece sobre una altura inline heredada, sin depender de JavaScript ni del papel de medición', () => {
+    const html = renderOrderDocument({ order, settings });
+    expect(html).toContain('@media print{.sheet .items.form-grid{height:auto!important;min-height:0!important}.sheet .grid-filler{display:none!important;height:0!important}');
+    expect(html).toContain('.document-end{display:flow-root;break-inside:avoid;page-break-inside:avoid}');
+    expect(html).not.toContain('paper.height-2*paper.margin');
   });
 });

@@ -32,7 +32,6 @@ import styles from "./facturacion-panel.module.css";
 
 const TABS = [
   { id: "documentos", label: "Documentos", icon: Receipt, title: "Facturas emitidas" },
-  { id: "nueva", label: "Nueva factura", icon: Plus, title: "Emitir una factura" },
   { id: "libro", label: "Libro de ventas", icon: BookOpen, title: "Libro de ventas por rango" },
   { id: "config", label: "Configuración", icon: Settings2, title: "CAI, serie y datos fiscales" },
 ];
@@ -97,10 +96,14 @@ async function request(url, options) {
   return data;
 }
 
-export default function FacturacionPanel({ session, productos: productosIniciales = [], hideTopbar = false, chromeOnly = false, tabs, activeTab: controlledTab, onTabChange, onClientCreated }) {
+export default function FacturacionPanel({ session, productos: productosIniciales = [], hideTopbar = false, chromeOnly = false, tabs, activeTab: controlledTab, onTabChange, onClientCreated, saleEditorOpen, onSaleEditorClose }) {
   const [innerTab, setInnerTab] = useState("documentos");
   // Las píldoras fiscales mantienen su selección aunque Ventas siga en «Facturas».
   const tab = resolveFiscalTab(controlledTab, innerTab);
+  // «nueva» sólo se conserva como selección programática legada; no es una
+  // pestaña ni una entrada de creación dentro del registro de Facturas.
+  const editorOpen = saleEditorOpen ?? (tab === "nueva");
+  const closeEditor = () => { setInnerTab("documentos"); onSaleEditorClose?.(); };
   const canWrite = session?.permisos?.includes("facturacion:write");
   const canRead = session?.permisos?.includes("facturacion:read");
 
@@ -129,6 +132,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
   const setTab = (next) => {
     if (guardando || clientBusy) return;
     if (TABS.some(item => item.id === next)) {
+      if (editorOpen) onSaleEditorClose?.();
       setInnerTab(next);
       if (TABS.some(item => item.id === controlledTab)) onTabChange?.(next);
       return;
@@ -281,7 +285,8 @@ export default function FacturacionPanel({ session, productos: productosIniciale
       });
       setLineas([]);
       await cargar();
-      setTab("documentos");
+      setInnerTab("documentos");
+      onSaleEditorClose?.();
     } catch (err) {
       sileo.error({
         title: "No se pudo emitir la factura",
@@ -346,8 +351,8 @@ export default function FacturacionPanel({ session, productos: productosIniciale
       {!hideTopbar && (
         <Topbar
           chromeOnly={chromeOnly}
-          title="Facturación"
-          subtitle="Emite facturas con CAI y correlativo, descuenta inventario y lleva el libro de ventas."
+          title={editorOpen ? "Nueva venta · Factura fiscal" : "Facturas"}
+          subtitle="Consulta y gestiona las facturas emitidas, el libro de ventas y la configuración fiscal. Crea desde Nueva venta."
           action={
             <button type="button" className={adminStyles.ghostBtn} onClick={cargar}>
               <RefreshCw size={15} /> Actualizar
@@ -365,8 +370,8 @@ export default function FacturacionPanel({ session, productos: productosIniciale
         {chromeOnly && hideTopbar && (
           <div className={adminStyles.sectionSubBar}>
             <div className={adminStyles.topbarTitle}>
-              <h1>Ventas · Facturas</h1>
-              <p>Emite facturas con CAI y correlativo, descuenta inventario y lleva el libro de ventas.</p>
+              <h1>{editorOpen ? "Nueva venta · Factura fiscal" : "Ventas · Facturas"}</h1>
+              <p>{editorOpen ? "Registra esta venta una sola vez con su comprobante fiscal. No necesitas crear antes una venta comercial." : "Consulta y gestiona las facturas emitidas, el libro de ventas y la configuración fiscal. Crea desde Nueva venta."}</p>
             </div>
             <div className={adminStyles.topbarActions}>
               <button type="button" className={adminStyles.ghostBtn} onClick={cargar}>
@@ -376,7 +381,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
           </div>
         )}
 
-        <SectionTabs tabs={TABS.filter(item => item.id !== "nueva" || canWrite)} activeTab={tab} onTabChange={setTab} label="Secciones de facturación" />
+        <SectionTabs tabs={TABS} activeTab={editorOpen ? "" : tab} onTabChange={setTab} label="Secciones de facturación" />
 
         {error ? <p className={styles.error} role="alert">{error}</p> : null}
 
@@ -384,11 +389,10 @@ export default function FacturacionPanel({ session, productos: productosIniciale
           <div className={styles.warning} role="status">
             <AlertTriangle size={16} />
             <p>
-              Aún no has configurado tu rango autorizado por la DEAT (CAI, serie y
-              correlativo). Mientras tanto puedes trabajar con normalidad: las
-              facturas que emitas quedan registradas como
-              <strong> pendientes de CAI</strong> y, cuando configures el rango,
-              recibirán su numeración fiscal oficial. Puedes hacerlo aquí mismo:{" "}
+              Aún no has configurado tu rango autorizado (CAI, serie y
+              correlativo). Las emisiones sin rango quedan <strong>pendientes de CAI</strong>,
+              sin numeración ni validez fiscal. Configurar el rango no numera
+              retroactivamente los documentos anteriores. Revisa la autorización antes de emitir:{" "}
               <button
                 type="button"
                 className={styles.inlineLinkBtn}
@@ -400,7 +404,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
           </div>
         ) : null}
 
-        {tab === "documentos" && (
+        {!editorOpen && tab === "documentos" && (
           <>
             <div className={adminStyles.toolbar}>
               <label className={adminStyles.search}>
@@ -413,9 +417,6 @@ export default function FacturacionPanel({ session, productos: productosIniciale
                   aria-label="Buscar documentos"
                 />
               </label>
-              <button type="button" className={`${adminStyles.primaryBtn} ${adminStyles.salesActionBtn}`} onClick={() => setTab("nueva")}>
-                <Plus size={16} /> Nueva factura
-              </button>
             </div>
 
             <div className={adminStyles.tableWrap}>
@@ -484,9 +485,10 @@ export default function FacturacionPanel({ session, productos: productosIniciale
           </>
         )}
 
-        <div hidden={tab !== "nueva"}>
+        <div hidden={!editorOpen}>
+          <button type="button" className={adminStyles.ghostBtn} disabled={guardando || clientBusy} onClick={closeEditor}>Volver a Facturas · conservar borrador</button>
           <form onSubmit={emitir}>
-            <fieldset className={styles.invoiceGrid} disabled={guardando || !canWrite} aria-label="Nueva factura">
+            <fieldset className={styles.invoiceGrid} disabled={guardando || !canWrite} aria-label="Nueva venta · Factura fiscal">
               <section className={adminStyles.card}>
                 <header className={adminStyles.cardHeader}>
                   <div>
@@ -655,7 +657,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
           </form>
         </div>
 
-        {tab === "libro" && (
+        {!editorOpen && tab === "libro" && (
           <>
             <div className={adminStyles.toolbar}>
               <label className={styles.fechaCampo}>
@@ -745,7 +747,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
           </>
         )}
 
-        {tab === "config" && (
+        {!editorOpen && tab === "config" && (
           <section className={adminStyles.card}>
             <header className={adminStyles.cardHeader}>
               <div>

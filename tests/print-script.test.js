@@ -19,7 +19,7 @@ async function mountScript({ standalone = false, inaccessibleParent = false, ima
     body: { dataset: {}, appendChild: vi.fn() },
     images,
     fonts: { ready: fontsReady },
-    querySelector: () => ({ cloneNode: () => measure }),
+    querySelector: vi.fn(() => ({ cloneNode: () => measure })),
     getElementById: id => ({
       "paper-size": selector,
       "paper-rule": rule,
@@ -45,6 +45,14 @@ describe("script de impresión dentro de srcdoc", () => {
     expect(context.rule.textContent).toContain("@page");
     expect(context.parent.postMessage).toHaveBeenCalledExactlyOnceWith({ type: "arconet:print-paper", paper }, "https://arconet.example");
     expect(context.window.print).not.toHaveBeenCalled();
+  });
+  it.each(["auto", "carta", "media-carta", "media-hoja"])("%s imprime por flujo CSS, sin medir una hoja de pantalla para estirar la tabla", async paper => {
+    const context = await mountScript();
+    context.change(paper);
+    await context.print();
+    expect(context.document.querySelector).not.toHaveBeenCalledWith(".sheet");
+    expect(context.window.print).toHaveBeenCalledOnce();
+    expect(context.rule.textContent).toContain("@page");
   });
   it("ignora un formato falsificado sin enviar mensajes ni imprimir", async () => {
     const context = await mountScript();

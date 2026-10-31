@@ -8,7 +8,7 @@ import salesStyles from "./ventas-form.module.css";
 import { commercialTotal, sameCommercialAmounts, validCommercialLine, MAX_DOCUMENT_AMOUNT } from "@/lib/ventas-form";
 import { openApiDocument } from "@/lib/api-document";
 
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { AlertTriangle, Check, FileText, Pencil, Plus, Printer, Search, Trash2, TrendingUp, X } from "lucide-react";
 import styles from "./admin-experience.module.css";
 import { useToast, notifyError, ConfirmDialog } from "./admin-ui";
@@ -30,7 +30,7 @@ import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
 import { Topbar, SectionTabs } from "./topbar";
 import { SECTION_NAV_CONFIG } from "./admin-nav";
 
-export default function CotizacionesSection({ orders = [], setOrders, clientes = [], setClientes, products = [], workers = [], session, hideTopbar = false, chromeOnly = false, tabs, activeTab: controlledTab, onTabChange }) {
+export default function CotizacionesSection({ orders = [], setOrders, clientes = [], setClientes, products = [], workers = [], session, hideTopbar = false, chromeOnly = false, hideCreateActions = false, editorRef, tabs, activeTab: controlledTab, onTabChange }) {
   const canWrite = session?.permisos?.includes("ordenes:write");
   const canDelete = session?.permisos?.includes("ordenes:delete");
   const [innerTab, setInnerTab] = useState("todas");
@@ -103,7 +103,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
   // aparecer en algun campo del documento (busqueda tipo AND).
   const searchTerms = useMemo(() => normalize(query).split(/\s+/).filter(Boolean), [query]);
 
-  const handleTabChange = (tabId) => {
+  const handleTabChange = useCallback((tabId) => {
     if (tabId === "facturas" || tabId === "precios") {
       // La pestaña "Facturas" monta el panel fiscal completo; no toca los
       // filtros de cotizaciones ni el estado interno de esta lista.
@@ -134,7 +134,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
       setStatus("completada");
       setType("all");
     }
-  };
+  }, [onTabChange]);
 
   const filtered = useMemo(() => {
     return orders.filter((order) => {
@@ -180,7 +180,9 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
     onTabChange?.("todas");
   }
 
-  function openCreate(documentType = "cotizacion") {
+  const openCreate = useCallback((documentType = "cotizacion") => {
+    if (!canWrite || submitting.current || clientBusy) return;
+    handleTabChange(documentType === "venta" ? "ventas" : "cotizaciones");
     setDraft({
       id: newOrderId(),
       tipo: documentType,
@@ -197,7 +199,8 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
     setClientBusy(false);
     setClientSnapshot(null);
     setModalOpen(true);
-  }
+  }, [canWrite, clientBusy, handleTabChange]);
+  useImperativeHandle(editorRef, () => ({ create: openCreate }), [openCreate]);
 
   function openEdit(order) {
     setDraft({ ...order, notas: order.notas || "", items: (order.items || []).map(line => ({ ...line, key: line.id || `saved-${++lineSequence.current}`, kind: line.productoId ? "producto" : "concepto" })) });
@@ -291,8 +294,8 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
         <Topbar
           chromeOnly={chromeOnly}
           title="Ventas"
-          subtitle="Crea cotizaciones o ventas comerciales con productos del catálogo. Las ventas descuentan inventario; las facturas fiscales se emiten en la pestaña Facturas."
-          action={
+          subtitle="Crea cotizaciones o ventas comerciales con productos del catálogo. Nueva venta permite elegir el comprobante comercial o fiscal. Las cotizaciones no descuentan inventario."
+          action={!hideCreateActions &&
             <div className={styles.salesActionRow} role="group" aria-label="Crear documento comercial">
               <button type="button" className={`${styles.ghostBtn} ${styles.salesActionBtn}`} disabled={!canWrite || saving} onClick={() => openCreate("cotizacion")}>
                 <Plus size={16} /> Nueva cotización
@@ -316,18 +319,18 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
           <div className={styles.sectionSubBar}>
             <div className={styles.topbarTitle}>
               <h1>Ventas</h1>
-              <p>Crea cotizaciones o ventas comerciales con productos del catálogo. Las ventas descuentan inventario; las facturas fiscales se emiten en la pestaña Facturas.</p>
+              <p>Crea cotizaciones o ventas comerciales con productos del catálogo. Nueva venta permite elegir el comprobante comercial o fiscal. Las cotizaciones no descuentan inventario.</p>
             </div>
             {/* Contenedor propio (salesActionRow): evita herdar el ancho de la
                 barra global y que los botones desborden la pantalla en móvil. */}
-            <div className={styles.salesActionRow} role="group" aria-label="Crear documento comercial">
+            {!hideCreateActions && <div className={styles.salesActionRow} role="group" aria-label="Crear documento comercial">
               <button type="button" className={`${styles.ghostBtn} ${styles.salesActionBtn}`} disabled={!canWrite || saving} onClick={() => openCreate("cotizacion")}>
                 <Plus size={16} /> Nueva cotización
               </button>
               <button type="button" className={`${styles.primaryBtn} ${styles.salesActionBtn}`} disabled={!canWrite || saving} onClick={() => openCreate("venta")}>
                 <Plus size={16} /> Nueva venta
               </button>
-            </div>
+            </div>}
           </div>
         )}
 
@@ -575,7 +578,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
                     <button type="button" className={styles.ghostBtn} onClick={() => addLine("producto")} disabled={busy || draft.items.length >= 100}><Plus size={15} /> Añadir producto</button>
                     <button type="button" className={styles.ghostBtn} onClick={() => addLine("concepto")} disabled={busy || draft.items.length >= 100}><Plus size={15} /> Añadir concepto / servicio</button>
                   </div>
-                  <small className={salesStyles.hint}>Valor 1: venta normal; Valor 2: descuento; Valor 3: mayorista. Los precios guardados se conservan al editar, salvo que elijas otra tarifa o «Actualizar tarifa». Las ventas descuentan inventario; los conceptos no. La factura fiscal se emite en Facturas.</small>
+                  <small className={salesStyles.hint}>Valor 1: venta normal; Valor 2: descuento; Valor 3: mayorista. Los precios guardados se conservan al editar, salvo que elijas otra tarifa o «Actualizar tarifa». Las ventas descuentan inventario; los conceptos no. Este comprobante no es fiscal. Si necesitas factura fiscal, cancela y elige Nueva venta → Factura fiscal antes de guardar.</small>
                   <div className={salesStyles.total}><span>{legacyHeaderOnly ? "Importe histórico" : keepSavedAmount && total !== commercialTotal(draft.items) ? "Total guardado" : "Total calculado"}</span><output aria-label="Total del documento" aria-live="polite">{formatPrice(total)}</output></div>
                   {total > MAX_DOCUMENT_AMOUNT && <p className={salesStyles.error} role="alert">El total supera el importe máximo permitido. Reduce cantidades o precios.</p>}
                   {keepSavedAmount && draft.items.length > 0 && total !== commercialTotal(draft.items) && <small className={salesStyles.hint}>Se conserva el importe histórico del documento. Se recalculará al cambiar productos, cantidades o precios.</small>}
