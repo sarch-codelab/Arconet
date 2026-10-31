@@ -8,6 +8,7 @@ import salesStyles from "./ventas-form.module.css";
 import { priceAt } from "@/lib/precios";
 import { previewDocumentClick } from "@/lib/api-document";
 import { resolveFiscalTab } from "@/lib/admin-navigation";
+import { canEmitFiscalSale } from "@/lib/permisos";
 
 import { apiFetch as fetch } from "@/lib/api-fetch";
 
@@ -96,7 +97,7 @@ async function request(url, options) {
   return data;
 }
 
-export default function FacturacionPanel({ session, productos: productosIniciales = [], hideTopbar = false, chromeOnly = false, tabs, activeTab: controlledTab, onTabChange, onClientCreated, saleEditorOpen, onSaleEditorClose, embedded = false, editorRef, detailOnly = false, onDocumentsChange, onStatusChange }) {
+export default function FacturacionPanel({ session, productos: productosIniciales = [], hideTopbar = false, chromeOnly = false, tabs, activeTab: controlledTab, onTabChange, onClientCreated, saleEditorOpen, onSaleEditorClose, embedded = false, editorRef, detailOnly = false, onDocumentsChange, onStatusChange, onInventoryChanged }) {
   const [innerTab, setInnerTab] = useState("documentos");
   // Las píldoras fiscales mantienen su selección aunque Ventas siga en «Facturas».
   const tab = resolveFiscalTab(controlledTab, innerTab);
@@ -106,6 +107,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
   const closeEditor = () => { setInnerTab("documentos"); onSaleEditorClose?.(); };
   const canWrite = session?.permisos?.includes("facturacion:write");
   const canRead = session?.permisos?.includes("facturacion:read");
+  const canEmit = canEmitFiscalSale(session?.permisos);
 
   const [documentos, setDocumentos] = useState([]);
   const [productos, setProductos] = useState(productosIniciales);
@@ -250,9 +252,20 @@ export default function FacturacionPanel({ session, productos: productosIniciale
     setLineas(current => current.filter(linea => linea.key !== key));
   }
 
+  async function syncInventory(documento) {
+    if (!onInventoryChanged || !documento?.items?.some(item => item.productoId)) return;
+    try {
+      await onInventoryChanged();
+    } catch {
+      // El documento ya se guardó: un fallo de refresco nunca debe presentarse
+      // como un fallo de emisión ni invitar a registrar la venta otra vez.
+      sileo.warning({ title: "Documento guardado", description: "No se pudo refrescar el catálogo. Recarga para consultar las existencias actuales; no repitas la operación." });
+    }
+  }
+
   async function emitir(event) {
     event.preventDefault();
-    if (!canWrite || !canRead || loading || error || submitting.current || clientBusy || clientCreating) return;
+    if (!canEmit || loading || error || submitting.current || clientBusy || clientCreating) return;
     if (!clienteId) {
       sileo.error({ title: "Selecciona un cliente" });
       return;
@@ -292,6 +305,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
       onDocumentsChange?.(records);
       setLineas([]);
       await cargar();
+      await syncInventory(doc);
       setInnerTab("documentos");
       onSaleEditorClose?.();
     } catch (err) {
@@ -328,6 +342,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
         description: "Se devolvió al inventario lo que había descontado.",
       });
       await cargar();
+      await syncInventory(documento);
     } catch (err) {
       sileo.error({ title: "No se pudo anular", description: err.message });
     } finally {
@@ -466,7 +481,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
           </div>
         )}
 
-        {!embedded && <SectionTabs tabs={TABS} activeTab={editorOpen ? "" : tab} onTabChange={setTab} label="Secciones de facturación" />}
+        {!embedded && <SectionTabs tabs={canWrite ? TABS : TABS.filter(item => item.id !== "config")} activeTab={editorOpen ? "" : tab} onTabChange={setTab} label="Secciones de facturación" />}
 
         {error ? <p className={styles.error} role="alert">{error}</p> : null}
 
@@ -477,14 +492,14 @@ export default function FacturacionPanel({ session, productos: productosIniciale
               Aún no has configurado tu rango autorizado (CAI, serie y
               correlativo). Las emisiones sin rango quedan <strong>pendientes de CAI</strong>,
               sin numeración ni validez fiscal. Configurar el rango no numera
-              retroactivamente los documentos anteriores. Revisa la autorización antes de emitir:{" "}
+              retroactivamente los documentos anteriores. {canWrite ? <>Revisa la autorización antes de emitir:{" "}
               <button
                 type="button"
                 className={styles.inlineLinkBtn}
                 onClick={() => setTab("config")}
               >
                 Ir a Configuración →
-              </button>
+              </button></> : "Solicita al administrador que revise la autorización antes de emitir."}
             </p>
           </div>
         ) : null}
@@ -573,7 +588,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
         <div hidden={!editorOpen}>
           {!embedded && <button type="button" className={adminStyles.ghostBtn} disabled={guardando || clientBusy} onClick={closeEditor}>Cerrar · conservar borrador</button>}
           <form onSubmit={emitir}>
-            <fieldset className={styles.invoiceGrid} disabled={guardando || !canWrite} aria-label="Nueva venta · Factura fiscal">
+            <fieldset className={styles.invoiceGrid} disabled={guardando || !canEmit} aria-label="Nueva venta · Factura fiscal">
               <section className={adminStyles.card}>
                 <header className={adminStyles.cardHeader}>
                   <div>
@@ -582,7 +597,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
                   </div>
                 </header>
                 <div className={`${adminStyles.form} ${adminStyles.cardBody}`}>
-                  <ClienteSelector value={clienteId} fallback={clientSnapshot} onChange={selectClient} onCreated={onClientCreated} session={session} disabled={guardando || !canWrite} onBusyChange={setClientBusy} onModeChange={setClientCreating} />
+                  <ClienteSelector value={clienteId} fallback={clientSnapshot} onChange={selectClient} onCreated={onClientCreated} session={session} disabled={guardando || !canEmit} onBusyChange={setClientBusy} onModeChange={setClientCreating} />
 
                   <label className={adminStyles.field}>
                     Impuesto por defecto
@@ -628,7 +643,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
                     return (
                       <div className={styles.linea} key={linea.key} role="group" aria-label={`Línea ${index + 1}`}>
                         <div className={styles.lineaTop}>
-                          {linea.kind === "producto" ? <ReferenciaSelector kind="productos" label="Producto" value={linea.productoId} fallback={producto} onChange={product => elegirProducto(linea.key, product)} onResolved={rememberProduct} disabled={guardando || !canWrite} /> : <strong className={salesStyles.hint}>Concepto / servicio</strong>}
+                          {linea.kind === "producto" ? <ReferenciaSelector kind="productos" label="Producto" value={linea.productoId} fallback={producto} onChange={product => elegirProducto(linea.key, product)} onResolved={rememberProduct} disabled={guardando || !canEmit} /> : <strong className={salesStyles.hint}>Concepto / servicio</strong>}
                           <button
                             type="button"
                             className={adminStyles.dangerBtn}
@@ -650,7 +665,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
                           />
                         </label>
 
-                        {linea.productoId && <label className={adminStyles.field}>Tarifa de venta<PrecioSelector product={producto} value={linea.nivelPrecio} onChange={value => cambiarLinea(linea.key, "nivelPrecio", value)} label="Tarifa de venta" disabled={guardando || !canWrite} /></label>}
+                        {linea.productoId && <label className={adminStyles.field}>Tarifa de venta<PrecioSelector product={producto} value={linea.nivelPrecio} onChange={value => cambiarLinea(linea.key, "nivelPrecio", value)} label="Tarifa de venta" disabled={guardando || !canEmit} /></label>}
                         <div className={styles.lineaGrid}>
                           <label className={adminStyles.field}>
                             Cantidad
@@ -729,7 +744,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
                 <button
                   type="submit"
                   className={adminStyles.primaryBtn}
-                  disabled={!canWrite || loading || Boolean(error) || guardando || clientBusy || clientCreating || !clienteId || !lineasValidas}
+                  disabled={!canEmit || loading || Boolean(error) || guardando || clientBusy || clientCreating || !clienteId || !lineasValidas}
                 >
                   <Receipt size={16} /> {guardando ? "Emitiendo…" : "Emitir factura"}
                 </button>

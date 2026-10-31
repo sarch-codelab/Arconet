@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   canAccessSection,
+  canEmitFiscalSale,
   normalizePermisos,
   ALL_PERMISSIONS,
   PERMISSION_MODULES,
@@ -63,5 +64,20 @@ describe("normalizePermisos", () => {
         expect(ALL_PERMISSIONS).toContain(`${mod.id}:${accion}`);
       }
     }
+  });
+});
+
+
+describe("permiso independiente de emisión operativa", () => {
+  it("normaliza el permiso nuevo sin convertirlo en administración fiscal", () => {
+    expect(normalizePermisos(["facturacion:emit", "facturacion:read", "facturacion:emit"]))
+      .toEqual(["facturacion:read", "facturacion:emit"]);
+    expect(ALL_PERMISSIONS).toContain("facturacion:emit");
+  });
+  it.each([null, undefined, [], ["facturacion:read"], ["facturacion:emit"], ["facturacion:write"], ["ordenes:read", "ordenes:write"]].map(permisos => [permisos]))("no infiere permiso fiscal para %j", permisos => {
+    expect(canEmitFiscalSale(permisos)).toBe(false);
+  });
+  it.each([["facturacion:read", "facturacion:emit"], ["facturacion:read", "facturacion:write"], ALL_PERMISSIONS].map(permisos => [permisos]))("autoriza emisión operativa o gestión fiscal explícitas: %j", permisos => {
+    expect(canEmitFiscalSale(permisos)).toBe(true);
   });
 });

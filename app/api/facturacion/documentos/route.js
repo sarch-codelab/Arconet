@@ -3,6 +3,7 @@ import { emitirDocumentoFiscal, TIPOS_DOCUMENTO } from '@/lib/facturacion';
 import { descontarStock, tieneSalidas } from '@/lib/stock-ventas';
 import { requirePermission } from '@/lib/dal';
 import { writeLog } from '@/lib/logs';
+import { canEmitFiscalSale } from '@/lib/permisos';
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,8 +51,11 @@ export async function GET(request) {
  * si no, se emite pendiente de CAI.
  */
 export async function POST(request) {
-  const guard = await requirePermission("facturacion:write");
+  const guard = await requirePermission("facturacion:read");
   if (guard.response) return guard.response;
+  if (!canEmitFiscalSale(guard.permisos)) {
+    return Response.json({ error: "No autorizado para emitir ventas." }, { status: 403 });
+  }
   let body;
   try {
     body = await request.json();
@@ -63,10 +67,18 @@ export async function POST(request) {
   if (!TIPOS_DOCUMENTO.includes(tipo)) {
     return Response.json({ error: `Tipo inválido. Usá: ${TIPOS_DOCUMENTO.join(", ")}.` }, { status: 400 });
   }
+  // El permiso operativo sólo emite facturas; notas de crédito/débito siguen
+  // reservadas a la gestión fiscal que ya exigían las demás operaciones.
+  if (tipo !== "factura" && !guard.permisos.includes("facturacion:write")) {
+    return Response.json({ error: "No autorizado para gestionar notas fiscales." }, { status: 403 });
+  }
   const clienteId = typeof body?.clienteId === "string" ? body.clienteId.trim() : "";
   const ordenId = typeof body?.ordenId === "string" ? body.ordenId.trim() : null;
   if (!clienteId) {
     return Response.json({ error: "El cliente es obligatorio." }, { status: 400 });
+  }
+  if (ordenId && !guard.permisos.includes("facturacion:write")) {
+    return Response.json({ error: "La emisión operativa registra una venta directa, sin convertir históricos comerciales." }, { status: 403 });
   }
 
   try {

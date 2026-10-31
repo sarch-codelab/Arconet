@@ -470,23 +470,23 @@ export default function ProductsSection({ products = [], setProducts, categorias
                             <RotateCw size={15} className={busyProduct === product.id ? styles.spinning : undefined} />
                           </button>
                         )}
-                        <button
+                        {canWrite && <button
                           type="button"
-                          disabled={!canWrite} onClick={() => openEdit(product)}
+                          onClick={() => openEdit(product)}
                           aria-label={`Editar ${product.nombre}`}
                           title="Editar"
                         >
                           <Pencil size={15} />
-                        </button>
-                        <button
+                        </button>}
+                        {canDelete && <button
                           type="button"
                           className={styles.danger}
-                          disabled={!canDelete} onClick={() => setConfirmProduct(product)}
+                          onClick={() => setConfirmProduct(product)}
                           aria-label={`Eliminar ${product.nombre}`}
                           title="Eliminar"
                         >
                           <Trash2 size={15} />
-                        </button>
+                        </button>}
                       </div>
                     </td>
                   </tr>

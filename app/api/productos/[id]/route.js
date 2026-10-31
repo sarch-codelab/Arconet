@@ -2,8 +2,8 @@ import { PRICE_FIELDS, hasPriceChanges } from "@/lib/precios";
 import { updateProductPrices } from "@/lib/precios-service";
 import { prisma } from '@/lib/prisma';
 import { parseProducto } from '@/lib/productos';
-import { toProducto } from '@/lib/serialize';
-import { requirePermission, requireSession } from '@/lib/dal';
+import { toProducto, toProductoForRead } from '@/lib/serialize';
+import { getPermisos, requirePermission, requireSession } from '@/lib/dal';
 import { writeLog } from '@/lib/logs';
 import { aplicarMovimiento, bodegaPrincipal, sincronizarStockInicial } from '@/lib/inventario';
 
@@ -18,7 +18,8 @@ export async function GET(_request, { params }) {
   if (!producto) {
     return Response.json({ error: "Producto no encontrado." }, { status: 404 });
   }
-  return Response.json(toProducto(producto));
+  const permisos = await getPermisos(guard.session);
+  return Response.json(toProductoForRead(producto, permisos), { headers: { "Cache-Control": "private, no-store" } });
 }
 
 export async function PATCH(request, { params }) {

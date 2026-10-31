@@ -145,3 +145,17 @@ describe('cierre fragmentable compatible con WebKit/AirPrint', () => {
     expect(html).not.toMatch(/(?:max-height|height):[0-9]+(?:mm|px).*overflow:hidden/);
   });
 });
+
+
+describe("fecha de calendario de cotización sin corrimiento en impresión", () => {
+  it("conserva como instante un histórico con hora distinta de medianoche", () => {
+    const html = renderOrderDocument({ order: { ...order, fecha: new Date("2026-10-31T04:00:00Z") }, settings });
+    expect(html).toContain("30/10/2026");
+    expect(html).not.toContain("31/10/2026");
+  });
+  it("el Date de Prisma a medianoche UTC conserva el día seleccionado", () => {
+    const html = renderOrderDocument({ order: { ...order, fecha: new Date("2026-10-30T00:00:00Z") }, settings });
+    expect(html).toContain("30/10/2026");
+    expect(html).not.toContain("29/10/2026");
+  });
+});

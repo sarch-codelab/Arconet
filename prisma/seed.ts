@@ -1,6 +1,7 @@
 import { PrismaClient } from "../generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { randomBytes, scryptSync } from "node:crypto";
+import { DEFAULT_SALES_PERMISSIONS } from "../lib/roles-defaults";
 import "dotenv/config";
 
 function hashPassword(password) {
@@ -103,7 +104,7 @@ const ROLES = [
   ["rol-admin", "Administrador", "administrador", "Acceso total al sistema: gestión de usuarios, configuración, reportes y todas las secciones.", ["trabajadores:read","trabajadores:write","trabajadores:delete","roles:read","roles:write","roles:delete","productos:read","precios:read","productos:write","precios:write","productos:delete","categorias:read","categorias:write","categorias:delete","sucursales:read","sucursales:write","sucursales:delete","clientes:read","clientes:write","clientes:delete","ordenes:read","ordenes:write","ordenes:delete","inventario:read","inventario:write","inventario:delete","compras:read","compras:write","compras:delete","facturacion:read","facturacion:write","facturacion:delete","solicitudes:read","solicitudes:write","monitoreo:read","logs:read","logs:delete","reportes:read","ajustes:read","ajustes:write"], "activo"],
   ["rol-gerente", "Gerente", "gerente", "Gestión operativa: trabajadores, productos, sucursales, clientes, órdenes y reportes. Sin acceso a ajustes de sistema ni logs.", ["trabajadores:read","trabajadores:write","productos:read","precios:read","productos:write","precios:write","productos:delete","categorias:read","categorias:write","categorias:delete","sucursales:read","sucursales:write","clientes:read","clientes:write","clientes:delete","ordenes:read","ordenes:write","ordenes:delete","inventario:read","inventario:write","facturacion:read","facturacion:write","solicitudes:read","reportes:read","mi-perfil:read","mi-perfil:write"], "activo"],
   ["rol-tecnico", "Técnico", "tecnico", "Acceso técnico: catálogo de productos, órdenes asignadas, perfil propio. Sin gestión de personal ni configuración.", ["productos:read","precios:read","ordenes:read","ordenes:write","mi-perfil:read","mi-perfil:write"], "activo"],
-  ["rol-ventas", "Ventas", "ventas", "Gestión comercial: clientes, órdenes, catálogo de productos, reportes de ventas. Sin acceso a personal ni inventario.", ["productos:read","precios:read","clientes:read","clientes:write","ordenes:read","ordenes:write","reportes:read","mi-perfil:read","mi-perfil:write"], "activo"],
+  ["rol-ventas", "Ventas", "ventas", "Gestión comercial: clientes, cotizaciones, emisión de ventas fiscales y catálogo. Sin gestión de CAI, anulaciones, tarifas, personal ni inventario.", [...DEFAULT_SALES_PERMISSIONS], "activo"],
   ["rol-bodega", "Bodega", "bodega", "Productos, abastecimiento, recepción y kardex. Resumen y registros de su área; sin Ventas ni reportes globales.", ["productos:read","productos:write","inventario:read","inventario:write","inventario:delete","compras:read","compras:write","compras:receive","solicitudes:read"], "activo"],
 ];
 
