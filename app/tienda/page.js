@@ -1,13 +1,13 @@
 import CatalogoExperience from "./catalogo-experience";
 
 export const metadata = {
-  title: "Catálogo",
+  title: "Tienda",
   description:
     "Equipos y soluciones de fibra óptica, CATV y telecomunicaciones de Arconet Honduras.",
   alternates: { canonical: "/tienda" },
   openGraph: {
     type: "website",
-    title: "Catálogo | Arconet",
+    title: "Tienda | Arconet",
     description:
     "Equipos y soluciones de fibra óptica, FTTH, infraestructura y medición de Arconet Honduras.",
     url: "/tienda",

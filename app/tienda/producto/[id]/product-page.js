@@ -200,7 +200,7 @@ export default function ProductPage({ product }) {
       <div className={styles.breadcrumb}>
         <Link href="/">Inicio</Link>
         <span className={styles.separator}>/</span>
-        <Link href="/tienda">Catálogo</Link>
+        <Link href="/tienda">Tienda</Link>
         <span className={styles.separator}>/</span>
         <Link href="/tienda#catalogo-items">{product.categoria}</Link>
         <span className={styles.separator}>/</span>
@@ -317,7 +317,7 @@ export default function ProductPage({ product }) {
           <dl className={styles.specs}>
             <div><dt>SKU</dt><dd>{product.sku}</dd></div>
             <div><dt>Marca</dt><dd>{product.marca || "Arconet"}</dd></div>
-            <div><dt>Categoría</dt><dd>{product.categoria}</dd></div>
+            <div><dt>Línea</dt><dd>{product.categoria}</dd></div>
             <div><dt>Presentación</dt><dd>{product.unidad}</dd></div>
             <div>
               <dt>Disponibilidad</dt>
@@ -343,7 +343,7 @@ export default function ProductPage({ product }) {
         <section className={styles.related} aria-label="Productos relacionados">
           <div className={styles.relatedHead}>
             <div>
-              <p className={styles.eyebrow}><i /> Misma categoría</p>
+              <p className={styles.eyebrow}><i /> Misma línea</p>
               <h2>También te puede servir</h2>
             </div>
             <Link className={styles.relatedAll} href="/tienda">

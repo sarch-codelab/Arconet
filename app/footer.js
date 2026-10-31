@@ -10,7 +10,7 @@ import { useContact } from "./contact-provider";
 const COMPANY_LINKS = [
   { href: "/", label: "Inicio" },
   { href: "/#empresa", label: "La empresa" },
-  { href: "/tienda", label: "Catálogo" },
+  { href: "/tienda", label: "Tienda" },
   { href: "/contacto", label: "Contacto" },
   { href: "/ayuda", label: "Ayuda y preguntas frecuentes" },
   { href: "/terminos", label: "Términos de uso" },

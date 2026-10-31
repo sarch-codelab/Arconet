@@ -24,7 +24,7 @@ import MobileSiteMenu from "../mobile-site-menu";
 const NAVIGATION = [
   { href: "/", label: "Inicio" },
   { href: "/#soluciones", label: "Soluciones" },
-  { href: "/tienda", label: "Catálogo" },
+  { href: "/tienda", label: "Tienda" },
   { href: "#formulario", label: "Contacto" },
 ];
 

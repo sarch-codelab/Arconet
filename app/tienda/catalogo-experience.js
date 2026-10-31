@@ -128,7 +128,7 @@ export default function CatalogoExperience() {
         const family = findFamily(category.slug) || findFamily(category.nombre);
         return {
           title: category.nombre,
-          text: category.descripcion || family?.summary || "Explora esta categoría.",
+          text: category.descripcion || family?.summary || "Explora esta línea.",
           slug: category.slug,
           image: category.foto || family?.image || "/catalogo/hero-fiber.jpg",
         };
@@ -590,7 +590,7 @@ export default function CatalogoExperience() {
       {/* id="catalogo-items": el carrito y las migas de pan enlazan aquí
           (/tienda#catalogo-items). Faltaba, así que esos enlaces aterrizaban
           arriba de la página en vez de en la lista de líneas. */}
-      <section id="catalogo-items" className={styles.exampleSection} aria-label="Catálogo">
+      <section id="catalogo-items" className={styles.exampleSection} aria-label="Tienda">
         <div className={styles.exampleHeading} data-reveal>
           <p className={styles.sectionEyebrow}><i /> Catálogo</p>
           <h2>Líneas de producto</h2>

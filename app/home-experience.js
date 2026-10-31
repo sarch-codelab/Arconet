@@ -63,7 +63,7 @@ const NAVIGATION = [
       { label: "Términos de uso", href: "/terminos" }
     ]}
   ]},
-  { label: "Catálogo", href: "/tienda", mega: false },
+  { label: "Tienda", href: "/tienda", mega: false },
   { id: "empresa", label: "La empresa", href: "#empresa", mega: false },
   { id: "compania", label: "Nosotros", href: "#compania", mega: false },
   { label: "Contacto", href: "/contacto", mega: false },
@@ -597,7 +597,7 @@ useEffect(() => {
               <div className={styles.megaMenuFooter}>
                 <span>Inventario técnico listo para cotizar en Honduras</span>
                 <a href="/tienda">
-                  Ver catálogo completo
+                  Ver la tienda completa
                   <ArrowRight size={14} aria-hidden="true" />
                 </a>
               </div>
@@ -633,7 +633,7 @@ useEffect(() => {
                 onClick={() => setMenuOpen(false)}
               >
                 <span className={styles.mobileMenuPrimaryText}>
-                  <span className={styles.mobileMenuPrimaryLabel}>Catálogo</span>
+                  <span className={styles.mobileMenuPrimaryLabel}>Tienda</span>
                   <span className={styles.mobileMenuPrimaryHint}>Explora todos los productos</span>
                 </span>
                 <span className={styles.mobileMenuPrimaryIcon}>
@@ -915,7 +915,7 @@ useEffect(() => {
             equipo que responde cuando de verdad se le necesita.
           </p>
           <div className={styles.storyActions}>
-            <a className={styles.storyActionPrimary} href="/tienda">Ver catálogo <ArrowUpRight size={16} /></a>
+            <a className={styles.storyActionPrimary} href="/tienda">Ver la tienda <ArrowUpRight size={16} /></a>
             <a className={styles.storyActionGhost} href="#contacto">Hablar con un asesor <ArrowRight size={16} /></a>
           </div>
         </div>

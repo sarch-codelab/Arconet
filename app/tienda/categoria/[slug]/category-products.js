@@ -45,7 +45,7 @@ import Footer from "../../../footer";
 import MobileSiteMenu from "../../../mobile-site-menu";
 
 const NAVIGATION = [
-  { href: "/tienda#catalogo-items", label: "Catálogo" },
+  { href: "/tienda#catalogo-items", label: "Tienda" },
 ];
 
 const SUPPORT_ITEMS = [
@@ -62,8 +62,8 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
         slug: category.slug || staticFamily?.slug || slug,
         category: category.nombre,
         title: category.nombre,
-        badge: staticFamily?.badge || "Categoría",
-        summary: category.descripcion || staticFamily?.summary || "Productos disponibles en esta categoría.",
+        badge: staticFamily?.badge || "Línea",
+        summary: category.descripcion || staticFamily?.summary || "Productos disponibles en esta línea.",
         description:
           category.descripcion ||
           staticFamily?.description ||
@@ -164,7 +164,7 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
     return (
       <main className={styles.missing}>
         <p className={styles.eyebrow}>Catálogo Arconet</p>
-        <h1>No encontramos esa categoría.</h1>
+        <h1>No encontramos esa línea.</h1>
         <p>Puede que haya cambiado de nombre. Te ayudamos a encontrarla en un minuto.</p>
         <div className={styles.missingActions}>
           <Link className={styles.primaryButton} href="/tienda">Volver al catálogo <ArrowRight size={16} /></Link>
@@ -207,7 +207,7 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
       </header>
 
       <div className={styles.breadcrumb}>
-        <Link href="/tienda">Catálogo</Link>
+        <Link href="/tienda">Tienda</Link>
         <ChevronRight size={13} aria-hidden="true" />
         <span>{family.category}</span>
       </div>
@@ -273,7 +273,7 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
               placeholder="Buscar productos..."
-              aria-label="Buscar en esta categoría"
+              aria-label="Buscar en esta línea"
             />
           </label>
         </header>
@@ -284,7 +284,7 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
           </div>
         ) : filteredProducts.length === 0 ? (
           <div className={styles.emptyState}>
-            <p>No hay productos disponibles en esta categoría.</p>
+            <p>No hay productos disponibles en esta línea.</p>
             <Link className={styles.primaryButton} href="/tienda">Ver todo el catálogo <ArrowRight size={16} /></Link>
           </div>
         ) : (

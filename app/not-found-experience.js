@@ -9,13 +9,13 @@ import MobileSiteMenu from "./mobile-site-menu";
 const NAVIGATION = [
   { href: "/", label: "Inicio" },
   { href: "/#soluciones", label: "Soluciones" },
-  { href: "/tienda", label: "Catálogo" },
+  { href: "/tienda", label: "Tienda" },
   { href: "/contacto", label: "Contacto" },
 ];
 
 const SUGGESTIONS = [
   { href: "/", icon: Home, label: "Inicio", text: "Vuelve a la portada y conoce Arconet." },
-  { href: "/tienda", icon: Compass, label: "Catálogo", text: "Explora equipos, familias y soluciones." },
+  { href: "/tienda", icon: Compass, label: "Tienda", text: "Explora equipos, familias y soluciones." },
   { href: "/contacto", icon: LifeBuoy, label: "Contacto", text: "Cuéntanos qué necesitas y te orientamos." },
 ];
 

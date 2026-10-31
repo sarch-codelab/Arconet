@@ -34,7 +34,7 @@ export async function generateMetadata({ params }) {
 
   if (!nombre || (categoria && categoria.estado !== "activo")) {
     return {
-      title: "Categoría no encontrada",
+      title: "Línea no encontrada",
       description: "Catálogo técnico de Arconet Honduras.",
       robots: { index: false, follow: true },
     };

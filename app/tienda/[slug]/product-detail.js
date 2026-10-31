@@ -26,7 +26,7 @@ import Footer from "../../footer";
 
 const NAVIGATION = [
   { href: "/tienda#familias", label: "Soluciones" },
-  { href: "/tienda#catalogo-items", label: "Catálogo" },
+  { href: "/tienda#catalogo-items", label: "Tienda" },
   { href: "/#empresa", label: "La empresa" },
   { href: "/contacto", label: "Contacto" },
   { href: "/terminos", label: "Términos" },
@@ -222,7 +222,7 @@ export default function ProductDetail({ slug }) {
       </header>
 
       <div className={styles.breadcrumb}>
-        <Link href="/tienda">Catálogo</Link>
+        <Link href="/tienda">Tienda</Link>
         <ChevronRight size={13} aria-hidden="true" />
         {family.category !== family.title && (
           <>

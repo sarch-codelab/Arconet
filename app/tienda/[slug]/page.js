@@ -7,7 +7,7 @@ export async function generateMetadata({ params }) {
 
   if (!family) {
     return {
-      title: "Catálogo",
+      title: "Tienda",
       description:
         "Equipos y soluciones de fibra óptica, CATV y telecomunicaciones de Arconet Honduras.",
       robots: { index: false, follow: true },

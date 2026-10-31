@@ -48,3 +48,29 @@ describe("/tienda sustituye a /catalogo", () => {
     expect(existsSync("public/catalogo/hero-fiber.jpg")).toBe(true);
   });
 });
+
+describe("el copy visible acompaña al nombre de la ruta", () => {
+  it("la navegación y el pie dicen Tienda, no Catálogo", async () => {
+    const { readFileSync } = await import("node:fs");
+    const footer = readFileSync("app/footer.js", "utf8");
+    expect(footer).toContain('label: "Tienda"');
+    expect(footer).not.toContain('label: "Catálogo"');
+
+    const home = readFileSync("app/home-experience.js", "utf8");
+    expect(home).toContain('{ label: "Tienda", href: "/tienda"');
+    expect(home).not.toContain('{ label: "Catálogo", href: "/tienda"');
+    expect(home).toContain("mobileMenuPrimaryLabel}>Tienda<");
+
+    const menu = readFileSync("app/mobile-site-menu.js", "utf8");
+    expect(menu).toContain('["Tienda", "/tienda"]');
+  });
+
+  it("los títulos de página dicen Tienda", async () => {
+    const { readFileSync } = await import("node:fs");
+    for (const f of ["app/tienda/page.js", "app/tienda/layout.js"]) {
+      const src = readFileSync(f, "utf8");
+      expect(src, f).toContain('title: "Tienda"');
+      expect(src, f).not.toContain('title: "Catálogo"');
+    }
+  });
+});
