@@ -231,3 +231,15 @@ Las cifras se agregan en el servidor, incluyen facturas fiscales sin duplicar
 históricos y mantienen separadas monedas, cotizaciones y cobros confirmados.
 Consulta el alcance, pruebas y límites en
 [`docs/resumen-adaptativo-por-permisos-2026-10-31.md`](docs/resumen-adaptativo-por-permisos-2026-10-31.md).
+
+### Listados y configuración empresarial
+
+Trabajadores, Roles, Categorías, Sucursales y Clientes muestran sólo su píldora
+de sección; sus filtros se eligen en selectores. CAI, serie, rango, vigencia y
+emisor se administran exclusivamente en **Ajustes**, con lectura y escritura
+de ese módulo, revisión de cambios y protección de numeración. La factura
+explica dentro de la emergente qué falta, el envío y su resultado; el borrador
+conserva una referencia para recuperar reintentos sin duplicar la operación.
+Las nuevas emisiones fijan los datos del emisor/autorización al guardarse.
+Consulta requisitos, compatibilidad y pruebas en
+[`docs/filtros-ajustes-emision-2026-10-31.md`](docs/filtros-ajustes-emision-2026-10-31.md).

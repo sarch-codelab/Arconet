@@ -3,16 +3,20 @@
 import PrecioSelector from "./precio-selector";
 import ClienteSelector from "./cliente-selector";
 import ReferenciaSelector from "./referencia-selector";
-import { fiscalPreviewTotals, validCommercialLine, MAX_DOCUMENT_AMOUNT } from "@/lib/ventas-form";
+import { fiscalPreviewTotals, MAX_DOCUMENT_AMOUNT } from "@/lib/ventas-form";
 import salesStyles from "./ventas-form.module.css";
 import { priceAt } from "@/lib/precios";
 import { previewDocumentClick } from "@/lib/api-document";
 import { resolveFiscalTab } from "@/lib/admin-navigation";
 import { canEmitFiscalSale } from "@/lib/permisos";
+import { invoiceIssues } from "@/lib/invoice-feedback";
+import BusinessNotice from "./business-notice";
+import feedbackStyles from "./business-feedback.module.css";
+import { AdminContext } from "./admin-nav";
 
 import { apiFetch as fetch } from "@/lib/api-fetch";
 
-import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   Ban,
@@ -22,7 +26,6 @@ import {
   Plus,
   Receipt,
   RefreshCw,
-  Settings2,
   Trash2,
   X,
 } from "lucide-react";
@@ -34,7 +37,6 @@ import styles from "./facturacion-panel.module.css";
 const TABS = [
   { id: "documentos", label: "Documentos", icon: Receipt, title: "Facturas emitidas" },
   { id: "libro", label: "Libro de ventas", icon: BookOpen, title: "Libro de ventas por rango" },
-  { id: "config", label: "Configuración", icon: Settings2, title: "CAI, serie y datos fiscales" },
 ];
 
 // Las píldoras comerciales pertenecen al padre; las fiscales son locales.
@@ -87,17 +89,25 @@ function formatFecha(value) {
 }
 
 async function request(url, options) {
-  const response = await fetch(url, {
-    cache: "no-store",
-    ...options,
-    headers: { "Content-Type": "application/json", ...(options?.headers || {}) },
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || "No se pudo completar la operación.");
-  return data;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 30000);
+  try {
+    const response = await fetch(url, {
+      cache: "no-store", ...options, signal: controller.signal,
+      headers: { "Content-Type": "application/json", ...(options?.headers || {}) },
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw Object.assign(new Error(data.error || "No se pudo completar la operación."), { httpStatus: response.status, code: data.code, documentoId: data.documentoId });
+    return data;
+  } finally { clearTimeout(timer); }
 }
 
-export default function FacturacionPanel({ session, productos: productosIniciales = [], hideTopbar = false, chromeOnly = false, tabs, activeTab: controlledTab, onTabChange, onClientCreated, saleEditorOpen, onSaleEditorClose, embedded = false, editorRef, detailOnly = false, onDocumentsChange, onStatusChange, onInventoryChanged }) {
+export default function FacturacionPanel({ session, productos: productosIniciales = [], hideTopbar = false, chromeOnly = false, tabs, activeTab: controlledTab, onTabChange, onClientCreated, saleEditorOpen, onSaleEditorClose, embedded = false, editorRef, detailOnly = false, onDocumentsChange, onStatusChange, onInventoryChanged, onDocumentSaved, onInspectDocument, draftMemory }) {
+  const adminContext = useContext(AdminContext);
+  const [initialDraft] = useState(() => draftMemory?.read() || null);
+  const emissionKey = useRef(initialDraft?.emissionKey || null);
+  const [feedback, setFeedback] = useState(null);
+  const [hasAttempt, setHasAttempt] = useState(Boolean(initialDraft?.emissionKey));
   const [innerTab, setInnerTab] = useState("documentos");
   // Las píldoras fiscales mantienen su selección aunque Ventas siga en «Facturas».
   const tab = resolveFiscalTab(controlledTab, innerTab);
@@ -118,18 +128,25 @@ export default function FacturacionPanel({ session, productos: productosIniciale
   const [guardando, setGuardando] = useState(false);
   const [detalle, setDetalle] = useState(null);
 
-  const [clienteId, setClienteId] = useState("");
-  const [clientSnapshot, setClientSnapshot] = useState(null);
+  const [clienteId, setClienteId] = useState(initialDraft?.clienteId || "");
+  const [clientSnapshot, setClientSnapshot] = useState(initialDraft?.clientSnapshot || null);
   const [clientBusy, setClientBusy] = useState(false);
   const [clientCreating, setClientCreating] = useState(false);
   const submitting = useRef(false);
-  const [impuesto, setImpuesto] = useState(15);
-  const [lineas, setLineas] = useState([]);
+  const [impuesto, setImpuesto] = useState(initialDraft?.impuesto ?? 15);
+  const [lineas, setLineas] = useState(initialDraft?.lineas || []);
 
   const [libro, setLibro] = useState(null);
   const [desde, setDesde] = useState(inicioMesISO());
   const [hasta, setHasta] = useState(hoyISO());
-  const [configDraft, setConfigDraft] = useState({ cai: "", serie: "", correlativo: "", nit: "", nombre: "", direccion: "" });
+  useEffect(() => {
+    draftMemory?.write({ clienteId, clientSnapshot, impuesto, lineas, emissionKey: emissionKey.current });
+  }, [clienteId, clientSnapshot, impuesto, lineas, draftMemory]);
+  function goSettings() {
+    if (submitting.current || clientBusy) return;
+    onSaleEditorClose?.();
+    adminContext?.goTo?.("ajustes");
+  }
 
   const setTab = (next) => {
     if (guardando || clientBusy) return;
@@ -153,21 +170,14 @@ export default function FacturacionPanel({ session, productos: productosIniciale
       setDocumentos(records);
       onDocumentsChange?.(records);
       setConfig(cfg || null);
-      setConfigDraft({
-        cai: cfg?.cai || "",
-        serie: cfg?.serie || "",
-        correlativo: cfg?.correlativo ? String(cfg.correlativo) : "",
-        nit: cfg?.nit || "",
-        nombre: cfg?.nombre || "",
-        direccion: cfg?.direccion || "",
-      });
       setError("");
+      setFeedback(current => current?.validation ? null : current);
     } catch (err) {
       setError(err.message || "No se pudo cargar la facturación.");
     } finally {
       setLoading(false);
     }
-  }, [canRead, onDocumentsChange]);
+  }, [canRead, onDocumentsChange, setDocumentos, setConfig, setError, setLoading, setFeedback]);
 
   useEffect(() => { onStatusChange?.({ loading, error }); }, [loading, error, onStatusChange]);
 
@@ -200,22 +210,23 @@ export default function FacturacionPanel({ session, productos: productosIniciale
 
   const totales = useMemo(() => fiscalPreviewTotals(lineas), [lineas]);
 
-  const lineasValidas = totales.total <= MAX_DOCUMENT_AMOUNT && lineas.length > 0 && lineas.every(linea =>
-    validCommercialLine({ ...linea, nombre: linea.descripcion }) &&
-    Number.isFinite(Number(linea.descuento)) && Number(linea.descuento) >= 0 &&
-    Number(linea.descuento) <= Number(linea.cantidad) * Number(linea.precio)
-  );
+  const validationIssues = invoiceIssues({ canEmit, loading, loadError: error, clientBusy, clientCreating, clienteId, lineas, config, recovering: hasAttempt });
+  const canReadSettings = session?.permisos?.includes("ajustes:read");
+  function changedDraft() { setFeedback(null); }
+  function focusFeedback() { requestAnimationFrame(() => document.getElementById("invoice-feedback")?.focus()); }
 
   function rememberProduct(product) {
     setProductos(current => [product, ...current.filter(item => item.id !== product.id)]);
   }
 
   function selectClient(client) {
+    changedDraft();
     setClienteId(client?.id || "");
     setClientSnapshot(client);
   }
 
   function cambiarLinea(key, campo, valor) {
+    changedDraft();
     setLineas((current) =>
       current.map((linea) => {
         if (linea.key !== key) return linea;
@@ -226,6 +237,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
   }
 
   function elegirProducto(key, producto) {
+    changedDraft();
     if (producto) rememberProduct(producto);
     setLineas((current) =>
       current.map((linea) =>
@@ -244,11 +256,19 @@ export default function FacturacionPanel({ session, productos: productosIniciale
   }
 
   function agregarLinea(kind) {
+    changedDraft();
     const line = nuevaLinea(impuesto, kind);
     setLineas(current => current.length >= 100 ? current : [...current, line]);
   }
 
+  function discardDraft() {
+    if (submitting.current || clientBusy) return;
+    if (!window.confirm("¿Descartar este borrador? Si hubo un error de conexión, verifica primero si el documento ya se guardó.")) return;
+    emissionKey.current = null;setHasAttempt(false);setLineas([]);setClienteId("");setClientSnapshot(null);setFeedback({ kind: "info", title: "Borrador descartado", message: "Puedes preparar una nueva venta. No se borró ni anuló ningún documento guardado." });
+  }
+
   function quitarLinea(key) {
+    changedDraft();
     setLineas(current => current.filter(linea => linea.key !== key));
   }
 
@@ -265,20 +285,23 @@ export default function FacturacionPanel({ session, productos: productosIniciale
 
   async function emitir(event) {
     event.preventDefault();
-    if (!canEmit || loading || error || submitting.current || clientBusy || clientCreating) return;
-    if (!clienteId) {
-      sileo.error({ title: "Selecciona un cliente" });
-      return;
+    if (submitting.current) return;
+    if (validationIssues.length) {
+      setFeedback({ kind: "error", title: "Revisa estos datos antes de enviar", issues: validationIssues, validation: true });
+      focusFeedback(); return;
     }
-    if (!lineasValidas) {
-      sileo.error({ title: "Revisa las líneas", description: "Cada línea necesita descripción, cantidad y precio." });
-      return;
+    if (!emissionKey.current) {
+      try { emissionKey.current = crypto.randomUUID(); }
+      catch { setFeedback({ kind: "error", title: "No se pudo preparar el envío", message: "Este navegador no pudo crear una referencia segura del borrador. Usa HTTPS y recarga sin reenviar una operación anterior." });focusFeedback();return; }
     }
+    draftMemory?.write({ clienteId, clientSnapshot, impuesto, lineas, emissionKey: emissionKey.current });
+    setHasAttempt(true);
+    setFeedback({ kind: "pending", title: "Guardando la venta…", message: "Se está validando y guardando una sola operación. No vuelvas a enviarla ni cierres este diálogo." });
     submitting.current = true;
     setGuardando(true);
     try {
       const payload = {
-        tipo: "factura",
+        tipo: "factura", emissionKey: emissionKey.current,
         clienteId,
         impuestoPorcentaje: impuesto,
         items: lineas.map((linea) => ({
@@ -295,11 +318,11 @@ export default function FacturacionPanel({ session, productos: productosIniciale
         body: JSON.stringify(payload),
       });
       const doc = data.documento;
-      sileo.success({
-        title: data.tieneRango ? `Factura ${doc.correlativo} emitida` : "Factura emitida (pendiente de CAI)",
-        description: `Total ${money(doc.total)}. El inventario se descontó de la bodega principal.`,
-        duration: 7000,
-      });
+      const savedMessage = data.replayed ? "Se recuperó el documento ya guardado; no se creó otra factura ni se descontó stock de nuevo." : data.tieneRango ? `Factura ${doc.correlativo} guardada. Total ${money(doc.total)}.` : `Venta guardada por ${money(doc.total)}, pendiente de CAI y sin validez fiscal.`;
+      setFeedback({ kind: "success", title: "Documento guardado", message: savedMessage });
+      onDocumentSaved?.(data);
+      sileo.success({ title: "Documento guardado", description: savedMessage, duration: 7000 });
+      emissionKey.current = null;setHasAttempt(false);
       const records = [doc, ...documentos.filter(record => record.id !== doc.id)].slice(0, 100);
       setDocumentos(records);
       onDocumentsChange?.(records);
@@ -309,11 +332,8 @@ export default function FacturacionPanel({ session, productos: productosIniciale
       setInnerTab("documentos");
       onSaleEditorClose?.();
     } catch (err) {
-      sileo.error({
-        title: "No se pudo emitir la factura",
-        description: err.message,
-        duration: 8000,
-      });
+      setFeedback({ kind: "error", title: err.httpStatus ? "No se pudo guardar la factura" : "No se pudo confirmar el guardado", message: err.httpStatus ? err.message : "La conexión no permitió confirmar la respuesta. El borrador conserva su referencia: reintentar el mismo borrador no genera otra factura. Consulta los documentos guardados si tienes dudas.", documentoId: err.documentoId });
+      focusFeedback();
     } finally {
       submitting.current = false;
       setGuardando(false);
@@ -345,29 +365,6 @@ export default function FacturacionPanel({ session, productos: productosIniciale
       await syncInventory(documento);
     } catch (err) {
       sileo.error({ title: "No se pudo anular", description: err.message });
-    } finally {
-      submitting.current = false;
-      setGuardando(false);
-    }
-  }
-
-  async function guardarConfig(event) {
-    event.preventDefault();
-    if (!canWrite || submitting.current || clientBusy || clientCreating) return;
-    submitting.current = true;
-    setGuardando(true);
-    try {
-      await request("/api/facturacion/config", {
-        method: "PUT",
-        body: JSON.stringify({
-          ...configDraft,
-          correlativo: configDraft.correlativo === "" ? undefined : Number(configDraft.correlativo),
-        }),
-      });
-      sileo.success({ title: "Configuración fiscal guardada" });
-      await cargar();
-    } catch (err) {
-      sileo.error({ title: "No se pudo guardar", description: err.message });
     } finally {
       submitting.current = false;
       setGuardando(false);
@@ -444,7 +441,6 @@ export default function FacturacionPanel({ session, productos: productosIniciale
               ) : null}
             </div>) : null;
 
-  const sinRango = !config?.tieneRango;
 
   return (
     <div className={embedded ? styles.embedded : undefined}>
@@ -452,7 +448,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
         <Topbar
           chromeOnly={chromeOnly}
           title={editorOpen ? "Nueva venta · Factura fiscal" : "Facturas"}
-          subtitle="Consulta y gestiona las facturas emitidas, el libro de ventas y la configuración fiscal. Crea desde Nueva venta."
+          subtitle="Consulta documentos y libro de ventas. La configuración empresarial está centralizada en Ajustes."
           action={
             <button type="button" className={adminStyles.ghostBtn} onClick={cargar}>
               <RefreshCw size={15} /> Actualizar
@@ -471,7 +467,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
           <div className={adminStyles.sectionSubBar}>
             <div className={adminStyles.topbarTitle}>
               <h1>{editorOpen ? "Nueva venta · Factura fiscal" : "Ventas · Facturas"}</h1>
-              <p>{editorOpen ? "Registra esta venta una sola vez con su comprobante fiscal. No necesitas crear antes una venta comercial." : "Consulta y gestiona las facturas emitidas, el libro de ventas y la configuración fiscal. Crea desde Nueva venta."}</p>
+              <p>{editorOpen ? "Registra esta venta una sola vez con su comprobante fiscal. No necesitas crear antes una venta comercial." : "Consulta documentos y libro de ventas. La configuración empresarial está centralizada en Ajustes."}</p>
             </div>
             <div className={adminStyles.topbarActions}>
               <button type="button" className={adminStyles.ghostBtn} onClick={cargar}>
@@ -481,28 +477,13 @@ export default function FacturacionPanel({ session, productos: productosIniciale
           </div>
         )}
 
-        {!embedded && <SectionTabs tabs={canWrite ? TABS : TABS.filter(item => item.id !== "config")} activeTab={editorOpen ? "" : tab} onTabChange={setTab} label="Secciones de facturación" />}
+        {!embedded && <SectionTabs tabs={TABS} activeTab={editorOpen ? "" : tab} onTabChange={setTab} label="Secciones de facturación" />}
 
         {error ? <p className={styles.error} role="alert">{error}</p> : null}
 
-        {sinRango && !detailOnly && !loading ? (
-          <div className={styles.warning} role="status">
-            <AlertTriangle size={16} />
-            <p>
-              Aún no has configurado tu rango autorizado (CAI, serie y
-              correlativo). Las emisiones sin rango quedan <strong>pendientes de CAI</strong>,
-              sin numeración ni validez fiscal. Configurar el rango no numera
-              retroactivamente los documentos anteriores. {canWrite ? <>Revisa la autorización antes de emitir:{" "}
-              <button
-                type="button"
-                className={styles.inlineLinkBtn}
-                onClick={() => setTab("config")}
-              >
-                Ir a Configuración →
-              </button></> : "Solicita al administrador que revise la autorización antes de emitir."}
-            </p>
-          </div>
-        ) : null}
+        {!detailOnly && !loading && config && <BusinessNotice kind={config.state === "ready" ? "success" : config.canIssue === false ? "error" : "warning"} title={config.state === "ready" ? "Autorización fiscal preparada" : config.pending ? "Venta pendiente de autorización fiscal" : "Revisa la autorización antes de emitir"} issues={config.issues || []}>
+          {canReadSettings ? <button type="button" className={adminStyles.ghostBtn} disabled={guardando || clientBusy} onClick={goSettings}>Ir a Ajustes de empresa</button> : <p>Si hace falta autorización, solicita a Administración revisar Ajustes. Este diálogo no modifica CAI ni numeración.</p>}
+        </BusinessNotice>}
 
         {!embedded && !editorOpen && tab === "documentos" && (
           <>
@@ -587,7 +568,13 @@ export default function FacturacionPanel({ session, productos: productosIniciale
 
         <div hidden={!editorOpen}>
           {!embedded && <button type="button" className={adminStyles.ghostBtn} disabled={guardando || clientBusy} onClick={closeEditor}>Cerrar · conservar borrador</button>}
-          <form onSubmit={emitir}>
+          <form onSubmit={emitir} noValidate>
+            <div className={feedbackStyles.editorStatus}>
+              {feedback ? <BusinessNotice id="invoice-feedback" {...feedback}>
+                {feedback.documentoId && <button type="button" className={adminStyles.ghostBtn} onClick={async () => { try { const doc = await request(`/api/facturacion/documentos/${encodeURIComponent(feedback.documentoId)}`);if (onInspectDocument) onInspectDocument(doc);else setDetalle(doc); } catch (err) { setFeedback({ kind: "error", title: "No se pudo consultar el documento", message: err.message }); } }}>Ver documento ya guardado</button>}
+              </BusinessNotice> : <BusinessNotice id="invoice-feedback" kind={validationIssues.length ? "info" : config?.pending || (hasAttempt && config?.canIssue === false) ? "warning" : "success"} title={validationIssues.length ? "Falta completar la venta" : hasAttempt && config?.canIssue === false ? "Verificar el envío anterior" : config?.pending ? "Preparado para guardar pendiente de CAI" : "Preparado para enviar la factura"} issues={validationIssues} message={validationIssues.length ? undefined : hasAttempt && config?.canIssue === false ? "Se puede recuperar un documento ya guardado con esta referencia; no se emitirá uno nuevo sin autorización vigente." : "El servidor validará autorización, precios y existencias antes de confirmar el guardado."} />}
+              {error && <button type="button" className={adminStyles.ghostBtn} disabled={loading} onClick={cargar}>Reintentar carga fiscal · conservar borrador</button>}
+            </div>
             <fieldset className={styles.invoiceGrid} disabled={guardando || !canEmit} aria-label="Nueva venta · Factura fiscal">
               <section className={adminStyles.card}>
                 <header className={adminStyles.cardHeader}>
@@ -604,6 +591,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
                     <select
                       value={String(impuesto)}
                       onChange={(event) => {
+                        changedDraft();
                         const valor = Number(event.target.value);
                         setImpuesto(valor);
                         setLineas((current) =>
@@ -744,14 +732,15 @@ export default function FacturacionPanel({ session, productos: productosIniciale
                 <button
                   type="submit"
                   className={adminStyles.primaryBtn}
-                  disabled={!canEmit || loading || Boolean(error) || guardando || clientBusy || clientCreating || !clienteId || !lineasValidas}
+                  disabled={!canEmit || loading || guardando}
                 >
-                  <Receipt size={16} /> {guardando ? "Emitiendo…" : "Emitir factura"}
+                  <Receipt size={16} /> {guardando ? "Guardando venta…" : hasAttempt && config?.canIssue === false ? "Verificar envío anterior" : config?.pending ? "Guardar venta pendiente de CAI" : "Emitir factura"}
                 </button>
                 <p className={adminStyles.fieldHint}>
                   Se guarda la huella del documento y se descuenta inventario. Si el
                   stock no alcanza, la factura no se emite.
                 </p>
+                <button type="button" className={adminStyles.ghostBtn} disabled={guardando || clientBusy} onClick={discardDraft}>Descartar borrador</button>
               </section>
             </fieldset>
           </form>
@@ -847,82 +836,9 @@ export default function FacturacionPanel({ session, productos: productosIniciale
           </>
         )}
 
-        {!editorOpen && tab === "config" && (
-          <section className={adminStyles.card}>
-            <header className={adminStyles.cardHeader}>
-              <div>
-                <p className={adminStyles.eyebrow}>SENAT</p>
-                <h3>Rango autorizado y datos del emisor</h3>
-              </div>
-            </header>
-            <form className={`${adminStyles.form} ${adminStyles.cardBody}`} onSubmit={guardarConfig}>
-              <div className={adminStyles.fieldGrid}>
-                <label className={adminStyles.field}>
-                  CAI
-                  <input
-                    type="text"
-                    disabled={!canWrite} value={configDraft.cai}
-                    onChange={(event) => setConfigDraft({ ...configDraft, cai: event.target.value })}
-                    placeholder="XXXXXXXX-XXXXXX-XXXXXXXX-XXXXXXXX"
-                  />
-                </label>
-                <label className={adminStyles.field}>
-                  Serie / establecimiento
-                  <input
-                    type="text"
-                    disabled={!canWrite} value={configDraft.serie}
-                    onChange={(event) => setConfigDraft({ ...configDraft, serie: event.target.value })}
-                    placeholder="001-001-01"
-                  />
-                </label>
-                <label className={adminStyles.field}>
-                  Próximo correlativo
-                  <input
-                    type="number"
-                    min="1"
-                    disabled={!canWrite} value={configDraft.correlativo}
-                    onChange={(event) => setConfigDraft({ ...configDraft, correlativo: event.target.value })}
-                    placeholder="1"
-                  />
-                  <small className={adminStyles.fieldHint}>
-                    Solo se usa si CAI y serie están configurados. No lo reinicies sin autorización.
-                  </small>
-                </label>
-                <label className={adminStyles.field}>
-                  RTN del emisor
-                  <input
-                    type="text"
-                    disabled={!canWrite} value={configDraft.nit}
-                    onChange={(event) => setConfigDraft({ ...configDraft, nit: event.target.value })}
-                  />
-                </label>
-                <label className={`${adminStyles.field} ${adminStyles.spanFull}`}>
-                  Razón social
-                  <input
-                    type="text"
-                    disabled={!canWrite} value={configDraft.nombre}
-                    onChange={(event) => setConfigDraft({ ...configDraft, nombre: event.target.value })}
-                    placeholder="Arconet, S.A."
-                  />
-                </label>
-                <label className={`${adminStyles.field} ${adminStyles.spanFull}`}>
-                  Dirección fiscal
-                  <input
-                    type="text"
-                    disabled={!canWrite} value={configDraft.direccion}
-                    onChange={(event) => setConfigDraft({ ...configDraft, direccion: event.target.value })}
-                  />
-                </label>
-              </div>
-
-              <div className={adminStyles.modalActions}>
-                <button type="submit" className={adminStyles.primaryBtn} disabled={!canWrite || guardando}>
-                  {guardando ? "Guardando…" : "Guardar configuración"}
-                </button>
-              </div>
-            </form>
-          </section>
-        )}
+        {!editorOpen && tab === "config" && <BusinessNotice title="La configuración empresarial se trasladó a Ajustes" message="CAI, serie, rango, vigencia y datos del emisor se gestionan exclusivamente en Ajustes de empresa.">
+          {canReadSettings && <button type="button" className={adminStyles.ghostBtn} onClick={goSettings}>Ir a Ajustes de empresa</button>}
+        </BusinessNotice>}
       </div>
 
       {embedded && detailOnly ? detailContent : null}

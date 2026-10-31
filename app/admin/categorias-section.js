@@ -8,8 +8,8 @@ import { compressImage } from "./image-utils";
 import { CATEGORY_STATUSES, categorySlug, createCategoria, deleteCategoria, updateCategoria } from "./categories-store";
 import { formatPrice } from "./products-store";
 import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
-import { Topbar, SectionTabs } from "./topbar";
-import { SECTION_NAV_CONFIG } from "./admin-nav";
+import { Topbar, SectionMarker } from "./topbar";
+import filters from "./list-filters.module.css";
 
 const EMPTY_CATEGORY = {
   id: "",
@@ -24,7 +24,8 @@ const EMPTY_CATEGORY = {
 export default function CategoriasSection({ categorias = [], setCategorias, products = [], setProducts, workers = [], session }) {
   const canWrite = session?.permisos?.includes("categorias:write");
   const canDelete = session?.permisos?.includes("categorias:delete");
-  const [activeTab, setActiveTab] = useState("all");
+  const [status, setStatus] = useState("all");
+  const [usage, setUsage] = useState("all");
   const [query, setQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -58,15 +59,15 @@ export default function CategoriasSection({ categorias = [], setCategorias, prod
     const q = query.trim().toLocaleLowerCase("es");
     return categorias.filter((item) => {
       const count = counts[item.nombre] || 0;
-      if (activeTab === "active" && item.estado !== "activo") return false;
-      if (activeTab === "used" && count === 0) return false;
-      if (activeTab === "empty" && count > 0) return false;
+      if (status !== "all" && item.estado !== status) return false;
+      if (usage === "used" && count === 0) return false;
+      if (usage === "empty" && count > 0) return false;
       if (!q) return true;
       return `${item.nombre} ${item.slug} ${item.descripcion || ""}`
         .toLocaleLowerCase("es")
         .includes(q);
     });
-  }, [categorias, counts, activeTab, query]);
+  }, [categorias, counts, status, usage, query]);
 
   function openCreate() {
     setDraft({ ...EMPTY_CATEGORY });
@@ -187,12 +188,7 @@ export default function CategoriasSection({ categorias = [], setCategorias, prod
       />
 
       <div className={styles.body}>
-        <SectionTabs
-          tabs={SECTION_NAV_CONFIG.categorias?.tabs}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          label="Filtros de categorías"
-        />
+        <SectionMarker label="Categorías" icon={Tags} />
 
         <section className={styles.stats} aria-label="Resumen de categorías">
           <article className={styles.statCard}>
@@ -217,7 +213,7 @@ export default function CategoriasSection({ categorias = [], setCategorias, prod
           </article>
         </section>
 
-        <section className={styles.toolbar} aria-label="Filtros de categorías">
+        <section className={`${styles.toolbar} ${filters.bar}`} aria-label="Filtros de categorías">
           <label className={styles.search}>
             <Search size={16} />
             <input
@@ -228,8 +224,14 @@ export default function CategoriasSection({ categorias = [], setCategorias, prod
               aria-label="Buscar categorías"
             />
           </label>
-          {query && (
-            <button type="button" className={styles.clearBtn} onClick={() => setQuery("")}>
+          <select className={styles.select} aria-label="Filtrar categorías por estado" value={status} onChange={event => setStatus(event.target.value)}>
+            <option value="all">Todos los estados</option><option value="activo">Activas</option><option value="inactivo">Inactivas</option>
+          </select>
+          <select className={styles.select} aria-label="Filtrar categorías por productos" value={usage} onChange={event => setUsage(event.target.value)}>
+            <option value="all">Todas las categorías</option><option value="used">Con productos</option><option value="empty">Sin productos</option>
+          </select>
+          {(query || status !== "all" || usage !== "all") && (
+            <button type="button" className={styles.clearBtn} onClick={() => { setQuery(""); setStatus("all"); setUsage("all"); }}>
               <X size={14} /> Limpiar
             </button>
           )}

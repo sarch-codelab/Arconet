@@ -7,6 +7,7 @@ import { Suspense, lazy, useEffect, useState } from "react";
 import styles from "./admin-experience.module.css";
 import { AdminContext, NAV } from "./admin-nav";
 import { AdminPreferences } from "./admin-preferences";
+import { createFiscalDraftMemory } from "@/lib/invoice-feedback";
 import { SectionErrorBoundary } from "./error-boundary";
 import { useAdminSmoothScroll } from "./use-smooth-scroll";
 import { canAccessSection } from '@/lib/permisos';
@@ -79,6 +80,7 @@ function AdminShell({ session, onLogout, initialSection }) {
   const [roles, setRoles] = useState([]);
   const [sucursales, setSucursales] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [fiscalDraftMemory] = useState(createFiscalDraftMemory);
   const [clientes, setClientes] = useState([]);
 
   const { scrollToTop } = useAdminSmoothScroll();
@@ -196,7 +198,7 @@ function AdminShell({ session, onLogout, initialSection }) {
             />
           ) : section === "ventas" ? (
             <Suspense fallback={<div className={styles.body}>Cargando ventas…</div>}>
-              <VentasSection
+              <VentasSection draftMemory={fiscalDraftMemory}
                 orders={orders}
                 setOrders={setOrders}
                 clientes={clientes}
@@ -218,7 +220,7 @@ function AdminShell({ session, onLogout, initialSection }) {
             // Seccion antigua unificada en "Ventas": redirige para no romper
             // enlaces o historiales del navegador que apunten al id viejo.
             <Suspense fallback={<div className={styles.body}>Cargando ventas…</div>}>
-              <VentasSection
+              <VentasSection draftMemory={fiscalDraftMemory}
                 orders={orders}
                 setOrders={setOrders}
                 clientes={clientes}

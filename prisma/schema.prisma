@@ -568,6 +568,9 @@ model DocumentoFiscal {
   moneda          String              @default("HNL")
   referenciaId    String? // Documento relacionado (anulación o nota)
   pdfHash         String? // Huella SHA-256 del PDF para garantizar inmutabilidad
+  fiscalSnapshot  Json? // Datos del emisor y autorización al emitir; no se rellenan históricos.
+  emissionKey     String? @unique // Referencia idempotente del borrador, nunca una credencial.
+  emissionPayloadHash String? // Evita reutilizar esa referencia con otra venta.
   emitidoPor      String?
   motivoAnulacion String?
   anuladoPor      String?

@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { emitirDocumentoFiscal, TIPOS_DOCUMENTO } from '@/lib/facturacion';
+import { emitirDocumentoFiscal, TIPOS_DOCUMENTO, invoiceRequestHash } from '@/lib/facturacion';
 import { descontarStock, tieneSalidas } from '@/lib/stock-ventas';
 import { requirePermission } from '@/lib/dal';
 import { writeLog } from '@/lib/logs';
@@ -81,9 +81,21 @@ export async function POST(request) {
     return Response.json({ error: "La emisión operativa registra una venta directa, sin convertir históricos comerciales." }, { status: 403 });
   }
 
+  const emissionKey = body?.emissionKey == null ? null : typeof body.emissionKey === "string" ? body.emissionKey.toLowerCase() : "";
+  if (emissionKey !== null && !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(emissionKey)) return Response.json({ error: "La referencia del borrador no es válida. No se envió la factura." }, { status: 400 });
+  const payloadHash = emissionKey ? invoiceRequestHash(body) : null;
   try {
-    const { documento, tieneRango } = await prisma.$transaction(
+    const { documento, tieneRango, replayed } = await prisma.$transaction(
       async (tx) => {
+        if (emissionKey) {
+          await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`fiscal-submit:${emissionKey}`}))`;
+          const saved = await tx.documentoFiscal.findUnique({ where: { emissionKey }, include: { items: true, cliente: true } });
+          if (saved) {
+            if (saved.emitidoPor !== guard.session.correo) throw Object.assign(new Error("La referencia de esta operación ya está en uso. Revisa el documento antes de iniciar otra venta."), { status: 409 });
+            if (saved.emissionPayloadHash !== payloadHash) throw Object.assign(new Error("Este borrador ya se guardó con otros datos. Consulta la factura existente antes de iniciar otra venta."), { status: 409, code: "EMISSION_KEY_CONFLICT", documentoId: saved.id });
+            return { documento: saved, tieneRango: Boolean(saved.cai && saved.correlativo), replayed: true };
+          }
+        }
         const emitido = await emitirDocumentoFiscal({
           tx,
           tipo,
@@ -92,7 +104,7 @@ export async function POST(request) {
           items: Array.isArray(body?.items) ? body.items : [],
           impuestoPorcentaje: Number(body?.impuestoPorcentaje) || undefined,
           actor: guard.session.correo,
-          canDiscount: guard.permisos?.includes("precios:write"),
+          canDiscount: guard.permisos?.includes("precios:write"), emissionKey, emissionPayloadHash: payloadHash,
         });
 
         // La factura descuenta inventario salvo que su venta ya lo haya hecho
@@ -109,19 +121,19 @@ export async function POST(request) {
           }
         }
 
-        return emitido;
+        return { ...emitido, replayed: false };
       },
-      { timeout: 20_000 }
+      { timeout: 20_000, isolationLevel: "ReadCommitted" }
     );
 
-    await writeLog("panel", `${tipo} emitido${documento.correlativo ? ` ${documento.correlativo}` : " (pendiente de CAI)"}`, {
+    if (!replayed) await writeLog("panel", `${tipo} emitido${documento.correlativo ? ` ${documento.correlativo}` : " (pendiente de CAI)"}`, {
       actor: guard.session.correo,
       ruta: "/api/facturacion/documentos",
       detalle: { documentoId: documento.id, total: documento.total, tieneRango },
     });
-    return Response.json({ documento, tieneRango }, { status: 201 });
+    return Response.json({ documento, tieneRango, replayed }, { status: 201 });
   } catch (error) {
-    if (error?.status) return Response.json({ error: error.message }, { status: error.status });
+    if (error?.status) return Response.json({ error: error.message, ...(error.code ? { code: error.code } : {}), ...(error.documentoId ? { documentoId: error.documentoId } : {}) }, { status: error.status });
     if (error?.code === "P2003") {
       return Response.json({ error: "El cliente o el producto indicado no existe." }, { status: 400 });
     }

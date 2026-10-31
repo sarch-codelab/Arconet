@@ -664,3 +664,13 @@ export function SectionTabs({ tabs, activeTab, onTabChange, label = "Filtros de 
     </nav>
   );
 }
+
+
+/** Etiqueta de ubicación: los filtros del listado viven en sus selectores. */
+export function SectionMarker({ label, icon: Icon }) {
+  return <nav className={`${styles.sectionTabs} ${styles.sectionMarker}`} aria-label={`Sección ${label}`}>
+    <span className={`${styles.pillItem} ${styles.pillItemActive}`} aria-current="page">
+      {Icon ? <Icon size={15} aria-hidden="true" /> : null}<span>{label}</span>
+    </span>
+  </nav>;
+}

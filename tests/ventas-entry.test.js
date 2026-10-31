@@ -51,10 +51,11 @@ describe("entrada única a la creación de ventas", () => {
   });
   it("el componente de gestión conserva compatibilidad de consulta sin otra alta", () => {
     const html = render(FacturacionPanel, { activeTab: "facturas", saleEditorOpen: false, session: { permisos: fiscal } });
-    for (const label of ["Documentos", "Libro de ventas", "Configuración"]) expect(buttons(html, label)).toHaveLength(1);
+    for (const label of ["Documentos", "Libro de ventas"]) expect(buttons(html, label)).toHaveLength(1);
+    expect(buttons(html, "Configuración")).toHaveLength(0);
     expect(buttons(html, "Nueva venta")).toHaveLength(0);
     expect(html).not.toContain("Nueva factura");
-    expect(html).toContain("Crea desde Nueva venta");
+    expect(html).toContain("La configuración empresarial está centralizada en Ajustes");
     expect(html).not.toContain("Comprobante comercial");
   });
   it("Facturas tampoco ofrece una tercera alta si se renderiza sin el contenedor de Ventas", () => {

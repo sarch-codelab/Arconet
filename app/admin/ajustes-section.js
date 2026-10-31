@@ -8,12 +8,18 @@ import { Settings, ShieldCheck } from "lucide-react";
 import styles from "./admin-experience.module.css";
 import { useToast } from "./admin-ui";
 import { Topbar } from "./topbar";
+import FiscalSettingsPanel from "./fiscal-settings-panel";
+import BusinessNotice, { focusBusinessNotice } from "./business-notice";
+import business from "./business-feedback.module.css";
 
 export default function AjustesSection({ session, workers = [] }) {
   const [settings, setSettings] = useState(null);
   const savedTheme = useRef(null);
+  const inFlight = useRef(false);
+  const [notice, setNotice] = useState(null);
   const canWrite = session?.permisos?.includes("ajustes:write");
   const [loading, setLoading] = useState(true);
+  const [reload, setReload] = useState(0);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const { show } = useToast();
@@ -29,13 +35,16 @@ export default function AjustesSection({ session, workers = [] }) {
       }
     }).catch((loadError) => { if (active) setError(loadError.message); }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, []);
+  }, [reload]);
 
   async function handleSave(event) {
     event.preventDefault();
-    if (!settings || saving || !canWrite) return;
+    if (!settings || inFlight.current || !canWrite) return;
     const previousTheme = savedTheme.current;
+    focusBusinessNotice("company-settings-feedback");
+    inFlight.current = true;
     setSaving(true);
+    setNotice({ kind: "pending", title: "Guardando datos de empresa…" });
     try {
       const response = await fetch("/api/configuracion", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(settings) });
       const data = await response.json().catch(() => ({}));
@@ -47,9 +56,11 @@ export default function AjustesSection({ session, workers = [] }) {
       if (data.theme && data.theme !== previousTheme) {
         setThemeMode(data.theme === "system" ? "auto" : data.theme === "dark" ? "dark" : "light");
       }
+      setNotice({ kind: "success", title: "Datos de empresa guardados", message: "Los datos actualizados estarán disponibles en las próximas consultas y documentos. Los importes guardados no se convierten al cambiar la moneda general." });
+      window.dispatchEvent(new Event("arconet:company-settings-updated"));
       show("Configuración guardada.");
-    } catch (saveError) { show(saveError.message, "error"); }
-    finally { setSaving(false); }
+    } catch (saveError) { setNotice({ kind: "error", title: "No se pudo guardar la empresa", message: saveError.message }); }
+    finally { inFlight.current = false; setSaving(false); }
   }
 
   function changeField(field, value) {
@@ -60,20 +71,22 @@ export default function AjustesSection({ session, workers = [] }) {
     <>
       <Topbar
         title="Ajustes"
-        subtitle="Configuración general del sistema."
+        subtitle="Datos empresariales, contacto público y autorización fiscal. Cambios sensibles sólo para usuarios autorizados."
         session={session}
         workers={workers}
       />
 
       <div className={styles.body}>
+        <BusinessNotice title="Centro de configuración empresarial" message="Aquí se administran los datos de empresa y CAI. Las credenciales de base de datos, sesiones y correo del servidor no se muestran ni se guardan en este formulario. La apariencia personal de cada trabajador sigue en Mi perfil." />
+        {notice && <BusinessNotice id="company-settings-feedback" {...notice} />}
         <section className={styles.card} aria-label="Configuración general">
           <header className={styles.cardHeader}>
             <h3><Settings size={18} /> Configuración general</h3>
           </header>
-          {loading ? <p className={styles.cardBody}>Cargando configuración…</p> : error ? <div className={styles.cardBody}><p className={styles.dangerText} role="alert">{error}</p><button type="button" className={styles.ghostBtn} onClick={() => window.location.reload()}>Reintentar</button></div> : <form className={styles.form} onSubmit={handleSave}>
+          {loading ? <p className={styles.cardBody}>Cargando configuración…</p> : error ? <div className={styles.cardBody}><p className={styles.dangerText} role="alert">{error}</p><button type="button" className={styles.ghostBtn} onClick={() => { setError("");setLoading(true);setReload(value => value + 1); }}>Reintentar</button></div> : <form className={`${styles.form} ${business.settingsBody}`} onSubmit={handleSave}>
             <div className={styles.fieldGrid}>
               <label className={styles.field}>
-                Nombre de la empresa
+                Nombre comercial de la empresa
                 <input
                   disabled={!canWrite}
                   type="text"
@@ -110,14 +123,15 @@ export default function AjustesSection({ session, workers = [] }) {
                 />
               </label>
               <label className={styles.field}>
-                Moneda
+                Moneda general de visualización
                 <select disabled={!canWrite} value={settings.currency} onChange={(event) => changeField("currency", event.target.value)}>
                   <option value="L">Lempiras (L)</option>
                   <option value="USD">Dólares (USD)</option>
                 </select>
+                <small className={styles.fieldHint}>No convierte precios ni importes ya guardados. La emisión fiscal actual conserva HNL.</small>
               </label>
               <label className={styles.field}>
-                Tema
+                Tema del sitio público
                 <select disabled={!canWrite} value={settings.theme} onChange={(event) => changeField("theme", event.target.value)}>
                   <option value="light">Claro</option>
                   <option value="dark">Oscuro</option>
@@ -136,6 +150,8 @@ export default function AjustesSection({ session, workers = [] }) {
             </footer>
           </form>}
         </section>
+
+        <FiscalSettingsPanel session={session} />
 
         <section className={styles.card} aria-label="Información del sistema">
           <header className={styles.cardHeader}>
