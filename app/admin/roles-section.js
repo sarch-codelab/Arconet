@@ -72,6 +72,15 @@ export default function RolesSection({ roles = [], setRoles, workers = [], sessi
     setModalOpen(true);
   }
 
+  // Permisos del rol que el usuario actual NO puede otorgar (porque su propio
+  // rol no los tiene). Se guardan aparte y se reenvían intactos al guardar.
+  // Sin esto, al guardar se enviaba solo lo marcado y el rol perdía en
+  // silencio todos los permisos que su editor no podía conceder: un rol como
+  // Bodega quedaba reducido a "solo Productos" sin ningún aviso.
+  function permisosNoOtorgables(role) {
+    return (role?.permisos || []).filter((perm) => !myPermisos.includes(perm));
+  }
+
   function closeModal() {
     setModalOpen(false);
     setEditingId(null);
@@ -125,10 +134,16 @@ export default function RolesSection({ roles = [], setRoles, workers = [], sessi
       notifyError("El nombre del rol es obligatorio.");
       return;
     }
+    // Se conservan los permisos que este usuario no puede otorgar: si no se
+    // reenvían, el rol los pierde al guardar (ver permisosNoOtorgables).
+    const original = roles.find((role) => role.id === editingId);
+    const conservados = permisosNoOtorgables(original);
+    const permisosFinales = [...new Set([...draft.permisos, ...conservados])];
+
     const payload = {
       nombre,
       descripcion: draft.descripcion.trim(),
-      permisos: draft.permisos,
+      permisos: permisosFinales,
       estado: draft.estado,
     };
 
@@ -474,6 +489,17 @@ export default function RolesSection({ roles = [], setRoles, workers = [], sessi
                     {draftSections.length
                       ? `Verá ${draftSections.length} sección${draftSections.length === 1 ? "" : "es"} además de Mi perfil: ${draftSections.map((m) => m.label).join(", ")}.`
                       : "Sin secciones marcadas: solo verá Mi perfil."}
+                  </p>
+                )}
+
+                {/* Aviso explícito: sin esto, los permisos que el editor no
+                    puede otorgar (casillas deshabilitadas) desaparecían del rol
+                    al guardar y no había forma de saberlo. */}
+                {!editingSuper && permisosNoOtorgables(roles.find((r) => r.id === editingId)).length > 0 && (
+                  <p className={styles.permMatrixNote}>
+                    {permisosNoOtorgables(roles.find((r) => r.id === editingId)).length} permiso(s)
+                    de este rol no los puedes otorgar con tu propio rol. Se conservan tal cual
+                    al guardar; solo puedes cambiar el resto.
                   </p>
                 )}
               </section>

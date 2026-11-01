@@ -137,3 +137,32 @@ describe("Kardex: la transferencia muestra a qué bodega llegó", () => {
     expect(Number(json.movimientos[0].costoUnitario)).toBe(42.5);
   });
 });
+
+describe("Kardex: catalogo de pares producto+bodega ya movidos", () => {
+  it("con existentes=1 devuelve solo los pares distintos, sin paginar", async () => {
+    m.findMany.mockResolvedValue([
+      { productoId: "p1", bodegaId: "b-sps" },
+      { productoId: "p2", bodegaId: "b-ceiba" },
+    ]);
+
+    const json = await (await pedir("?existentes=1")).json();
+
+    expect(m.findMany).toHaveBeenCalledTimes(1);
+    expect(m.findMany.mock.calls[0][0].distinct).toEqual(["productoId", "bodegaId"]);
+    expect(json.existentes).toEqual([
+      { productoId: "p1", bodegaId: "b-sps" },
+      { productoId: "p2", bodegaId: "b-ceiba" },
+    ]);
+    expect(json.movimientos).toEqual([]);
+    // No debe paginar ni contar el kardex para esta consulta.
+    expect(m.count).not.toHaveBeenCalled();
+  });
+
+  it("respeta los filtros de producto y bodega al calcular los pares", async () => {
+    m.findMany.mockResolvedValue([]);
+
+    await pedir("?existentes=1&productoId=p9&bodegaId=b-sps");
+
+    expect(m.findMany.mock.calls[0][0].where).toEqual({ productoId: "p9", bodegaId: "b-sps" });
+  });
+});

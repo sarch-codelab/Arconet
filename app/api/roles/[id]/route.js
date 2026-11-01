@@ -66,6 +66,15 @@ export async function PATCH(request, { params }) {
           { status: 403 },
         );
       }
+
+      // Los permisos del rol que el editor no puede otorgar tampoco puede
+      // quitarlos. Antes se guardaba la lista recibida tal cual, así que un
+      // editor con menos permisos borraba en silencio los del rol editado
+      // (caso real: el rol Bodega se quedaba solo con "Productos").
+      const noOtorgables = existing.permisos.filter((permiso) => !guard.permisos.includes(permiso));
+      if (noOtorgables.length) {
+        data.permisos = [...new Set([...data.permisos, ...noOtorgables])];
+      }
     }
 
     const updated = await prisma.rol.update({ where: { id }, data });
