@@ -39,6 +39,11 @@
   z-index: 30;
   height: 74px;
   display: grid;
+  /* El menú móvil (.root de MobileSiteMenu) vive FUERA de esta retícula: se
+     oculta por defecto y, cuando aparece (<=1080px), se ancla con
+     position:absolute para no consumir una columna. Si ocupara una celda, la
+     nav y el botón se correrían un lugar y el header quedaría descuadrado.
+     (No se usa position:relative porque rompería el sticky del header.) */
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 24px;
@@ -57,6 +62,25 @@
   display: block;
   width: 100%;
   height: auto;
+}
+
+/* MobileSiteMenu se oculta por defecto (.root{display:none}) y su propio CSS lo
+   vuelve a mostrar en <=1080px. Aquí se saca de la retícula del header: sin
+   esto consumía la columna central, empujaba la nav y el botón una celda y en
+   <=760px los encimaba. Solo existe en pantallas chicas, igual que en la ficha
+   de producto. */
+.header > div {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .header > div {
+    position: fixed;
+    top: 74px;
+    right: clamp(14px, 2.4vw, 28px);
+    z-index: 45;
+    display: inline-flex;
+  }
 }
 
 .nav {
@@ -1051,8 +1075,11 @@
   color: #101827;
 }
 
+/* --accent-ink en oscuro es #7fa6ff (azul claro). Con color:#fff heredado el
+   texto quedaba en 2.39:1 de contraste: practicamente invisible. */
 :global(html[data-theme="dark"]) .primaryButton {
   background: var(--accent-ink);
+  color: #101827;
 }
 
 :global(html[data-theme="dark"]) .primaryButton:hover {
@@ -1116,15 +1143,9 @@
 }
 
 @media (max-width: 700px) {
-  .header {
-    grid-template-columns: 1fr auto;
-    padding: 0 20px;
-  }
-
-  .nav {
-    display: none;
-  }
-
+  /* El header se resuelve en el bloque de 760px de más abajo: aquí solo se
+     ajustaban medidas. Antes este bloque declaraba 2 columnas y el de 760 las
+     devolvía a 3, así que en pantallas chicas el botón quedaba fuera de sitio. */
   .hero {
     padding: 40px 20px;
   }
@@ -1148,7 +1169,18 @@
 }
 
 @media (max-width: 760px) {
-  .header { grid-template-columns: auto 1fr auto; gap: 10px; padding: 0 14px; }
+  /* Header en móvil: marca a la izquierda, botón de cotización a la derecha y
+     la nav oculta. El menú móvil (.header > div) flota debajo, fuera de la
+     retícula, así que no necesita columna propia. */
+  .header {
+    /* Marca y acciones; la columna central queda como separador flexible. */
+    grid-template-columns: auto 1fr auto;
+    gap: 10px;
+    padding: 0 14px;
+  }
   .nav { display: none; }
+  /* Solo quedan dos hijos en flujo (marca y botón): se fijan las columnas
+     explícitamente para que el botón no caiga en la columna central. */
+  .header .brand { grid-column: 1; }
   .headerAction { grid-column: 3; }
 }

@@ -44,8 +44,12 @@ import styles from "./category-products.module.css";
 import Footer from "../../../footer";
 import MobileSiteMenu from "../../../mobile-site-menu";
 
+// Misma navegación que la ficha de producto: aquí antes había un solo enlace
+// ("Tienda"), así que el menú se veía como una etiqueta suelta en el centro.
 const NAVIGATION = [
-  { href: "/tienda#catalogo-items", label: "Tienda" },
+  { href: "/tienda", label: "Soluciones" },
+  { href: "/#empresa", label: "La empresa" },
+  { href: "/contacto", label: "Contacto" },
 ];
 
 const SUPPORT_ITEMS = [
@@ -189,8 +193,12 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
           <Image src="/arconet.png" alt="Arconet" width={2172} height={362} priority />
         </Link>
         <MobileSiteMenu />
-        <nav className={styles.nav} aria-label="Navegación principal" style={{ position: "fixed", right: 24, top: 100, zIndex: 100 }}>
-          {NAVIGATION.map((item) => <a key={item.label} href={item.href} style={{ fontSize: "14px", textTransform: "uppercase", letterSpacing: "0.5px" }}>{item.label}</a>)}
+        <nav className={styles.nav} aria-label="Navegación principal">
+          {NAVIGATION.map((item) => (
+            <a key={item.label} href={item.href}>
+              {item.label}
+            </a>
+          ))}
         </nav>
         <button
           type="button"
