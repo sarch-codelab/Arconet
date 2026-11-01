@@ -23,6 +23,7 @@ async function getProduct(id) {
       sku: producto.sku,
       categoria: producto.categoria,
       marca: producto.marca || "",
+      garantia: producto.garantia || "",
       unidad: producto.unidad || "Unidad",
       descripcion: producto.descripcion || "",
       codigoBarras: producto.codigoBarras || "",

@@ -32,6 +32,7 @@ import { useCart } from "../../../cart-context";
 import Footer from "../../../footer";
 import styles from "./product-page.module.css";
 import MobileSiteMenu from "../../../mobile-site-menu";
+import ProductBrand from "./product-brand";
 
 const CATEGORY_ICONS = {
   "Soluciones de Preconectorizado": Cable,
@@ -270,6 +271,9 @@ export default function ProductPage({ product }) {
             {product.marca ? ` · ${product.marca}` : ""} · {product.unidad}
           </p>
 
+          {/* Identidad del fabricante: logo sin marco, nombre y garantía. */}
+          <ProductBrand marca={product.marca} garantia={product.garantia} />
+
           {product.descripcion ? (
             <p className={styles.description}>{product.descripcion}</p>
           ) : null}
@@ -284,28 +288,38 @@ export default function ProductPage({ product }) {
             </span>
           </div>
 
+          {/* Selector de cantidad y botón de compra en un solo bloque: el
+              - número + va pegado al botón para que se lea como una unidad. */}
           <div className={styles.actions}>
-            <div className={styles.qty}>
+            <div className={styles.compra}>
+              <div className={styles.qty} role="group" aria-label="Cantidad">
+                <button
+                  type="button"
+                  onClick={() => setQuantity((value) => Math.max(1, value - 1))}
+                  aria-label="Quitar una unidad"
+                  disabled={quantity <= 1}
+                >
+                  <Minus size={15} aria-hidden="true" />
+                </button>
+                <span aria-live="polite" aria-label={`Cantidad: ${quantity}`}>{quantity}</span>
+                <button
+                  type="button"
+                  onClick={() => setQuantity((value) => Math.min(999, value + 1))}
+                  aria-label="Agregar una unidad"
+                >
+                  <Plus size={15} aria-hidden="true" />
+                </button>
+              </div>
               <button
                 type="button"
-                onClick={() => setQuantity((value) => Math.max(1, value - 1))}
-                aria-label="Quitar una unidad"
+                className={styles.primary}
+                onClick={handleAddToQuote}
+                disabled={soldOut}
               >
-                <Minus size={15} aria-hidden="true" />
-              </button>
-              <span aria-live="polite">{quantity}</span>
-              <button
-                type="button"
-                onClick={() => setQuantity((value) => value + 1)}
-                aria-label="Agregar una unidad"
-              >
-                <Plus size={15} aria-hidden="true" />
+                {soldOut ? "Agotado" : "Añadir al Carrito"}
+                <ShoppingCart size={16} aria-hidden="true" />
               </button>
             </div>
-            <button type="button" className={styles.primary} onClick={handleAddToQuote}>
-              Añadir a cotización
-              <ShoppingCart size={16} aria-hidden="true" />
-            </button>
           </div>
 
           <Link className={styles.secondary} href="/contacto">
