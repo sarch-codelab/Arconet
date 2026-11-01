@@ -145,14 +145,27 @@ export default function CatalogoExperience() {
     () =>
       catalogCategories.map((category) => {
         const family = findFamily(category.slug) || findFamily(category.nombre);
+        // Prioridad de la imagen de la tarjeta:
+        //   1. Lo que se subió desde el panel. Se guarda como data URL, así que
+        //      se distingue de las rutas del proyecto sin campos extra: si la
+        //      categoría pasó por el panel, esa foto manda sobre la ilustración.
+        //   2. La ilustración 3D de la línea.
+        //   3. La foto de la categoría (rutas del seed).
+        // Antes la ilustración iba primero, así que cambiar la foto en el panel
+        // no tenía ningún efecto sobre la tarjeta.
+        const subida = typeof category.foto === "string" && category.foto.startsWith("data:");
+        const foto = subida ? category.foto : "";
+
         return {
           title: category.nombre,
           text: category.descripcion || family?.summary || "Explora esta línea.",
           slug: category.slug,
-          // Las tarjetas usan una ilustración 3D por línea. La foto que
-          // guarda la categoría se sigue usando en la ficha y en el
-          // encabezado, pero aquí rompía la placa pastel.
-          image: LINE_ART[category.slug] || category.foto || family?.image || "/catalogo/hero-fiber.jpg",
+          image:
+            foto ||
+            LINE_ART[category.slug] ||
+            category.foto ||
+            family?.image ||
+            "/catalogo/hero-fiber.jpg",
         };
       }),
     [catalogCategories]
@@ -624,12 +637,15 @@ export default function CatalogoExperience() {
                 <h3>{example.title}</h3>
               </div>
               <div className={styles.exampleVisual}>
+                {/* Las ilustraciones son 3:2 y las fotos que se suban desde el
+                    panel pueden ser de cualquier proporción; el CSS las cubre
+                    con object-fit, así que basta un tamaño base razonable. */}
                 <Image
                   src={example.image}
                   alt={`${example.title} de Arconet`}
-                  width={900}
-                  height={700}
-                  unoptimized
+                  width={1200}
+                  height={800}
+                  unoptimized={String(example.image).startsWith("data:")}
                   sizes="(max-width: 760px) 92vw, 30vw"
                   className={styles.exampleImage}
                 />

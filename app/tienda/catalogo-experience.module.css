@@ -1311,6 +1311,16 @@
 
 .exampleCopy h3 {
   max-width: 84%;
+  /* Sobre el pastel de las ilustraciones el texto oscuro se lee solo. Cuando
+     la tarjeta usa una foto subida desde el panel puede venir oscura, así que
+     el título lleva su propio respaldo claro difuminado y se lee en ambos
+     casos. */
+  padding: 6px 12px;
+  margin: -6px -12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.66);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   color: #16203a;
   font-family: var(--font-heading), system-ui, sans-serif;
   font-size: clamp(15px, 1.25vw, 19px);
@@ -1331,7 +1341,7 @@
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.86);
+  background: rgba(255, 255, 255, 0.9);
   color: #16203a;
   box-shadow: 0 4px 14px -6px rgba(18, 32, 74, 0.45);
   transition: transform 260ms ease, background 260ms ease;

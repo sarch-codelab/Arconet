@@ -76,6 +76,28 @@ describe("líneas de producto con placas pastel", () => {
     expect(css).not.toMatch(/\.exampleVisual \{ max-width: 260px; \}/);
   });
 
+  it("la foto subida desde el panel manda sobre la ilustración", () => {
+    const js = readFileSync(JS, "utf8");
+    // El panel guarda la imagen como data URL; es lo único que hay que
+    // distinguir para saber que la categoría se editó a mano.
+    expect(js).toContain('category.foto.startsWith("data:")');
+    // El orden importa: si la ilustración va primero, cambiar la foto en el
+    // panel no tiene ningún efecto sobre la tarjeta.
+    const bloque = js.slice(js.indexOf("const subida"), js.indexOf("/catalogo/hero-fiber.jpg"));
+    const posFoto = bloque.indexOf("foto ||");
+    const posArte = bloque.indexOf("LINE_ART[category.slug]");
+    expect(posFoto).toBeGreaterThan(-1);
+    expect(posArte).toBeGreaterThan(-1);
+    expect(posFoto).toBeLessThan(posArte);
+  });
+
+  it("el título se lee también sobre una foto oscura del panel", () => {
+    const css = readFileSync(CSS, "utf8");
+    const bloque = css.match(/\.exampleCopy h3 \{[\s\S]*?\n\}/)?.[0] || "";
+    expect(bloque).toMatch(/background:\s*rgba\(255, 255, 255/);
+    expect(bloque).toContain("backdrop-filter");
+  });
+
   it("se adapta a móvil sin desbordar", () => {
     const css = readFileSync(CSS, "utf8");
     expect(css).toMatch(/\.exampleGrid \{ grid-template-columns: 1fr;/);
