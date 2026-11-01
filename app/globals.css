@@ -25,6 +25,8 @@ html[data-theme="dark"] {
   --surface: #151b23;
   --surface-2: #1b222c;
   --accent-ink: #7fa6ff;
+  /* Texto legible sobre el acento claro del tema oscuro. */
+  --badge-ink: #0e1116;
   --topbar: rgba(14, 17, 22, 0.92);
 }
 
@@ -161,7 +163,8 @@ textarea {
   place-items: center;
   border-radius: 999px;
   background: var(--accent-ink);
-  color: #fff;
+  /* Sobre el azul claro del tema oscuro (#7fa6ff) el blanco daba 2.39:1. */
+  color: var(--badge-ink, #fff);
   font-size: 10px;
   font-style: normal;
   font-weight: 700;

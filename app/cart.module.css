@@ -83,7 +83,10 @@
   letter-spacing: -0.01em;
 }
 
-.panelTitle span {
+/* Solo el subtítulo ("Sin productos aún"), no el recuadro del icono: antes
+   .panelTitle span (0,1,1) le ganaba a .panelIcon (0,1,0) y el icono salía
+   gris en lugar de azul. */
+.panelTitle > div > span {
   display: block;
   margin-top: 2px;
   color: var(--muted);
@@ -167,6 +170,67 @@
 .emptyButton:hover {
   transform: translateY(-1px);
   box-shadow: 0 8px 20px rgba(21, 68, 181, 0.35);
+}
+
+/* Atajos del estado vacío */
+
+.emptyShortcuts {
+  width: 100%;
+  max-width: 320px;
+  margin-top: 26px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+
+.emptyShortcutsTitle {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.emptyChips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.emptyChip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 160ms ease, color 160ms ease, background 160ms ease;
+}
+
+.emptyChip:hover,
+.emptyChip:focus-visible {
+  border-color: var(--accent-ink);
+  color: var(--accent-ink);
+  background: var(--surface-2);
+}
+
+.emptyHelp {
+  margin: 20px 0 0;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.emptyHelp a {
+  color: var(--accent-ink);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 /* Lista */

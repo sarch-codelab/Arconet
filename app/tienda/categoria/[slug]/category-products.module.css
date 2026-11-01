@@ -1070,9 +1070,12 @@
   border-color: var(--accent-ink);
 }
 
+/* El botón de cotización tiene fondo oscuro #171a22 en ambos temas, así que su
+   recuadro debe seguir en blanco: con background rgba(16,24,39,.1) e icono
+   #101827 el carrito quedaba en 1.02:1 de contraste (invisible). */
 :global(html[data-theme="dark"]) .headerAction span {
-  background: rgba(16, 24, 39, 0.1);
-  color: #101827;
+  background: #ffffff;
+  color: #0d1422;
 }
 
 /* --accent-ink en oscuro es #7fa6ff (azul claro). Con color:#fff heredado el

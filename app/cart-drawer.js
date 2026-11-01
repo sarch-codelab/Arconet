@@ -23,6 +23,14 @@ import { copyText } from "@/lib/clipboard";
 
 const SUBJECT = "Solicitud de cotización — Arconet";
 
+// Líneas reales del catálogo: mismas etiquetas que el menú de soluciones.
+const SHORTCUTS = [
+  { label: "Preconectorizado", href: "/tienda/categoria/soluciones-de-preconectorizado" },
+  { label: "Herrajes", href: "/tienda/categoria/herrajes" },
+  { label: "Gabinetes y racks", href: "/tienda/categoria/gabinetes-y-racks" },
+  { label: "Equipos de medición", href: "/tienda/categoria/instrumentos-de-medicion-optica" },
+];
+
 export default function CartDrawer() {
   const { email: CONTACT_EMAIL } = useContact();
   const { items, count, isOpen, close, setQuantity, removeItem, clear } = useCart();
@@ -105,11 +113,34 @@ export default function CartDrawer() {
             </span>
             <p className={styles.emptyTitle}>Todavía no agregaste nada.</p>
             <p className={styles.emptyHint}>
-              Suma líneas del catálogo y armamos tu pedido o cotización en un solo lugar.
+              Agrega productos desde la tienda y preparamos tu pedido o cotización en un solo lugar.
             </p>
             <Link className={styles.emptyButton} href="/tienda#catalogo-items" onClick={close}>
               Explorar catálogo <ArrowUpRight size={15} />
             </Link>
+
+            {/* Atajos: el panel se quedaba con medio metro de vacío y para
+                llegar a algo había que salir a la tienda y buscar. */}
+            <nav className={styles.emptyShortcuts} aria-label="Líneas destacadas">
+              <p className={styles.emptyShortcutsTitle}>Empieza por una línea</p>
+              <div className={styles.emptyChips}>
+                {SHORTCUTS.map((shortcut) => (
+                  <Link
+                    key={shortcut.href}
+                    className={styles.emptyChip}
+                    href={shortcut.href}
+                    onClick={close}
+                  >
+                    {shortcut.label}
+                  </Link>
+                ))}
+              </div>
+            </nav>
+
+            <p className={styles.emptyHelp}>
+              ¿No sabes qué necesitas?{" "}
+              <Link href="/contacto" onClick={close}>Te asesoramos</Link>
+            </p>
           </div>
         ) : (
           <>

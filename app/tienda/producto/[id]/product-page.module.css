@@ -402,7 +402,8 @@
   position: relative;
   display: grid;
   place-items: center;
-  color: var(--blue);
+  /* --blue es #1544b5 en ambos temas; sobre el botón #171a22 daba 2.09:1. */
+  color: #ffffff;
 }
 
 /* ---------------- Migas ---------------- */
