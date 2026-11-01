@@ -1,60 +1,35 @@
-"use client";
+import { isLocalPreviewAuthEnabled } from "@/lib/local-preview-auth";
+import LocalPreviewEntry from "../../local-preview-entry";
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/session";
+import NuevaVenta from "./nueva-venta";
 
-import { useEffect, useRef } from "react";
-import { Receipt } from "lucide-react";
-import adminStyles from "../admin-experience.module.css";
-import styles from "../ventas-section.module.css";
-import FacturacionPanel from "../facturacion-panel";
-import { useSession } from "@/lib/session"; // or whatever session hook
-import { allowedSalesCreationModes } from "@/lib/admin-navigation";
+export const metadata = {
+  title: "Nueva venta · Factura fiscal",
+  description: "Registro de venta fiscal con previsualización de la factura en vivo.",
+  robots: { index: false, follow: false },
+};
 
-// Esta página se renderiza en el lado cliente (Next.js App Router)
-// para que el estado del formulario y la previsualización en vivo funcionen.
-export default function NuevaVentaPage() {
-  // Simulación de sesión (en producción se obtiene del contexto o hook)
-  // El código real debe usar el contexto de sesión del panel.
-  // Aquí asumimos que el componente padre o un hook provee la sesión.
-  // Para simplificar, importamos el contexto del panel si es posible.
-  const session = undefined; // TODO: obtener sesión real
-  const permisos = session?.permisos || [];
-  const canCreateSale = allowedSalesCreationModes(permisos).includes("fiscal");
+export const dynamic = "force-dynamic";
 
-  const fiscalEditor = useRef(null);
-
-  // Si no tiene permisos, redirigir (en producción usar next/navigation redirect)
-  // useEffect(() => {
-  //   if (!canCreateSale) window.location.href = "/panel-administrativo/ventas";
-  // }, [canCreateSale]);
-
-  // Si no hay permisos, mostramos un aviso (en lugar de redirigir en cliente)
-  if (!canCreateSale) {
+/**
+ * Página completa de nueva venta (no emergente): el panel administrative
+ * abre este route con los datos de la venta y la previsualización en vivo
+ * de la factura a la derecha.
+ */
+export default async function NuevaVentaPage() {
+  const session = await getSession();
+  if (isLocalPreviewAuthEnabled()) {
     return (
-      <div className={adminStyles.body}>
-        <p className={styles.loadError} role="alert">
-          No tienes permisos para crear una venta fiscal.
-        </p>
-      </div>
+      <LocalPreviewEntry
+        protectedPage
+        hasCookieSession={Boolean(session)}
+        render={(sesion) => <NuevaVenta session={sesion} />}
+      />
     );
   }
-
-  return (
-    <div className={adminStyles.body}>
-      <header className={adminStyles.modalHead} style={{ marginBottom: "24px" }}>
-        <div>
-          <p className={adminStyles.eyebrow}>Factura fiscal · ISV e inventario</p>
-          <h2>Nueva venta</h2>
-        </div>
-      </header>
-
-      <FacturacionPanel
-        embedded
-        editorRef={fiscalEditor}
-        hideTopbar
-        session={session}
-        saleEditorOpen={true}
-        detailOnly={false}
-        onSaleEditorClose={() => window.location.href = "/panel-administrativo/ventas"}
-      />
-    </div>
-  );
+  if (!session) {
+    redirect("/login");
+  }
+  return <NuevaVenta session={session} />;
 }

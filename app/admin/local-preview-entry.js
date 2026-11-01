@@ -9,7 +9,9 @@ import styles from "./admin-experience.module.css";
 
 // Solo se monta contra la base aislada. El HTML inicial no contiene datos
 // privados: se valida la sesión real antes de montar el panel y sus consultas.
-export default function LocalPreviewEntry({ protectedPage = false, hasCookieSession = false, requestedSection = "" }) {
+// `render` permite mostrar una página completa (p. ej. Nueva venta) con la
+// sesión verificada, en vez del panel completo.
+export default function LocalPreviewEntry({ protectedPage = false, hasCookieSession = false, requestedSection = "", render }) {
   const router = useRouter();
   const [state, setState] = useState({ loading: true, session: null, error: "" });
   const [retry, setRetry] = useState(0);
@@ -51,6 +53,8 @@ export default function LocalPreviewEntry({ protectedPage = false, hasCookieSess
     </main>
   );
   if (!state.session) return <AdminLogin />;
+
+  if (render) return render(state.session);
 
   const permisos = state.session.permisos;
   const initialSection = defaultAdminSection(permisos, requestedSection);

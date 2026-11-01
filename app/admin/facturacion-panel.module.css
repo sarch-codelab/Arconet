@@ -238,3 +238,45 @@
 }
 
 .embedded .resumen { position: static; }
+
+/* Nueva venta a página completa: el formulario deja un espacio fijo a la
+   derecha para la previsualización de la factura en vivo. En pantallas
+   pequeñas la previsualización se acomoda debajo del formulario. */
+.editorLayout {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 430px);
+  align-items: start;
+}
+
+.editorLayout .invoiceGrid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+}
+
+.editorLayout .resumen {
+  grid-column: 1 / -1;
+  position: static;
+}
+
+.embedded .editorLayout {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 430px);
+  align-items: start;
+}
+
+.embedded .editorLayout .invoiceGrid {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+}
+
+.embedded .editorLayout .resumen {
+  grid-column: 1 / -1;
+  position: static;
+}
+
+@media (max-width: 1240px) {
+  .editorLayout,
+  .embedded .editorLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
