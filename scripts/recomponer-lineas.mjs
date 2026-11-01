@@ -7,9 +7,9 @@
 //   3. vuelve a colocar el objeto recortado, con alfa suave en los bordes para
 //      conservar la sombra de contacto, centrado en un lienzo apaisado.
 
-const sharp = require("sharp");
-const fs = require("fs");
-const path = require("path");
+import sharp from "sharp";
+import fs from "node:fs";
+import path from "node:path";
 
 const ANCHO = 1200;
 const ALTO = 800; // 1.5:1, cerca del 1.55 de la tarjeta
@@ -162,7 +162,7 @@ async function procesar(entrada, salida) {
   );
 }
 
-(async () => {
+async function main() {
   const dir = "public/catalogo/lineas";
   const dest = path.join(dir, "cards");
   fs.mkdirSync(dest, { recursive: true });
@@ -171,4 +171,6 @@ async function procesar(entrada, salida) {
     await procesar(path.join(dir, f), path.join(dest, f));
   }
   console.log("listo:", archivos.length, "imágenes");
-})();
+}
+
+main();
