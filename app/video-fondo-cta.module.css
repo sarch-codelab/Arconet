@@ -25,18 +25,23 @@
 }
 
 /* El video es claro (cintas lilas sobre blanco) y el texto de estas bandas es
-   blanco. El velo oscurece solo donde cae el texto —a la izquierda— y deja
-   ver las cintas a la derecha, igual que se hizo con la foto del hero. */
+   blanco. El velo oscurece solo la franja donde cae el texto y se aclara
+   rápido hacia la derecha, donde quedan las cintas a la vista.
+
+   La transición se cierra antes del 60% a propósito: así el lado derecho queda
+   limpio de verdad, sin el degradado azulado que se comía el brillo. */
 .velo {
   position: absolute;
   inset: 0;
   background:
     linear-gradient(
-      100deg,
-      rgba(6, 17, 48, 0.92) 0%,
-      rgba(8, 22, 60, 0.86) 32%,
-      rgba(10, 26, 70, 0.58) 62%,
-      rgba(12, 30, 78, 0.34) 100%
+      96deg,
+      rgba(6, 17, 48, 0.9) 0%,
+      rgba(7, 20, 54, 0.78) 22%,
+      rgba(8, 23, 62, 0.42) 42%,
+      rgba(9, 25, 68, 0.12) 56%,
+      rgba(9, 25, 68, 0) 66%,
+      rgba(9, 25, 68, 0) 100%
     );
 }
 
@@ -51,8 +56,9 @@
       linear-gradient(
         180deg,
         rgba(6, 17, 48, 0.9) 0%,
-        rgba(9, 24, 66, 0.82) 55%,
-        rgba(9, 24, 66, 0.9) 100%
+        rgba(8, 22, 60, 0.8) 45%,
+        rgba(8, 23, 62, 0.42) 68%,
+        rgba(8, 23, 62, 0.28) 100%
       );
   }
 }
