@@ -279,6 +279,9 @@ export default function HomeExperience() {
   const [scrollReady, setScrollReady] = useState(false);
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  // Desplegable de "Acceder": se abre al pasar el mouse o al enfocar con
+  // teclado, y se cierra al salir del área o con Escape.
+  const [accessOpen, setAccessOpen] = useState(false);
 useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth > 760) setMenuOpen(false);
@@ -319,6 +322,7 @@ useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
         setMenuOpen(false);
+        setAccessOpen(false);
         if (trigger instanceof HTMLElement && trigger.isConnected) {
           trigger.focus({ preventScroll: true });
         } else {
@@ -566,40 +570,97 @@ useEffect(() => {
             </button>
           </nav>
 
-          <a className={styles.topAction} href="#contacto">
-            <span>Hablemos</span>
-            <span className={styles.topActionIcon}>
-              <ArrowUpRight size={15} />
-            </span>
-          </a>
+          <div
+            className={styles.accessMenu}
+            onMouseEnter={() => setAccessOpen(true)}
+            onMouseLeave={() => setAccessOpen(false)}
+            onFocus={() => setAccessOpen(true)}
+            onBlur={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget)) setAccessOpen(false);
+            }}
+          >
+            <button
+              type="button"
+              className={styles.topAction}
+              aria-haspopup="true"
+              aria-expanded={accessOpen}
+              aria-label="Acceder al sistema"
+            >
+              <span>Acceder</span>
+              <span className={styles.topActionIcon}>
+                <ArrowUpRight size={15} />
+              </span>
+            </button>
+            <div className={styles.accessMenuPanel} role="menu" aria-label="Acceder">
+              <a className={styles.accessMenuLogin} href="/login" role="menuitem">
+                <LogIn size={16} aria-hidden="true" />
+                <span>
+                  <strong>Login</strong>
+                  <small>Portal de clientes</small>
+                </span>
+              </a>
+              <a className={styles.accessMenuAdmin} href="/admin" role="menuitem">
+                <ShieldCheck size={16} aria-hidden="true" />
+                <span>
+                  <strong>Admin</strong>
+                  <small>Panel administrativo</small>
+                </span>
+              </a>
+            </div>
+          </div>
 
+          {/* Menú de escritorio: misma estructura y piezas que el menú de
+              móvil (acceso destacado a la tienda, Login/Admin y grupos), pero
+              en rejilla ancha y con fondo translúcido para el escritorio. */}
           {NAVIGATION.some((item) => item.mega) && (
-            <div className={styles.megaMenu} aria-label="Menú desplegable">
-              {NAVIGATION.filter((item) => item.mega).map((item) => (
-                <div key={item.id} className={styles.megaMenuCategory}>
-                  <h4>{item.label}</h4>
-                  <ul>
-                    {item.megaGroups.map((group) => (
-                      <li key={group.title}>
-                        <strong>{group.title}</strong>
-                        <ul>
-                          {group.links.map((link) => (
-                            <li key={link.label}>
-                              <a href={link.href}>{link.label}</a>
-                            </li>
-                          ))}
-                        </ul>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-              <div className={styles.megaMenuFooter}>
-                <span>Inventario técnico listo para cotizar en Honduras</span>
-                <a href="/tienda">
-                  Ver la tienda completa
-                  <ArrowRight size={14} aria-hidden="true" />
+            <div className={styles.desktopMenu} aria-label="Menú desplegable">
+              <div className={styles.desktopMenuTop}>
+                <a className={styles.desktopMenuPrimary} href="/tienda">
+                  <span className={styles.desktopMenuPrimaryText}>
+                    <span className={styles.desktopMenuPrimaryLabel}>Tienda</span>
+                    <span className={styles.desktopMenuPrimaryHint}>Explora todos los productos</span>
+                  </span>
+                  <span className={styles.desktopMenuPrimaryIcon}>
+                    <ArrowRight size={18} aria-hidden="true" />
+                  </span>
                 </a>
+
+                <div className={styles.desktopMenuAuth}>
+                  <a className={styles.desktopMenuLogin} href="/login">
+                    <LogIn size={16} aria-hidden="true" />
+                    Login
+                  </a>
+                  <a className={styles.desktopMenuAdmin} href="/admin">
+                    <ShieldCheck size={16} aria-hidden="true" />
+                    Admin
+                  </a>
+                </div>
+              </div>
+
+              <div className={styles.desktopMenuGroups}>
+                {NAVIGATION.filter((item) => item.mega).map((item) =>
+                  item.megaGroups.map((group) => (
+                    <section key={`${item.id}-${group.title}`} className={styles.desktopMenuGroup}>
+                      <h4>{group.title}</h4>
+                      <ul>
+                        {group.links.map((link) => (
+                          <li key={link.label}>
+                            <a href={link.href}>{link.label}</a>
+                          </li>
+                        ))}
+                      </ul>
+                    </section>
+                  ))
+                )}
+              </div>
+
+              {/* Mismo cierre que el menú de móvil: enlaces legales. El pie
+                  anterior ("Inventario técnico listo para cotizar…") se retiró
+                  porque el pedido era sustituir el bloque completo. */}
+              <div className={styles.desktopMenuLegal}>
+                <a href="/terminos">Términos</a>
+                <a href="/privacidad">Privacidad</a>
+                <a href="/ayuda">Ayuda</a>
               </div>
             </div>
           )}
@@ -768,12 +829,44 @@ useEffect(() => {
             </button>
 
             <div className={styles.cardActionTab}>
-              <a className={styles.cardTopPill} href="#contacto">
-                <span>Hablemos</span>
-                <span className={styles.cardTopPillIcon}>
-                  <ArrowUpRight size={14} />
-                </span>
-              </a>
+              <div
+                className={styles.accessMenu}
+                onMouseEnter={() => setAccessOpen(true)}
+                onMouseLeave={() => setAccessOpen(false)}
+                onFocus={() => setAccessOpen(true)}
+                onBlur={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget)) setAccessOpen(false);
+                }}
+              >
+                <button
+                  type="button"
+                  className={styles.cardTopPill}
+                  aria-haspopup="true"
+                  aria-expanded={accessOpen}
+                  aria-label="Acceder al sistema"
+                >
+                  <span>Acceder</span>
+                  <span className={styles.cardTopPillIcon}>
+                    <ArrowUpRight size={14} />
+                  </span>
+                </button>
+                <div className={styles.accessMenuPanel} role="menu" aria-label="Acceder">
+                  <a className={styles.accessMenuLogin} href="/login" role="menuitem">
+                    <LogIn size={16} aria-hidden="true" />
+                    <span>
+                      <strong>Login</strong>
+                      <small>Portal de clientes</small>
+                    </span>
+                  </a>
+                  <a className={styles.accessMenuAdmin} href="/admin" role="menuitem">
+                    <ShieldCheck size={16} aria-hidden="true" />
+                    <span>
+                      <strong>Admin</strong>
+                      <small>Panel administrativo</small>
+                    </span>
+                  </a>
+                </div>
+              </div>
             </div>
           </header>
 

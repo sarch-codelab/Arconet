@@ -766,7 +766,7 @@
 }
 
 /* Mega menú: tarjeta flotante con columnas */
-.megaMenu {
+.desktopMenu {
   position: absolute;
   top: calc(100% + 4px);
   right: 0;
@@ -774,7 +774,10 @@
   z-index: 60;
   display: grid;
   gap: 14px;
-  padding: 20px;
+  padding: 16px;
+  /* Mismo contenido que el menú de móvil, repartido a lo ancho. */
+  width: min(1180px, calc(100vw - 48px));
+  margin: 0 auto;
   border: 1px solid rgba(20, 30, 55, 0.08);
   border-radius: 26px;
   background: rgba(250, 249, 246, 0.985);
@@ -790,7 +793,7 @@
 }
 
 /* Puente invisible para que el cursor no pierda el menú */
-.megaMenu::before {
+.desktopMenu::before {
   content: "";
   position: absolute;
   top: -6px;
@@ -799,10 +802,10 @@
   height: 8px;
 }
 
-.topbar:has(.megaTrigger:hover) .megaMenu,
-.topbar:has(.megaTrigger:focus-visible) .megaMenu,
-.megaMenu:hover,
-.megaMenu:focus-within {
+.topbar:has(.megaTrigger:hover) .desktopMenu,
+.topbar:has(.megaTrigger:focus-visible) .desktopMenu,
+.desktopMenu:hover,
+.desktopMenu:focus-within {
   opacity: 1;
   visibility: visible;
   transform: translateY(0) scale(1);
@@ -811,67 +814,136 @@
     visibility 0s linear 0s;
 }
 
-.megaMenuCategory {
+.desktopMenuTop {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.desktopMenuPrimary {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 58px;
+  padding: 10px 12px 10px 18px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #1544b5 0%, #2f6df0 100%);
+  color: #fff !important;
+  text-decoration: none;
+  box-shadow: 0 16px 30px -22px rgba(21, 68, 181, 0.95);
+  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 200ms ease;
+}
+
+.desktopMenuPrimary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 22px 38px -22px rgba(21, 68, 181, 1);
+}
+
+.desktopMenuPrimaryText {
   display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.desktopMenuPrimaryLabel {
+  font-size: 15px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+.desktopMenuPrimaryHint {
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 11.5px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.desktopMenuPrimaryIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+.desktopMenuAuth {
+  display: flex;
+  gap: 10px;
+}
+
+.desktopMenuLogin,
+.desktopMenuAdmin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 58px;
+  padding: 0 20px;
+  border-radius: 16px;
+  font-size: 13.5px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.desktopMenuLogin {
+  border: 1px solid rgba(21, 68, 181, 0.28);
+  background: rgba(21, 68, 181, 0.07);
+  color: #1544b5;
+}
+
+.desktopMenuLogin:hover {
+  background: rgba(21, 68, 181, 0.12);
+}
+
+.desktopMenuAdmin {
+  border: 1px solid #171a22;
+  background: #171a22;
+  color: #fff;
+}
+
+.desktopMenuAdmin:hover {
+  border-color: #2a2f3b;
+  background: #2a2f3b;
+}
+
+.desktopMenuGroups {
+  display: grid;
+  /* Son 4 grupos: 2x2 queda parejo y sin columnas cojas. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
-.megaMenuCategory h4 {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 0 6px;
-  color: var(--blue);
-  font-size: 10px;
-  font-weight: 750;
-  letter-spacing: 0.16em;
+.desktopMenuGroup {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid rgba(20, 30, 55, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.desktopMenuGroup h4 {
+  margin: 0;
+  color: #1544b5;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
-.megaMenuCategory h4::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, rgba(21, 68, 181, 0.3), rgba(21, 68, 181, 0));
-}
-
-.megaMenuCategory > ul {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.megaMenuCategory > ul > li {
-  display: grid;
-  align-content: start;
-  gap: 6px;
-  padding: 14px 12px 12px;
-  border: 1px solid rgba(20, 30, 55, 0.07);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.82);
-  transition: border-color 220ms ease, background 220ms ease,
-    transform 280ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 280ms ease;
-}
-
-.megaMenuCategory > ul > li:hover {
-  border-color: rgba(21, 68, 181, 0.26);
-  background: #fff;
-  transform: translateY(-3px);
-  box-shadow: 0 22px 40px -26px rgba(12, 24, 52, 0.6);
-}
-
-.megaMenuCategory strong {
-  padding: 0 6px 6px;
-  color: var(--ink);
-  font-size: 12.5px;
-  font-weight: 700;
-  letter-spacing: -0.005em;
-}
-
-.megaMenuCategory ul ul {
+.desktopMenuGroup ul {
   display: grid;
   gap: 2px;
   margin: 0;
@@ -879,74 +951,43 @@
   list-style: none;
 }
 
-.megaMenuCategory a {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 7px 9px;
-  border-radius: 11px;
-  color: #626a7a;
-  font-size: 12px;
-  font-weight: 550;
-  transition: color 200ms ease, background 200ms ease, transform 220ms ease;
-}
-
-.megaMenuCategory a::after {
-  content: "â†—";
-  color: var(--blue);
-  font-size: 11px;
-  opacity: 0;
-  transform: translate(-5px, 3px);
-  transition: opacity 200ms ease, transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.megaMenuCategory a:hover,
-.megaMenuCategory a:focus-visible {
-  color: var(--blue);
-  background: rgba(21, 68, 181, 0.08);
-  transform: translateX(2px);
-}
-
-.megaMenuCategory a:hover::after,
-.megaMenuCategory a:focus-visible::after {
-  opacity: 1;
-  transform: translate(0, 0);
-}
-
-.megaMenuFooter {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 12px 16px;
-  border: 1px solid rgba(21, 68, 181, 0.14);
-  border-radius: 18px;
-  background: linear-gradient(120deg, rgba(21, 68, 181, 0.1), rgba(85, 142, 255, 0.05));
-}
-
-.megaMenuFooter span {
-  color: #55607a;
-  font-size: 11.5px;
+.desktopMenuGroup a {
+  display: block;
+  padding: 8px 10px;
+  border-radius: 10px;
+  color: #172033;
+  font-size: 13.5px;
   font-weight: 600;
-  letter-spacing: 0.01em;
+  text-decoration: none;
+  transition: background 160ms ease, color 160ms ease;
 }
 
-.megaMenuFooter a {
-  display: inline-flex;
+.desktopMenuGroup a:hover,
+.desktopMenuGroup a:focus-visible {
+  background: rgba(21, 68, 181, 0.09);
+  color: #1544b5;
+}
+
+.desktopMenuLegal {
+  display: flex;
   align-items: center;
-  gap: 8px;
-  color: var(--blue) !important;
+  justify-content: center;
+  gap: 22px;
+  padding: 10px 4px 2px;
+  border-top: 1px solid rgba(20, 30, 55, 0.1);
+}
+
+.desktopMenuLegal a {
+  color: #55607a;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 160ms ease;
 }
 
-.megaMenuFooter a svg {
-  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.megaMenuFooter a:hover svg {
-  transform: translateX(3px);
+.desktopMenuLegal a:hover,
+.desktopMenuLegal a:focus-visible {
+  color: #1544b5;
 }
 
 /* Botón hamburguesa */
@@ -1383,6 +1424,13 @@
 
 .topAction {
   justify-self: end;
+  /* Era un <a>; ahora es el <button> del desplegable "Acceder", así que se
+     neutralizan los estilos nativos para que se vea igual que antes. */
+  display: inline-flex;
+  align-items: center;
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
   gap: 10px;
   padding: 4px 4px 4px 16px;
   border-radius: 999px;
@@ -1398,6 +1446,110 @@
 
 .topAction > span:first-child {
   color: #fff !important;
+}
+
+.accessMenu {
+  position: relative;
+  justify-self: end;
+  display: inline-flex;
+}
+
+.accessMenuPanel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 60;
+  /* Dos cuadros lado a lado: Login y a su derecha Admin. */
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(20, 30, 55, 0.1);
+  border-radius: 18px;
+  background: rgba(250, 249, 246, 0.98);
+  box-shadow: 0 22px 48px -20px rgba(12, 24, 52, 0.5);
+  backdrop-filter: blur(18px) saturate(160%);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: opacity 180ms ease, transform 180ms ease, visibility 180ms;
+}
+
+.accessMenu:hover .accessMenuPanel,
+.accessMenu:focus-within .accessMenuPanel {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* Cada cuadro: icono arriba y texto debajo, centrados. */
+.accessMenuPanel a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  min-width: 116px;
+  padding: 14px 12px;
+  border: 1px solid rgba(20, 30, 55, 0.1);
+  border-radius: 14px;
+  background: #fff;
+  color: #172033;
+  text-align: center;
+  text-decoration: none;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.accessMenuPanel a > svg {
+  flex: 0 0 auto;
+  color: #1544b5;
+}
+
+/* Ojo con el selector: antes .panelTitle span pisaba el color del icono por
+   especificidad. Aquí se apunta solo al bloque de texto. */
+.accessMenuPanel a > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.accessMenuPanel a strong {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.accessMenuPanel a small {
+  color: #6b6b66;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* Login: secundario. Admin: sólido, para que se distinga de un vistazo. */
+.accessMenuLogin:hover,
+.accessMenuLogin:focus-visible {
+  border-color: rgba(21, 68, 181, 0.34);
+  background: rgba(21, 68, 181, 0.08);
+  color: #1544b5;
+}
+
+.accessMenuAdmin {
+  border-color: #171a22 !important;
+  background: #171a22 !important;
+  color: #fff !important;
+}
+
+.accessMenuAdmin > svg {
+  color: #fff !important;
+}
+
+.accessMenuAdmin small {
+  color: #c3cad6 !important;
+}
+
+.accessMenuAdmin:hover,
+.accessMenuAdmin:focus-visible {
+  border-color: #2a2f3b !important;
+  background: #2a2f3b !important;
 }
 
 .topActionIcon {
@@ -1445,12 +1597,12 @@
     background: rgba(250, 249, 246, 0.97);
   }
 
-  .megaMenu,
+  .desktopMenu,
   .mobileMenu {
     background: rgba(250, 249, 246, 0.99);
   }
 
-  .megaMenuCategory > ul > li {
+  .desktopMenuGroup {
     background: #fff;
   }
 }
@@ -1464,7 +1616,10 @@
   .navigation a,
   .navIndicator,
   .megaTrigger::after,
-  .megaMenu,
+  .desktopMenu,
+  .desktopMenuPrimary,
+  .desktopMenuLogin,
+  .desktopMenuAdmin,
   .mobileMenu,
   .mobileMenuPrimary,
   .mobileMenuClose,
@@ -1475,10 +1630,9 @@
   .mobileMenuSubgroup a,
   .menuToggle,
   .menuToggle .menuBar,
-  .megaMenuCategory a,
-  .megaMenuCategory a::after,
-  .megaMenuCategory > ul > li,
-  .megaMenuFooter a svg,
+  .desktopMenuGroup a,
+  .accessMenuPanel,
+  .accessMenuPanel a,
   .topAction,
   .topActionIcon {
     transition: none !important;
@@ -1487,8 +1641,8 @@
 
   .navigation a:hover,
   .brand:hover,
-  .megaMenuCategory > ul > li:hover,
-  .megaMenuCategory a:hover,
+  .desktopMenuPrimary:hover,
+  .desktopMenuGroup a:hover,
   .topAction:hover,
   .topAction:hover .topActionIcon {
     transform: none !important;
@@ -1534,29 +1688,42 @@
   pointer-events: none;
 }
 
-/* La imagen de la empresa mide 2496x1792 (proporción ~1.39:1). El hero ocupa
-   toda la pantalla, así que se adapta según la proporción del viewport:
-   - Pantallas MUY anchas (ultrawide 21:9, proporción > 1.7): se mantiene
-     "contain" para no cortar demasiado la foto.
-   - Pantallas normales (PC/laptop 16:9, tablets y móviles): se usa "cover"
-     para RELLENAR todo el hero sin dejar franjas oscuras a los lados.
-   El navegador siempre baja la calidad/escala automáticamente según el
-   tamaño de pantalla; la foto actual (2496px de ancho) cubre hasta
-   monitores 4K sin pixelarse. */
+/* La imagen de la empresa mide 1200x864 (proporción ~1.39:1) y el hero ocupa
+   toda la pantalla, así que siempre se recorta con "cover" para no dejar
+   franjas oscuras en ningún tamaño.
+
+   El punto de anclaje vertical se sube poco a poco en pantallas muy anchas:
+   cuanto más panorámico es el viewport, más se recorta por arriba/abajo y
+   conviene centrar la foto en el grupo de personas en vez de en el suelo. */
 .heroBgImg {
   object-fit: cover;
-  object-position: center 36%;
+  object-position: center 42%;
   transform: scale(calc(1.13 - 0.13 * var(--zoom-progress, 0)));
   will-change: transform;
 }
 
-/* Solo en monitores ultrapanorámicos (más anchos que 16:9) conviene mostrar
-   la foto completa antes de recortar excesivamente sus lados. */
+/* Monitores grandes: la foto se agranda mucho y el encuadre sube un poco. */
+@media (min-width: 1600px) {
+  .heroBgImg {
+    object-position: center 44%;
+  }
+}
+
+@media (min-width: 2200px) {
+  .heroBgImg {
+    object-position: center 46%;
+  }
+}
+
+/* Monitores ultrapanorámicos (más anchos que 16:9).
+
+   Antes aquí se cambiaba a object-fit: contain, que NUNCA llena el contenedor:
+   en 1916x942 (aspect 2.03) dejaba 299px de banda oscura a la izquierda y la
+   foto pegada al borde derecho, con hueco abajo. Se mantiene cover en todos
+   los anchos y solo se ajusta el punto de anclaje. */
 @media (min-aspect-ratio: 17/10) {
   .heroBgImg {
-    object-fit: contain;
-    object-position: center;
-    transform: none;
+    object-position: center 42%;
   }
 }
 
@@ -3523,30 +3690,104 @@
   background-color: var(--ink);
 }
 
-:global(html[data-theme="dark"]) .megaMenu,
+:global(html[data-theme="dark"]) .desktopMenu,
 :global(html[data-theme="dark"]) .mobileMenu {
   border-color: #ffffff14;
   background: rgba(18, 22, 29, 0.98);
 }
 
-:global(html[data-theme="dark"]) .megaMenuCategory > ul > li {
+:global(html[data-theme="dark"]) .desktopMenuGroup {
   border-color: #ffffff12;
   background: #ffffff08;
 }
 
-:global(html[data-theme="dark"]) .megaMenuCategory > ul > li:hover {
-  border-color: rgba(127, 166, 255, 0.32);
-  background: #ffffff10;
+:global(html[data-theme="dark"]) .desktopMenuGroup h4 {
+  color: #a8c2ff;
 }
 
-:global(html[data-theme="dark"]) .megaMenuCategory strong {
-  color: var(--ink);
-}
-
-:global(html[data-theme="dark"]) .megaMenuCategory a,
+:global(html[data-theme="dark"]) .desktopMenuGroup a,
 :global(html[data-theme="dark"]) .mobileMenuLink,
 :global(html[data-theme="dark"]) .mobileMenuSubgroup a {
-  color: var(--muted);
+  color: #c7cedb;
+}
+
+:global(html[data-theme="dark"]) .desktopMenuGroup a:hover,
+:global(html[data-theme="dark"]) .desktopMenuGroup a:focus-visible {
+  background: rgba(127, 166, 255, 0.15);
+  color: #dbe4ff;
+}
+
+:global(html[data-theme="dark"]) .desktopMenuLogin {
+  border-color: rgba(127, 166, 255, 0.34);
+  background: rgba(127, 166, 255, 0.12);
+  color: #dbe4ff;
+}
+
+:global(html[data-theme="dark"]) .desktopMenuLogin:hover {
+  background: rgba(127, 166, 255, 0.2);
+}
+
+:global(html[data-theme="dark"]) .desktopMenuAdmin {
+  border-color: #eef1f7;
+  background: #eef1f7;
+  color: #101827;
+}
+
+:global(html[data-theme="dark"]) .desktopMenuAdmin:hover {
+  border-color: #fff;
+  background: #fff;
+}
+
+/* Desplegable "Acceder" */
+:global(html[data-theme="dark"]) .accessMenuPanel {
+  border-color: #ffffff1f;
+  background: rgba(21, 27, 35, 0.98);
+  box-shadow: 0 24px 50px -18px rgba(0, 0, 0, 0.85);
+}
+
+:global(html[data-theme="dark"]) .accessMenuPanel a {
+  color: #e9ebef;
+}
+
+:global(html[data-theme="dark"]) .accessMenuPanel a:hover,
+:global(html[data-theme="dark"]) .accessMenuPanel a:focus-visible {
+  background: rgba(127, 166, 255, 0.16);
+  color: #a8c2ff;
+}
+
+:global(html[data-theme="dark"]) .accessMenuPanel a > svg {
+  color: #9db8ff;
+}
+
+:global(html[data-theme="dark"]) .accessMenuPanel a small {
+  color: #9aa1ab;
+}
+
+:global(html[data-theme="dark"]) .accessMenuPanel a {
+  border-color: #ffffff1a;
+  background: #ffffff0a;
+  color: #e9ebef;
+}
+
+:global(html[data-theme="dark"]) .accessMenuLogin:hover,
+:global(html[data-theme="dark"]) .accessMenuLogin:focus-visible {
+  border-color: rgba(127, 166, 255, 0.4);
+  background: rgba(127, 166, 255, 0.16);
+  color: #dbe4ff;
+}
+
+:global(html[data-theme="dark"]) .accessMenuAdmin {
+  border-color: #eef1f7 !important;
+  background: #eef1f7 !important;
+  color: #101827 !important;
+}
+
+:global(html[data-theme="dark"]) .accessMenuAdmin > svg {
+  color: #101827 !important;
+}
+
+:global(html[data-theme="dark"]) .accessMenuAdmin small {
+  color: #4a5568 !important;
 }
 
 :global(html[data-theme="dark"]) .mobileMenuClose {
@@ -3594,13 +3835,17 @@
   color: #101827 !important;
 }
 
-:global(html[data-theme="dark"]) .megaMenuFooter {
-  border-color: rgba(127, 166, 255, 0.2);
-  background: linear-gradient(120deg, #1544b533, #558eff1a);
+:global(html[data-theme="dark"]) .desktopMenuLegal {
+  border-top-color: #ffffff14;
 }
 
-:global(html[data-theme="dark"]) .megaMenuFooter span {
-  color: var(--muted);
+:global(html[data-theme="dark"]) .desktopMenuLegal a {
+  color: #aab5c7;
+}
+
+:global(html[data-theme="dark"]) .desktopMenuLegal a:hover,
+:global(html[data-theme="dark"]) .desktopMenuLegal a:focus-visible {
+  color: #a8c2ff;
 }
 
 :global(html[data-theme="dark"]) .topAction {
