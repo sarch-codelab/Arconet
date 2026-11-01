@@ -88,7 +88,7 @@ describe("menú 1: defectos reales detectados en navegador", () => {
   it("el clic abre el menú en vez de cerrarlo", () => {
     // Con un toggle, mouseenter ya lo abría y el cliqueo lo cerraba en el
     // acto: parecía que el botón no hacía nada.
-    expect(casa).toContain("onClick={() => setHeroMenuOpen(true)}");
+    expect(casa).toContain("onClick={() => abrirMenuHero()}");
     expect(casa).not.toContain("onClick={() => setHeroMenuOpen((open) => !open)}");
   });
 
@@ -99,9 +99,12 @@ describe("menú 1: defectos reales detectados en navegador", () => {
     expect(casa).toContain("base + 10");
   });
 
-  it("se centra sobre la navegación, no sobre el botón", () => {
-    expect(casa).toContain("const nav = trigger.parentElement");
-    expect(casa).toContain("const centro = navCaja.left + navCaja.width / 2");
+  it("se centra sobre el botón y no se sale de la pantalla", () => {
+    // Centrar sobre toda la navegación sacaba el panel por la izquierda (el
+    // clamp lo pegaba a x=16 y aun así quedaba cortado). Centrado sobre el
+    // botón cabe siempre y queda donde el visitante está mirando.
+    expect(casa).toContain("const centro = caja.left + caja.width / 2");
+    expect(casa).toContain("Math.max(16, Math.min(centro - ancho / 2");
   });
 
   it("los cuatro grupos van en 2x2 y no estirados", () => {

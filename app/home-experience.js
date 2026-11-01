@@ -262,6 +262,12 @@ export default function HomeExperience({ categorias = [] }) {
   // El panel se dibuja con position: fixed porque el hero recorta con
   // overflow: hidden y un absoluto quedaría cortado.
   const [heroMenuOpen, setHeroMenuOpen] = useState(false);
+  // El panel se monta con antelación y la clase de apertura entra un cuadro
+  // después. Si se montara ya con la clase, el navegador lo pintaría
+  // directamente en su estado final y la transición no se vería: aparecía de
+  // golpe. `heroPanelMounted` también retrasa el desmontaje para que el cierre
+  // alcance a animarse.
+  const [heroPanelMounted, setHeroPanelMounted] = useState(false);
   const heroTriggerRef = useRef(null);
   const [heroPanelPos, setHeroPanelPos] = useState({ left: 0, top: 0 });
 useEffect(() => {
@@ -288,10 +294,79 @@ useEffect(() => {
   const menuToggleRef = useRef(null);
   const mobileMenuRef = useRef(null);
 
+  // Abrir/cerrar el menú de Soluciones con un pequeño retardo: sin él, rozar
+  // el botón al mover el mouse por la barra lo abría de golpe, y salir un
+  // instante hacia el panel lo cerraba antes de llegar.
+  const heroMenuTimer = useRef(null);
+
+  const cancelarCierre = () => {
+    if (heroMenuTimer.current) {
+      clearTimeout(heroMenuTimer.current);
+      heroMenuTimer.current = null;
+    }
+  };
+
+  const abrirMenuHero = () => {
+    cancelarCierre();
+    setHeroMenuOpen(true);
+  };
+
+  const programarCierre = () => {
+    cancelarCierre();
+    heroMenuTimer.current = setTimeout(() => setHeroMenuOpen(false), 180);
+  };
+
+  // Lo mismo para "Acceder": abrir al instante y cerrar con un respiro, para
+  // que no se cierre al mover el puntero de camino al panel.
+  const accederTimer = useRef(null);
+
+  const abrirAcceder = () => {
+    if (accederTimer.current) {
+      clearTimeout(accederTimer.current);
+      accederTimer.current = null;
+    }
+    setAccessOpen(true);
+  };
+
+  const programarCierreAcceder = () => {
+    if (accederTimer.current) clearTimeout(accederTimer.current);
+    accederTimer.current = setTimeout(() => setAccessOpen(false), 160);
+  };
+
+  // Los dos temporizadores deben morir con el componente.
+  useEffect(
+    () => () => {
+      if (heroMenuTimer.current) clearTimeout(heroMenuTimer.current);
+      if (accederTimer.current) clearTimeout(accederTimer.current);
+    },
+    []
+  );
+
+  // Montaje del panel un cuadro antes de marcarlo como abierto.
+  // Si montaje y apertura ocurren en el mismo lote de React, el navegador pinta
+  // el panel ya con la clase de apertura y la transición no se ve. Aquí el
+  // montaje va primero y la apertura espera (setTimeout 0 = cuadro siguiente),
+  // así el panel existe en estado cerrado y el cambio de clase sí anima.
+  const [heroPanelListo, setHeroPanelListo] = useState(false);
+  useEffect(() => {
+    if (heroMenuOpen) {
+      if (heroPanelMounted) {
+        const cuadro = setTimeout(() => setHeroPanelListo(true), 0);
+        return () => clearTimeout(cuadro);
+      }
+      setHeroPanelListo(false);
+      setHeroPanelMounted(true);
+      return undefined;
+    }
+    setHeroPanelListo(false);
+    const espera = setTimeout(() => setHeroPanelMounted(false), 340);
+    return () => clearTimeout(espera);
+  }, [heroMenuOpen, heroPanelMounted]);
+
   // Posiciona el panel de Soluciones del menú 1 justo debajo de su botón.
   // Va en fixed para que el overflow: hidden del hero no lo recorte.
   useEffect(() => {
-    if (!heroMenuOpen) return undefined;
+    if (!heroPanelMounted) return undefined;
 
     const colocar = () => {
       const trigger = heroTriggerRef.current;
@@ -302,11 +377,11 @@ useEffect(() => {
       const header = trigger.closest("header");
       const base = header ? header.getBoundingClientRect().bottom : caja.bottom;
       const ancho = Math.min(820, window.innerWidth - 32);
-      // Centrado sobre la navegación, no sobre el botón: así el panel queda
-      // alineado con la barra en vez de colgando hacia la izquierda.
-      const nav = trigger.parentElement;
-      const navCaja = nav ? nav.getBoundingClientRect() : caja;
-      const centro = navCaja.left + navCaja.width / 2;
+      // Centrado sobre el botón "Soluciones", que es lo que el visitante
+      // acaba de señalar. Antes se centraba sobre toda la navegación y el
+      // panel se salía por la izquierda (el clamp lo pegaba a x=16 y aun así
+      // quedaba cortado).
+      const centro = caja.left + caja.width / 2;
       const left = Math.max(16, Math.min(centro - ancho / 2, window.innerWidth - ancho - 16));
       setHeroPanelPos({ left, top: Math.round(base + 10) });
     };
@@ -329,7 +404,9 @@ useEffect(() => {
       window.removeEventListener("scroll", alDesplazar);
       window.removeEventListener("resize", colocar);
     };
-  }, [heroMenuOpen]);
+    // Depende del montaje, no de la apertura: el panel debe quedar colocado
+    // antes de que se le aplique la clase de apertura.
+  }, [heroPanelMounted]);
 
   useEffect(() => {
     if (!menuOpen) return undefined;
@@ -649,15 +726,16 @@ useEffect(() => {
       {/* Panel de Soluciones del menú 1: mismo contenido que el menú de
           escritorio. Vive fuera del hero, en <main>, porque el hero recorta
           con overflow: hidden y un panel interno quedaría cortado. */}
-      {NAVIGATION.some((item) => item.mega) && (
+      {NAVIGATION.some((item) => item.mega) && heroPanelMounted && (
         <div
           className={`${styles.cardMegaPanel}${
-            heroMenuOpen ? ` ${styles.cardMegaPanelOpen}` : ""
+            heroPanelListo ? ` ${styles.cardMegaPanelOpen}` : ""
           }`}
           style={{ left: `${heroPanelPos.left}px`, top: `${heroPanelPos.top}px` }}
           role="menu"
           aria-label="Soluciones"
-          onMouseLeave={() => setHeroMenuOpen(false)}
+          onMouseEnter={() => cancelarCierre()}
+          onMouseLeave={() => programarCierre()}
         >
           <div className={styles.cardMegaGroups}>
             {NAVIGATION.filter((item) => item.mega).map((item) =>
@@ -735,8 +813,8 @@ useEffect(() => {
 
           <div
             className={styles.accessMenu}
-            onMouseEnter={() => setAccessOpen(true)}
-            onMouseLeave={() => setAccessOpen(false)}
+            onMouseEnter={() => abrirAcceder()}
+            onMouseLeave={() => programarCierreAcceder()}
             onFocus={() => setAccessOpen(true)}
             onBlur={(event) => {
               if (!event.currentTarget.contains(event.relatedTarget)) setAccessOpen(false);
@@ -977,8 +1055,9 @@ useEffect(() => {
                     ref={heroTriggerRef}
                     aria-expanded={heroMenuOpen}
                     aria-haspopup="true"
-                    onClick={() => setHeroMenuOpen(true)}
-                    onMouseEnter={() => setHeroMenuOpen(true)}
+                    onClick={() => abrirMenuHero()}
+                    onMouseEnter={() => abrirMenuHero()}
+                    onMouseLeave={() => programarCierre()}
                   >
                     {item.label}
                   </button>
@@ -1011,8 +1090,8 @@ useEffect(() => {
             <div className={styles.cardActionTab}>
               <div
                 className={styles.accessMenu}
-                onMouseEnter={() => setAccessOpen(true)}
-                onMouseLeave={() => setAccessOpen(false)}
+                onMouseEnter={() => abrirAcceder()}
+                onMouseLeave={() => programarCierreAcceder()}
                 onFocus={() => setAccessOpen(true)}
                 onBlur={(event) => {
                   if (!event.currentTarget.contains(event.relatedTarget)) setAccessOpen(false);
