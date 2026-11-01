@@ -277,6 +277,12 @@ export default function HomeExperience({ categorias = [] }) {
   // Desplegable de "Acceder": se abre al pasar el mouse o al enfocar con
   // teclado, y se cierra al salir del área o con Escape.
   const [accessOpen, setAccessOpen] = useState(false);
+  // Desplegable de "Soluciones" del menú 1 (el que vive dentro del hero).
+  // El panel se dibuja con position: fixed porque el hero recorta con
+  // overflow: hidden y un absoluto quedaría cortado.
+  const [heroMenuOpen, setHeroMenuOpen] = useState(false);
+  const heroTriggerRef = useRef(null);
+  const [heroPanelPos, setHeroPanelPos] = useState({ left: 0, top: 0 });
 useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth > 760) setMenuOpen(false);
@@ -301,6 +307,41 @@ useEffect(() => {
   const menuToggleRef = useRef(null);
   const mobileMenuRef = useRef(null);
 
+  // Posiciona el panel de Soluciones del menú 1 justo debajo de su botón.
+  // Va en fixed para que el overflow: hidden del hero no lo recorte.
+  useEffect(() => {
+    if (!heroMenuOpen) return undefined;
+
+    const colocar = () => {
+      const trigger = heroTriggerRef.current;
+      if (!trigger) return;
+      const caja = trigger.getBoundingClientRect();
+      const ancho = Math.min(1080, window.innerWidth - 32);
+      // Centrado sobre el disparador, sin salirse de la pantalla.
+      const left = Math.max(16, Math.min(caja.left + caja.width / 2 - ancho / 2, window.innerWidth - ancho - 16));
+      setHeroPanelPos({ left, top: caja.bottom + 10 });
+    };
+
+    const alClicFuera = (event) => {
+      const trigger = heroTriggerRef.current;
+      if (trigger && !trigger.contains(event.target) && !event.target.closest?.(`.${styles.cardMegaPanel}`)) {
+        setHeroMenuOpen(false);
+      }
+    };
+    const alDesplazar = () => setHeroMenuOpen(false);
+
+    colocar();
+    document.addEventListener("pointerdown", alClicFuera);
+    window.addEventListener("scroll", alDesplazar, { passive: true });
+    window.addEventListener("resize", colocar);
+
+    return () => {
+      document.removeEventListener("pointerdown", alClicFuera);
+      window.removeEventListener("scroll", alDesplazar);
+      window.removeEventListener("resize", colocar);
+    };
+  }, [heroMenuOpen]);
+
   useEffect(() => {
     if (!menuOpen) return undefined;
 
@@ -318,6 +359,7 @@ useEffect(() => {
       if (event.key === "Escape") {
         setMenuOpen(false);
         setAccessOpen(false);
+        setHeroMenuOpen(false);
         if (trigger instanceof HTMLElement && trigger.isConnected) {
           trigger.focus({ preventScroll: true });
         } else {
@@ -801,16 +843,71 @@ useEffect(() => {
             </div>
 
             <nav className={styles.cardCenterNav} aria-label="Navegación del hero">
-              {NAVIGATION.map((item) => (
-                <a
-                  key={item.id ?? item.label}
-                  className={activeSection === item.id ? styles.cardNavActive : ""}
-                  href={item.href}
-                >
-                  {item.label}
-                </a>
-              ))}
+              {NAVIGATION.map((item) =>
+                item.mega ? (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={`${styles.cardMegaTrigger}${
+                      activeSection === item.id ? ` ${styles.cardNavActive}` : ""
+                    }${heroMenuOpen ? ` ${styles.cardMegaTriggerOpen}` : ""}`}
+                    ref={heroTriggerRef}
+                    aria-expanded={heroMenuOpen}
+                    aria-haspopup="true"
+                    onClick={() => setHeroMenuOpen((open) => !open)}
+                    onMouseEnter={() => setHeroMenuOpen(true)}
+                  >
+                    {item.label}
+                  </button>
+                ) : (
+                  <a
+                    key={item.id ?? item.label}
+                    className={activeSection === item.id ? styles.cardNavActive : ""}
+                    href={item.href}
+                  >
+                    {item.label}
+                  </a>
+                )
+              )}
             </nav>
+
+            {/* Panel de Soluciones del menú 1. Mismo contenido que el menú
+                de escritorio, dibujado en fixed para no chocar con el
+                overflow: hidden del hero. */}
+            {NAVIGATION.some((item) => item.mega) && (
+              <div
+                className={`${styles.cardMegaPanel}${
+                  heroMenuOpen ? ` ${styles.cardMegaPanelOpen}` : ""
+                }`}
+                style={{ left: `${heroPanelPos.left}px`, top: `${heroPanelPos.top}px` }}
+                role="menu"
+                aria-label="Soluciones"
+                onMouseLeave={() => setHeroMenuOpen(false)}
+              >
+                <div className={styles.cardMegaGroups}>
+                  {NAVIGATION.filter((item) => item.mega).map((item) =>
+                    item.megaGroups.map((group) => (
+                      <section key={`${item.id}-${group.title}`} className={styles.cardMegaGroup}>
+                        <h4>{group.title}</h4>
+                        <ul>
+                          {group.links.map((link) => (
+                            <li key={link.label}>
+                              <a href={link.href} role="menuitem">
+                                {link.label}
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      </section>
+                    ))
+                  )}
+                </div>
+                <a className={styles.cardMegaAll} href="/tienda">
+                  Ver la tienda completa
+                  <ArrowRight size={14} aria-hidden="true" />
+                </a>
+              </div>
+            )}
 
             <button
               type="button"

@@ -1748,7 +1748,7 @@
   position: relative;
   z-index: 10;
   width: 100%;
-  height: 72px;
+  height: clamp(72px, 4.3vw, 92px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1760,7 +1760,7 @@
   top: 0;
   left: 0;
   z-index: 2;
-  height: 72px;
+  height: clamp(72px, 4.3vw, 92px);
   padding: 0 30px 0 26px;
   background: var(--paper);
   border-bottom-right-radius: 30px;
@@ -1793,7 +1793,7 @@
 }
 
 .heroLogoImg {
-  width: 178px;
+  width: clamp(178px, 10.5vw, 232px);
   height: auto;
   display: block;
 }
@@ -1804,7 +1804,7 @@
   top: 0;
   right: 0;
   z-index: 2;
-  height: 72px;
+  height: clamp(72px, 4.3vw, 92px);
   padding: 0 24px;
   background: var(--paper);
   border-bottom-left-radius: 30px;
@@ -1826,15 +1826,169 @@
 }
 
 /* Top right pill button inside right cutout */
+/* Disparador de Soluciones del menú 1: mismo chevron que el menú 2, pero
+   en blanco porque vive sobre el hero oscuro. */
+.cardMegaTrigger {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+  border: 0;
+  background: none;
+  color: rgba(255, 255, 255, 0.9);
+  font-family: inherit;
+  font-size: clamp(13.5px, 0.95vw, 18px);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  transition: color 220ms ease;
+}
+
+.cardMegaTrigger::after {
+  content: "";
+  width: 5px;
+  height: 5px;
+  margin-top: -3px;
+  border-right: 1.6px solid currentColor;
+  border-bottom: 1.6px solid currentColor;
+  border-radius: 1px;
+  opacity: 0.7;
+  transform: rotate(45deg);
+  transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms ease;
+}
+
+.cardMegaTriggerOpen::after {
+  margin-top: 3px;
+  opacity: 1;
+  transform: rotate(-135deg);
+}
+
+.cardMegaTrigger:hover,
+.cardMegaTriggerOpen,
+.cardMegaTrigger:focus-visible {
+  color: #fff;
+}
+
+.cardMegaTrigger:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* Panel de Soluciones del menú 1. Va en fixed: el hero recorta con
+   overflow: hidden y un absoluto quedaría cortado. */
+.cardMegaPanel {
+  position: fixed;
+  z-index: 90;
+  display: grid;
+  gap: 12px;
+  width: min(1080px, calc(100vw - 32px));
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 22px;
+  background: rgba(16, 21, 30, 0.97);
+  box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(24px) saturate(160%);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  pointer-events: none;
+  transition: opacity 200ms ease, transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 240ms;
+}
+
+.cardMegaPanelOpen {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+  transition: opacity 200ms ease, transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 0s;
+}
+
+.cardMegaGroups {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.cardMegaGroup {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.cardMegaGroup h4 {
+  margin: 0;
+  color: #93b0ff;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cardMegaGroup ul {
+  display: grid;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cardMegaGroup a {
+  display: block;
+  padding: 7px 9px;
+  border-radius: 9px;
+  color: #d3d9e4;
+  font-size: 13px;
+  font-weight: 550;
+  text-decoration: none;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.cardMegaGroup a:hover,
+.cardMegaGroup a:focus-visible {
+  background: rgba(127, 166, 255, 0.16);
+  color: #ffffff;
+}
+
+.cardMegaAll {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(127, 166, 255, 0.14);
+  color: #dbe4ff;
+  font-size: 12.5px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.cardMegaAll:hover,
+.cardMegaAll:focus-visible {
+  background: #2f6df0;
+  color: #fff;
+}
+
 .cardTopPill {
   background: #171a22;
   border-radius: 9999px;
-  padding: 5px 6px 5px 18px;
+  padding: clamp(5px, 0.3vw, 7px) clamp(6px, 0.35vw, 8px) clamp(5px, 0.3vw, 7px)
+    clamp(18px, 1.15vw, 28px);
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: clamp(12px, 0.7vw, 16px);
   color: #ffffff !important;
-  font-size: 13px;
+  font-size: clamp(13px, 0.9vw, 17px);
   font-weight: 600;
   text-decoration: none;
   transition: background 200ms ease, transform 200ms ease, box-shadow 200ms ease;
@@ -1852,8 +2006,9 @@
 }
 
 .cardTopPillIcon {
-  width: 30px;
-  height: 30px;
+  flex: 0 0 auto;
+  width: clamp(30px, 2vw, 40px);
+  height: clamp(30px, 2vw, 40px);
   border-radius: 50%;
   background: #252a36;
   color: #ffffff !important;
@@ -1927,17 +2082,18 @@
 .cardCenterNav {
   position: relative;
   z-index: 1;
-  height: 72px;
+  height: clamp(72px, 4.3vw, 92px);
   display: flex;
   align-items: center;
-  gap: clamp(16px, 2.5vw, 36px);
+  gap: clamp(16px, 2.4vw, 46px);
   margin: 0 auto;
 }
 
 .cardCenterNav a {
   position: relative;
   color: rgba(255, 255, 255, 0.9) !important;
-  font-size: 13.5px;
+  /* Igual que la barra superior: crece con la pantalla. */
+  font-size: clamp(13.5px, 0.95vw, 18px);
   font-weight: 600;
   letter-spacing: 0.01em;
   padding: 6px 0;
