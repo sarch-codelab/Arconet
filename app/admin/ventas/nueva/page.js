@@ -2,9 +2,9 @@
 
 import { useEffect, useRef } from "react";
 import { Receipt } from "lucide-react";
-import adminStyles from "./admin-experience.module.css";
-import styles from "./ventas-section.module.css";
-import FacturacionPanel from "./facturacion-panel";
+import adminStyles from "../admin-experience.module.css";
+import styles from "../ventas-section.module.css";
+import FacturacionPanel from "../facturacion-panel";
 import { useSession } from "@/lib/session"; // or whatever session hook
 import { allowedSalesCreationModes } from "@/lib/admin-navigation";
 
