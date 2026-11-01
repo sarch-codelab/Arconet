@@ -1670,6 +1670,12 @@
   display: flex;
   flex-direction: column;
   animation: heroFrameIn 900ms cubic-bezier(0.2, 0.72, 0.24, 1) both;
+  /* Sin esto el `both` deja el transform aplicado para siempre, heroFrame se
+     vuelve el bloque contenedor y el panel de Soluciones (position: fixed)
+     se posicionaba respecto al hero en vez de a la ventana: salía corrido.
+     Al terminar la entrada se anula el transform y fixed vuelve a tomar la
+     ventana como referencia. */
+  animation-fill-mode: none;
 }
 
 .heroCard {
@@ -1908,6 +1914,18 @@
     visibility 0s linear 0s;
 }
 
+/* Los grupos entran escalonados al abrir: da la sensación de que el panel
+   se despliega en orden en vez de aparecer de golpe. */
+.cardMegaPanelOpen .cardMegaGroup {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.cardMegaPanelOpen .cardMegaGroup:nth-child(1) { transition-delay: 40ms; }
+.cardMegaPanelOpen .cardMegaGroup:nth-child(2) { transition-delay: 80ms; }
+.cardMegaPanelOpen .cardMegaGroup:nth-child(3) { transition-delay: 120ms; }
+.cardMegaPanelOpen .cardMegaGroup:nth-child(4) { transition-delay: 160ms; }
+
 .cardMegaGroups {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1922,6 +1940,10 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.04);
+  /* Entrada escalonada: el panel se despliega en orden. */
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 240ms ease, transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .cardMegaGroup h4 {
@@ -3008,6 +3030,59 @@
 
 .revealVisible {
   animation: revealUp 780ms cubic-bezier(0.2, 0.72, 0.24, 1) both;
+}
+
+/* ==========================================================================
+   REVELADO TIPOGRÁFICO
+   Los títulos marcados con data-split se parten en palabras (lo hace el
+   componente en el cliente). Cada palabra sube desde abajo con una máscara,
+   en cascada, al entrar en pantalla. Es el efecto editorial que se usa en
+   sitios de tecnología y arquitectura: el texto "se compone" al aparecer.
+   ========================================================================== */
+
+.palabra {
+  display: inline-block;
+  overflow: hidden;
+  /* El recorte no corta descendentes (g, p, y) gracias al margen inferior. */
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+  vertical-align: bottom;
+}
+
+.palabraInterior {
+  display: inline-block;
+  transform: translateY(110%);
+  opacity: 0;
+  transition: transform 720ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 520ms ease;
+  transition-delay: var(--retraso, 0ms);
+  will-change: transform;
+}
+
+/* Se declara también sola para que CSS Modules la exporte y el componente
+   pueda añadirla por nombre. */
+.palabrasListas {
+  --palabras-listas: 1;
+}
+
+.palabrasListas .palabraInterior {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Con menos movimiento se muestra sin animación. */
+@media (prefers-reduced-motion: reduce) {
+  .palabra {
+    overflow: visible;
+    padding-bottom: 0;
+    margin-bottom: 0;
+  }
+
+  .palabraInterior {
+    transform: none;
+    opacity: 1;
+    transition: none;
+  }
 }
 
 @keyframes heroFrameIn {

@@ -520,6 +520,83 @@ useEffect(() => {
     return () => observer.disconnect();
   }, []);
 
+  // Revelado tipografico: los titulos marcados con data-split se parten en
+  // palabras y cada una sube en cascada al entrar en pantalla. Se hace en el
+  // cliente para no romper el HTML del servidor (SEO y lectores de pantalla
+  // siguen viendo el texto completo).
+  useEffect(() => {
+    const titulos = document.querySelectorAll("[data-split]");
+    if (!titulos.length) return undefined;
+
+    const reducido =
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    titulos.forEach((titulo) => {
+      if (titulo.dataset.splitDone) return;
+      titulo.dataset.splitDone = "true";
+
+      // Se recorre el árbol respetando los elementos anidados (<em>, <span>,
+      // <br>): si se usara textContent se perdería el color y el estilo de la
+      // segunda línea de cada título.
+      let indice = 0;
+      const envolver = (padre) => {
+        const hijos = Array.from(padre.childNodes);
+        hijos.forEach((nodo) => {
+          if (nodo.nodeType === 1) {
+            if (nodo.tagName === "BR") return;
+            envolver(nodo);
+            return;
+          }
+          if (nodo.nodeType !== 3) return;
+          const trozos = (nodo.textContent || "").split(/(\s+)/);
+          if (!trozos.some((t) => t.trim())) return;
+
+          const fragmento = document.createDocumentFragment();
+          trozos.forEach((trozo) => {
+            if (!trozo) return;
+            if (!trozo.trim()) {
+              fragmento.appendChild(document.createTextNode(" "));
+              return;
+            }
+            const exterior = document.createElement("span");
+            exterior.className = styles.palabra;
+            const interior = document.createElement("span");
+            interior.className = styles.palabraInterior;
+            interior.textContent = trozo;
+            interior.style.setProperty("--retraso", `${Math.min(indice * 45, 620)}ms`);
+            exterior.appendChild(interior);
+            fragmento.appendChild(exterior);
+            indice += 1;
+          });
+          padre.replaceChild(fragmento, nodo);
+        });
+      };
+
+      envolver(titulo);
+      if (!indice) return;
+
+      if (reducido) titulo.classList.add(styles.palabrasListas);
+    });
+
+    if (reducido) return undefined;
+
+    const observador = new IntersectionObserver(
+      (entradas) => {
+        entradas.forEach((entrada) => {
+          if (entrada.isIntersecting) {
+            entrada.target.classList.add(styles.palabrasListas);
+            observador.unobserve(entrada.target);
+          }
+        });
+      },
+      { threshold: 0.2, rootMargin: "0px 0px -8% 0px" }
+    );
+
+    titulos.forEach((titulo) => observador.observe(titulo));
+    return () => observador.disconnect();
+  }, []);
+
   const goTo = (id) => {
     const locomotive = locomotiveRef.current;
     if (locomotive) {
@@ -561,6 +638,44 @@ useEffect(() => {
 
   return (
     <main className={styles.experience}>
+      {/* Panel de Soluciones del menú 1: mismo contenido que el menú de
+          escritorio. Vive fuera del hero, en <main>, porque el hero recorta
+          con overflow: hidden y un panel interno quedaría cortado. */}
+      {NAVIGATION.some((item) => item.mega) && (
+        <div
+          className={`${styles.cardMegaPanel}${
+            heroMenuOpen ? ` ${styles.cardMegaPanelOpen}` : ""
+          }`}
+          style={{ left: `${heroPanelPos.left}px`, top: `${heroPanelPos.top}px` }}
+          role="menu"
+          aria-label="Soluciones"
+          onMouseLeave={() => setHeroMenuOpen(false)}
+        >
+          <div className={styles.cardMegaGroups}>
+            {NAVIGATION.filter((item) => item.mega).map((item) =>
+              item.megaGroups.map((group) => (
+                <section key={`${item.id}-${group.title}`} className={styles.cardMegaGroup}>
+                  <h4>{group.title}</h4>
+                  <ul>
+                    {group.links.map((link) => (
+                      <li key={link.label}>
+                        <a href={link.href} role="menuitem">
+                          {link.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ))
+            )}
+          </div>
+          <a className={styles.cardMegaAll} href="/tienda">
+            Ver la tienda completa
+            <ArrowRight size={14} aria-hidden="true" />
+          </a>
+        </div>
+      )}
+
       {/* Dock de navegación secundaria: aparece al superar el hero */}
       <header
         ref={topbarRef}
@@ -871,44 +986,6 @@ useEffect(() => {
               )}
             </nav>
 
-            {/* Panel de Soluciones del menú 1. Mismo contenido que el menú
-                de escritorio, dibujado en fixed para no chocar con el
-                overflow: hidden del hero. */}
-            {NAVIGATION.some((item) => item.mega) && (
-              <div
-                className={`${styles.cardMegaPanel}${
-                  heroMenuOpen ? ` ${styles.cardMegaPanelOpen}` : ""
-                }`}
-                style={{ left: `${heroPanelPos.left}px`, top: `${heroPanelPos.top}px` }}
-                role="menu"
-                aria-label="Soluciones"
-                onMouseLeave={() => setHeroMenuOpen(false)}
-              >
-                <div className={styles.cardMegaGroups}>
-                  {NAVIGATION.filter((item) => item.mega).map((item) =>
-                    item.megaGroups.map((group) => (
-                      <section key={`${item.id}-${group.title}`} className={styles.cardMegaGroup}>
-                        <h4>{group.title}</h4>
-                        <ul>
-                          {group.links.map((link) => (
-                            <li key={link.label}>
-                              <a href={link.href} role="menuitem">
-                                {link.label}
-                              </a>
-                            </li>
-                          ))}
-                        </ul>
-                      </section>
-                    ))
-                  )}
-                </div>
-                <a className={styles.cardMegaAll} href="/tienda">
-                  Ver la tienda completa
-                  <ArrowRight size={14} aria-hidden="true" />
-                </a>
-              </div>
-            )}
-
             <button
               type="button"
               className={`${styles.cardMenuToggle}${menuOpen ? ` ${styles.menuToggleActive}` : ""}`}
@@ -996,7 +1073,7 @@ useEffect(() => {
       >
         <div className={styles.solutionsSticky}>
           <div className={styles.solutionsHeading}>
-            <div><p className={styles.stageEyebrow}>Lo que hace posible una conexión</p><h2>Soluciones <span>en movimiento.</span></h2></div>
+            <div><p className={styles.stageEyebrow}>Lo que hace posible una conexión</p><h2 data-split>Soluciones <span>en movimiento.</span></h2></div>
             <div className={styles.slideProgress} aria-live="polite">
               <span>0{activeSlide + 1}</span><i><b style={{ transform: `scaleX(${(activeSlide + 1) / SOLUTIONS.length})` }} /></i><span>0{SOLUTIONS.length}</span>
             </div>
@@ -1057,13 +1134,13 @@ useEffect(() => {
       <section id="empresa" className={styles.companySection}>
         <div className={styles.companyIntro} data-reveal>
           <p className={styles.eyebrow}><span className={styles.eyebrowMark} /> Nuestra experiencia</p>
-          <h2>La tecnología es importante.<br /><em>Quién te acompaña, también.</em></h2>
+          <h2 data-split>La tecnología es importante.<br /><em>Quién te acompaña, también.</em></h2>
           <p className={styles.companyText}>
             Arconet, S.A. es una empresa hondureña con sede en San Pedro Sula, Cortés. Distribuimos, importamos y brindamos soporte para equipos y accesorios de televisión por cable, fibra óptica y telecomunicaciones.
           </p>
         </div>
         <div className={styles.companyDetails} data-reveal>
-          <div className={styles.productsHeading}><span>01 / NUESTRAS CATEGORÍAS</span><h3>Todo empieza con<br />el equipo adecuado.</h3></div>
+          <div className={styles.productsHeading}><span>01 / NUESTRAS CATEGORÍAS</span><h3 data-split>Todo empieza con<br />el equipo adecuado.</h3></div>
           <ul className={styles.productList}>
             {categorias.map((categoria, index) => (
               <li key={categoria.id}>
@@ -1090,7 +1167,7 @@ useEffect(() => {
       <section id="compania" className={styles.storySection}>
         <div className={styles.storyCopy} data-reveal>
           <p className={styles.eyebrow}><span className={styles.eyebrowMark} /> Quiénes somos</p>
-          <h2>Más que una distribuidora.<br /><em>Un aliado para tu red.</em></h2>
+          <h2 data-split>Más que una distribuidora.<br /><em>Un aliado para tu red.</em></h2>
           <p className={styles.storyLead}>
             Arconet, de la mano de <strong>Arcolab, S.A.</strong>, es la casa de soluciones de
             telecomunicaciones que acompaña a instaladores, operadores e integradores en todo Honduras.
@@ -1131,7 +1208,7 @@ useEffect(() => {
       <section id="mision" className={styles.missionSection}>
         <div className={styles.sectionHead} data-reveal>
           <p className={styles.eyebrow}><span className={styles.eyebrowMark} /> Lo que nos mueve</p>
-          <h2>Un propósito claro.<br /><em>Una meta compartida.</em></h2>
+          <h2 data-split>Un propósito claro.<br /><em>Una meta compartida.</em></h2>
         </div>
         <div className={styles.missionGrid}>
           <article className={`${styles.missionCard} ${styles.missionCardMission}`} data-reveal>
@@ -1171,7 +1248,7 @@ useEffect(() => {
       <section id="sectores" className={styles.sectorsSection}>
         <div className={styles.sectionHead} data-reveal>
           <p className={styles.eyebrow}><span className={styles.eyebrowMark} /> A quién servimos</p>
-          <h2>Sectores que<br /><em>confían en Arconet.</em></h2>
+          <h2 data-split>Sectores que<br /><em>confían en Arconet.</em></h2>
           <p className={styles.sectionLead}>
             Desde el instalador que atiende una casa hasta el operador que despliega fibra en todo
             un departamento, acompañamos proyectos de todos los tamaños.
@@ -1194,7 +1271,7 @@ useEffect(() => {
       <section id="cobertura" className={styles.coverageSection}>
         <div className={styles.coverageCopy} data-reveal>
           <p className={styles.eyebrow}><span className={styles.eyebrowMark} /> Cobertura nacional</p>
-          <h2>De San Pedro Sula<br /><em>para todo Honduras.</em></h2>
+          <h2 data-split>De San Pedro Sula<br /><em>para todo Honduras.</em></h2>
           <p className={styles.sectionLead}>
             Con sede en Barrio Guamilito, San Pedro Sula, y presencia en Tegucigalpa, llevamos
             nuestros productos a cada departamento del país.
@@ -1218,7 +1295,7 @@ useEffect(() => {
       <section id="compromiso" className={styles.commitSection}>
         <div className={styles.sectionHead} data-reveal>
           <p className={styles.eyebrow}><span className={styles.eyebrowMark} /> Nuestro compromiso</p>
-          <h2>Calidad y garantía<br /><em>en la que puedes confiar.</em></h2>
+          <h2 data-split>Calidad y garantía<br /><em>en la que puedes confiar.</em></h2>
         </div>
         <div className={styles.commitGrid}>
           {COMMITMENTS.map((item) => {
@@ -1246,7 +1323,7 @@ useEffect(() => {
         <div className={styles.contactInner}>
           <div className={styles.contactContent} data-reveal>
             <p className={styles.contactEyebrow}>Tu próximo proyecto empieza aquí</p>
-            <h2>Hagamos que<br /><em>todo conecte.</em></h2>
+            <h2 data-split>Hagamos que<br /><em>todo conecte.</em></h2>
             <p>Cuéntanos qué necesita tu red. Nuestro equipo puede ayudarte a encontrar el equipo y la solución correctos.</p>
             <a href="/tienda" className={styles.contactAction}>Ver productos y soluciones <ArrowUpRight size={17} /></a>
           </div>
