@@ -22,6 +22,7 @@ import { FAMILIES, findFamily, formatPrice } from "../catalogo-data";
 import { useCatalogProducts } from "../catalogo-products";
 import { useCart } from "../../cart-context";
 import styles from "./product-detail.module.css";
+import VideoFondoCTA from "../../video-fondo-cta";
 import Footer from "../../footer";
 
 const NAVIGATION = [
@@ -520,6 +521,7 @@ export default function ProductDetail({ slug }) {
       </section>
 
       <section className={styles.contactSection} data-reveal>
+        <VideoFondoCTA />
         <div className={styles.contactContent}>
           <p className={styles.contactEyebrow}>¿Te falta una pieza o no sabes cuál elegir?</p>
           <h2>Hagamos que<br /><em>todo conecte.</em></h2>

@@ -2927,11 +2927,9 @@
   display: flex;
   align-items: center;
   overflow: hidden;
+  /* El fondo lo pone el video (VideoFondoCTA). El color queda como respaldo
+     mientras carga y para el tema oscuro. */
   background-color: #112f82;
-  background-image: url("/catalogo/hero-fiber.jpg");
-  background-size: cover;
-  background-position: 62% 58%;
-  background-repeat: no-repeat;
   color: #fff;
   isolation: isolate;
   scroll-margin-top: 78px;
@@ -2941,12 +2939,10 @@
   position: relative;
   z-index: 2;
   width: 100%;
-  display: grid;
-  /* La columna del texto se queda el espacio que necesita el titular grande;
-     1fr/0.9fr la dejaba en ~530px y el título se partía en cuatro líneas. */
-  grid-template-columns: 1.15fr 0.85fr;
-  align-items: center;
-  gap: clamp(40px, 5vw, 80px);
+  /* Neto ya no ocupa la columna derecha: el texto se queda con el ancho que
+     necesita para que el titular grande no se parta de más, y el resto lo
+     ocupa el video. */
+  display: block;
   padding: 80px clamp(24px, 10vw, 160px);
 }
 
@@ -2994,19 +2990,6 @@
 .contactAction:hover {
   background: #dce7ff;
   transform: translateY(-2px);
-}
-
-.contactVisual {
-  display: grid;
-  place-items: center;
-}
-
-.contactImage {
-  width: 100%;
-  max-width: 580px;
-  height: auto;
-  object-fit: contain;
-  filter: drop-shadow(0 30px 40px rgba(0, 0, 0, 0.35));
 }
 
 .contactLocation {
@@ -3340,15 +3323,13 @@
   }
 }
 .contactSection { min-height: 510px; }
-  .contactInner { grid-template-columns: 1fr; gap: 32px; padding: 64px 22px 80px; text-align: center; }
+  .contactInner { padding: 64px 22px 80px; text-align: center; }
   .contactContent { max-width: 100%; }
   .contactContent h2 {
   font-size: clamp(52px, 12vw, 106px); }
   .contactContent > p:not(.contactEyebrow) { max-width: 400px;
   font-size: 12px; }
   .contactAction { margin-left: auto; margin-right: auto; }
-  .contactVisual { order: -1; }
-  .contactImage { max-width: 85vw; }
   .contactLocation { right: 22px; bottom: 20px;
   font-size: 8px; }
 }

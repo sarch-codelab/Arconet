@@ -1,0 +1,58 @@
+/* Fondo de video de las bandas de contacto.
+   Va en una capa propia para que el texto quede por encima sin cambiar el
+   flujo de la sección: el contenedor es absoluto, cubre toda la banda y no
+   captura clics. */
+
+.fondo {
+  position: absolute;
+  inset: 0;
+  /* z-index -1 en vez de 0: con 0, montado dentro de un contenedor relativo se
+     pintaba por encima del texto, que no tiene z-index propio. En -1 queda
+     siempre detrás del contenido, esté donde esté. */
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.video {
+  width: 100%;
+  height: 100%;
+  /* El video es 3800x1800 (2.11:1) y la banda es más alta en móvil: `cover`
+     lo recorta sin deformarlo. */
+  object-fit: cover;
+  object-position: 60% 50%;
+  display: block;
+}
+
+/* El video es claro (cintas lilas sobre blanco) y el texto de estas bandas es
+   blanco. El velo oscurece solo donde cae el texto —a la izquierda— y deja
+   ver las cintas a la derecha, igual que se hizo con la foto del hero. */
+.velo {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      100deg,
+      rgba(6, 17, 48, 0.92) 0%,
+      rgba(8, 22, 60, 0.86) 32%,
+      rgba(10, 26, 70, 0.58) 62%,
+      rgba(12, 30, 78, 0.34) 100%
+    );
+}
+
+@media (max-width: 760px) {
+  .video {
+    object-position: 70% 50%;
+  }
+
+  /* En móvil el texto ocupa el ancho completo: el velo tiene que cubrir más. */
+  .velo {
+    background:
+      linear-gradient(
+        180deg,
+        rgba(6, 17, 48, 0.9) 0%,
+        rgba(9, 24, 66, 0.82) 55%,
+        rgba(9, 24, 66, 0.9) 100%
+      );
+  }
+}

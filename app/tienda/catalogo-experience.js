@@ -18,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 import styles from "./catalogo-experience.module.css";
+import VideoFondoCTA from "../video-fondo-cta";
 
 import { FAMILIES, findFamily } from "./catalogo-data";
 import { useCart } from "../cart-context";
@@ -662,7 +663,7 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
       </section>
 
       <section className={styles.contactSection}>
-        <div className={styles.contactGrid} aria-hidden="true" />
+        <VideoFondoCTA />
         <div className={styles.contactInner}>
           <div className={styles.contactContent} data-reveal>
             <p className={styles.contactEyebrow}>Tu proyecto empieza con una conversación</p>
@@ -673,15 +674,6 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
             <a className={styles.contactAction} href="/#contacto">
               Escribir al equipo <ArrowUpRight size={17} />
             </a>
-          </div>
-          <div className={styles.contactVisual} data-reveal>
-            <Image
-              src="/neto-servicio-cliente.png"
-              alt="Neto servicio al cliente"
-              width={700}
-              height={700}
-              className={styles.contactImage}
-            />
           </div>
         </div>
         <span className={styles.contactLocation}>San Pedro Sula · Honduras</span>

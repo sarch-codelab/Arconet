@@ -1189,11 +1189,16 @@
   display: flex;
   align-items: center;
   overflow: hidden;
+  /* El fondo lo pone el video (VideoFondoCTA); el azul queda de respaldo. */
   background: #112f82;
   color: #fff;
+  isolation: isolate;
 }
 
 .contactContent {
+  position: relative;
+  /* Por encima de la capa del video. */
+  z-index: 1;
   width: min(820px, 74%);
   padding: 90px clamp(20px, 12vw, 190px);
 }

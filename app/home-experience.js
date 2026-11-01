@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import ContadorCifra from "./contador-cifra";
+import VideoFondoCTA from "./video-fondo-cta";
 import LocomotiveScroll from "locomotive-scroll";
 import {
   ArrowDown,
@@ -1239,7 +1241,7 @@ useEffect(() => {
       <section className={styles.statsBand} aria-label="Arconet en números">
         {STATS.map((stat) => (
           <div key={stat.label} className={styles.statItem} data-reveal>
-            <strong>{stat.value}</strong>
+            <ContadorCifra valor={stat.value} />
             <span>{stat.label}</span>
           </div>
         ))}
@@ -1382,21 +1384,15 @@ useEffect(() => {
       </section>
 
       <section id="contacto" className={styles.contactSection}>
+        {/* Fuera de contactInner a propósito: dentro, su z-index 0 lo pintaba
+            por encima del texto, que es estático. */}
+        <VideoFondoCTA />
         <div className={styles.contactInner}>
           <div className={styles.contactContent} data-reveal>
             <p className={styles.contactEyebrow}>Tu próximo proyecto empieza aquí</p>
             <h2 data-split>Hagamos que<br /><em>todo conecte.</em></h2>
             <p>Cuéntanos qué necesita tu red. Nuestro equipo puede ayudarte a encontrar el equipo y la solución correctos.</p>
             <a href="/tienda" className={styles.contactAction}>Ver productos y soluciones <ArrowUpRight size={17} /></a>
-          </div>
-          <div className={styles.contactVisual} data-reveal>
-            <Image
-              src="/neto-servicio-cliente.png"
-              alt="Neto servicio al cliente"
-              width={700}
-              height={700}
-              className={styles.contactImage}
-            />
           </div>
         </div>
         <span className={styles.contactLocation}>San Pedro Sula — Honduras</span>
