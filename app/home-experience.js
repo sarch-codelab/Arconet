@@ -12,7 +12,6 @@ import {
   Award,
   Cctv,
   Factory,
-  Globe2,
   GraduationCap,
   Handshake,
   Headset,
@@ -34,6 +33,7 @@ import {
   X,
 } from "lucide-react";
 import styles from "./page.module.css";
+import HomeMarcas from "./home-marcas";
 import Footer from "./footer";
 import { CONTACT_PHONE } from '@/lib/contact';
 
@@ -211,25 +211,6 @@ const SECTORS = [
     title: "Gobierno y educación",
     text: "Soluciones para instituciones y proyectos que conectan comunidades.",
   },
-];
-
-const COVERAGE = [
-  "San Pedro Sula",
-  "Tegucigalpa",
-  "La Ceiba",
-  "Choloma",
-  "El Progreso",
-  "Puerto Cortés",
-  "Tela",
-  "Comayagua",
-  "Siguatepeque",
-  "Santa Rosa de Copán",
-  "Choluteca",
-  "Danlí",
-  "Juticalpa",
-  "Tocoa",
-  "Yoro",
-  "Gracias a Dios",
 ];
 
 const COMMITMENTS = [
@@ -1295,29 +1276,10 @@ useEffect(() => {
         </div>
       </section>
 
-      <section id="cobertura" className={styles.coverageSection}>
-        <div className={styles.coverageCopy} data-reveal>
-          <p className={styles.eyebrow}><span className={styles.eyebrowMark} /> Cobertura nacional</p>
-          <h2 data-split>De San Pedro Sula<br /><em>para todo Honduras.</em></h2>
-          <p className={styles.sectionLead}>
-            Con sede en Barrio Guamilito, San Pedro Sula, y presencia en Tegucigalpa, llevamos
-            nuestros productos a cada departamento del país.
-          </p>
-          <div className={styles.coverageHighlights}>
-            <div><Globe2 size={20} /><span>Cobertura en los 18 departamentos</span></div>
-            <div><Truck size={20} /><span>Despacho y coordinación de entregas</span></div>
-            <div><Award size={20} /><span>Respaldo y garantía en cada pedido</span></div>
-          </div>
-        </div>
-        <div className={styles.coveragePanel} data-reveal>
-          <p className={styles.coveragePanelTitle}>Dónde llegamos</p>
-          <ul className={styles.coverageList}>
-            {COVERAGE.map((place) => (
-              <li key={place}>{place}</li>
-            ))}
-          </ul>
-        </div>
-      </section>
+      {/* Cobertura nacional + marcas: antes era un mapa de municipios en
+          píldoras. Ahora muestra con qué fabricantes trabaja Arconet y qué
+          respalda cada compra; el detalle de entrega queda en una línea. */}
+      <HomeMarcas />
 
       <section id="compromiso" className={styles.commitSection}>
         <div className={styles.sectionHead} data-reveal>
