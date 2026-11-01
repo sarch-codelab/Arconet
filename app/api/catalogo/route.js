@@ -37,8 +37,15 @@ export async function GET() {
       descripcion: producto.descripcion || "",
       precio: Number(producto.precio),
       stock: producto.stock,
-      foto: producto.foto || "",
-      fotos: Array.isArray(producto.fotos) ? producto.fotos : [],
+      // Las fotos viven en /media o en una URL: se entrega la ruta, nunca el
+      // base64. Antes este endpoint arrastraba todas las imágenes y la tienda
+      // tenía que descargarlas antes de pintar la primera tarjeta.
+      foto: typeof producto.foto === "string" && producto.foto.startsWith("data:") ? `/api/productos/${encodeURIComponent(producto.id)}/foto` : (producto.foto || ""),
+      fotos: Array.isArray(producto.fotos)
+        ? producto.fotos.map((imagen, indice) => (typeof imagen === "string" && imagen.startsWith("data:")
+          ? `/api/productos/${encodeURIComponent(producto.id)}/foto?i=${indice}`
+          : imagen))
+        : [],
     }));
 
     return Response.json(items, {

@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { requireSession } from '@/lib/dal';
+import { borrarImagen, guardarImagen } from "@/lib/almacen-fotos";
 import { createSession } from '@/lib/session';
 import { writeLog } from '@/lib/logs';
 
@@ -55,16 +56,30 @@ export async function PATCH(request) {
   const foto = body?.foto;
   if (nombre.length < 2) return Response.json({ error: "El nombre debe tener al menos 2 caracteres." }, { status: 400 });
   if (typeof body?.telefono === "string" && body.telefono.trim().length > 40) return Response.json({ error: "El teléfono no puede superar 40 caracteres." }, { status: 400 });
-  if (foto != null && foto !== "" && (typeof foto !== "string" || !/^data:image\/(png|jpe?g|webp|gif);base64,[a-z0-9+/=]+$/i.test(foto) || foto.length > 280000)) {
-    return Response.json({ error: "La foto debe ser PNG, JPG, WEBP o GIF y no superar 200 KB." }, { status: 400 });
+  if (foto != null && foto !== "" && (typeof foto !== "string"
+    || (!/^\/media\/[a-z]+\/[a-z0-9][a-z0-9._-]*$/i.test(foto)
+      && (!/^data:image\/(png|jpe?g|webp|gif);base64,[a-z0-9+/=]+$/i.test(foto) || foto.length > 400000)))) {
+    return Response.json({ error: "La foto debe ser PNG, JPG, WEBP o GIF y no superar 300 KB." }, { status: 400 });
   }
+  // La foto nueva se guarda como archivo: en la columna queda la ruta, no el
+  // base64. Así el avatar no viaja dentro del JSON en cada carga del panel.
+  let fotoFinal = foto;
+  if (typeof foto === "string" && foto.startsWith("data:image/")) {
+    try {
+      fotoFinal = await guardarImagen({ carpeta: "usuarios", dataUrl: foto, base: guard.session.correo });
+    } catch (error) {
+      return Response.json({ error: error.message || "No se pudo guardar la foto." }, { status: 400 });
+    }
+  }
+  const fotoAnterior = (await prisma.usuario.findUnique({ where: { correo: guard.session.correo }, select: { foto: true } }))?.foto;
   try {
     const account = await prisma.$transaction(async (tx) => {
-      const updated = await tx.usuario.update({ where: { correo: guard.session.correo }, data: { nombre, telefono: telefono || null, ...(Object.hasOwn(body, "foto") ? { foto: foto || null } : {}) } });
+      const updated = await tx.usuario.update({ where: { correo: guard.session.correo }, data: { nombre, telefono: telefono || null, ...(Object.hasOwn(body, "foto") ? { foto: fotoFinal || null } : {}) } });
       const worker = await tx.trabajador.findUnique({ where: { correo: guard.session.correo }, select: { id: true } });
-      if (worker) await tx.trabajador.update({ where: { id: worker.id }, data: { nombre, telefono: telefono || null, ...(Object.hasOwn(body, "foto") ? { foto: foto || null } : {}) } });
+      if (worker) await tx.trabajador.update({ where: { id: worker.id }, data: { nombre, telefono: telefono || null, ...(Object.hasOwn(body, "foto") ? { foto: fotoFinal || null } : {}) } });
       return updated;
     });
+    if (fotoAnterior && fotoAnterior !== account.foto) await borrarImagen(fotoAnterior);
     await createSession({ ...guard.session, id: account.id, nombre: account.nombre }, { preserveCurrent: true });
     await writeLog("panel", "Actualizó su perfil", { actor: account.correo, ruta: "/api/perfil" });
     return Response.json({ ok: true, nombre: account.nombre });

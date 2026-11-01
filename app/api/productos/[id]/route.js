@@ -6,6 +6,7 @@ import { toProducto, toProductoForRead } from '@/lib/serialize';
 import { getPermisos, requirePermission, requireSession } from '@/lib/dal';
 import { writeLog } from '@/lib/logs';
 import { aplicarMovimiento, bodegaPrincipal, sincronizarStockInicial } from '@/lib/inventario';
+import { borrarImagen, guardarImagen } from "@/lib/almacen-fotos";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -43,6 +44,31 @@ export async function PATCH(request, { params }) {
   // El stock editable se traduce a un ajuste de kardex: nunca se escribe el
   // total a mano, porque la suma de bodegas es la fuente de verdad.
   const { stock, ...resto } = data;
+
+  // Las imágenes nuevas se escriben en disco y en la columna va su ruta. La
+  // anterior se borra, pero solo si era un archivo nuestro y cambió.
+  let anteriores = [];
+  try {
+    if (Object.hasOwn(resto, "foto") || Object.hasOwn(resto, "fotos")) {
+      // Las imágenes que tenía antes: esas son las que hay que borrar del disco
+      // cuando se reemplazan. Guardar el valor entrante no serviría (es el
+      // data URL nuevo, que no es un archivo).
+      const previo = await prisma.producto.findUnique({ where: { id }, select: { foto: true, fotos: true } });
+      anteriores = [previo?.foto, ...(previo?.fotos || [])].filter(Boolean);
+    }
+    if (typeof resto.foto === "string" && resto.foto) {
+      resto.foto = await guardarImagen({ carpeta: "productos", dataUrl: resto.foto, base: resto.sku || id });
+    }
+    if (Array.isArray(resto.fotos) && resto.fotos.length) {
+      const galeria = [];
+      for (const [indice, imagen] of resto.fotos.entries()) {
+        galeria.push(await guardarImagen({ carpeta: "productos", dataUrl: imagen, base: `${resto.sku || id}-${indice + 1}` }));
+      }
+      if (galeria.length) resto.fotos = galeria;
+    }
+  } catch (error) {
+    return Response.json({ error: error.message || "No se pudo guardar la imagen." }, { status: 400 });
+  }
 
   try {
     const producto = await prisma.$transaction(
@@ -89,6 +115,12 @@ export async function PATCH(request, { params }) {
       { timeout: 20_000 },
     );
 
+    // Solo se borran los archivos que ya no usa el producto y que viven en
+    // nuestro almacén: las rutas de /catalogo y las URL externas no se tocan.
+    const vigentes = new Set([producto.foto, ...(producto.fotos || [])].filter(Boolean));
+    const aBorrar = [...new Set(anteriores)].filter((ruta) => ruta && !vigentes.has(ruta));
+    await Promise.all(aBorrar.map(borrarImagen));
+
     await writeLog("panel", `Producto actualizado: ${producto.nombre} (${producto.sku})`, {
       actor: guard.session?.correo,
       ruta: `/api/productos/${id}`,
@@ -121,7 +153,7 @@ export async function DELETE(_request, { params }) {
   try {
     const producto = await prisma.producto.findUnique({
       where: { id },
-      select: { id: true, nombre: true, sku: true },
+      select: { id: true, nombre: true, sku: true, foto: true, fotos: true },
     });
     if (!producto) {
       return Response.json({ error: "Producto no encontrado." }, { status: 404 });
@@ -156,6 +188,9 @@ export async function DELETE(_request, { params }) {
     }
 
     await prisma.producto.delete({ where: { id } });
+    // Sus fotos ya no las usa nadie: se borran del almacén para no dejarlas
+    // ocupando disco para siempre.
+    await Promise.all([producto.foto, ...(producto.fotos || [])].filter(Boolean).map(borrarImagen));
     await writeLog("panel", `Producto eliminado: ${producto.nombre} (${producto.sku})`, {
       nivel: "warn",
       actor: guard.session?.correo,

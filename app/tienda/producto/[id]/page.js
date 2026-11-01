@@ -29,8 +29,16 @@ async function getProduct(id) {
       codigoBarras: producto.codigoBarras || "",
       precio: Number(producto.precio),
       stock: producto.stock,
-      foto: producto.foto || "",
-      fotos: Array.isArray(producto.fotos) ? producto.fotos : [],
+      // Si quedó una imagen en base64 de antes del cambio de almacén, se sirve
+      // por el endpoint en vez de mandarla dentro del HTML.
+      foto: typeof producto.foto === "string" && producto.foto.startsWith("data:")
+        ? `/api/productos/${encodeURIComponent(producto.id)}/foto`
+        : (producto.foto || ""),
+      fotos: Array.isArray(producto.fotos)
+        ? producto.fotos.map((imagen, indice) => (typeof imagen === "string" && imagen.startsWith("data:")
+          ? `/api/productos/${encodeURIComponent(producto.id)}/foto?i=${indice}`
+          : imagen))
+        : [],
       actualizado: producto.updatedAt ? new Date(producto.updatedAt).toISOString() : null,
     };
   } catch (error) {

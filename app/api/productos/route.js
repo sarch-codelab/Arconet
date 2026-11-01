@@ -6,6 +6,7 @@ import { canReadProductCost } from '@/lib/permisos';
 import { getPermisos, requirePermission, requireSession } from '@/lib/dal';
 import { writeLog } from '@/lib/logs';
 import { aplicarMovimiento, bodegaPrincipal } from '@/lib/inventario';
+import { guardarImagen } from "@/lib/almacen-fotos";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -72,12 +73,29 @@ export async function POST(request) {
     return Response.json({ error: errors[0], errors }, { status: 400 });
   }
 
+  // La imagen llega como data URL desde el editor. Se guarda como archivo y en
+  // la columna queda solo su ruta: así la base no carga con megabytes de texto
+  // que además viajarían en cada listado.
+  let fotosGuardadas = {};
+  try {
+    if (data.foto) fotosGuardadas.foto = await guardarImagen({ carpeta: "productos", dataUrl: data.foto, base: data.sku || "producto" });
+    if (Array.isArray(data.fotos) && data.fotos.length) {
+      const galeria = [];
+      for (const [indice, imagen] of data.fotos.entries()) {
+        galeria.push(await guardarImagen({ carpeta: "productos", dataUrl: imagen, base: `${data.sku || "producto"}-${indice + 1}` }));
+      }
+      if (galeria.length) fotosGuardadas.fotos = galeria;
+    }
+  } catch (error) {
+    return Response.json({ error: error.message || "No se pudo guardar la imagen." }, { status: 400 });
+  }
+
   try {
     const { stock = 0, ...resto } = data;
     const producto = await prisma.$transaction(
       async (tx) => {
         const creado = await tx.producto.create({
-          data: { id: newProductoId(), ...resto, stock: 0, preciosUpdatedAt: new Date(), preciosUpdatedBy: guard.session?.correo ?? null, createdBy: guard.session?.correo ?? null },
+          data: { id: newProductoId(), ...resto, ...fotosGuardadas, stock: 0, preciosUpdatedAt: new Date(), preciosUpdatedBy: guard.session?.correo ?? null, createdBy: guard.session?.correo ?? null },
         });
         await tx.log.create({ data: { categoria: "panel", mensaje: `Precios iniciales: ${creado.nombre}`, actor: guard.session?.correo ?? null, ruta: `/api/precios/${creado.id}`, detalle: JSON.stringify({ antes: null, despues: priceSnapshot(creado) }) } });
         // El stock inicial entra por kardex: así el producto nace con saldo

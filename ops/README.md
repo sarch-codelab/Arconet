@@ -11,6 +11,7 @@ Estos scripts son los que mantienen la aplicacion Arconet encendida en
 | `C:\arconet\boot\*.ps1`       | Scripts de operacion instalados (copia de `ops/`)|
 | `C:\arconet\logs\`            | Logs de arranque, watchdog y stdout/stderr       |
 | `C:\arconet\backups\`         | Dumps de PostgreSQL (tarea diaria 02:00)         |
+| `C:\arconet\app\.media\`      | Fotografias del panel (fuera de git; ver abajo)  |
 
 ## Tareas programadas
 
@@ -52,6 +53,47 @@ schtasks /run /tn "ArconetDeploy"
 Get-Content C:\arconet\deploy.log -Tail 30 -Wait
 ```
 
+
+## Fotografias (`.media`)
+
+Las fotos de productos, clientes, trabajadores y usuarios **no viven en la base
+de datos**. Antes se guardaban como data URL (base64) dentro de la columna, y
+eso hacia que el listado de productos pesara 16.8 MB con 16 fotos y que cada
+respaldo de PostgreSQL arrastrara todas las imagenes. Ahora se escribe el
+archivo en disco y en la columna queda solo su ruta:
+
+```
+/media/productos/adss-12-1-a1b2c3d4e5f60718.png
+```
+
+* El directorio es `C:\arconet\app\.media\` (subcarpetas `productos`,
+  `clientes`, `trabajadores`, `usuarios`, `categorias`).
+* **Esta dentro de `C:\arconet\app` pero fuera de git** (`.gitignore`). Eso es
+  a proposito: el deploy hace `git reset --hard`, que borraria cualquier cosa
+  versionada, y un `git clean` borraria lo ignorado. Si algun dia se limpia el
+  repo a mano, **no borrar `.media`**.
+* Se puede mover con la variable de entorno `MEDIA_DIR` (ruta absoluta). Si se
+  cambia, hay que mover tambien los archivos y reiniciar la app.
+* El nombre lleva un hash del contenido: la misma imagen no se duplica y una
+  foto nueva produce una ruta nueva, asi que el navegador la puede cachear
+  para siempre (`Cache-Control: immutable`) sin invalidaciones.
+* Al reemplazar o borrar un registro, su foto se borra del disco.
+* Hay que **incluir `.media` en la copia de seguridad del servidor**: `pg_dump`
+  ya no lleva las fotos dentro.
+
+### Migrar las fotos que ya estan en base64
+
+Una sola vez, con la app parada o recien actualizada:
+
+```powershell
+cd C:\arconet\app
+npx tsx ops/migrar-fotos.mjs --dry-run   # cuanto va a mover, sin tocar nada
+npx tsx ops/migrar-fotos.mjs             # escribe los archivos y actualiza la base
+```
+
+Es idempotente: si se ejecuta otra vez no encuentra nada que migrar. Recorre
+productos (foto y galeria), clientes, trabajadores y usuarios. Las rutas del
+catalogo (`/catalogo/...`) y las URL externas se dejan como estan.
 
 ## Instalacion en un servidor nuevo
 
