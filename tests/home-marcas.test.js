@@ -62,10 +62,12 @@ describe("sección de marcas de la home", () => {
     expect(marcas).not.toMatch(/rese[ñn]as/i);
   });
 
-  it("se apila en móvil y respeta reducir movimiento", () => {
+  it("se apila en móvil y las animaciones van siempre", () => {
     const css = leer(CSS);
     expect(css).toMatch(/@media \(max-width: 760px\)/);
-    expect(css).toContain("prefers-reduced-motion");
+    // Sin bloques que apaguen las transiciones: se quitó el
+    // @media (prefers-reduced-motion: reduce) que las anulaba.
+    expect(css).not.toContain("prefers-reduced-motion");
     expect(css).toContain(":focus-visible");
   });
 });

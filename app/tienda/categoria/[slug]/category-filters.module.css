@@ -396,16 +396,6 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .chevron,
-  .chevronCerrado,
-  .casilla,
-  .chip,
-  .ordenOpcion {
-    transition: none;
-  }
-}
-
 /* Foco visible siempre, también con el ratón. */
 .chip:focus-visible,
 .ordenOpcion:focus-visible,

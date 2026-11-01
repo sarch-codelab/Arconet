@@ -635,29 +635,6 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .visualImage,
-  .visualCopy,
-  .panelBody,
-  .submit,
-  .submit span,
-  .ghost,
-  .backLink svg {
-    animation: none;
-    transition: none;
-    transform: none;
-  }
-
-  .visualImage {
-    opacity: 0.82;
-  }
-
-  .submit:hover,
-  .ghost:hover {
-    transform: none;
-  }
-}
-
 .navScrim {
   display: none;
 }

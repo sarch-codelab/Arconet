@@ -243,25 +243,6 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .topbar,
-  .topbarVisible,
-  .topbarHidden,
-  .topbarBrand,
-  .topbarNav a,
-  .topbarAction,
-  .topbarCartIcon {
-    transition: none !important;
-    animation: none !important;
-  }
-
-  .topbarNav a:hover,
-  .topbarBrand:hover,
-  .topbarAction:hover {
-    transform: none !important;
-  }
-}
-
 @media (max-width: 1080px) {
   .topbar {
     padding-right: 16px;
@@ -1403,16 +1384,6 @@
   .primaryButton, .ghostDarkButton { width: 100%; justify-content: center; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .primaryButton,
-  .primaryButton span,
-  .relatedCard,
-  .contactAction,
-  .saveButton {
-    transition-duration: 0.01ms !important;
-  }
-}
-
 /* ==========================================================================
    MODO OSCURO (automático según la hora)
    ========================================================================== */
@@ -1550,10 +1521,3 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .revealed {
-    animation: none;
-    opacity: 1;
-    transform: none;
-  }
-}

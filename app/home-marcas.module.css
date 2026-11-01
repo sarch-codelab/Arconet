@@ -292,18 +292,6 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .card,
-  .accionPrincipal {
-    transition: none;
-  }
-
-  .card:hover,
-  .accionPrincipal:hover {
-    transform: none;
-  }
-}
-
 /* Foco visible para navegación con teclado. */
 .accionPrincipal:focus-visible {
   outline: 2px solid var(--accent-ink);

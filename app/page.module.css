@@ -1621,48 +1621,6 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .topbar,
-  .topbarVisible,
-  .topbarHidden,
-  .brand,
-  .brand:hover,
-  .navigation a,
-  .navIndicator,
-  .megaTrigger::after,
-  .desktopMenu,
-  .desktopMenuPrimary,
-  .desktopMenuLogin,
-  .desktopMenuAdmin,
-  .mobileMenu,
-  .mobileMenuPrimary,
-  .mobileMenuClose,
-  .mobileMenuLogin,
-  .mobileMenuAdmin,
-  .mobileMenuLink,
-  .mobileMenuGroupTitle,
-  .mobileMenuSubgroup a,
-  .menuToggle,
-  .menuToggle .menuBar,
-  .desktopMenuGroup a,
-  .accessMenuPanel,
-  .accessMenuPanel a,
-  .topAction,
-  .topActionIcon {
-    transition: none !important;
-    animation: none !important;
-  }
-
-  .navigation a:hover,
-  .brand:hover,
-  .desktopMenuPrimary:hover,
-  .desktopMenuGroup a:hover,
-  .topAction:hover,
-  .topAction:hover .topActionIcon {
-    transform: none !important;
-  }
-}
-
 /* ==========================================================================
    STYLECRAFT-INSPIRED HERO SHOWCASE FRAME & COMPANY IMAGE
    ========================================================================== */
@@ -3126,27 +3084,6 @@
   transform: translateY(0);
 }
 
-/* Con menos movimiento se muestra sin animación. */
-@media (prefers-reduced-motion: reduce) {
-  .parrafoEntrada {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
-
-  .palabra {
-    overflow: visible;
-    padding-bottom: 0;
-    margin-bottom: 0;
-  }
-
-  .palabraInterior {
-    transform: none;
-    opacity: 1;
-    transition: none;
-  }
-}
-
 @keyframes heroFrameIn {
   from {
     opacity: 0;
@@ -3192,19 +3129,6 @@
 @keyframes cueDown {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(5px); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .heroFrame,
-  .heroCenterContent,
-  .heroBgImg,
-  .cardScrollCue svg,
-  .heroTimeImage,
-  .revealVisible {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
 }
 
 @media (max-width: 1040px) {
