@@ -119,8 +119,14 @@ describe("menú 1: defectos reales detectados en navegador", () => {
   });
 
   it("el titular de contacto respeta sus dos líneas", () => {
-    // La rejilla le daba ~531px a 100px de fuente y lo partía en cuatro.
+    // Antes la rejilla le daba ~531px a 100px de fuente y lo partía en cuatro;
+    // con dos columnas hubo que reservarle espacio. Ahora el texto ya no
+    // comparte fila con la imagen (esa banda lleva el video de fondo), así que
+    // ocupa todo el ancho y tiene de sobra para las dos líneas.
     const inner = css.match(/\.contactInner\s*\{[^}]*\}/)?.[0] ?? "";
-    expect(inner).toContain("grid-template-columns: 1.15fr 0.85fr");
+    expect(inner).toContain("display: block");
+    expect(inner).not.toContain("grid-template-columns");
+    // El titular conserva su salto de línea explícito.
+    expect(casa).toContain("Hagamos que<br />");
   });
 });
