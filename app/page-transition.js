@@ -232,8 +232,8 @@ export default function PageTransition() {
         <img
           src="/arconet.png"
           alt=""
-          width="2172"
-          height="362"
+          width="1200"
+          height="200"
           decoding="async"
           draggable="false"
         />

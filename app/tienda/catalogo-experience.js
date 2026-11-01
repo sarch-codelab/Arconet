@@ -373,7 +373,14 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
 
           <header className={styles.branchGateHeader}>
             <span className={styles.branchGateBrand}>
-              <Image src="/arconet.png" alt="Arconet" width={2172} height={362} priority />
+              <Image
+              src="/arconet.png"
+              alt="Arconet"
+              width={1200}
+              height={200}
+              sizes="(max-width: 1040px) 114px, 176px"
+              priority
+            />
             </span>
             <span className={styles.branchGateMeta}>Catálogo técnico · Honduras</span>
           </header>
@@ -430,7 +437,13 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
 
         <div className={styles.topbarShell}>
           <a className={styles.topbarBrand} href="/" aria-label="Arconet, inicio" tabIndex={scrolledPastHero ? 0 : -1}>
-            <Image src="/arconet.png" alt="Arconet" width={2172} height={362} />
+            <Image
+              src="/arconet.png"
+              alt="Arconet"
+              width={1200}
+              height={200}
+              sizes="(max-width: 1040px) 114px, 176px"
+            />
           </a>
 
           <nav className={styles.topbarNav} aria-label="Navegación del catálogo" ref={navRef}>
@@ -526,7 +539,14 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
 
           <header className={styles.heroHeader}>
             <a className={styles.heroBrand} href="/" aria-label="Arconet, inicio">
-              <Image src="/arconet.png" alt="Arconet" width={2172} height={362} priority />
+              <Image
+              src="/arconet.png"
+              alt="Arconet"
+              width={1200}
+              height={200}
+              sizes="(max-width: 1040px) 114px, 176px"
+              priority
+            />
             </a>
             <nav className={styles.navigation} aria-label="Navegación principal">
               {NAVIGATION.map((item) => (

@@ -33,7 +33,14 @@ export default function AyudaPage() {
             <div className={styles.heroOverlay} />
           </div>
           <header className={styles.heroHeader}>
-            <Link className={styles.logoTab} href="/" aria-label="Arconet, inicio"><Image src="/arconet.png" alt="Arconet" width={2172} height={362} priority /></Link>
+            <Link className={styles.logoTab} href="/" aria-label="Arconet, inicio"><Image
+              src="/arconet.png"
+              alt="Arconet"
+              width={1200}
+              height={200}
+              sizes="(max-width: 1040px) 114px, 176px"
+              priority
+            /></Link>
             <nav className={styles.navigation} aria-label="Navegación principal">
               <Link href="/">Inicio</Link><Link href="/tienda">Tienda</Link><Link href="/terminos">Términos</Link><Link href="/privacidad">Privacidad</Link><Link href="/contacto">Contacto</Link>
             </nav>

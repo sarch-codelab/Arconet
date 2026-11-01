@@ -9,7 +9,7 @@ export const metadata = {
     description:
       "Equipos y soluciones de fibra óptica, CATV y telecomunicaciones de Arconet Honduras.",
     url: "/tienda",
-    images: [{ url: "/arconet.png", width: 2172, height: 362, alt: "Arconet" }],
+    images: [{ url: "/arconet.png", width: 1200, height: 200, alt: "Arconet" }],
   },
 };
 

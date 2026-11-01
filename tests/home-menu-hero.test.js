@@ -59,8 +59,11 @@ describe("menú 1: logo, enlaces y botón Acceder", () => {
     expect(trig).toMatch(/font-size:\s*clamp\(13\.5px,\s*0\.95vw,\s*18px\)/);
   });
 
-  it("el logo del hero crece en pantallas grandes", () => {
-    expect(css).toMatch(/\.heroLogoImg\s*\{[^}]*width:\s*clamp\(178px,\s*10\.5vw,\s*232px\)/);
+  it("el logo del hero tiene un ancho fijo para no pedir variantes enormes", () => {
+    // Antes era clamp(): el navegador no podía deducir el ancho desde `sizes`
+    // y descargaba la variante más grande disponible.
+    expect(css).toMatch(/\.heroLogoImg\s*\{[^}]*width:\s*232px/);
+    expect(casa).toContain('sizes="(max-width: 760px) 130px, 232px"');
   });
 
   it("la barra del hero crece en alto para que quepa el logo", () => {

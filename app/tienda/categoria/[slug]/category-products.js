@@ -284,7 +284,14 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
       <div className={styles.readingProgress} aria-hidden="true" />
       <header className={styles.header}>
         <Link className={styles.brand} href="/" aria-label="Arconet, inicio">
-          <Image src="/arconet.png" alt="Arconet" width={2172} height={362} priority />
+          <Image
+              src="/arconet.png"
+              alt="Arconet"
+              width={1200}
+              height={200}
+              sizes="(max-width: 1040px) 114px, 176px"
+              priority
+            />
         </Link>
         <MobileSiteMenu />
         <nav className={styles.nav} aria-label="Navegación principal">

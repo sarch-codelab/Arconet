@@ -84,9 +84,23 @@ describe("el video de fondo de las bandas de contacto", () => {
     expect(video).toContain("autoPlay");
     expect(video).toContain('aria-hidden="true"');
     expect(video).toContain("controls={false}");
-    expect(video).toContain('src={VIDEO}');
+    // La fuente es condicional: con ahorro de datos no se descarga el video.
+    expect(video).toContain("ahorro ? undefined : VIDEO");
     // Si el navegador rechaza el autoplay, se ignora en vez de romper.
     expect(video).toMatch(/intento\.catch\(\(\) => \{\}\)/);
+  });
+
+  it("no gasta recursos cuando nadie lo mira", () => {
+    const video = leer(VIDEO);
+    // Un video en bucle reproduce 30 fotogramas por segundo para siempre: se
+    // pausa al salir de pantalla y se reanuda al volver a la pestaña.
+    expect(video).toContain("new IntersectionObserver");
+    expect(video).toMatch(/else reproductor\.pause\(\)/);
+    expect(video).toContain('document.addEventListener("visibilitychange", alVolver)');
+    // Con ahorro de datos se queda el póster y no se pide el archivo.
+    expect(video).toContain("saveData");
+    expect(video).toContain("prefers-reduced-data");
+    expect(video).toContain('preload={ahorro ? "none" : "metadata"}');
   });
 
   it("va detrás del contenido, nunca encima", () => {

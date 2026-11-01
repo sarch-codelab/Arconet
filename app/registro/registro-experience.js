@@ -101,7 +101,14 @@ export default function RegistroExperience() {
           <div className={styles.loginVisualOverlay} />
 
           <Link className={styles.logoTab} href="/" aria-label="Arconet, inicio">
-            <Image src="/arconet.png" alt="Arconet" width={2172} height={362} priority />
+            <Image
+              src="/arconet.png"
+              alt="Arconet"
+              width={1200}
+              height={200}
+              sizes="(max-width: 1040px) 114px, 176px"
+              priority
+            />
           </Link>
 
           <div className={styles.loginVisualCopy}>

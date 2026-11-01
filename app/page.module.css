@@ -664,7 +664,9 @@
 
 .brand img {
   display: block;
-  width: clamp(128px, 8.2vw, 176px);
+  /* Anchos fijos (no clamp) para que coincidan con el atributo `sizes` y el
+     navegador pida la variante pequeña de la imagen. */
+  width: 176px;
   height: auto;
 }
 
@@ -1775,7 +1777,8 @@
 }
 
 .heroLogoImg {
-  width: clamp(178px, 10.5vw, 232px);
+  /* Ancho fijo para que coincida con `sizes` y no se pida una variante mayor. */
+  width: 232px;
   height: auto;
   display: block;
 }
@@ -3161,7 +3164,7 @@
     border-bottom-right-radius: 20px;
   }
   .cardLogoTab::after { right: -20px; width: 20px; height: 20px; border-top-left-radius: 20px; box-shadow: -7px -7px 0 7px var(--paper); }
-  .heroLogoImg { width: clamp(96px, 28vw, 130px); }
+  .heroLogoImg { width: 130px; }
   .cardMenuToggle { display: block; justify-self: center; }
   .cardCenterNav { display: none; }
   .cardActionTab {

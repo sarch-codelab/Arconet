@@ -1,47 +1,91 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./video-fondo-cta.module.css";
 
 // Fondo en movimiento de las bandas de contacto ("Hagamos que todo conecte").
 //
-// Sustituye a la foto fija que había detrás del texto: es el mismo video de
-// cintas en bucle, recortado a la banda. Se sirve una versión de 1080p sin
-// audio (264 KB) en lugar del 4K original (7.9 MB).
+// Es el video de cintas en bucle, recortado a la banda. Se sirve una versión
+// de 1080p sin audio (264 KB) en lugar del 4K original (7.9 MB).
 //
-// El video es decorativo: va `aria-hidden`, sin controles y silenciado, así
-// que puede arrancar solo. Si el navegador no lo permite (ahorro de batería
-// en algunos móviles) o falla la carga, el póster mantiene el fondo y el
-// texto se lee igual.
+// Para que no cueste rendimiento en equipos modestos:
+// - Solo se reproduce mientras la banda está en pantalla. Fuera de vista se
+//   pausa: un video en bucle reproduce 30 fotogramas por segundo para siempre,
+//   aunque no lo estés mirando.
+// - Con el ahorro de datos activado no se descarga: queda el póster.
+// - El video es decorativo: `aria-hidden`, silenciado y sin controles, así que
+//   puede arrancar solo. Si el navegador lo rechaza, el póster mantiene el
+//   fondo y el texto se lee igual.
 
 const VIDEO = "/lines-fondo.mp4";
 const POSTER = "/lines-poster.jpg";
 
 export default function VideoFondoCTA({ className = "" }) {
-  const ref = useRef(null);
+  const contenedor = useRef(null);
+  const video = useRef(null);
+  // Con ahorro de datos no se pide el archivo: se queda el póster.
+  const [ahorro, setAhorro] = useState(true);
 
   useEffect(() => {
-    const video = ref.current;
-    if (!video) return undefined;
-    // `autoplay` en el atributo no basta cuando React monta el nodo: se
-    // intenta reproducir a mano y se ignora el rechazo (el póster se queda).
-    const intento = video.play();
-    if (intento && typeof intento.catch === "function") intento.catch(() => {});
-    return undefined;
+    const conexion = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    const datosLimitados = Boolean(conexion?.saveData);
+    const sinDatos = window.matchMedia?.("(prefers-reduced-data: reduce)")?.matches;
+    setAhorro(Boolean(datosLimitados || sinDatos));
   }, []);
 
+  useEffect(() => {
+    if (ahorro) return undefined;
+    const nodo = contenedor.current;
+    const reproductor = video.current;
+    if (!nodo || !reproductor) return undefined;
+
+    const reproducir = () => {
+      const intento = reproductor.play();
+      if (intento && typeof intento.catch === "function") intento.catch(() => {});
+    };
+
+    // Sin IntersectionObserver se reproduce sin más.
+    if (typeof IntersectionObserver === "undefined") {
+      reproducir();
+      return undefined;
+    }
+
+    const observador = new IntersectionObserver(
+      (entradas) => {
+        entradas.forEach((entrada) => {
+          if (entrada.isIntersecting) reproducir();
+          else reproductor.pause();
+        });
+      },
+      // Se reproduce en cuanto asoma y se pausa al salir del todo.
+      { threshold: 0.15 }
+    );
+    observador.observe(nodo);
+
+    // Al volver a la pestaña se reanuda si la banda sigue a la vista.
+    const alVolver = () => {
+      if (document.visibilityState === "visible" && reproductor.paused) reproducir();
+    };
+    document.addEventListener("visibilitychange", alVolver);
+
+    return () => {
+      observador.disconnect();
+      document.removeEventListener("visibilitychange", alVolver);
+    };
+  }, [ahorro]);
+
   return (
-    <div className={`${styles.fondo} ${className}`.trim()} aria-hidden="true">
+    <div ref={contenedor} className={`${styles.fondo} ${className}`.trim()} aria-hidden="true">
       <video
-        ref={ref}
+        ref={video}
         className={styles.video}
-        src={VIDEO}
+        src={ahorro ? undefined : VIDEO}
         poster={POSTER}
-        autoPlay
+        autoPlay={!ahorro}
         muted
         loop
         playsInline
-        preload="metadata"
+        preload={ahorro ? "none" : "metadata"}
         tabIndex={-1}
         disablePictureInPicture
         controls={false}

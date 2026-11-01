@@ -11,7 +11,7 @@ export const metadata = {
     description:
       "Conversemos sobre tu proyecto de fibra óptica, CATV o telecomunicaciones en Honduras.",
     url: "/contacto",
-    images: [{ url: "/arconet.png", width: 2172, height: 362, alt: "Arconet" }],
+    images: [{ url: "/arconet.png", width: 1200, height: 200, alt: "Arconet" }],
   },
 };
 

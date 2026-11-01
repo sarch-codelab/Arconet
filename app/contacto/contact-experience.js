@@ -188,7 +188,14 @@ export default function ContactExperience() {
 
           <header className={styles.heroHeader}>
             <a className={styles.logoTab} href="/" aria-label="Arconet, inicio">
-              <Image src="/arconet.png" alt="Arconet" width={2172} height={362} priority />
+              <Image
+              src="/arconet.png"
+              alt="Arconet"
+              width={1200}
+              height={200}
+              sizes="(max-width: 1040px) 114px, 176px"
+              priority
+            />
             </a>
             <nav className={styles.navigation} aria-label="Navegación principal">
               {NAVIGATION.map((item, index) => (
@@ -243,11 +250,16 @@ export default function ContactExperience() {
 
       <section className={styles.contactStory}>
         <div className={styles.storyVisual} data-reveal data-scroll data-scroll-speed="0.08">
+          {/* `sizes`: la columna ocupa como mucho ~44vw y la imagen se pinta
+              al 120% de ese ancho. Sin esto se servía la variante de 2176px
+              (3.7 MB) para un hueco de unos 600px. */}
           <Image
             src="/neto-conducioendo.png"
             alt="Neto conduciendo"
             width={944}
             height={1820}
+            sizes="(max-width: 760px) 110vw, 55vw"
+            loading="lazy"
           />
           <span>AR / HN — 01</span>
         </div>
