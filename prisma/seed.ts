@@ -129,7 +129,15 @@ async function main() {
 
   for (const [id, nombre, slug, descripcion, foto, orden] of CATEGORIAS) {
     const data = { nombre, slug, descripcion, foto, orden, estado: "activo" };
-    await prisma.categoria.upsert({ where: { id }, update: data, create: { id, ...data } });
+    // update SIN foto: la imagen de cada categoría se edita desde el panel y
+    // vive solo en la base de datos. Volver a escribir la del código en cada
+    // arranque borraba lo que el usuario hubiera subido (y era el motivo por el
+    // que al reiniciar se veían "las imágenes anteriores" hasta recargar).
+    await prisma.categoria.upsert({
+      where: { id },
+      update: { nombre, slug, descripcion, orden, estado: "activo" },
+      create: { id, ...data },
+    });
   }
 
   for (const [id, nombre, slug, descripcion, permisos, estado] of ROLES) {

@@ -21,7 +21,6 @@ import styles from "./catalogo-experience.module.css";
 
 import { FAMILIES, findFamily } from "./catalogo-data";
 import { useCart } from "../cart-context";
-import { useCategorias } from "./categorias-store";
 import Footer from "../footer";
 import MobileSiteMenu from "../mobile-site-menu";
 
@@ -68,24 +67,6 @@ const BRANCHES = [
 ];
 
 
-const STEPS = [
-  {
-    number: "01",
-    title: "Nos cuentas tu proyecto",
-    text: "Una llamada o un mensaje basta. Nos dices qué necesitas conectar y te hacemos las preguntas correctas.",
-  },
-  {
-    number: "02",
-    title: "Te recomendamos y cotizamos",
-    text: "Seleccionamos el equipo que sí sirve para tu caso y te enviamos una cotización clara, sin letra chica.",
-  },
-  {
-    number: "03",
-    title: "Entregamos y acompañamos",
-    text: "Coordinamos la entrega y seguimos disponibles durante la instalación y después de ella.",
-  },
-];
-
 const DETAILS = [
   { icon: MapPin, title: "San Pedro Sula, Cortés", text: "Atendemos proyectos en todo Honduras." },
   { icon: Handshake, title: "Hablas con el equipo técnico", text: "No hay bots de por medio." },
@@ -121,7 +102,7 @@ const FALLBACK_CATEGORIES = FAMILIES.map((family) => ({
   estado: "activo",
 }));
 
-export default function CatalogoExperience() {
+export default function CatalogoExperience({ categoriasIniciales = [] }) {
   const [activeSection, setActiveSection] = useState("");
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -134,11 +115,11 @@ export default function CatalogoExperience() {
   const navRef = useRef(null);
   const topbarRef = useRef(null);
   const { count: cartCount, open: openCart } = useCart();
-  const { categorias: remoteCategories, loaded: categoriesLoaded } = useCategorias();
-
+  // Llegan del servidor ya resueltas. Solo si la base no devolvió nada (por
+  // ejemplo, sin conexión) se cae al catálogo estático del código.
   const catalogCategories = useMemo(
-    () => (categoriesLoaded ? remoteCategories : FALLBACK_CATEGORIES),
-    [categoriesLoaded, remoteCategories]
+    () => (categoriasIniciales.length ? categoriasIniciales : FALLBACK_CATEGORIES),
+    [categoriasIniciales]
   );
 
   const examples = useMemo(
@@ -664,40 +645,9 @@ export default function CatalogoExperience() {
         </div>
       </section>
 
-      <section id="acompanamiento" className={styles.supportSection}>
-        <div className={styles.supportIntro} data-reveal>
-          <p className={styles.sectionEyebrow}><i /> Acompañamiento</p>
-          <h2>El equipo importa.<br /><em>Quién te respalda, también.</em></h2>
-          <p className={styles.supportText}>
-            Comprar el equipo es la parte fácil. Lo difícil es que funcione bien el día que se instala, y para eso estamos: respondemos, recomendamos y seguimos ahí.
-          </p>
-          <a className={styles.supportLink} href="/#contacto">Conversemos de tu proyecto <ArrowRight size={16} /></a>
-        </div>
-
-        <div className={styles.supportMedia} data-reveal>
-          <Image
-            src="/neto-manana.png"
-            alt="Neto, representante de Arconet"
-            fill
-            sizes="(max-width: 900px) 92vw, 42vw"
-            className={styles.supportImage}
-          />
-          <span className={styles.supportCaption}>San Pedro Sula, Honduras</span>
-        </div>
-
-        <ol className={styles.stepsList} data-reveal>
-          {STEPS.map((step) => (
-            <li key={step.number}>
-              <span>{step.number}</span>
-              <div>
-                <h3>{step.title}</h3>
-                <p>{step.text}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
-      </section>
-
+      {/* La sección "Acompañamiento" (intro + foto de Neto + los tres pasos) se
+          retiró a petición: el mensaje de respaldo vive ahora solo en esta
+          banda de detalles, que era su cierre. */}
       <section className={styles.detailBand} aria-label="Detalles de la atención">
         {DETAILS.map(({ icon: Icon, title, text }) => (
           <div className={styles.detailItem} key={title}>
