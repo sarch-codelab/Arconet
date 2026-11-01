@@ -1248,25 +1248,30 @@
 }
 
 /* Tarjeta al estilo de la referencia: placa pastel, título arriba a la
-   izquierda, el objeto flotando dentro y una flecha circular en la esquina.
-   La ilustración ocupa la tarjeta entera —su degradado ES el fondo— y el
-   título se dibuja encima. */
+   izquierda, el objeto dentro y una flecha circular en la esquina.
+   La imagen que sube el panel puede ser cuadrada, vertical o apaisada, así que
+   nunca se recorta a la fuerza: se difumina de fondo (rellenando la placa con
+   sus propios colores) y se dibuja completa encima con object-fit: contain. */
 .exampleCard {
   position: relative;
   min-width: 0;
   display: block;
-  aspect-ratio: 1.55;
-  padding: clamp(16px, 1.4vw, 24px) clamp(18px, 1.6vw, 28px);
+  aspect-ratio: 1.42;
+  padding: clamp(14px, 1.3vw, 22px) clamp(16px, 1.5vw, 26px);
   border-radius: 22px;
   color: #17203a;
   overflow: hidden;
   isolation: isolate;
-  transition: transform 320ms cubic-bezier(0.2, 0.7, 0.25, 1),
-    box-shadow 320ms ease;
+  box-shadow:
+    0 1px 1px rgba(18, 32, 74, 0.05),
+    0 4px 10px -6px rgba(18, 32, 74, 0.14),
+    0 14px 28px -18px rgba(18, 32, 74, 0.22);
+  transition: transform 420ms cubic-bezier(0.2, 0.7, 0.25, 1),
+    box-shadow 420ms cubic-bezier(0.2, 0.7, 0.25, 1);
 }
 
-/* Respaldo mientras carga la ilustración: un pastel suave para que no
-   aparezca un hueco blanco. */
+/* Respaldo mientras carga la imagen: un pastel suave para que no aparezca un
+   hueco blanco. */
 .exampleCard::before {
   content: "";
   position: absolute;
@@ -1275,34 +1280,126 @@
   background: #e8ebfa;
 }
 
-.exampleCard:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 44px -24px rgba(18, 32, 74, 0.5);
+/* Degradado inferior: da profundidad y, de paso, asegura que el título y la
+   flecha se lean sobre cualquier imagen, por clara que sea. */
+.exampleCard::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 42%;
+  z-index: 1;
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(255, 255, 255, 0.18) 45%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  pointer-events: none;
+  transition: opacity 420ms ease;
 }
 
-/* La ilustración cubre toda la placa. */
+/* Profundidad al pasar el puntero. No hay zoom: la imagen no se agranda, solo
+   se eleva la tarjeta y se abre la sombra. */
+.exampleCard:hover {
+  transform: translateY(-6px);
+  box-shadow:
+    0 1px 1px rgba(18, 32, 74, 0.06),
+    0 10px 20px -10px rgba(18, 32, 74, 0.2),
+    0 30px 56px -26px rgba(18, 32, 74, 0.42);
+}
+
+/* Máscara redondeada: recorta la imagen y también el desenfoque de relleno. */
 .exampleVisual {
   position: absolute;
   inset: 0;
   z-index: 0;
+  /* Flex y no grid: con grid la altura del área es indefinida y el
+     max-height: 100% de la imagen se ignora, así que desbordaba la placa. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Poco relleno: cada píxel que se quita aquí se lo gana la imagen. El hueco
+     de abajo deja respirar la flecha, que vive en la esquina. */
+  padding: clamp(6px, 0.7vw, 10px);
+  padding-bottom: clamp(20px, 2vw, 28px);
+  overflow: hidden;
+  border-radius: inherit;
 }
 
+/* Relleno difuminado: la misma imagen estirada a toda la placa. Tapa el hueco
+   que deja una imagen vertical o cuadrada y toma sus colores, así que la placa
+   parece una sola pieza en vez de un recorte pegado encima. */
+.exampleVisual::before {
+  content: "";
+  position: absolute;
+  inset: -22%;
+  background-image: var(--imagen);
+  background-position: center;
+  background-size: cover;
+  filter: blur(46px) saturate(1.28) brightness(1.1);
+  transform: scale(1.15);
+}
+
+/* Velo suave sobre el relleno. Es más fuerte arriba (donde vive el título) y
+   se abre abajo para que el color de la imagen no se lave. */
+.exampleVisual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    170deg,
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(255, 255, 255, 0.28) 45%,
+    rgba(255, 255, 255, 0.14) 100%
+  );
+}
+
+/* La imagen completa, sin recortes. Se dibuja a su tamaño natural acotado por
+   la placa (no estirada a toda la caja), para poder difuminar sus propios
+   bordes: así su fondo se funde con el relleno en vez de verse un rectángulo
+   pegado. */
 .exampleImage {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  min-width: 0;
+  min-height: 0;
+  object-fit: contain;
   object-position: center;
-  transition: transform 620ms cubic-bezier(0.2, 0.7, 0.25, 1);
+  /* Desvanecido radial: la imagen pierde sus cuatro bordes de forma elíptica,
+     así deja de verse como un recorte pegado y pasa a flotar sobre la placa.
+     Un degradado rectangular seguía marcando las esquinas. */
+  -webkit-mask-image: radial-gradient(
+    ellipse 70% 70% at 50% 50%,
+    #000 34%,
+    rgba(0, 0, 0, 0.92) 50%,
+    rgba(0, 0, 0, 0.6) 68%,
+    rgba(0, 0, 0, 0.22) 84%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    ellipse 70% 70% at 50% 50%,
+    #000 34%,
+    rgba(0, 0, 0, 0.92) 50%,
+    rgba(0, 0, 0, 0.6) 68%,
+    rgba(0, 0, 0, 0.22) 84%,
+    transparent 100%
+  );
+  transition: transform 520ms cubic-bezier(0.2, 0.7, 0.25, 1);
 }
 
 .exampleCard:hover .exampleImage {
-  transform: scale(1.04);
+  transform: translateY(-4px) scale(1.015);
 }
 
-/* Título arriba a la izquierda, sobre el pastel de la ilustración. */
+/* Título arriba a la izquierda, sobre el pastel de la placa. */
 .exampleCopy {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -1311,22 +1408,26 @@
 
 .exampleCopy h3 {
   max-width: 84%;
-  /* Sobre el pastel de las ilustraciones el texto oscuro se lee solo. Cuando
-     la tarjeta usa una foto subida desde el panel puede venir oscura, así que
-     el título lleva su propio respaldo claro difuminado y se lee en ambos
-     casos. */
+  /* Respaldo claro difuminado: la imagen pasa por detrás y puede ser de
+     cualquier color. */
   padding: 6px 12px;
   margin: -6px -12px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.66);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 1px 2px rgba(18, 32, 74, 0.06);
   color: #16203a;
   font-family: var(--font-heading), system-ui, sans-serif;
   font-size: clamp(15px, 1.25vw, 19px);
   font-weight: 400;
   line-height: 1.25;
   letter-spacing: -0.01em;
+  transition: background 320ms ease;
+}
+
+.exampleCard:hover .exampleCopy h3 {
+  background: rgba(255, 255, 255, 0.86);
 }
 
 /* Flecha circular apoyada en la esquina inferior derecha. */
@@ -1334,22 +1435,28 @@
   position: absolute;
   right: clamp(14px, 1.2vw, 20px);
   bottom: clamp(14px, 1.2vw, 20px);
-  z-index: 2;
+  z-index: 3;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.92);
   color: #16203a;
-  box-shadow: 0 4px 14px -6px rgba(18, 32, 74, 0.45);
-  transition: transform 260ms ease, background 260ms ease;
+  box-shadow:
+    0 1px 2px rgba(18, 32, 74, 0.1),
+    0 6px 14px -6px rgba(18, 32, 74, 0.4);
+  transition: transform 320ms cubic-bezier(0.2, 0.7, 0.25, 1),
+    background 320ms ease, box-shadow 320ms ease;
 }
 
 .exampleCard:hover .exampleArrow {
-  transform: translateX(3px);
+  transform: translate(2px, -2px);
   background: #fff;
+  box-shadow:
+    0 1px 2px rgba(18, 32, 74, 0.12),
+    0 10px 20px -8px rgba(18, 32, 74, 0.5);
 }
 
 /* En tema oscuro la placa mantiene su pastel claro, como las placas de logo

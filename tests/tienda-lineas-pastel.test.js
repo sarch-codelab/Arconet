@@ -57,12 +57,56 @@ describe("líneas de producto con placas pastel", () => {
 
   it("la tarjeta usa placa pastel con el título encima y flecha", () => {
     const css = readFileSync(CSS, "utf8");
-    // La ilustración cubre la tarjeta entera.
+    // La imagen ocupa la placa, pero sin recortarse.
     expect(css).toMatch(/\.exampleVisual \{[\s\S]*?position: absolute;[\s\S]*?inset: 0;/);
-    expect(css).toMatch(/\.exampleImage \{[\s\S]*?object-fit: cover;/);
-    // Título por encima de la imagen.
-    expect(css).toMatch(/\.exampleCopy \{[\s\S]*?z-index: 1;/);
+    expect(css).toMatch(/\.exampleCopy \{[\s\S]*?z-index: 2;/);
     expect(css).toMatch(/\.exampleArrow \{[\s\S]*?border-radius: 50%;/);
+  });
+
+  // Las imágenes del panel pueden venir cuadradas, verticales o apaisadas.
+  // Recortarlas a la placa (object-fit: cover) las dejaba cortadas.
+  it("la imagen nunca se recorta, sea cual sea su proporción", () => {
+    const css = readFileSync(CSS, "utf8");
+    const bloque = css.match(/\.exampleImage \{[\s\S]*?\n\}/)?.[0] || "";
+    expect(bloque).toContain("object-fit: contain");
+    expect(bloque).not.toContain("object-fit: cover");
+    // Acotada a la placa para que no desborde.
+    expect(bloque).toContain("max-height: 100%");
+    // El contenedor debe ser flex: con grid la altura es indefinida y el
+    // max-height de la imagen se ignora.
+    const visual = css.match(/\.exampleVisual \{[\s\S]*?\n\}/)?.[0] || "";
+    expect(visual).toContain("display: flex");
+  });
+
+  it("la imagen se funde con el fondo en vez de verse como un recorte", () => {
+    const css = readFileSync(CSS, "utf8");
+    // Relleno difuminado de la propia imagen.
+    expect(css).toMatch(/\.exampleVisual::before \{[\s\S]*?background-image: var\(--imagen\)/);
+    expect(css).toMatch(/\.exampleVisual::before \{[\s\S]*?filter: blur/);
+    // Desvanecido de bordes de la imagen.
+    expect(css).toMatch(/mask-image: radial-gradient\(/);
+  });
+
+  it("el efecto al pasar el puntero es profundidad, no zoom", () => {
+    const css = readFileSync(CSS, "utf8");
+    const hover = css.match(/\.exampleCard:hover \{[\s\S]*?\n\}/)?.[0] || "";
+    expect(hover).toContain("translateY(-6px)");
+    expect(hover).toContain("box-shadow");
+    // La placa no se agranda al pasar el puntero.
+    expect(hover).not.toContain("scale(");
+    // La tarjeta arranca con sombra propia: sin ella no hay profundidad.
+    const card = css.match(/\.exampleCard \{[\s\S]*?\n\}/)?.[0] || "";
+    expect(card).toContain("box-shadow");
+  });
+
+  it("la tarjeta no pelea con la animación de entrada", () => {
+    const js = readFileSync(JS, "utf8");
+    // data-reveal escribe transform y anulaba la elevación del hover.
+    const card = js.slice(js.indexOf("className={styles.exampleCard}"), js.indexOf("styles.exampleCopy"));
+    // Como atributo JSX, no como mención en el comentario que lo explica.
+    expect(card).not.toMatch(/\bdata-reveal\b\s*[\s>]/);
+    // La imagen viaja al CSS para el relleno difuminado.
+    expect(js).toContain('"--imagen"');
   });
 
   it("no quedan restos del diseño anterior", () => {

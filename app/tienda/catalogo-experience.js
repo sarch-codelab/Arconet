@@ -632,7 +632,15 @@ export default function CatalogoExperience() {
         </div>
         <div className={styles.exampleGrid}>
           {examples.map((example) => (
-            <Link className={styles.exampleCard} href={`/tienda/categoria/${example.slug}`} key={example.title} data-reveal>
+            <Link
+              className={styles.exampleCard}
+              href={`/tienda/categoria/${example.slug}`}
+              key={example.title}
+              /* La tarjeta no usa data-reveal: esa animación escribe
+                 transform y choca con la elevación del :hover, que dejaba de
+                 responder tras revelarse. El CSS ya anima la entrada. */
+              style={{ "--imagen": `url("${example.image}")` }}
+            >
               <div className={styles.exampleCopy}>
                 <h3>{example.title}</h3>
               </div>
