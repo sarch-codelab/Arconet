@@ -74,9 +74,13 @@ describe("filtros de la página de categoría", () => {
     expect(leer(CSS)).toMatch(/@media \(max-width: 980px\)[\s\S]*grid-template-columns: minmax\(0, 1fr\)/);
   });
 
-  it("respeta prefers-reduced-motion en las transiciones nuevas", () => {
-    expect(leer(FILTROS_CSS)).toContain("prefers-reduced-motion");
-    expect(leer(CSS)).toContain("prefers-reduced-motion");
+  it("las transiciones nuevas corren siempre, también con las animaciones del sistema apagadas", () => {
+    // Se quitaron los bloques @media (prefers-reduced-motion: reduce): dejaban
+    // el sitio a medio pintar en los equipos con "Efectos de animación"
+    // desactivado. Las animaciones son parte del diseño y van siempre.
+    expect(leer(FILTROS_CSS)).not.toContain("prefers-reduced-motion");
+    expect(leer(CSS)).not.toContain("prefers-reduced-motion");
+    expect(leer(FILTROS_CSS)).toMatch(/transition(-duration)?:[^;]*\d+m?s/);
   });
 
   it("si los filtros dejan la lista vacía se puede volver sin salir del catálogo", () => {

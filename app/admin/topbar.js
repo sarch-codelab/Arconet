@@ -15,7 +15,7 @@ import styles from "./admin-experience.module.css";
  *
  * En celular y tableta no caben todas las secciones, asi que la barra hace
  * scroll horizontal; sin este ajuste la pestana activa podia quedar fuera de
- * la vista y el usuario no sabia donde estaba. Respeta `prefers-reduced-motion`.
+ * la vista y el usuario no sabia donde estaba.
  */
 function useActivePillIntoView(activeKey) {
   const navRef = useRef(null);
@@ -23,12 +23,7 @@ function useActivePillIntoView(activeKey) {
   useEffect(() => {
     const active = navRef.current?.querySelector('[aria-current]');
     if (!active) return;
-    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-    active.scrollIntoView({
-      inline: "center",
-      block: "nearest",
-      behavior: reduce ? "auto" : "smooth",
-    });
+    active.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
   }, [activeKey]);
 
   return navRef;

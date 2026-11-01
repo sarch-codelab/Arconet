@@ -447,13 +447,6 @@
   color: #e0483d;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .panel,
-  .backdrop {
-    transition: none;
-  }
-}
-
 /* MODO OSCURO */
 
 :global(html[data-theme="dark"]) .emptyButton,

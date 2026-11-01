@@ -141,15 +141,6 @@ textarea {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .themeToggle,
-  .themeToggle:hover,
-  .themeToggle:active {
-    transform: none;
-    transition: border-color 180ms ease, color 180ms ease;
-  }
-}
-
 /* Contador del carrito de cotización (usado en cabeceras del catálogo) */
 
 .cartBadge {

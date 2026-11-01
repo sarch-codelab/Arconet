@@ -125,8 +125,3 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .vistaBoton {
-    transition: none;
-  }
-}

@@ -715,37 +715,6 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .topbar,
-  .topbarVisible,
-  .topbarHidden,
-  .topbarBrand,
-  .topbarNav a,
-  .navIndicator,
-  .megaTrigger::after,
-  .megaMenuCatalogo,
-  .mobileMenu,
-  .menuToggleCatalogo,
-  .menuToggleCatalogo .menuBar,
-  .megaMenuCategoryCatalogo a,
-  .megaMenuCategoryCatalogo a::after,
-  .megaMenuCategoryCatalogo > ul > li,
-  .megaMenuFooter a svg,
-  .topbarAction,
-  .topbarCartIcon {
-    transition: none !important;
-    animation: none !important;
-  }
-
-  .topbarNav a:hover,
-  .topbarBrand:hover,
-  .megaMenuCategoryCatalogo > ul > li:hover,
-  .megaMenuCategoryCatalogo a:hover,
-  .topbarAction:hover {
-    transform: none !important;
-  }
-}
-
 /* ==========================================================================
    HERO
    ========================================================================== */
@@ -2370,7 +2339,6 @@
   .familyMeta { gap: 10px 14px; margin-top: 16px; }
   .familyQuoteButton { margin-top: 14px; }
 
-
   .detailBand { grid-template-columns: 1fr; gap: 18px; padding: 24px 20px; }
 
   .contactSection { min-height: 0; }
@@ -2391,28 +2359,6 @@
   .heroBrand { padding: 0 14px 0 12px; }
   .heroBrand img { width: 104px; }
   .heroActionTab { padding: 0 10px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .heroContent,
-  .heroFooter a svg,
-  .familyImage,
-  .familyCard,
-  .familyQuoteButton,
-  .exampleImage,
-  .primaryButton,
-  .primaryButton span,
-  .contactAction,
-  .heroImage,
-  .revealVisible {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-
-  .heroImage {
-    transform: none !important;
-  }
 }
 
 /* ==========================================================================
@@ -2884,8 +2830,6 @@
 :global(html[data-theme="dark"]) .familyItems li {
   color: var(--ink);
 }
-
-
 
 :global(html[data-theme="dark"]) .emptyState {
   border-color: var(--line);

@@ -229,25 +229,6 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .topbar,
-  .topbarVisible,
-  .topbarHidden,
-  .topbarBrand,
-  .topbarNav a,
-  .topbarAction,
-  .topbarCartIcon {
-    transition: none !important;
-    animation: none !important;
-  }
-
-  .topbarNav a:hover,
-  .topbarBrand:hover,
-  .topbarAction:hover {
-    transform: none !important;
-  }
-}
-
 @media (max-width: 1080px) {
   .topbar {
     padding-right: 16px;

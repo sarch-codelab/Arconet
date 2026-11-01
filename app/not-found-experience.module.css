@@ -600,21 +600,6 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .notFoundPage {
-    scroll-behavior: auto;
-  }
-
-  .notFoundPage *,
-  .notFoundPage *::before,
-  .notFoundPage *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
 /* ==========================================================================
    MODO OSCURO (automático según la hora)
    ========================================================================== */

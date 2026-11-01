@@ -30,9 +30,14 @@ describe("revelado tipográfico de títulos", () => {
     expect(casa).toMatch(/Math\.min\(indice \* 45, 620\)|Math\.min\(indice \* 45, \d+\)/);
   });
 
-  it("respeta prefers-reduced-motion", () => {
-    expect(casa).toContain("prefers-reduced-motion: reduce");
-    expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.palabraInterior\s*\{[^}]*transform:\s*none/);
+  it("las letras se revelan siempre, también con las animaciones del sistema apagadas", () => {
+    // Antes, con `reduce` los títulos se marcaban ya "listos" en el mismo
+    // render: el navegador los pintaba en su posición final y la cascada no
+    // se veía. Ahora el revelado depende solo del IntersectionObserver.
+    expect(casa).not.toContain("prefers-reduced-motion");
+    expect(casa).toContain("new IntersectionObserver(");
+    expect(css).toMatch(/\.palabraInterior\s*\{[^}]*transform:\s*translateY\(110%\)/);
+    expect(css).not.toContain("prefers-reduced-motion");
   });
 
   it("la clase de activación existe suelta para que CSS Modules la exporte", () => {

@@ -228,12 +228,3 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .social a,
-  .colLink,
-  .toTop,
-  .contactItem a,
-  .legal a {
-    transition-duration: 0.01ms !important;
-  }
-}

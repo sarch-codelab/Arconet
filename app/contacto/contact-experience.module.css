@@ -868,21 +868,6 @@
   .formFull { grid-column: auto; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .contactPage {
-    scroll-behavior: auto;
-  }
-
-  .contactPage *,
-  .contactPage *::before,
-  .contactPage *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
 /* ==========================================================================
    MODO OSCURO (automático según la hora)
    ========================================================================== */

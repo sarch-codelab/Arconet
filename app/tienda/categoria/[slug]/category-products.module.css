@@ -1307,12 +1307,3 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  /* Las tres vistas cambian el tamaño de las tarjetas; sin este bloque, quien
-     pidió menos movimiento sigue viendo el salto de la tarjeta al pasar el
-     ratón. */
-  .vista_compacta .familyCard,
-  .vista_lista .familyCard {
-    transition: none;
-  }
-}

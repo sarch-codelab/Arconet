@@ -594,9 +594,6 @@ useEffect(() => {
     const titulos = document.querySelectorAll("[data-split]");
     if (!titulos.length) return undefined;
 
-    const reducido =
-      typeof window.matchMedia === "function" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     titulos.forEach((titulo) => {
       if (titulo.dataset.splitDone) return;
@@ -642,10 +639,7 @@ useEffect(() => {
       envolver(titulo);
       if (!indice) return;
 
-      if (reducido) titulo.classList.add(styles.palabrasListas);
     });
-
-    if (reducido) return undefined;
 
     const observador = new IntersectionObserver(
       (entradas) => {
