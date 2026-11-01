@@ -10,6 +10,7 @@ import { ArrowRight, Check, Eye, EyeOff } from "lucide-react";
 import styles from "../admin/admin-experience.module.css";
 import { sileo } from "../toaster";
 import MobileSiteMenu from "../mobile-site-menu";
+import Footer from "../footer";
 import { isLocalPreview } from "@/lib/local-preview";
 
 export default function LoginExperience() {
@@ -50,144 +51,147 @@ export default function LoginExperience() {
   }
 
   return (
-    <main className={styles.loginPage}>
-      <MobileSiteMenu floating />
-      <div className={styles.loginCard}>
-        <div className={styles.loginVisual}>
-          <Image
-            src="/catalogo/infraestructura.jpg"
-            alt=""
-            fill
-            priority
-            sizes="(max-width: 900px) 100vw, 50vw"
-            className={styles.loginVisualImg}
-          />
-          <div className={styles.loginVisualOverlay} />
-
-          <Link className={styles.logoTab} href="/" aria-label="Arconet, inicio">
+    <>
+      <main className={styles.loginPage}>
+        <MobileSiteMenu floating />
+        <div className={styles.loginCard}>
+          <div className={styles.loginVisual}>
             <Image
-              src="/arconet.png"
-              alt="Arconet"
-              width={1200}
-              height={200}
-              sizes="(max-width: 1040px) 114px, 176px"
+              src="/catalogo/infraestructura.jpg"
+              alt=""
+              fill
               priority
+              sizes="(max-width: 900px) 100vw, 50vw"
+              className={styles.loginVisualImg}
             />
-          </Link>
+            <div className={styles.loginVisualOverlay} />
 
-          <div className={styles.loginVisualCopy}>
-            <p className={styles.eyebrow}><i /> Portal de clientes · Arconet</p>
-            <h1>
-              Tus proyectos,
-              <br />
-              <em>en un solo lugar.</em>
-            </h1>
-            <p className={styles.lead}>
-              Ingresa para dar seguimiento a tus solicitudes, cotizaciones y
-              entregas de fibra óptica, CATV e infraestructura.
-            </p>
-          </div>
-
-          <div className={styles.loginVisualFooter}>
-            <span>FIBRA ÓPTICA · CATV · TELECOMUNICACIONES</span>
-            <Link href="/contacto">
-              ¿Necesitas ayuda? Escríbenos <ArrowRight size={14} />
+            <Link className={styles.logoTab} href="/" aria-label="Arconet, inicio">
+              <Image
+                src="/arconet.png"
+                alt="Arconet"
+                width={1200}
+                height={200}
+                sizes="(max-width: 1040px) 114px, 176px"
+                priority
+              />
             </Link>
-          </div>
-        </div>
 
-        <section className={styles.loginPanel} aria-label="Formulario de acceso">
-          <div className={styles.loginPanelBody}>
-            <header>
-              <p className={styles.sectionLabel}>Iniciar sesión</p>
-              <h2>
-                Bienvenido
+            <div className={styles.loginVisualCopy}>
+              <p className={styles.eyebrow}><i /> Portal de clientes · Arconet</p>
+              <h1>
+                Tus proyectos,
                 <br />
-                <em>de nuevo.</em>
-              </h2>
-              <p className={styles.loginIntro}>
-                Usa tu correo y contraseña para acceder a tu cuenta Arconet.
+                <em>en un solo lugar.</em>
+              </h1>
+              <p className={styles.lead}>
+                Ingresa para dar seguimiento a tus solicitudes, cotizaciones y
+                entregas de fibra óptica, CATV e infraestructura.
               </p>
-            </header>
+            </div>
 
-            {isLocalPreview() && <p className={styles.loginIntro} role="note">
-              Cliente de prueba: <strong>cliente@arconet.local</strong> / <strong>1234</strong>.
-              {" "}<Link href="/admin">Para entrar como admin, abre el acceso administrativo.</Link>
-            </p>}
-
-            <form className={styles.form} onSubmit={submit}>
-              <label className={styles.field}>
-                Correo electrónico
-                <input
-                  type="email"
-                  name="email"
-                  autoComplete="email"
-                  required
-                  placeholder="nombre@empresa.com"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                />
-              </label>
-
-              <label className={styles.field}>
-                Contraseña
-                <span className={styles.passwordWrap}>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    autoComplete="current-password"
-                    required
-                    placeholder="Tu contraseña"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                  />
-                  <button
-                    type="button"
-                    className={styles.reveal}
-                    onClick={() => setShowPassword((value) => !value)}
-                    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                  >
-                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                  </button>
-                </span>
-              </label>
-
-              <div className={styles.formRow}>
-                <label className={styles.checkbox}>
-                  <input
-                    type="checkbox"
-                    checked={remember}
-                    onChange={(event) => setRemember(event.target.checked)}
-                  />
-                  <span>
-                    <Check size={11} strokeWidth={3} />
-                  </span>
-                  Recordarme
-                </label>
-                <Link href="/recuperar">¿Olvidaste tu contraseña?</Link>
-              </div>
-
-              <button type="submit" className={styles.submit} disabled={submitting}>
-                {submitting ? "Verificando..." : "Ingresar a mi cuenta"} <span><ArrowRight size={15} /></span>
-              </button>
-            </form>
-
-            <p className={styles.loginFooter}>
-              ¿Aún no tienes cuenta?{" "}
-              <Link href="/registro">Crea una aquí</Link>
-            </p>
-            <p className={styles.loginFooter}>
-              <Link href="/contacto">Solicitar acceso corporativo</Link>
-              <span aria-hidden="true"> · </span>
-              <Link href="/terminos">Términos de uso</Link>
-              <span aria-hidden="true"> · </span>
-              <Link href="/privacidad">Privacidad</Link>
-              <span aria-hidden="true"> · </span>
-              <Link href="/ayuda">Ayuda</Link>
-            </p>
+            <div className={styles.loginVisualFooter}>
+              <span>FIBRA ÓPTICA · CATV · TELECOMUNICACIONES</span>
+              <Link href="/contacto">
+                ¿Necesitas ayuda? Escríbenos <ArrowRight size={14} />
+              </Link>
+            </div>
           </div>
-        </section>
-      </div>
-    </main>
+
+          <section className={styles.loginPanel} aria-label="Formulario de acceso">
+            <div className={styles.loginPanelBody}>
+              <header>
+                <p className={styles.sectionLabel}>Iniciar sesión</p>
+                <h2>
+                  Bienvenido
+                  <br />
+                  <em>de nuevo.</em>
+                </h2>
+                <p className={styles.loginIntro}>
+                  Usa tu correo y contraseña para acceder a tu cuenta Arconet.
+                </p>
+              </header>
+
+              {isLocalPreview() && <p className={styles.loginIntro} role="note">
+                Cliente de prueba: <strong>cliente@arconet.local</strong> / <strong>1234</strong>.
+                {" "}<Link href="/admin">Para entrar como admin, abre el acceso administrativo.</Link>
+              </p>}
+
+              <form className={styles.form} onSubmit={submit}>
+                <label className={styles.field}>
+                  Correo electrónico
+                  <input
+                    type="email"
+                    name="email"
+                    autoComplete="email"
+                    required
+                    placeholder="nombre@empresa.com"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                  />
+                </label>
+
+                <label className={styles.field}>
+                  Contraseña
+                  <span className={styles.passwordWrap}>
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      name="password"
+                      autoComplete="current-password"
+                      required
+                      placeholder="Tu contraseña"
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className={styles.reveal}
+                      onClick={() => setShowPassword((value) => !value)}
+                      aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    >
+                      {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </span>
+                </label>
+
+                <div className={styles.formRow}>
+                  <label className={styles.checkbox}>
+                    <input
+                      type="checkbox"
+                      checked={remember}
+                      onChange={(event) => setRemember(event.target.checked)}
+                    />
+                    <span>
+                      <Check size={11} strokeWidth={3} />
+                    </span>
+                    Recordarme
+                  </label>
+                  <Link href="/recuperar">¿Olvidaste tu contraseña?</Link>
+                </div>
+
+                <button type="submit" className={styles.submit} disabled={submitting}>
+                  {submitting ? "Verificando..." : "Ingresar a mi cuenta"} <span><ArrowRight size={15} /></span>
+                </button>
+              </form>
+
+              <p className={styles.loginFooter}>
+                ¿Aún no tienes cuenta?{" "}
+                <Link href="/registro">Crea una aquí</Link>
+              </p>
+              <p className={styles.loginFooter}>
+                <Link href="/contacto">Solicitar acceso corporativo</Link>
+                <span aria-hidden="true"> · </span>
+                <Link href="/terminos">Términos de uso</Link>
+                <span aria-hidden="true"> · </span>
+                <Link href="/privacidad">Privacidad</Link>
+                <span aria-hidden="true"> · </span>
+                <Link href="/ayuda">Ayuda</Link>
+              </p>
+            </div>
+          </section>
+        </div>
+      </main>
+      <Footer />
+    </>
   );
 }

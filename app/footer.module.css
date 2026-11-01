@@ -1,27 +1,129 @@
+/* Pie de página compartido por todas las páginas públicas.
+   Tres bloques: banda de contacto, columnas de navegación y barra inferior. */
+
 .footer {
+  position: relative;
   border-top: 1px solid var(--line);
   background: var(--surface-2);
   color: var(--ink);
-  padding: clamp(42px, 6vw, 78px) clamp(22px, 6vw, 96px) 0;
+  /* El padding superior lo pone la banda de contacto. */
+  padding: 0 clamp(22px, 6vw, 96px);
 }
+
+/* ---------------------------------------------------------------------------
+   BANDA DE CONTACTO
+   --------------------------------------------------------------------------- */
+
+.contacto {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: clamp(20px, 3vw, 40px);
+  padding: clamp(34px, 4.5vw, 56px) 0 clamp(30px, 4vw, 44px);
+  border-bottom: 1px solid var(--line);
+}
+
+.contactoTexto {
+  min-width: 0;
+}
+
+.eyebrow {
+  margin-bottom: 10px;
+  color: var(--accent-ink);
+  font-size: 10.5px;
+  font-weight: 750;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.contactoTitulo {
+  font-family: var(--font-heading), system-ui, sans-serif;
+  font-size: clamp(22px, 2.5vw, 34px);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.contactoTitulo em {
+  color: var(--accent-ink);
+  font-style: italic;
+}
+
+.contactoAcciones {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.footer .ctaPrincipal,
+.footer .ctaSecundario {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 13px 20px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  transition: background-color 200ms ease, border-color 200ms ease,
+    color 200ms ease, transform 200ms ease;
+}
+
+.footer .ctaPrincipal {
+  background: var(--accent-ink);
+  color: #fff;
+}
+
+.footer .ctaPrincipal:hover {
+  background: var(--accent-ink);
+  transform: translateY(-2px);
+}
+
+.footer .ctaSecundario {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.footer .ctaSecundario:hover {
+  border-color: var(--accent-ink);
+  color: var(--accent-ink);
+  transform: translateY(-2px);
+}
+
+.ctaPrincipal svg,
+.ctaSecundario svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   COLUMNAS
+   --------------------------------------------------------------------------- */
 
 .inner {
   display: grid;
-  grid-template-columns: 1.7fr 1fr 1fr 1.3fr;
-  gap: clamp(28px, 4vw, 64px);
+  /* La columna de contacto lleva la dirección completa y el horario: necesita
+     más aire que la de empresa, que son cuatro enlaces. */
+  grid-template-columns: 1.4fr 1.1fr 0.7fr 1.25fr;
+  gap: clamp(26px, 3.5vw, 52px);
   align-items: start;
+  padding: clamp(38px, 4.5vw, 56px) 0 clamp(32px, 4vw, 44px);
 }
 
 .brandCol {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  max-width: 360px;
+  max-width: 340px;
 }
 
 .brand {
   display: block;
-  width: 150px;
+  width: 190px;
 }
 
 .brand img {
@@ -30,12 +132,13 @@
   height: auto;
 }
 
+/* En modo oscuro el logo azul pierde contraste: se invierte a blanco. */
 :global(html[data-theme="dark"]) .brand img {
   filter: brightness(0) invert(1);
 }
 
 .tagline {
-  margin-top: 16px;
+  margin-top: 14px;
   color: var(--muted);
   font-family: var(--font-heading), system-ui, sans-serif;
   font-size: 15px;
@@ -43,7 +146,7 @@
 }
 
 .blurb {
-  margin-top: 12px;
+  margin-top: 10px;
   color: var(--muted);
   font-size: 13px;
   line-height: 1.65;
@@ -51,15 +154,15 @@
 
 .social {
   display: flex;
-  gap: 10px;
-  margin-top: 22px;
+  gap: 9px;
+  margin-top: 20px;
 }
 
 .footer .social a {
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--surface);
@@ -69,15 +172,15 @@
 }
 
 .footer .social a:hover {
-  border-color: var(--blue);
-  background: var(--blue);
+  border-color: var(--accent-ink);
+  background: var(--accent-ink);
   color: #fff;
   transform: translateY(-2px);
 }
 
 .social svg {
-  width: 17px;
-  height: 17px;
+  width: 16px;
+  height: 16px;
   fill: currentColor;
 }
 
@@ -86,18 +189,30 @@
 }
 
 .colTitle {
-  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
   color: var(--ink);
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 10.5px;
+  font-weight: 750;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+}
+
+/* Contador junto al título: dato útil y ancla visual. */
+.colCount {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
 }
 
 .colList {
   display: flex;
   flex-direction: column;
-  gap: 11px;
+  gap: 9px;
   list-style: none;
 }
 
@@ -106,6 +221,7 @@
   width: fit-content;
   color: var(--muted);
   font-size: 13.5px;
+  line-height: 1.4;
   transition: color 180ms ease, transform 180ms ease;
 }
 
@@ -114,25 +230,41 @@
   transform: translateX(3px);
 }
 
+.subBloque {
+  margin-top: 26px;
+}
+
+/* ---------------------------------------------------------------------------
+   CONTACTO
+   --------------------------------------------------------------------------- */
+
+.contactList {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  list-style: none;
+}
+
 .contactItem {
   display: flex;
   align-items: flex-start;
   gap: 10px;
   color: var(--muted);
-  font-size: 13.5px;
+  font-size: 13px;
   line-height: 1.5;
 }
 
 .contactItem svg {
   flex-shrink: 0;
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   margin-top: 2px;
   color: var(--accent-ink);
 }
 
 .footer .contactItem a {
   color: inherit;
+  word-break: break-word;
   transition: color 180ms ease;
 }
 
@@ -140,11 +272,75 @@
   color: var(--accent-ink);
 }
 
+.sedes {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 18px;
+}
+
+.sedesLabel {
+  width: 100%;
+  margin-bottom: 2px;
+  color: var(--muted);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sede {
+  padding: 5px 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------------
+   BARRA INFERIOR
+   --------------------------------------------------------------------------- */
+
+.bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 18px 0 22px;
+  border-top: 1px solid var(--line);
+}
+
+.copyright {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.legal {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.footer .legal a {
+  color: var(--muted);
+  font-size: 12px;
+  transition: color 180ms ease;
+}
+
+.footer .legal a:hover {
+  color: var(--accent-ink);
+}
+
 .toTop {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-top: 22px;
   padding: 9px 16px;
   border: 1px solid var(--line);
   border-radius: 999px;
@@ -159,63 +355,81 @@
 }
 
 .toTop:hover {
-  border-color: var(--blue);
-  color: var(--blue);
+  border-color: var(--accent-ink);
+  color: var(--accent-ink);
   transform: translateY(-2px);
 }
 
 .toTop svg {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
 }
 
-.bottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  flex-wrap: wrap;
-  margin-top: clamp(32px, 5vw, 56px);
-  padding: 20px 0 22px;
-  border-top: 1px solid var(--line);
-}
+/* ---------------------------------------------------------------------------
+   ADAPTACIÓN
+   --------------------------------------------------------------------------- */
 
-.copyright {
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.legal {
-  display: flex;
-  align-items: center;
-  gap: 22px;
-}
-
-.footer .legal a {
-  color: var(--muted);
-  font-size: 12px;
-  transition: color 180ms ease;
-}
-
-.footer .legal a:hover {
-  color: var(--accent-ink);
-}
-
-@media (max-width: 980px) {
+@media (max-width: 1080px) {
+  /* Tres columnas en vez de dos: con dos, la de contacto se quedaba sola
+     abajo y dejaba un hueco grande a la derecha en tablet. */
   .inner {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 40px clamp(24px, 4vw, 44px);
   }
 
   .brandCol {
     grid-column: 1 / -1;
-    max-width: 460px;
+    max-width: 560px;
+  }
+}
+
+@media (max-width: 860px) {
+  .inner {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* El contacto ocupa el ancho cuando solo hay dos columnas. */
+  .col:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .contactList {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px clamp(20px, 4vw, 40px);
+  }
+}
+
+@media (max-width: 760px) {
+  .contacto {
+    /* En móvil los botones van debajo del texto, a todo el ancho. */
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .contactoAcciones {
+    width: 100%;
+  }
+
+  .footer .ctaPrincipal,
+  .footer .ctaSecundario {
+    flex: 1 1 auto;
+    justify-content: center;
   }
 }
 
 @media (max-width: 600px) {
   .inner {
     grid-template-columns: 1fr;
-    gap: 32px;
+    gap: 34px;
+  }
+
+  .col:last-child {
+    grid-column: auto;
+  }
+
+  .contactList {
+    display: flex;
   }
 
   .brandCol {
@@ -225,6 +439,10 @@
   .bottom {
     flex-direction: column;
     align-items: flex-start;
+    gap: 14px;
+  }
+
+  .legal {
+    gap: 8px 18px;
   }
 }
-

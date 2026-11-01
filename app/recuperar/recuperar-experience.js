@@ -8,6 +8,7 @@ import { useState } from "react";
 import { ArrowRight, Check, Eye, EyeOff, KeyRound, Mail } from "lucide-react";
 import styles from "../admin/admin-experience.module.css";
 import extra from "./recuperar.module.css";
+import Footer from "../footer";
 import { sileo } from "../toaster";
 import { fuerzaPassword, validarPassword } from '@/lib/seguridad';
 import MobileSiteMenu from "../mobile-site-menu";
@@ -93,213 +94,216 @@ export default function RecuperarExperience() {
   }
 
   return (
-    <main className={styles.loginPage}>
-      <MobileSiteMenu floating />
-      <div className={styles.loginCard}>
-        <div className={styles.loginVisual}>
-          <Image
-            src="/catalogo/infraestructura.jpg"
-            alt=""
-            fill
-            priority
-            sizes="(max-width: 900px) 100vw, 50vw"
-            className={styles.loginVisualImg}
-          />
-          <div className={styles.loginVisualOverlay} />
-
-          <Link className={styles.logoTab} href="/" aria-label="Arconet, inicio">
+    <>
+      <main className={styles.loginPage}>
+        <MobileSiteMenu floating />
+        <div className={styles.loginCard}>
+          <div className={styles.loginVisual}>
             <Image
-              src="/arconet.png"
-              alt="Arconet"
-              width={1200}
-              height={200}
-              sizes="(max-width: 1040px) 114px, 176px"
+              src="/catalogo/infraestructura.jpg"
+              alt=""
+              fill
               priority
+              sizes="(max-width: 900px) 100vw, 50vw"
+              className={styles.loginVisualImg}
             />
-          </Link>
+            <div className={styles.loginVisualOverlay} />
 
-          <div className={styles.loginVisualCopy}>
-            <p className={styles.eyebrow}><i /> Recuperar acceso · Arconet</p>
-            <h1>
-              Vuelve a tus proyectos
-              <br />
-              <em>sin perder el hilo.</em>
-            </h1>
-            <p className={styles.lead}>
-              Te enviamos un código de un solo uso al correo de tu cuenta. Con él
-              defines una contraseña nueva y segura.
-            </p>
-          </div>
-
-          <div className={styles.loginVisualFooter}>
-            <span>FIBRA ÓPTICA · CATV · TELECOMUNICACIONES</span>
-            <Link href="/contacto">
-              ¿Necesitas ayuda? Escríbenos <ArrowRight size={14} />
+            <Link className={styles.logoTab} href="/" aria-label="Arconet, inicio">
+              <Image
+                src="/arconet.png"
+                alt="Arconet"
+                width={1200}
+                height={200}
+                sizes="(max-width: 1040px) 114px, 176px"
+                priority
+              />
             </Link>
-          </div>
-        </div>
 
-        <section className={styles.loginPanel} aria-label="Recuperar contraseña">
-          <div className={styles.loginPanelBody}>
-            <header>
-              <p className={styles.sectionLabel}>Recuperar contraseña</p>
-              <h2>
-                {step === "listo" ? "Todo" : "Nueva"}
+            <div className={styles.loginVisualCopy}>
+              <p className={styles.eyebrow}><i /> Recuperar acceso · Arconet</p>
+              <h1>
+                Vuelve a tus proyectos
                 <br />
-                <em>{step === "listo" ? "listo." : "contraseña."}</em>
-              </h2>
-              <p className={styles.loginIntro}>
-                {step === "solicitar" && "Escribe el correo con el que accedes a tu cuenta Arconet."}
-                {step === "codigo" && `Escribe el código de 6 dígitos que enviamos a ${correo.trim()}.`}
-                {step === "listo" && "Tu contraseña fue actualizada. Inicia sesión con la nueva."}
+                <em>sin perder el hilo.</em>
+              </h1>
+              <p className={styles.lead}>
+                Te enviamos un código de un solo uso al correo de tu cuenta. Con él
+                defines una contraseña nueva y segura.
               </p>
-            </header>
+            </div>
 
-            <ol className={extra.steps} aria-label="Pasos de la recuperación">
-              <li className={step === "solicitar" ? extra.stepActive : extra.stepDone}>
-                <span>1</span> Correo
-              </li>
-              <li className={step === "codigo" ? extra.stepActive : step === "listo" ? extra.stepDone : ""}>
-                <span>2</span> Código
-              </li>
-              <li className={step === "listo" ? extra.stepActive : ""}>
-                <span>3</span> Listo
-              </li>
-            </ol>
+            <div className={styles.loginVisualFooter}>
+              <span>FIBRA ÓPTICA · CATV · TELECOMUNICACIONES</span>
+              <Link href="/contacto">
+                ¿Necesitas ayuda? Escríbenos <ArrowRight size={14} />
+              </Link>
+            </div>
+          </div>
 
-            {step === "solicitar" && (
-              <form className={styles.form} onSubmit={solicitar} noValidate>
-                <label className={styles.field}>
-                  Correo electrónico
-                  <input
-                    type="email"
-                    name="correo"
-                    autoComplete="email"
-                    required
-                    placeholder="nombre@empresa.com"
-                    value={correo}
-                    onChange={(event) => setCorreo(event.target.value)}
-                  />
-                </label>
+          <section className={styles.loginPanel} aria-label="Recuperar contraseña">
+            <div className={styles.loginPanelBody}>
+              <header>
+                <p className={styles.sectionLabel}>Recuperar contraseña</p>
+                <h2>
+                  {step === "listo" ? "Todo" : "Nueva"}
+                  <br />
+                  <em>{step === "listo" ? "listo." : "contraseña."}</em>
+                </h2>
+                <p className={styles.loginIntro}>
+                  {step === "solicitar" && "Escribe el correo con el que accedes a tu cuenta Arconet."}
+                  {step === "codigo" && `Escribe el código de 6 dígitos que enviamos a ${correo.trim()}.`}
+                  {step === "listo" && "Tu contraseña fue actualizada. Inicia sesión con la nueva."}
+                </p>
+              </header>
 
-                {error ? <p className={extra.formError} role="alert">{error}</p> : null}
+              <ol className={extra.steps} aria-label="Pasos de la recuperación">
+                <li className={step === "solicitar" ? extra.stepActive : extra.stepDone}>
+                  <span>1</span> Correo
+                </li>
+                <li className={step === "codigo" ? extra.stepActive : step === "listo" ? extra.stepDone : ""}>
+                  <span>2</span> Código
+                </li>
+                <li className={step === "listo" ? extra.stepActive : ""}>
+                  <span>3</span> Listo
+                </li>
+              </ol>
 
-                <button type="submit" className={styles.submit} disabled={submitting}>
-                  {submitting ? "Enviando..." : "Enviar código"} <span><Mail size={15} /></span>
-                </button>
-              </form>
-            )}
+              {step === "solicitar" && (
+                <form className={styles.form} onSubmit={solicitar} noValidate>
+                  <label className={styles.field}>
+                    Correo electrónico
+                    <input
+                      type="email"
+                      name="correo"
+                      autoComplete="email"
+                      required
+                      placeholder="nombre@empresa.com"
+                      value={correo}
+                      onChange={(event) => setCorreo(event.target.value)}
+                    />
+                  </label>
 
-            {step === "codigo" && (
-              <form className={styles.form} onSubmit={restablecer} noValidate>
-                {aviso ? <p className={extra.note} role="status">{aviso}</p> : null}
+                  {error ? <p className={extra.formError} role="alert">{error}</p> : null}
 
-                <label className={styles.field}>
-                  Código de verificación
-                  <input
-                    type="text"
-                    name="codigo"
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    maxLength={6}
-                    required
-                    placeholder="000000"
-                    className={extra.codeInput}
-                    value={codigo}
-                    onChange={(event) => setCodigo(event.target.value.replace(/\D/g, "").slice(0, 6))}
-                  />
-                </label>
+                  <button type="submit" className={styles.submit} disabled={submitting}>
+                    {submitting ? "Enviando..." : "Enviar código"} <span><Mail size={15} /></span>
+                  </button>
+                </form>
+              )}
 
-                <label className={styles.field}>
-                  Nueva contraseña
-                  <span className={styles.passwordWrap}>
+              {step === "codigo" && (
+                <form className={styles.form} onSubmit={restablecer} noValidate>
+                  {aviso ? <p className={extra.note} role="status">{aviso}</p> : null}
+
+                  <label className={styles.field}>
+                    Código de verificación
+                    <input
+                      type="text"
+                      name="codigo"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      maxLength={6}
+                      required
+                      placeholder="000000"
+                      className={extra.codeInput}
+                      value={codigo}
+                      onChange={(event) => setCodigo(event.target.value.replace(/\D/g, "").slice(0, 6))}
+                    />
+                  </label>
+
+                  <label className={styles.field}>
+                    Nueva contraseña
+                    <span className={styles.passwordWrap}>
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        name="password"
+                        autoComplete="new-password"
+                        required
+                        placeholder="Mínimo 12 caracteres"
+                        value={password}
+                        onChange={(event) => setPassword(event.target.value)}
+                      />
+                      <button
+                        type="button"
+                        className={styles.reveal}
+                        onClick={() => setShowPassword((value) => !value)}
+                        aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                      >
+                        {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                      </button>
+                    </span>
+                  </label>
+
+                  <div className={extra.strength} data-level={fuerza} aria-live="polite">
+                    <span className={extra.strengthBars} aria-hidden="true">
+                      {[1, 2, 3, 4].map((level) => (
+                        <i key={level} className={level <= fuerza ? extra.on : ""} />
+                      ))}
+                    </span>
+                    <small>{password ? FUERZA_LABEL[fuerza] : "Mínimo 12 caracteres, con números o símbolos."}</small>
+                  </div>
+
+                  <label className={styles.field}>
+                    Confirmar contraseña
                     <input
                       type={showPassword ? "text" : "password"}
-                      name="password"
+                      name="confirmar"
                       autoComplete="new-password"
                       required
-                      placeholder="Mínimo 12 caracteres"
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
+                      placeholder="Repite tu contraseña"
+                      value={confirmar}
+                      onChange={(event) => setConfirmar(event.target.value)}
                     />
-                    <button
-                      type="button"
-                      className={styles.reveal}
-                      onClick={() => setShowPassword((value) => !value)}
-                      aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                    >
-                      {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                    </button>
-                  </span>
-                </label>
+                  </label>
 
-                <div className={extra.strength} data-level={fuerza} aria-live="polite">
-                  <span className={extra.strengthBars} aria-hidden="true">
-                    {[1, 2, 3, 4].map((level) => (
-                      <i key={level} className={level <= fuerza ? extra.on : ""} />
-                    ))}
-                  </span>
-                  <small>{password ? FUERZA_LABEL[fuerza] : "Mínimo 12 caracteres, con números o símbolos."}</small>
+                  {error ? <p className={extra.formError} role="alert">{error}</p> : null}
+
+                  <button type="submit" className={styles.submit} disabled={submitting}>
+                    {submitting ? "Guardando..." : "Cambiar contraseña"} <span><KeyRound size={15} /></span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={extra.linkButton}
+                    onClick={solicitar}
+                    disabled={submitting}
+                  >
+                    Enviar otro código
+                  </button>
+                </form>
+              )}
+
+              {step === "listo" && (
+                <div className={extra.success} role="status">
+                  <span className={extra.successIcon}><Check size={24} strokeWidth={3} /></span>
+                  <p>
+                    Tu contraseña quedó guardada. Por seguridad cerramos las sesiones que
+                    estaban abiertas en otras computadoras.
+                  </p>
+                  <Link className={styles.submit} href="/login">
+                    Iniciar sesión <span><ArrowRight size={15} /></span>
+                  </Link>
                 </div>
+              )}
 
-                <label className={styles.field}>
-                  Confirmar contraseña
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="confirmar"
-                    autoComplete="new-password"
-                    required
-                    placeholder="Repite tu contraseña"
-                    value={confirmar}
-                    onChange={(event) => setConfirmar(event.target.value)}
-                  />
-                </label>
-
-                {error ? <p className={extra.formError} role="alert">{error}</p> : null}
-
-                <button type="submit" className={styles.submit} disabled={submitting}>
-                  {submitting ? "Guardando..." : "Cambiar contraseña"} <span><KeyRound size={15} /></span>
-                </button>
-
-                <button
-                  type="button"
-                  className={extra.linkButton}
-                  onClick={solicitar}
-                  disabled={submitting}
-                >
-                  Enviar otro código
-                </button>
-              </form>
-            )}
-
-            {step === "listo" && (
-              <div className={extra.success} role="status">
-                <span className={extra.successIcon}><Check size={24} strokeWidth={3} /></span>
-                <p>
-                  Tu contraseña quedó guardada. Por seguridad cerramos las sesiones que
-                  estaban abiertas en otras computadoras.
-                </p>
-                <Link className={styles.submit} href="/login">
-                  Iniciar sesión <span><ArrowRight size={15} /></span>
-                </Link>
-              </div>
-            )}
-
-            <p className={styles.loginFooter}>
-              <Link href="/login">Volver a iniciar sesión</Link>
-              <span aria-hidden="true"> · </span>
-              <Link href="/registro">Crear una cuenta</Link>
-            </p>
-            <p className={styles.loginFooter}>
-              <Link href="/terminos">Términos de uso</Link>
-              <span aria-hidden="true"> · </span>
-              <Link href="/privacidad">Privacidad</Link>
-              <span aria-hidden="true"> · </span>
-              <Link href="/ayuda">Ayuda</Link>
-            </p>
-          </div>
-        </section>
-      </div>
-    </main>
+              <p className={styles.loginFooter}>
+                <Link href="/login">Volver a iniciar sesión</Link>
+                <span aria-hidden="true"> · </span>
+                <Link href="/registro">Crear una cuenta</Link>
+              </p>
+              <p className={styles.loginFooter}>
+                <Link href="/terminos">Términos de uso</Link>
+                <span aria-hidden="true"> · </span>
+                <Link href="/privacidad">Privacidad</Link>
+                <span aria-hidden="true"> · </span>
+                <Link href="/ayuda">Ayuda</Link>
+              </p>
+            </div>
+          </section>
+        </div>
+      </main>
+      <Footer />
+    </>
   );
 }

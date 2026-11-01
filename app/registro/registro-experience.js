@@ -9,6 +9,7 @@ import { useState } from "react";
 import { ArrowRight, Check, Eye, EyeOff } from "lucide-react";
 import styles from "../admin/admin-experience.module.css";
 import registration from "./registro-experience.module.css";
+import Footer from "../footer";
 import { sileo } from "../toaster";
 import { fuerzaPassword, validarPassword } from '@/lib/seguridad';
 import MobileSiteMenu from "../mobile-site-menu";
@@ -86,191 +87,194 @@ export default function RegistroExperience() {
   };
 
   return (
-    <main className={styles.loginPage}>
-      <MobileSiteMenu floating />
-      <div className={styles.loginCard}>
-        <div className={styles.loginVisual}>
-          <Image
-            src="/catalogo/infraestructura.jpg"
-            alt=""
-            fill
-            priority
-            className={styles.loginVisualImg}
-            sizes="(max-width: 900px) 100vw, 53vw"
-          />
-          <div className={styles.loginVisualOverlay} />
-
-          <Link className={styles.logoTab} href="/" aria-label="Arconet, inicio">
+    <>
+      <main className={styles.loginPage}>
+        <MobileSiteMenu floating />
+        <div className={styles.loginCard}>
+          <div className={styles.loginVisual}>
             <Image
-              src="/arconet.png"
-              alt="Arconet"
-              width={1200}
-              height={200}
-              sizes="(max-width: 1040px) 114px, 176px"
+              src="/catalogo/infraestructura.jpg"
+              alt=""
+              fill
               priority
+              className={styles.loginVisualImg}
+              sizes="(max-width: 900px) 100vw, 53vw"
             />
-          </Link>
+            <div className={styles.loginVisualOverlay} />
 
-          <div className={styles.loginVisualCopy}>
-            <p className={styles.eyebrow}><i /> Portal de clientes · Arconet</p>
-            <h1>
-              Crea tu cuenta
-              <br />
-              <em>y gestiona tus proyectos.</em>
-            </h1>
-            <p className={styles.lead}>
-              Registra tu empresa para solicitar cotizaciones, dar seguimiento a tus
-              órdenes y administrar tus servicios de fibra óptica, CATV e infraestructura.
-            </p>
-          </div>
-
-          <div className={styles.loginVisualFooter}>
-            <span>FIBRA ÓPTICA · CATV · TELECOMUNICACIONES</span>
-            <Link href="/contacto">
-              ¿Necesitas ayuda? Escríbenos <ArrowRight size={14} />
+            <Link className={styles.logoTab} href="/" aria-label="Arconet, inicio">
+              <Image
+                src="/arconet.png"
+                alt="Arconet"
+                width={1200}
+                height={200}
+                sizes="(max-width: 1040px) 114px, 176px"
+                priority
+              />
             </Link>
-          </div>
-        </div>
 
-        <section className={styles.loginPanel} aria-label="Formulario de registro">
-          <div className={`${styles.loginPanelBody} ${registration.registrationBody}`}>
-            <header>
-              <p className={styles.sectionLabel}>Crear cuenta</p>
-              <h2>
-                Nueva
+            <div className={styles.loginVisualCopy}>
+              <p className={styles.eyebrow}><i /> Portal de clientes · Arconet</p>
+              <h1>
+                Crea tu cuenta
                 <br />
-                <em>cuenta.</em>
-              </h2>
-              <p className={styles.loginIntro}>
-                Completa tus datos para crear tu cuenta de cliente Arconet.
+                <em>y gestiona tus proyectos.</em>
+              </h1>
+              <p className={styles.lead}>
+                Registra tu empresa para solicitar cotizaciones, dar seguimiento a tus
+                órdenes y administrar tus servicios de fibra óptica, CATV e infraestructura.
               </p>
-              <p className={registration.accountHint}>
-                ¿Tu correo ya está registrado como cliente? <Link href="/contacto">Solicita que habilitemos tu acceso.</Link>
-              </p>
-            </header>
+            </div>
 
-            <form className={styles.form} onSubmit={handleSubmit}>
-              <label className={styles.field}>
-                Nombre completo
-                <input
-                  type="text"
-                  name="name"
-                  autoComplete="name"
-                  required
-                  placeholder="Nombre y apellido"
-                />
-              </label>
+            <div className={styles.loginVisualFooter}>
+              <span>FIBRA ÓPTICA · CATV · TELECOMUNICACIONES</span>
+              <Link href="/contacto">
+                ¿Necesitas ayuda? Escríbenos <ArrowRight size={14} />
+              </Link>
+            </div>
+          </div>
 
-              <label className={styles.field}>
-                Empresa
-                <input
-                  type="text"
-                  name="company"
-                  autoComplete="organization"
-                  placeholder="Nombre de tu empresa (opcional)"
-                />
-              </label>
+          <section className={styles.loginPanel} aria-label="Formulario de registro">
+            <div className={`${styles.loginPanelBody} ${registration.registrationBody}`}>
+              <header>
+                <p className={styles.sectionLabel}>Crear cuenta</p>
+                <h2>
+                  Nueva
+                  <br />
+                  <em>cuenta.</em>
+                </h2>
+                <p className={styles.loginIntro}>
+                  Completa tus datos para crear tu cuenta de cliente Arconet.
+                </p>
+                <p className={registration.accountHint}>
+                  ¿Tu correo ya está registrado como cliente? <Link href="/contacto">Solicita que habilitemos tu acceso.</Link>
+                </p>
+              </header>
 
-              <label className={styles.field}>
-                Correo electrónico
-                <input
-                  type="email"
-                  name="email"
-                  autoComplete="email"
-                  required
-                  placeholder="nombre@empresa.com"
-                />
-              </label>
+              <form className={styles.form} onSubmit={handleSubmit}>
+                <label className={styles.field}>
+                  Nombre completo
+                  <input
+                    type="text"
+                    name="name"
+                    autoComplete="name"
+                    required
+                    placeholder="Nombre y apellido"
+                  />
+                </label>
 
-              <label className={styles.field}>
-                Contraseña
-                <span className={styles.passwordWrap}>
+                <label className={styles.field}>
+                  Empresa
+                  <input
+                    type="text"
+                    name="company"
+                    autoComplete="organization"
+                    placeholder="Nombre de tu empresa (opcional)"
+                  />
+                </label>
+
+                <label className={styles.field}>
+                  Correo electrónico
+                  <input
+                    type="email"
+                    name="email"
+                    autoComplete="email"
+                    required
+                    placeholder="nombre@empresa.com"
+                  />
+                </label>
+
+                <label className={styles.field}>
+                  Contraseña
+                  <span className={styles.passwordWrap}>
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      name="password"
+                      autoComplete="new-password"
+                      required
+                      placeholder="Crea una contraseña"
+                      value={passwordValue}
+                      onChange={(event) => setPasswordValue(event.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className={styles.reveal}
+                      onClick={() => setShowPassword((value) => !value)}
+                      aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    >
+                      {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </span>
+                </label>
+                <div className={registration.strength} data-level={fuerza} aria-live="polite">
+                  <span className={registration.strengthBars} aria-hidden="true">
+                    {[1, 2, 3, 4].map((level) => (
+                      <i key={level} className={level <= fuerza ? registration.on : ""} />
+                    ))}
+                  </span>
+                  <p className={registration.fieldHint}>
+                    {passwordValue
+                      ? `${FUERZA_LABEL[fuerza]} · mínimo 12 caracteres, con números o símbolos.`
+                      : "Usa al menos 12 caracteres. Tu contraseña se guarda cifrada."}
+                  </p>
+                </div>
+
+                <label className={styles.field}>
+                  Confirmar contraseña
                   <input
                     type={showPassword ? "text" : "password"}
-                    name="password"
+                    name="confirm"
                     autoComplete="new-password"
                     required
-                    placeholder="Crea una contraseña"
-                    value={passwordValue}
-                    onChange={(event) => setPasswordValue(event.target.value)}
+                    placeholder="Repite tu contraseña"
                   />
-                  <button
-                    type="button"
-                    className={styles.reveal}
-                    onClick={() => setShowPassword((value) => !value)}
-                    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                  >
-                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                  </button>
-                </span>
-              </label>
-              <div className={registration.strength} data-level={fuerza} aria-live="polite">
-                <span className={registration.strengthBars} aria-hidden="true">
-                  {[1, 2, 3, 4].map((level) => (
-                    <i key={level} className={level <= fuerza ? registration.on : ""} />
-                  ))}
-                </span>
-                <p className={registration.fieldHint}>
-                  {passwordValue
-                    ? `${FUERZA_LABEL[fuerza]} · mínimo 12 caracteres, con números o símbolos.`
-                    : "Usa al menos 12 caracteres. Tu contraseña se guarda cifrada."}
-                </p>
-              </div>
-
-              <label className={styles.field}>
-                Confirmar contraseña
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="confirm"
-                  autoComplete="new-password"
-                  required
-                  placeholder="Repite tu contraseña"
-                />
-              </label>
-
-              <div className={`${styles.formRow} ${registration.consentRow}`}>
-                <label className={styles.checkbox}>
-                  <input
-                    type="checkbox"
-                    name="acceptTerms"
-                    required
-                    checked={accepted}
-                    onChange={(event) => {
-                      setAccepted(event.target.checked);
-                      if (event.target.checked) setFormError("");
-                    }}
-                  />
-                  <span>
-                    <Check size={11} strokeWidth={3} />
-                  </span>
-                  Acepto los términos y he leído el aviso de privacidad
                 </label>
-                <span className={registration.consentLinks}>
-                  <Link href="/terminos">Términos</Link>
-                  <Link href="/privacidad">Aviso de privacidad</Link>
-                </span>
-              </div>
 
-              {formError ? <p className={registration.formError} role="alert">{formError}</p> : null}
+                <div className={`${styles.formRow} ${registration.consentRow}`}>
+                  <label className={styles.checkbox}>
+                    <input
+                      type="checkbox"
+                      name="acceptTerms"
+                      required
+                      checked={accepted}
+                      onChange={(event) => {
+                        setAccepted(event.target.checked);
+                        if (event.target.checked) setFormError("");
+                      }}
+                    />
+                    <span>
+                      <Check size={11} strokeWidth={3} />
+                    </span>
+                    Acepto los términos y he leído el aviso de privacidad
+                  </label>
+                  <span className={registration.consentLinks}>
+                    <Link href="/terminos">Términos</Link>
+                    <Link href="/privacidad">Aviso de privacidad</Link>
+                  </span>
+                </div>
 
-              <button type="submit" className={styles.submit} disabled={submitting}>
-                {submitting ? "Creando cuenta..." : "Crear mi cuenta"} <span><ArrowRight size={15} /></span>
-              </button>
-            </form>
+                {formError ? <p className={registration.formError} role="alert">{formError}</p> : null}
 
-            <p className={styles.loginFooter}>
-              ¿Ya tienes cuenta? <Link href="/login">Inicia sesión</Link>
-            </p>
-            <p className={styles.loginFooter}>
-              <Link href="/">Volver al inicio</Link>
-              <span aria-hidden="true"> · </span>
-              <Link href="/terminos">Términos</Link>
-              <span aria-hidden="true"> · </span>
-              <Link href="/privacidad">Privacidad</Link>
-            </p>
-          </div>
-        </section>
-      </div>
-    </main>
+                <button type="submit" className={styles.submit} disabled={submitting}>
+                  {submitting ? "Creando cuenta..." : "Crear mi cuenta"} <span><ArrowRight size={15} /></span>
+                </button>
+              </form>
+
+              <p className={styles.loginFooter}>
+                ¿Ya tienes cuenta? <Link href="/login">Inicia sesión</Link>
+              </p>
+              <p className={styles.loginFooter}>
+                <Link href="/">Volver al inicio</Link>
+                <span aria-hidden="true"> · </span>
+                <Link href="/terminos">Términos</Link>
+                <span aria-hidden="true"> · </span>
+                <Link href="/privacidad">Privacidad</Link>
+              </p>
+            </div>
+          </section>
+        </div>
+      </main>
+      <Footer />
+    </>
   );
 }
