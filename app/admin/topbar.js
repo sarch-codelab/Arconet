@@ -238,7 +238,10 @@ export function Topbar({
           ============================================================== */}
       <div className={styles.globalTopBar}>
         <div className={styles.brandArea}>
-          <Link href="/" className={styles.topbarBrand} title="Arconet, inicio">
+          {/* prefetch={false}: al abrir el panel, Next precargaba la home y con
+              ella la tienda y sus categorías (seis peticiones que nadie pidió).
+              La marca solo lleva al sitio público si se pulsa. */}
+          <Link prefetch={false} href="/" className={styles.topbarBrand} title="Arconet, inicio">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/arconet.png"
@@ -503,6 +506,7 @@ export function Topbar({
                 </button>
 
                 <Link
+                  prefetch={false}
                   role="menuitem"
                   className={styles.accountItem}
                   href="/contacto"
@@ -513,6 +517,7 @@ export function Topbar({
                 </Link>
 
                 <Link
+                  prefetch={false}
                   role="menuitem"
                   className={styles.accountItem}
                   href="/"

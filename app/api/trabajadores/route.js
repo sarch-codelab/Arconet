@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { checkRolAsignado, newWorkerId, parseTrabajador } from '@/lib/trabajadores';
-import { toTrabajador } from '@/lib/serialize';
+import { toTrabajador, toTrabajadorParaListado } from '@/lib/serialize';
 import { parseAcceso, syncUsuario } from '@/lib/usuarios';
 import { requirePermission } from '@/lib/dal';
 
@@ -41,7 +41,7 @@ export async function GET(request) {
     });
     const cuentasPorCorreo = new Map(cuentas.map((cuenta) => [cuenta.correo, cuenta]));
     return Response.json(
-      trabajadores.map((trabajador) => toTrabajador(trabajador, cuentasPorCorreo.get(trabajador.correo))),
+      trabajadores.map((trabajador) => toTrabajadorParaListado(trabajador, cuentasPorCorreo.get(trabajador.correo))),
     );
   } catch (error) {
     console.error("GET /api/trabajadores", error?.message);

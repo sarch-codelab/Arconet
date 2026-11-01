@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { newClienteId, parseCliente } from '@/lib/clientes';
-import { toCliente } from '@/lib/serialize';
+import { toCliente, toClienteParaListado } from '@/lib/serialize';
 import { requirePermission } from '@/lib/dal';
 
 export const runtime = "nodejs";
@@ -37,7 +37,7 @@ export async function GET(request) {
         fechaRegistro: true,
       },
     });
-    return Response.json(clientes.map(toCliente));
+    return Response.json(clientes.map(toClienteParaListado));
   } catch (error) {
     console.error("GET /api/clientes", error?.message);
     return Response.json({ error: "No se pudieron obtener los clientes." }, { status: 500 });
