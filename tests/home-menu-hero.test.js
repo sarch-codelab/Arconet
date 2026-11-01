@@ -19,8 +19,10 @@ describe("menú 1 (el del hero): Soluciones despliega", () => {
 
   it("el panel se abre con estado propio, no solo con CSS", () => {
     expect(casa).toContain("const [heroMenuOpen, setHeroMenuOpen] = useState(false)");
-    // Al pasar el mouse también debe abrir, como el menú 2.
-    expect(casa).toMatch(/onMouseEnter=\{\(\) => setHeroMenuOpen\(true\)\}/);
+    // Al pasar el mouse también debe abrir, como el menú 2. Va por el helper
+    // que además cancela un cierre pendiente y evita que un roce lo abra de
+    // golpe sin querer.
+    expect(casa).toMatch(/onMouseEnter=\{\(\) => abrirMenuHero\(\)\}/);
   });
 
   it("el panel no se recorta con el overflow: hidden del hero", () => {
