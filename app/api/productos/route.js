@@ -1,7 +1,7 @@
 import { validatePriceSet, priceSnapshot } from "@/lib/precios";
 import { prisma } from '@/lib/prisma';
 import { newProductoId, parseProducto } from '@/lib/productos';
-import { toProducto, toProductoForRead } from '@/lib/serialize';
+import { toProducto, toProductoParaListado } from '@/lib/serialize';
 import { canReadProductCost } from '@/lib/permisos';
 import { getPermisos, requirePermission, requireSession } from '@/lib/dal';
 import { writeLog } from '@/lib/logs';
@@ -48,7 +48,7 @@ export async function GET(request) {
       },
     });
 
-    return Response.json(productos.map(producto => toProductoForRead(producto, permisos)), { headers: { "Cache-Control": "private, no-store" } });
+    return Response.json(productos.map(producto => toProductoParaListado(producto, permisos)), { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
     console.error("GET /api/productos", error?.message);
     return Response.json({ error: "No se pudieron obtener los productos." }, { status: 500 });

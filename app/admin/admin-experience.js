@@ -101,21 +101,77 @@ function AdminShell({ session, onLogout, initialSection }) {
     return () => window.removeEventListener("popstate", syncLocation);
   }, [initialSection, session?.permisos]);
 
+  // Los listados se piden cuando la sección que los usa se abre, no todos al
+  // entrar.
+  //
+  // Antes, al montar el panel se lanzaban siete listados a la vez
+  // (trabajadores, productos, categorías, roles, sucursales, órdenes y
+  // clientes), fueran necesarios o no. Quien solo entraba a ver el Resumen
+  // pagaba el costo de todos, y las respuestas se repetían: el mismo endpoint
+  // se pedía dos veces por el doble montaje de React en desarrollo.
+  //
+  // Cada sección declara lo que necesita; lo que ya está cargado no se vuelve a
+  // pedir.
+  const [cargados, setCargados] = useState(() => ({}));
+
   useEffect(() => {
-    let active = true;
-    const load = (permission, fetcher, setter) => {
-      if (!session?.permisos?.includes(permission)) return;
-      fetcher().then((remote) => { if (active) setter(remote); }).catch(() => {});
+    // Sin bandera de "sigo activo": el efecto se ejecuta dos veces al montar
+    // (el doble render que hace React en desarrollo) y el cleanup de la
+    // primera ejecución llegaba antes de que respondiera la API, así que los
+    // datos se descartaban y la sección quedaba vacía. Como la marca de
+    // `cargados` ya evita repetir la petición, no hace falta cancelarla.
+    const RECURSOS = {
+      trabajadores: { permiso: "trabajadores:read", fetcher: fetchWorkers, setter: setWorkers },
+      productos: { permiso: "productos:read", fetcher: fetchProducts, setter: setProducts },
+      categorias: { permiso: "categorias:read", fetcher: fetchCategorias, setter: setCategorias },
+      roles: { permiso: "roles:read", fetcher: fetchRoles, setter: setRoles },
+      sucursales: { permiso: "sucursales:read", fetcher: fetchSucursales, setter: setSucursales },
+      ordenes: { permiso: "ordenes:read", fetcher: fetchOrders, setter: setOrders },
+      clientes: { permiso: "clientes:read", fetcher: fetchClientes, setter: setClientes },
     };
-    load("trabajadores:read", fetchWorkers, setWorkers);
-    load("productos:read", fetchProducts, setProducts);
-    load("categorias:read", fetchCategorias, setCategorias);
-    load("roles:read", fetchRoles, setRoles);
-    load("sucursales:read", fetchSucursales, setSucursales);
-    load("ordenes:read", fetchOrders, setOrders);
-    load("clientes:read", fetchClientes, setClientes);
-    return () => { active = false; };
-  }, [session?.permisos]);
+
+    // Qué pide cada sección. El Resumen no pide ninguno: tiene su propio
+    // endpoint con los indicadores ya agregados.
+    const NECESITA = {
+      trabajadores: ["trabajadores", "sucursales", "roles"],
+      categorias: ["categorias", "productos", "trabajadores"],
+      sucursales: ["sucursales", "trabajadores"],
+      clientes: ["clientes", "trabajadores"],
+      ventas: ["ordenes", "clientes", "productos", "trabajadores"],
+      facturacion: ["ordenes", "clientes", "productos", "trabajadores"],
+      inventario: ["productos", "categorias", "trabajadores"],
+      ajustes: ["trabajadores"],
+      "mi-perfil": ["trabajadores", "sucursales"],
+      roles: ["roles", "trabajadores"],
+      monitoreo: ["trabajadores"],
+      logs: ["trabajadores"],
+    };
+
+    // Se elige todo lo pendiente de una vez para no re-ejecutar el efecto una
+    // vez por recurso (cada `setCargados` lo volvería a disparar).
+    const pendientes = (NECESITA[section] || []).filter((clave) => {
+      const recurso = RECURSOS[clave];
+      return recurso && !cargados[clave] && session?.permisos?.includes(recurso.permiso);
+    });
+    if (!pendientes.length) return undefined;
+
+    setCargados((prev) => {
+      const siguiente = { ...prev };
+      for (const clave of pendientes) siguiente[clave] = true;
+      return siguiente;
+    });
+
+    for (const clave of pendientes) {
+      RECURSOS[clave].fetcher()
+        .then((remoto) => RECURSOS[clave].setter(remoto))
+        .catch(() => {
+          // Si falla, se libera la marca para reintentar al volver a la sección.
+          setCargados((prev) => ({ ...prev, [clave]: false }));
+        });
+    }
+    return undefined;
+  }, [section, session?.permisos, cargados]);
+
 
   const goTo = (id) => {
     const requested = id;

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   ArrowUpRight,
@@ -33,6 +34,12 @@ const SHORTCUTS = [
 
 export default function CartDrawer() {
   const { email: CONTACT_EMAIL } = useContact();
+  // El carrito cuelga del layout raíz, así que está montado también en el panel
+  // de administración. Ahí sus enlaces no llevan a ninguna parte: precargarlos
+  // descargaba la tienda y sus categorías al abrir el panel. En el sitio
+  // público la precarga sí es útil y se mantiene.
+  const ruta = usePathname() || "";
+  const precargar = !ruta.startsWith("/panel-administrativo");
   const { items, count, isOpen, close, setQuantity, removeItem, clear } = useCart();
   const [copied, setCopied] = useState(false);
   const [whatsappNumber, setWhatsappNumber] = useState("");
@@ -115,7 +122,7 @@ export default function CartDrawer() {
             <p className={styles.emptyHint}>
               Agrega productos desde la tienda y preparamos tu pedido o cotización en un solo lugar.
             </p>
-            <Link className={styles.emptyButton} href="/tienda#catalogo-items" onClick={close}>
+            <Link prefetch={precargar} className={styles.emptyButton} href="/tienda#catalogo-items" onClick={close}>
               Explorar catálogo <ArrowUpRight size={15} />
             </Link>
 
@@ -126,6 +133,7 @@ export default function CartDrawer() {
               <div className={styles.emptyChips}>
                 {SHORTCUTS.map((shortcut) => (
                   <Link
+                    prefetch={precargar}
                     key={shortcut.href}
                     className={styles.emptyChip}
                     href={shortcut.href}
@@ -139,7 +147,7 @@ export default function CartDrawer() {
 
             <p className={styles.emptyHelp}>
               ¿No sabes qué necesitas?{" "}
-              <Link href="/contacto" onClick={close}>Te asesoramos</Link>
+              <Link prefetch={precargar} href="/contacto" onClick={close}>Te asesoramos</Link>
             </p>
           </div>
         ) : (
@@ -159,7 +167,7 @@ export default function CartDrawer() {
 
                   <div className={styles.itemBody}>
                     <div className={styles.itemHead}>
-                      <Link className={styles.itemTitle} href={item.href} onClick={close}>
+                      <Link prefetch={precargar} className={styles.itemTitle} href={item.href} onClick={close}>
                         {item.title}
                       </Link>
                       <button
