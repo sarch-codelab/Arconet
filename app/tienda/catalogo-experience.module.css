@@ -1186,7 +1186,6 @@
 }
 
 .introCopy h2,
-.supportIntro h2,
 .contactContent h2 {
   margin-top: 18px;
   color: var(--ink);
@@ -1196,8 +1195,7 @@
   line-height: 1.03;
 }
 
-.introCopy h2 em,
-.supportIntro h2 em {
+.introCopy h2 em {
   color: var(--blue);
   font-style: italic;
 }
@@ -2113,123 +2111,6 @@
    ACOMPAÑAMIENTO
    ========================================================================== */
 
-.supportSection {
-  display: grid;
-  grid-template-columns: 1fr 0.85fr;
-  grid-template-areas: "intro media" "steps media";
-  align-items: start;
-  gap: 40px clamp(40px, 7vw, 110px);
-  padding: 100px clamp(24px, 8vw, 120px);
-  border-top: 1px solid var(--line);
-  background: #fff;
-  scroll-margin-top: 82px;
-}
-
-.supportIntro {
-  grid-area: intro;
-  max-width: 620px;
-}
-
-.supportIntro h2 em {
-  font-style: italic;
-}
-
-.supportText {
-  max-width: 480px;
-  margin-top: 22px;
-  color: var(--muted);
-  font-size: 14.5px;
-  line-height: 1.85;
-}
-
-.supportLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  margin-top: 22px;
-  color: var(--blue) !important;
-  font-size: 12.5px;
-  font-weight: 750;
-}
-
-.supportLink svg {
-  transition: transform 180ms ease;
-}
-
-.supportLink:hover svg {
-  transform: translateX(4px);
-}
-
-.supportMedia {
-  grid-area: media;
-  position: relative;
-  min-height: 100%;
-  overflow: hidden;
-  border-radius: 22px;
-  background: #e9e7e2;
-}
-
-.supportImage {
-  object-fit: cover;
-  object-position: center 24%;
-}
-
-.supportCaption {
-  position: absolute;
-  right: 14px;
-  bottom: 14px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: #0d1422b3;
-  color: #fff;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  backdrop-filter: blur(6px);
-}
-
-.stepsList {
-  grid-area: steps;
-  display: grid;
-  gap: 0;
-  list-style: none;
-}
-
-.stepsList li {
-  display: flex;
-  align-items: flex-start;
-  gap: 18px;
-  padding: 20px 0;
-  border-bottom: 1px solid var(--line);
-}
-
-.stepsList li:first-child {
-  padding-top: 6px;
-}
-
-.stepsList li > span {
-  padding-top: 4px;
-  color: var(--blue);
-  font-size: 11px;
-  font-weight: 750;
-  letter-spacing: 0.08em;
-}
-
-.stepsList h3 {
-  color: var(--ink);
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.stepsList p {
-  max-width: 470px;
-  margin-top: 6px;
-  color: var(--muted);
-  font-size: 13.5px;
-  line-height: 1.7;
-}
-
 /* ==========================================================================
    BANDA DE DETALLES
    ========================================================================== */
@@ -2438,11 +2319,6 @@
 }
 
 @media (max-width: 900px) {
-  .supportSection {
-    grid-template-columns: 1fr;
-    grid-template-areas: "intro" "media" "steps";
-  }
-  .supportMedia { min-height: 300px; }
   .trustBar { grid-template-columns: 1fr; gap: 16px; }
 }
 
@@ -2494,8 +2370,6 @@
   .familyMeta { gap: 10px 14px; margin-top: 16px; }
   .familyQuoteButton { margin-top: 14px; }
 
-  .supportSection { gap: 28px; padding: 74px 20px; }
-  .supportMedia { min-height: 240px; }
 
   .detailBand { grid-template-columns: 1fr; gap: 18px; padding: 24px 20px; }
 
@@ -2675,8 +2549,6 @@
 :global(html[data-theme="dark"]) .introCopy h2 em,
 :global(html[data-theme="dark"]) .familyCategory,
 :global(html[data-theme="dark"]) .familyLink,
-:global(html[data-theme="dark"]) .supportLink,
-:global(html[data-theme="dark"]) .stepsList li > span,
 :global(html[data-theme="dark"]) .detailMark,
 :global(html[data-theme="dark"]) .trustItem svg,
 :global(html[data-theme="dark"]) .familyItems svg,
@@ -3013,13 +2885,7 @@
   color: var(--ink);
 }
 
-:global(html[data-theme="dark"]) .supportSection {
-  background: var(--surface);
-}
 
-:global(html[data-theme="dark"]) .supportMedia {
-  background: var(--surface-2);
-}
 
 :global(html[data-theme="dark"]) .emptyState {
   border-color: var(--line);
