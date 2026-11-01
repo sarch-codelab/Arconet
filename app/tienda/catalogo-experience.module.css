@@ -1244,81 +1244,112 @@
 .exampleGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(20px, 3vw, 46px);
+  gap: clamp(14px, 1.6vw, 24px);
 }
 
+/* Tarjeta al estilo de la referencia: placa pastel, título arriba a la
+   izquierda, el objeto flotando dentro y una flecha circular en la esquina.
+   La ilustración ocupa la tarjeta entera —su degradado ES el fondo— y el
+   título se dibuja encima. */
 .exampleCard {
+  position: relative;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 18px;
-  text-align: center;
-  color: inherit;
+  display: block;
+  aspect-ratio: 1.55;
+  padding: clamp(16px, 1.4vw, 24px) clamp(18px, 1.6vw, 28px);
+  border-radius: 22px;
+  color: #17203a;
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform 320ms cubic-bezier(0.2, 0.7, 0.25, 1),
+    box-shadow 320ms ease;
 }
 
+/* Respaldo mientras carga la ilustración: un pastel suave para que no
+   aparezca un hueco blanco. */
+.exampleCard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: #e8ebfa;
+}
+
+.exampleCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 44px -24px rgba(18, 32, 74, 0.5);
+}
+
+/* La ilustración cubre toda la placa. */
 .exampleVisual {
-  position: relative;
-  width: 100%;
-  max-width: 340px;
-  height: clamp(240px, 24vw, 320px);
-  margin-inline: auto;
-  background: none;
-  border: 0;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
 }
 
 .exampleImage {
-  position: absolute;
-  inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
-  transition: transform 420ms cubic-bezier(0.2, 0.7, 0.25, 1);
+  transition: transform 620ms cubic-bezier(0.2, 0.7, 0.25, 1);
 }
 
 .exampleCard:hover .exampleImage {
-  transform: translateY(-6px);
+  transform: scale(1.04);
 }
 
+/* Título arriba a la izquierda, sobre el pastel de la ilustración. */
 .exampleCopy {
+  position: relative;
+  z-index: 1;
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .exampleCopy h3 {
-  color: var(--ink);
+  max-width: 84%;
+  color: #16203a;
   font-family: var(--font-heading), system-ui, sans-serif;
-  font-size: 22px;
+  font-size: clamp(15px, 1.25vw, 19px);
   font-weight: 400;
-  line-height: 1.1;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
 }
 
-.exampleCopy p {
-  max-width: 320px;
-  margin-top: 8px;
-  color: var(--muted);
-  font-size: 13.5px;
-  line-height: 1.7;
-}
-
-.exampleLink {
+/* Flecha circular apoyada en la esquina inferior derecha. */
+.exampleArrow {
+  position: absolute;
+  right: clamp(14px, 1.2vw, 20px);
+  bottom: clamp(14px, 1.2vw, 20px);
+  z-index: 2;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 14px;
-  color: var(--blue);
-  font-size: 12.5px;
-  font-weight: 750;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.86);
+  color: #16203a;
+  box-shadow: 0 4px 14px -6px rgba(18, 32, 74, 0.45);
+  transition: transform 260ms ease, background 260ms ease;
 }
 
-.exampleLink svg {
-  transition: transform 180ms ease;
+.exampleCard:hover .exampleArrow {
+  transform: translateX(3px);
+  background: #fff;
 }
 
-.exampleCard:hover .exampleLink svg {
-  transform: translate(2px, -2px);
+/* En tema oscuro la placa mantiene su pastel claro, como las placas de logo
+   de la home: sobre el fondo oscuro se lee como una vitrina de producto. */
+:global(html[data-theme="dark"]) .exampleCopy h3 {
+  color: #16203a;
+}
+
+:global(html[data-theme="dark"]) .exampleArrow {
+  color: #16203a;
 }
 
 /* ==========================================================================
@@ -2328,8 +2359,10 @@
   font-size: 13.5px; }
 
   .exampleSection { padding: 4px 22px 46px; }
-  .exampleGrid { grid-template-columns: 1fr; gap: 34px; }
-  .exampleVisual { max-width: 260px; }
+  .exampleGrid { grid-template-columns: 1fr; gap: 16px; }
+  /* En móvil la placa se aplana un poco: a ancho completo, 1.55 la deja
+     demasiado alta para que quepan dos tarjetas en pantalla. */
+  .exampleCard { aspect-ratio: 1.45; }
 
   .catalogSection { padding: 26px 18px 74px; }
   .catalogHeading { flex-direction: column; align-items: flex-start; gap: 12px; }
@@ -2525,7 +2558,6 @@
 :global(html[data-theme="dark"]) .introCopy h2 em,
 :global(html[data-theme="dark"]) .familyCategory,
 :global(html[data-theme="dark"]) .familyLink,
-:global(html[data-theme="dark"]) .exampleLink,
 :global(html[data-theme="dark"]) .supportLink,
 :global(html[data-theme="dark"]) .stepsList li > span,
 :global(html[data-theme="dark"]) .detailMark,

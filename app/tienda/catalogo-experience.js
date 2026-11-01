@@ -92,6 +92,25 @@ const DETAILS = [
   { icon: ShieldCheck, title: "Soporte antes y después", text: "Te acompañamos también en la instalación." },
 ];
 
+// Ilustración de cada línea de producto. Se generaron en el mismo estilo
+// (objeto 3D glossy sobre degradado pastel) para que la rejilla de la tienda
+// se lea como un conjunto y no como fotos sueltas de distinta procedencia.
+const LINE_ART = {
+  "soluciones-de-preconectorizado": "/catalogo/lineas/cards/preconectorizado.webp",
+  herrajes: "/catalogo/lineas/cards/herrajes.webp",
+  "gabinetes-y-racks": "/catalogo/lineas/cards/gabinetes.webp",
+  "cajas-de-distribucion-y-emplazamiento": "/catalogo/lineas/cards/cajas.webp",
+  "soluciones-activas-y-accesorios-ftth": "/catalogo/lineas/cards/activas.webp",
+  "herramientas-y-kits": "/catalogo/lineas/cards/herramientas.webp",
+  escaleras: "/catalogo/lineas/cards/escaleras.webp",
+  "optical-distribution-frame-odf": "/catalogo/lineas/cards/odf.webp",
+  "instrumentos-de-medicion-optica": "/catalogo/lineas/cards/medicion.webp",
+  "componentes-pasivos": "/catalogo/lineas/cards/pasivos.webp",
+  // Provisional: el generador de imágenes agotó su cupo este turno. Se
+  // reutiliza la de preconectorizado (también es fibra) hasta generar la propia.
+  "microcables-y-microproductos": "/catalogo/lineas/cards/preconectorizado.webp",
+};
+
 const FALLBACK_CATEGORIES = FAMILIES.map((family) => ({
   id: family.id,
   nombre: family.title,
@@ -130,7 +149,10 @@ export default function CatalogoExperience() {
           title: category.nombre,
           text: category.descripcion || family?.summary || "Explora esta línea.",
           slug: category.slug,
-          image: category.foto || family?.image || "/catalogo/hero-fiber.jpg",
+          // Las tarjetas usan una ilustración 3D por línea. La foto que
+          // guarda la categoría se sigue usando en la ficha y en el
+          // encabezado, pero aquí rompía la placa pastel.
+          image: LINE_ART[category.slug] || category.foto || family?.image || "/catalogo/hero-fiber.jpg",
         };
       }),
     [catalogCategories]
@@ -598,22 +620,21 @@ export default function CatalogoExperience() {
         <div className={styles.exampleGrid}>
           {examples.map((example) => (
             <Link className={styles.exampleCard} href={`/tienda/categoria/${example.slug}`} key={example.title} data-reveal>
+              <div className={styles.exampleCopy}>
+                <h3>{example.title}</h3>
+              </div>
               <div className={styles.exampleVisual}>
                 <Image
                   src={example.image}
                   alt={`${example.title} de Arconet`}
-                  width={657}
-                  height={601}
-                  unoptimized={String(example.image).startsWith("data:")}
+                  width={900}
+                  height={700}
+                  unoptimized
                   sizes="(max-width: 760px) 92vw, 30vw"
                   className={styles.exampleImage}
                 />
               </div>
-              <div className={styles.exampleCopy}>
-                <h3>{example.title}</h3>
-                <p>{example.text}</p>
-                <span className={styles.exampleLink}>Ver catálogo <ArrowUpRight size={15} /></span>
-              </div>
+              <span className={styles.exampleArrow} aria-hidden="true"><ArrowRight size={16} strokeWidth={1.8} /></span>
             </Link>
           ))}
         </div>
