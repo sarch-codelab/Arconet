@@ -15,6 +15,9 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const take = Math.min(Math.max(Number(searchParams.get("take")) || 100, 1), 500);
   const skip = Math.max(Number(searchParams.get("skip")) || 0, 0);
+  // Los filtros rapidos de stock necesitan saber qué combinaciones
+  // producto+bodega ya se movieron, sin recorrer el kardex paginado.
+  const soloExistentes = searchParams.get("existentes") === "1";
 
   const where = {};
   if (searchParams.get("productoId")) where.productoId = searchParams.get("productoId");
@@ -30,6 +33,19 @@ export async function GET(request) {
   }
 
   try {
+    if (soloExistentes) {
+      const pares = await prisma.movimientoKardex.findMany({
+        where,
+        distinct: ["productoId", "bodegaId"],
+        select: { productoId: true, bodegaId: true },
+      });
+      return Response.json({
+        total: pares.length,
+        existentes: pares.map((par) => ({ productoId: par.productoId, bodegaId: par.bodegaId })),
+        movimientos: [],
+      });
+    }
+
     const [movimientos, total] = await Promise.all([
       prisma.movimientoKardex.findMany({
         where,

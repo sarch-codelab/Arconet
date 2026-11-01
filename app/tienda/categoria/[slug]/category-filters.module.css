@@ -1,0 +1,418 @@
+/* Panel de filtros de una línea del catálogo.
+   Usa las variables globales de tema, así que funciona en claro y oscuro
+   sin duplicar reglas. */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  /* Acompaña al usuario mientras recorre la cuadrícula de productos. */
+  position: sticky;
+  top: 96px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.panelTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.puntoActivo {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-ink);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-ink) 20%, transparent);
+}
+
+.limpiar {
+  border: none;
+  background: none;
+  padding: 4px 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-ink);
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.limpiar:disabled {
+  color: var(--muted);
+  opacity: 0.55;
+  cursor: default;
+}
+
+.limpiar:not(:disabled):hover {
+  text-decoration: underline;
+}
+
+.resultado {
+  margin: 2px 0 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* --- Buscador --- */
+
+.buscador {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-2);
+  margin-bottom: 10px;
+}
+
+.buscador:focus-within {
+  border-color: var(--accent-ink);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-ink) 16%, transparent);
+}
+
+.buscadorIcono {
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.buscadorInput {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+}
+
+.buscadorInput::placeholder {
+  color: var(--muted);
+}
+
+/* Quita la "x" nativa para no duplicar el botón de limpiar. */
+.buscadorInput::-webkit-search-cancel-button {
+  display: none;
+}
+
+.buscadorLimpiar {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+  color: var(--ink);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.buscadorLimpiar:hover {
+  background: color-mix(in srgb, var(--ink) 18%, transparent);
+}
+
+/* --- Secciones plegables --- */
+
+.seccion {
+  border-top: 1px solid var(--line);
+  padding: 10px 0;
+}
+
+.seccion:last-of-type {
+  border-bottom: 1px solid var(--line);
+}
+
+.seccionTitulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 4px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+  border-radius: 8px;
+}
+
+.seccionTitulo:hover {
+  color: var(--accent-ink);
+}
+
+.seccionEtiqueta {
+  margin: 4px 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.chevron,
+.chevronCerrado {
+  color: var(--muted);
+  transition: transform 200ms ease;
+  flex-shrink: 0;
+}
+
+.chevron {
+  transform: rotate(0deg);
+}
+
+.chevronCerrado {
+  transform: rotate(-90deg);
+}
+
+.seccionCuerpo {
+  padding: 10px 0 2px;
+}
+
+/* --- Rango de precio --- */
+
+.monedaFila {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.monedaCampo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.monedaEtiqueta {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.monedaCaja {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-2);
+}
+
+.monedaCaja:focus-within {
+  border-color: var(--accent-ink);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-ink) 16%, transparent);
+}
+
+.monedaSimbolo {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.monedaInput {
+  width: 100%;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  outline: none;
+  /* Las flechitas nativas ocupan espacio y se ven toscas en un panel
+     estrecho; el teclado sigue funcionando con las flechas. */
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.monedaInput::-webkit-outer-spin-button,
+.monedaInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.monedaInput::placeholder {
+  color: var(--muted);
+}
+
+.guion {
+  padding-bottom: 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.pista {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* --- Marcas --- */
+
+.listaCasillas {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.casilla {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 6px;
+  border-radius: 9px;
+  font-size: 14px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 160ms ease;
+}
+
+.casilla:hover {
+  background: var(--surface-2);
+}
+
+.casilla input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent-ink);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.casilla span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.casilla small {
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Disponibilidad --- */
+
+.grupoBotones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px 0 2px;
+}
+
+.chip {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.chip:hover {
+  border-color: var(--accent-ink);
+  color: var(--accent-ink);
+}
+
+.chipActivo {
+  background: var(--accent-ink);
+  border-color: var(--accent-ink);
+  color: #fff;
+  font-weight: 600;
+}
+
+.chipActivo:hover {
+  color: #fff;
+}
+
+/* --- Orden --- */
+
+.orden {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ordenOpcion {
+  border: none;
+  background: none;
+  text-align: left;
+  padding: 7px 8px;
+  border-radius: 9px;
+  font-size: 14px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.ordenOpcion:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.ordenActivo {
+  color: var(--ink);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--accent-ink) 10%, transparent);
+}
+
+@media (max-width: 980px) {
+  .panel {
+    position: static;
+    max-height: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron,
+  .chevronCerrado,
+  .casilla,
+  .chip,
+  .ordenOpcion {
+    transition: none;
+  }
+}
+
+/* Foco visible siempre, también con el ratón. */
+.chip:focus-visible,
+.ordenOpcion:focus-visible,
+.seccionTitulo:focus-visible,
+.limpiar:focus-visible,
+.buscadorLimpiar:focus-visible,
+.casilla input:focus-visible {
+  outline: 2px solid var(--accent-ink);
+  outline-offset: 2px;
+}

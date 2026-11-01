@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import LocomotiveScroll from "locomotive-scroll";
 import {
   ArrowRight,
@@ -22,6 +22,7 @@ import {
   SlidersHorizontal,
   Truck,
   Wrench,
+  X,
 } from "lucide-react";
 
 const PRODUCT_ICONS = {
@@ -43,6 +44,8 @@ import { useCart } from "../../../cart-context";
 import styles from "./category-products.module.css";
 import Footer from "../../../footer";
 import MobileSiteMenu from "../../../mobile-site-menu";
+import CategoryFilters, { ORDEN_OPCIONES } from "./category-filters";
+import CategoryToolbar from "./category-toolbar";
 
 // Misma navegación que la ficha de producto: aquí antes había un solo enlace
 // ("Tienda"), así que el menú se veía como una etiqueta suelta en el centro.
@@ -51,6 +54,9 @@ const NAVIGATION = [
   { href: "/#empresa", label: "La empresa" },
   { href: "/contacto", label: "Contacto" },
 ];
+
+// Clave de la preferencia de tamaño de tarjeta (vista grande, compacta o lista).
+const VISTA_KEY = "arconet-catalogo-vista";
 
 const SUPPORT_ITEMS = [
   { icon: PackageCheck, title: "Importación directa", text: "Traemos el equipo sin intermediarios de más." },
@@ -79,8 +85,33 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
     : staticFamily;
   const pageRef = useRef(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [rangoPrecio, setRangoPrecio] = useState({ min: "", max: "" });
+  const [marcasActivas, setMarcasActivas] = useState([]);
+  const [disponibilidad, setDisponibilidad] = useState("todas");
+  const [orden, setOrden] = useState("relevancia");
+  const [vista, setVista] = useState("grande");
   const { addItem, open: openCart, count: cartCount } = useCart();
   const { byCategory, loading: productsLoading } = useCatalogProducts();
+
+  // La preferencia de vista es del usuario, no de la sesión: se recuerda entre
+  // visitas para que quien prefiere la lista no tenga que cambiarla cada vez.
+  useEffect(() => {
+    try {
+      const guardado = window.localStorage.getItem(VISTA_KEY);
+      if (guardado === "grande" || guardado === "compacta" || guardado === "lista") setVista(guardado);
+    } catch {
+      // Sin almacenamiento (modo privado estricto) se queda la vista grande.
+    }
+  }, []);
+
+  const cambiarVista = (nueva) => {
+    setVista(nueva);
+    try {
+      window.localStorage.setItem(VISTA_KEY, nueva);
+    } catch {
+      // Preferencia no persistida; la vista sigue funcionando en esta visita.
+    }
+  };
 
   useEffect(() => {
     const page = pageRef.current;
@@ -164,6 +195,76 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
     );
   };
 
+  const nombreCategoria = family?.category || "";
+  const categoryProducts = useMemo(
+    () => byCategory[nombreCategoria] || [],
+    [byCategory, nombreCategoria]
+  );
+
+  // Solo las marcas que de verdad aparecen en esta línea; una lista con
+  // marcas ausentes haría perder clics.
+  const marcasDisponibles = useMemo(() => {
+    const conteo = new Map();
+    categoryProducts.forEach((producto) => {
+      const marca = (producto.marca || "").trim();
+      if (!marca) return;
+      conteo.set(marca, (conteo.get(marca) || 0) + 1);
+    });
+    return [...conteo.entries()]
+      .map(([nombre, cantidad]) => ({ nombre, cantidad }))
+      .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+  }, [categoryProducts]);
+
+  const rangoPrecios = useMemo(() => {
+    const precios = categoryProducts.map((producto) => Number(producto.precio) || 0);
+    return precios.length
+      ? { min: Math.floor(Math.min(...precios)), max: Math.ceil(Math.max(...precios)) }
+      : { min: 0, max: 0 };
+  }, [categoryProducts]);
+
+  const filteredProducts = useMemo(() => {
+    const query = searchTerm.trim().toLocaleLowerCase("es");
+    const min = rangoPrecio.min === "" ? 0 : Number(rangoPrecio.min);
+    const max = rangoPrecio.max === "" ? Infinity : Number(rangoPrecio.max);
+
+    const lista = categoryProducts.filter((product) => {
+      const haystack = `${product.nombre} ${product.sku} ${product.marca || ""} ${product.categoria}`.toLocaleLowerCase("es");
+      if (query && !haystack.includes(query)) return false;
+
+      const precio = Number(product.precio) || 0;
+      if (Number.isFinite(min) && precio < min) return false;
+      if (Number.isFinite(max) && precio > max) return false;
+
+      if (marcasActivas.length && !marcasActivas.includes((product.marca || "").trim())) return false;
+
+      const stock = Number(product.stock) || 0;
+      if (disponibilidad === "disponible" && stock <= 0) return false;
+      if (disponibilidad === "agotado" && stock > 0) return false;
+
+      return true;
+    });
+
+    const porPrecio = (a, b) => (Number(a.precio) || 0) - (Number(b.precio) || 0);
+    if (orden === "precio-asc") lista.sort(porPrecio);
+    else if (orden === "precio-desc") lista.sort((a, b) => porPrecio(b, a));
+    else if (orden === "nombre") lista.sort((a, b) => String(a.nombre).localeCompare(String(b.nombre), "es"));
+
+    return lista;
+  }, [categoryProducts, searchTerm, rangoPrecio, marcasActivas, disponibilidad, orden]);
+
+  const limpiarFiltros = () => {
+    setSearchTerm("");
+    setRangoPrecio({ min: "", max: "" });
+    setMarcasActivas([]);
+    setDisponibilidad("todas");
+    setOrden("relevancia");
+  };
+
+  const alternarMarca = (marca) =>
+    setMarcasActivas((actual) =>
+      actual.includes(marca) ? actual.filter((item) => item !== marca) : [...actual, marca]
+    );
+
   if (blocked || !family) {
     return (
       <main className={styles.missing}>
@@ -177,13 +278,6 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
       </main>
     );
   }
-
-  const categoryProducts = byCategory[family.category] || [];
-  const filteredProducts = categoryProducts.filter((product) => {
-    const query = searchTerm.trim().toLocaleLowerCase("es");
-    const haystack = `${product.nombre} ${product.sku} ${product.marca || ""} ${product.categoria}`.toLocaleLowerCase("es");
-    return !query || haystack.includes(query);
-  });
 
   return (
     <main className={styles.category} ref={pageRef}>
@@ -272,19 +366,43 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
           <div>
             <h2>Productos disponibles</h2>
             <p>
-              {filteredProducts.length} referencia{filteredProducts.length === 1 ? "" : "s"} de {family.category} con
+              {categoryProducts.length} referencia{categoryProducts.length === 1 ? "" : "s"} de {family.category} con
               precio y existencia actualizados.
             </p>
           </div>
-          <label className={styles.searchBox}>
-            <input
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="Buscar productos..."
-              aria-label="Buscar en esta línea"
-            />
-          </label>
         </header>
+
+        <div className={styles.productsLayout}>
+          {!productsLoading ? (
+            <CategoryFilters
+              busqueda={searchTerm}
+              onBusqueda={setSearchTerm}
+              precio={rangoPrecio}
+              onPrecio={setRangoPrecio}
+              rangoPrecios={rangoPrecios}
+              marcas={marcasDisponibles}
+              marcasActivas={marcasActivas}
+              onToggleMarca={alternarMarca}
+              disponibilidad={disponibilidad}
+              onDisponibilidad={setDisponibilidad}
+              orden={orden}
+              onOrden={setOrden}
+              resultado={filteredProducts.length}
+              total={categoryProducts.length}
+              onLimpiar={limpiarFiltros}
+            />
+          ) : null}
+
+          <div className={styles.productsMain}>
+            <CategoryToolbar
+              total={categoryProducts.length}
+              resultado={filteredProducts.length}
+              orden={orden}
+              onOrden={setOrden}
+              opcionesOrden={ORDEN_OPCIONES}
+              vista={vista}
+              onVista={cambiarVista}
+            />
 
         {productsLoading ? (
           <div className={styles.loadingState}>
@@ -292,11 +410,23 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
           </div>
         ) : filteredProducts.length === 0 ? (
           <div className={styles.emptyState}>
-            <p>No hay productos disponibles en esta línea.</p>
-            <Link className={styles.primaryButton} href="/tienda">Ver todo el catálogo <ArrowRight size={16} /></Link>
+            <p>
+              {categoryProducts.length
+                ? "Ningún producto cumple esos filtros."
+                : "No hay productos disponibles en esta línea."}
+            </p>
+            {/* Si hay productos pero los filtros los ocultaron, el camino de
+                vuelta es quitar los filtros, no salir del catálogo. */}
+            {categoryProducts.length ? (
+              <button type="button" className={styles.primaryButton} onClick={limpiarFiltros}>
+                Quitar filtros <X size={16} aria-hidden="true" />
+              </button>
+            ) : (
+              <Link className={styles.primaryButton} href="/tienda">Ver todo el catálogo <ArrowRight size={16} /></Link>
+            )}
           </div>
         ) : (
-          <ul className={styles.productsGrid}>
+          <ul className={`${styles.productsGrid} ${styles[`vista_${vista}`] || ""}`}>
             {filteredProducts.map((product, index) => {
               const stock = Number(product.stock) || 0;
               const soldOut = stock <= 0;
@@ -379,6 +509,8 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
             })}
           </ul>
         )}
+          </div>
+        </div>
       </section>
 
       <section className={`${styles.supportSection} ${styles.reveal}`}>

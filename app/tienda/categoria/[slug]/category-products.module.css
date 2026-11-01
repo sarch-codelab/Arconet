@@ -1187,3 +1187,132 @@
   .header .brand { grid-column: 1; }
   .headerAction { grid-column: 3; }
 }
+
+/* ==========================================================================
+   FILTROS LATERALES Y VISTAS DE PRODUCTO
+   El panel izquierdo ocupa una columna fija de 268px en escritorio; por
+   debajo de 980px pasa a ocupar el ancho completo, antes de la cuadrícula.
+   ========================================================================== */
+
+.productsLayout {
+  display: grid;
+  grid-template-columns: 268px minmax(0, 1fr);
+  gap: clamp(16px, 2.4vw, 32px);
+  align-items: start;
+  max-width: clamp(1280px, 88vw, 1800px);
+  margin: 0 auto;
+}
+
+.productsMain {
+  min-width: 0;
+}
+
+/* La cuadrícula vive dentro de .productsMain, así que no necesita centrarse:
+   el margen automático de la versión anterior la dejaba desalineada. */
+.productsMain .productsGrid {
+  margin: 0;
+  max-width: none;
+}
+
+@media (max-width: 980px) {
+  .productsLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* --- Vista compacta: más tarjetas por fila y menos foto --- */
+
+.vista_compacta {
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 14px;
+}
+
+.vista_compacta .familyVisual {
+  aspect-ratio: 16 / 10;
+}
+
+.vista_compacta .familyCopy {
+  padding: 14px 16px 16px;
+}
+
+.vista_compacta .familyCopy h3 {
+  font-size: 17px;
+}
+
+.vista_compacta .familyMeta {
+  gap: 8px;
+}
+
+/* --- Vista lista: una fila por producto, imagen a la izquierda --- */
+
+.vista_lista {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+.vista_lista .familyCard {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.vista_lista .familyVisual {
+  height: 100%;
+  min-height: 168px;
+  aspect-ratio: auto;
+  border-radius: 0;
+}
+
+/* La lista no debe "saltar" al pasar el ratón: el desplazamiento vertical de
+   la tarjeta grande descoloca la alineación de toda la fila. */
+.vista_lista .familyCard:hover {
+  transform: none;
+}
+
+.vista_lista .familyCopy {
+  justify-content: center;
+  gap: 6px;
+  padding: 16px 22px;
+}
+
+.vista_lista .familyCopy h3 {
+  font-size: 19px;
+}
+
+.vista_lista .familyMeta {
+  margin-top: 6px;
+}
+
+.vista_lista .familyLink {
+  margin-top: 2px;
+}
+
+.vista_lista .familyQuoteButton {
+  max-width: 260px;
+}
+
+@media (max-width: 700px) {
+  /* En móvil la lista se apila: foto arriba, datos abajo. */
+  .vista_lista .familyCard {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .vista_lista .familyVisual {
+    min-height: 0;
+    aspect-ratio: 16 / 10;
+  }
+
+  .vista_lista .familyQuoteButton {
+    max-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Las tres vistas cambian el tamaño de las tarjetas; sin este bloque, quien
+     pidió menos movimiento sigue viendo el salto de la tarjeta al pasar el
+     ratón. */
+  .vista_compacta .familyCard,
+  .vista_lista .familyCard {
+    transition: none;
+  }
+}

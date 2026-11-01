@@ -4,7 +4,7 @@ import { apiFetch as fetch } from "@/lib/api-fetch";
 import { canReadProductCost } from "@/lib/permisos";
 import { formatPrice } from "./products-store";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   ArrowLeftRight,
@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { sileo } from "../toaster";
 import { SectionTabs, Topbar } from "./topbar";
+import InventarioPills from "./inventario-pills";
 import adminStyles from "./admin-experience.module.css";
 import styles from "./inventario-panel.module.css";
 
@@ -99,10 +100,16 @@ export default function InventarioPanel({ session, productos: productosIniciales
   const [productos, setProductos] = useState(productosIniciales);
   const [alertas, setAlertas] = useState({ alertas: [], agotados: [], total: 0 });
   const [movimientos, setMovimientos] = useState([]);
+  // Pares producto+bodega que ya tienen al menos un movimiento, para el
+  // filtro "Sin movimiento" (el kardex paginado no alcanza para saberlo).
+  const [paresConMovimiento, setParesConMovimiento] = useState([]);
+  const bodegaSelectRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [bodegaFiltro, setBodegaFiltro] = useState("");
+  // Filtro rapido de las pildoras (agotados, bajo minimo, sin movimiento...).
+  const [filtroRapido, setFiltroRapido] = useState("todos");
   const [kardexProducto, setKardexProducto] = useState("");
   const [kardexBodega, setKardexBodega] = useState("");
   const [kardexTipo, setKardexTipo] = useState("");
@@ -156,6 +163,19 @@ export default function InventarioPanel({ session, productos: productosIniciales
     cargarBase();
   }, [cargarBase]);
 
+  // Se consulta una sola vez: el conjunto de combinaciones que ya se movieron.
+  useEffect(() => {
+    let activo = true;
+    request("/api/inventario/kardex?existentes=1")
+      .then((data) => {
+        if (activo && Array.isArray(data?.existentes)) setParesConMovimiento(data.existentes);
+      })
+      .catch(() => {
+        // Sin este dato, "Sin movimiento" se apoya en el kardex de la página.
+      });
+    return () => { activo = false; };
+  }, []);
+
   useEffect(() => {
     cargarKardex();
   }, [cargarKardex]);
@@ -183,21 +203,65 @@ export default function InventarioPanel({ session, productos: productosIniciales
     [bodegas],
   );
 
+  // Clasifica una fila de stock igual que la tabla: agotado sin unidades y
+  // bajo minimo cuando no supera el punto de reorden del producto.
+  const ESTADO_ETIQUETA = { agotados: "Agotado", bajo: "Bajo mínimo", disponible: "Disponible" };
+
+  const estadoDeFila = (fila) => {
+    const cantidad = Number(fila.cantidad || 0);
+    const minimo = Number(fila.producto?.stockMinimo || 0);
+    if (cantidad <= 0) return "agotados";
+    if (minimo > 0 && cantidad <= minimo) return "bajo";
+    return "disponible";
+  };
+
+  // Una fila "se movio" si su par producto+bodega aparece en el kardex.
+  // Se usa el catalogo completo cuando llego y, si no, la pagina actual.
+  const tieneMovimiento = useCallback(
+    (fila) => {
+      const fuente = paresConMovimiento.length ? paresConMovimiento : movimientos;
+      return fuente.some((m) => m.productoId === fila.productoId && m.bodegaId === fila.bodegaId);
+    },
+    [paresConMovimiento, movimientos],
+  );
+
   const stockFiltrado = useMemo(() => {
     const q = query.trim().toLocaleLowerCase("es-HN");
     return stock.filter((fila) => {
       if (bodegaFiltro && fila.bodegaId !== bodegaFiltro) return false;
+      if (filtroRapido !== "todos" && filtroRapido !== "porBodega") {
+        if (filtroRapido === "sinMovimiento") {
+          // Sin movimientos registrados para ese producto y bodega.
+          if (tieneMovimiento(fila)) return false;
+        } else if (estadoDeFila(fila) !== filtroRapido) {
+          return false;
+        }
+      }
       if (!q) return true;
       return `${fila.producto?.nombre} ${fila.producto?.sku} ${fila.bodega?.nombre}`
         .toLocaleLowerCase("es-HN")
         .includes(q);
     });
-  }, [stock, query, bodegaFiltro]);
+  }, [stock, query, bodegaFiltro, filtroRapido, tieneMovimiento]);
 
   const totalUnidades = useMemo(
     () => stock.reduce((sum, fila) => sum + Number(fila.cantidad || 0), 0),
     [stock],
   );
+
+  // Conteos de cada pildora de filtro, calculados una sola vez sobre el stock.
+  const conteosPills = useMemo(() => {
+    const base = { todos: stock.length, agotados: 0, bajo: 0, disponible: 0, sinMovimiento: 0 };
+    stock.forEach((fila) => {
+      const cantidad = Number(fila.cantidad || 0);
+      const minimo = Number(fila.producto?.stockMinimo || 0);
+      if (cantidad <= 0) base.agotados += 1;
+      else if (minimo > 0 && cantidad <= minimo) base.bajo += 1;
+      else base.disponible += 1;
+      if (!tieneMovimiento(fila)) base.sinMovimiento += 1;
+    });
+    return base;
+  }, [stock, tieneMovimiento]);
   const bodegasActivas = bodegas.filter((bodega) => bodega.estado === "activo");
   const totalAlertas = (alertas.alertas?.length || 0) + (alertas.agotados?.length || 0);
 
@@ -311,6 +375,50 @@ export default function InventarioPanel({ session, productos: productosIniciales
       <div className={adminStyles.body}>
         {navigation || <SectionTabs tabs={TABS} activeTab={tab} onTabChange={setTab} label="Secciones de inventario" />}
 
+        {/* Atajos y filtros rapidos: solo en Stock, que es donde aplican. */}
+        {tab === "stock" && (
+          <InventarioPills
+            puedeEscribir={canWrite}
+            onNuevoProducto={() => onTabChange?.("productos")}
+            onEntrada={() => {
+              setMovimiento({ ...EMPTY_MOVIMIENTO, tipo: "entrada", bodegaId: bodegas[0]?.id || "" });
+              setTab("movimientos");
+            }}
+            onExportar={() => {
+              const filas = [["Producto", "SKU", "Bodega", "Cantidad", "Mínimo", "Estado"]];
+              stockFiltrado.forEach((fila) => {
+                filas.push([
+                  fila.producto?.nombre || "",
+                  fila.producto?.sku || "",
+                  fila.bodega?.nombre || "",
+                  String(fila.cantidad ?? 0),
+                  String(fila.producto?.stockMinimo ?? 0),
+                  ESTADO_ETIQUETA[estadoDeFila(fila)] || estadoDeFila(fila),
+                ]);
+              });
+              const csv = filas.map((f) => f.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+              const url = URL.createObjectURL(new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" }));
+              const enlace = document.createElement("a");
+              enlace.href = url;
+              enlace.download = `inventario-${new Date().toISOString().slice(0, 10)}.csv`;
+              enlace.click();
+              URL.revokeObjectURL(url);
+            }}
+            filtro={filtroRapido}
+            onFiltroChange={(id) => {
+              // "Por bodega" no filtra por si solo: lleva el foco al selector
+              // de bodega, que es donde se elige cual mirar.
+              if (id === "porBodega") {
+                bodegaSelectRef.current?.focus();
+                bodegaSelectRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+                return;
+              }
+              setFiltroRapido(id);
+            }}
+            conteos={conteosPills}
+          />
+        )}
+
         {error ? <p className={styles.error} role="alert">{error}</p> : null}
 
         <section className={adminStyles.stats} aria-label="Resumen de inventario">
@@ -350,6 +458,7 @@ export default function InventarioPanel({ session, productos: productosIniciales
                 />
               </label>
               <select
+                ref={bodegaSelectRef}
                 className={adminStyles.select}
                 value={bodegaFiltro}
                 onChange={(event) => setBodegaFiltro(event.target.value)}
