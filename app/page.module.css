@@ -613,13 +613,13 @@
 .topbarShell {
   position: relative;
   width: 100%;
-  max-width: clamp(1240px, 90vw, 1720px);
-  height: 62px;
+  max-width: clamp(1240px, 94vw, 1980px);
+  height: clamp(62px, 3.6vw, 78px);
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: clamp(12px, 1.8vw, 24px);
-  padding: 6px 7px 6px 16px;
+  gap: clamp(12px, 1.8vw, 30px);
+  padding: clamp(6px, 0.4vw, 9px) clamp(7px, 0.45vw, 10px) clamp(6px, 0.4vw, 9px) clamp(16px, 1.1vw, 26px);
   border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: 999px;
   background: rgba(250, 249, 246, 0.84);
@@ -664,7 +664,7 @@
 
 .brand img {
   display: block;
-  width: 128px;
+  width: clamp(128px, 8.2vw, 176px);
   height: auto;
 }
 
@@ -704,10 +704,12 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 8px 14px;
   border-radius: 999px;
   color: #586074;
-  font-size: 12.5px;
+  /* Crece con la pantalla en vez de saltar en escalones fijos: a 1900px
+     (donde el usuario vio que seguía chico) da ~17px en vez de 15px. */
+  padding: clamp(8px, 0.42vw, 14px) clamp(14px, 1.05vw, 26px);
+  font-size: clamp(12.5px, 0.95vw, 18px);
   font-weight: 600;
   letter-spacing: 0.005em;
   white-space: nowrap;
@@ -1431,12 +1433,13 @@
   border: 0;
   font-family: inherit;
   cursor: pointer;
-  gap: 10px;
-  padding: 4px 4px 4px 16px;
+  gap: clamp(10px, 0.6vw, 14px);
+  padding: clamp(4px, 0.28vw, 6px) clamp(4px, 0.28vw, 6px) clamp(4px, 0.28vw, 6px)
+    clamp(16px, 1.15vw, 26px);
   border-radius: 999px;
   background: #171a22;
   color: #fff !important;
-  font-size: 11.5px;
+  font-size: clamp(11.5px, 0.86vw, 16px);
   letter-spacing: 0.01em;
   white-space: nowrap;
   box-shadow: 0 10px 24px -14px rgba(23, 26, 34, 0.9);
@@ -1559,8 +1562,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  flex: 0 0 auto;
+  width: clamp(30px, 1.95vw, 42px);
+  height: clamp(30px, 1.95vw, 42px);
   border-radius: 50%;
   background: #2a2f3b;
   color: #fff;
@@ -3069,42 +3073,10 @@
   }
 }
 
-/* Barra de navegación: la capsula se queda igual de alta mientras la
-   pantalla crece, así que en monitores grandes el texto se veía diminuto.
-   Se agrandan enlaces y botón manteniendo los 62px de alto. */
-@media (min-width: 1440px) {
-  .navigation a {
-    padding: 8px 17px;
-    font-size: 14px;
-  }
-
-  .topAction {
-    padding: 4px 4px 4px 19px;
-    font-size: 13px;
-  }
-
-  .topActionIcon {
-    width: 34px;
-    height: 34px;
-  }
-}
-
+/* Barra de navegación: ya no hay escalones fijos de fuente (el tamaño es
+   fluido con clamp en las reglas base). Aquí solo se agrandan las piezas
+   del menú desplegable en monitores grandes. */
 @media (min-width: 1800px) {
-  .navigation a {
-    padding: 9px 20px;
-    font-size: 15px;
-  }
-
-  .topAction {
-    padding: 4px 4px 4px 22px;
-    font-size: 14px;
-  }
-
-  .topActionIcon {
-    width: 36px;
-    height: 36px;
-  }
-
   /* Menú desplegable de Soluciones y panel de Acceder: también crecen. */
   .desktopMenu {
     width: min(1320px, calc(100vw - 64px));

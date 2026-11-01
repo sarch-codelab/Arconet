@@ -56,9 +56,21 @@ describe("portada: tipografía en pantallas grandes", () => {
     expect(enorme).toMatch(/\.productList li strong\s*\{[^}]*font-size:\s*19px/);
   });
 
-  it("la navegación y el botón Acceder también crecen", () => {
-    expect(css).toMatch(/@media \(min-width: 1440px\)[\s\S]*?\.navigation a\s*\{[^}]*font-size:\s*14px/);
-    expect(css).toMatch(/@media \(min-width: 1800px\)[\s\S]*?\.navigation a\s*\{[^}]*font-size:\s*15px/);
+  it("el menú de navegación escala con la pantalla, no en pasos fijos", () => {
+    // Antes eran escalones de 14px y 15px: a 1900px seguía viéndose chico.
+    const nav = css.match(/\.navigation a\s*\{[^}]*\}/)?.[0] ?? "";
+    const tamano = nav.match(/font-size:\s*clamp\(\s*([\d.]+)px\s*,\s*([\d.]+)vw\s*,\s*([\d.]+)px/);
+    expect(tamano).not.toBeNull();
+    const [, minimo, fluido, maximo] = tamano.map(Number);
+    expect(fluido).toBeGreaterThan(0);
+    expect(maximo).toBeGreaterThan(minimo);
+    // A 1900px de ancho debe superar los 15px que se veían chicos.
+    expect((fluido * 1900) / 100).toBeGreaterThan(15);
+  });
+
+  it("la cápsula y el logo acompañan el crecimiento del menú", () => {
+    expect(css).toMatch(/\.topbarShell\s*\{[^}]*height:\s*clamp\(62px/);
+    expect(css).toMatch(/\.brand img\s*\{[^}]*width:\s*clamp\(128px/);
   });
 
   it("ya no queda texto de lista en 11px, que obligaba a forzar la vista", () => {
