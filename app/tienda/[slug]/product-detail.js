@@ -191,7 +191,13 @@ export default function ProductDetail({ slug }) {
 
         <div className={styles.topbarShell}>
           <a className={styles.topbarBrand} href="/" aria-label="Arconet, inicio" tabIndex={scrolledPastHero ? 0 : -1}>
-            <Image src="/arconet.png" alt="Arconet" width={2172} height={362} />
+            <Image
+              src="/arconet.png"
+              alt="Arconet"
+              width={1200}
+              height={200}
+              sizes="(max-width: 1040px) 114px, 176px"
+            />
           </a>
 
           <nav className={styles.topbarNav} aria-label="Navegación del catálogo">

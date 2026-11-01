@@ -235,12 +235,6 @@ const COMMITMENTS = [
 
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 
-const TIME_IMAGES = {
-  manana: "/neto-manana.png",
-  tarde: "/neto-tarde.png",
-  noche: "/neto-noche.png",
-};
-
 function getTimeOfDay() {
   if (typeof window === "undefined") return "manana";
   const hour = new Date().getHours();
@@ -772,7 +766,15 @@ useEffect(() => {
 
         <div className={styles.topbarShell}>
           <a className={styles.brand} href="#inicio" aria-label="Arconet, inicio">
-            <Image src="/arconet.png" alt="Arconet" width={2172} height={362} priority />
+            <Image
+              src="/arconet.png"
+              alt="Arconet"
+              width={1200}
+              height={200}
+              sizes="(max-width: 1040px) 114px, 176px"
+              loading="eager"
+              fetchPriority="high"
+            />
           </a>
 
           <nav className={styles.navigation} aria-label="Navegación principal" ref={navRef}>
@@ -1031,10 +1033,12 @@ useEffect(() => {
                 <Image
                   src="/arconet.png"
                   alt="Arconet"
-                  width={362}
-                  height={60}
+                  width={1200}
+                  height={200}
                   className={styles.heroLogoImg}
-                  priority
+                  sizes="(max-width: 760px) 130px, 232px"
+                  loading="eager"
+                  fetchPriority="high"
                 />
               </a>
             </div>
@@ -1177,7 +1181,7 @@ useEffect(() => {
                     {solution.visual === "brandVisual" ? (
                       <>
                         <div className={styles.brandOrbital} aria-hidden="true"><i /><i /><i /></div>
-                        <Image src={solution.image} alt={solution.imageAlt} width={2172} height={362} className={styles.brandLogo} />
+                        <Image src={solution.image} alt={solution.imageAlt} width={1200} height={200} className={styles.brandLogo} />
                         <span className={styles.brandNote}>Desde San Pedro Sula<br />para conectar Honduras.</span>
                       </>
                     ) : (

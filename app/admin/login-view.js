@@ -65,7 +65,7 @@ export default function LoginView() {
 
           <a className={styles.logoTab} href="/" aria-label="Arconet, inicio">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/arconet.png" alt="Arconet" width={2172} height={362} />
+            <img src="/arconet.png" alt="Arconet" width={1200} height={200} />
           </a>
 
           <div className={styles.loginVisualCopy}>

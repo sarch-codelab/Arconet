@@ -64,7 +64,7 @@ export async function generateMetadata({ params }) {
       title: `${product.nombre} | Arconet`,
       description,
       url: `/tienda/producto/${product.id}`,
-      images: [{ url: "/arconet.png", width: 2172, height: 362, alt: "Arconet" }],
+      images: [{ url: "/arconet.png", width: 1200, height: 200, alt: "Arconet" }],
     },
   };
 }

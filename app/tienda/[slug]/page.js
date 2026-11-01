@@ -23,7 +23,7 @@ export async function generateMetadata({ params }) {
       title: `${family.title} | Arconet`,
       description: family.summary,
       url: `/tienda/${slug}`,
-      images: [{ url: "/arconet.png", width: 2172, height: 362, alt: "Arconet" }],
+      images: [{ url: "/arconet.png", width: 1200, height: 200, alt: "Arconet" }],
     },
   };}
 

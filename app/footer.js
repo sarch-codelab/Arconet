@@ -49,7 +49,13 @@ export default function Footer() {
       <div className={styles.inner}>
         <div className={styles.brandCol}>
           <Link className={styles.brand} href="/" aria-label="Arconet, inicio">
-            <Image src="/arconet.png" alt="Arconet" width={2172} height={362} />
+            <Image
+              src="/arconet.png"
+              alt="Arconet"
+              width={1200}
+              height={200}
+              sizes="(max-width: 1040px) 114px, 176px"
+            />
           </Link>
           <p className={styles.tagline}>Conectividad que acerca.</p>
           <p className={styles.blurb}>

@@ -70,7 +70,12 @@ describe("portada: tipografía en pantallas grandes", () => {
 
   it("la cápsula y el logo acompañan el crecimiento del menú", () => {
     expect(css).toMatch(/\.topbarShell\s*\{[^}]*height:\s*clamp\(62px/);
-    expect(css).toMatch(/\.brand img\s*\{[^}]*width:\s*clamp\(128px/);
+    // El logo pasó de clamp() a un ancho fijo: el valor variable impedía que
+    // coincidiera con el atributo `sizes` y se descargaba una variante de
+    // 3840px para un hueco de 176.
+    expect(css).toMatch(/\.brand img\s*\{[^}]*width:\s*176px/);
+    // En pantallas chicas sigue encogiéndose.
+    expect(css).toMatch(/@media \(max-width: 1040px\)[\s\S]*?\.brand img \{ width: 114px; \}/);
   });
 
   it("ya no queda texto de lista en 11px, que obligaba a forzar la vista", () => {

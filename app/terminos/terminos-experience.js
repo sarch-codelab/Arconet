@@ -203,7 +203,14 @@ export default function TerminosExperience() {
 
           <header className={styles.heroHeader}>
             <Link className={styles.logoTab} href="/" aria-label="Arconet, inicio">
-              <Image src="/arconet.png" alt="Arconet" width={2172} height={362} priority />
+              <Image
+              src="/arconet.png"
+              alt="Arconet"
+              width={1200}
+              height={200}
+              sizes="(max-width: 1040px) 114px, 176px"
+              priority
+            />
             </Link>
             <nav className={styles.navigation} aria-label="Navegación principal">
               <Link href="/">Inicio</Link>

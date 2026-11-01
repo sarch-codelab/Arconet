@@ -45,8 +45,8 @@ export const metadata = {
     images: [
       {
         url: "/arconet.png",
-        width: 2172,
-        height: 362,
+        width: 1200,
+        height: 200,
         alt: "Arconet",
       },
     ],
@@ -98,9 +98,8 @@ export default function RootLayout({ children }) {
       suppressHydrationWarning
       className={`${inter.variable} ${orbitron.variable} ${exo2.variable}`}
     >
-      <head>
-        <link rel="preload" as="image" href="/arconet.png" />
-      </head>
+      {/* Sin preload del logo: forzaba la descarga del PNG original en todas
+          las páginas aunque el logo se sirve optimizado y pesa una fracción. */}
       <body>
         <ContactProvider contact={{ email: CONTACT_EMAIL, phone: CONTACT_PHONE, phoneHref: CONTACT_PHONE_HREF }}>
           <CartProvider>
