@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { checkRolAsignado, parseTrabajador } from '@/lib/trabajadores';
+import { guardarImagenSiHaceFalta } from "@/lib/almacen-fotos";
 import { toTrabajador } from '@/lib/serialize';
 import { parseAcceso, syncUsuario } from '@/lib/usuarios';
 import { requirePermission } from '@/lib/dal';
@@ -29,6 +30,13 @@ export async function PATCH(request, { params }) {
   }
 
   const { data, errors } = parseTrabajador(body, { partial: true });
+  if (!errors.length && Object.hasOwn(data, "foto") && data.foto) {
+    try {
+      data.foto = await guardarImagenSiHaceFalta({ valor: data.foto, carpeta: "trabajadores", base: id });
+    } catch (error) {
+      errors.push(error.message || "No se pudo guardar la imagen.");
+    }
+  }
   if (errors.length) return Response.json({ error: errors[0], errors }, { status: 400 });
 
   const acceso = parseAcceso(body);

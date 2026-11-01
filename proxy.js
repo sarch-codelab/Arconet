@@ -35,8 +35,14 @@ const MAX_BODY_BYTES = 1_000_000; // 1 MB default
 const MAX_BODY_LARGE = 5_000_000; // 5 MB for endpoints that accept files
 
 function maxBodyFor(pathname) {
+  // Productos y trabajadores pueden llevar una galería de fotos; clientes y el
+  // perfil solo una. El límite por defecto (1 MB) se queda corto al guardar una
+  // imagen junto con el resto del formulario.
   if (pathname.startsWith("/api/productos") || pathname.startsWith("/api/trabajadores")) {
     return MAX_BODY_LARGE;
+  }
+  if (pathname.startsWith("/api/clientes") || pathname === "/api/perfil" || pathname.startsWith("/api/categorias")) {
+    return 2_000_000;
   }
   return MAX_BODY_BYTES;
 }

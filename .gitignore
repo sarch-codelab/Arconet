@@ -69,3 +69,6 @@ ops/backups/*.jsonl.gz
 
 # PostgreSQL y configuración de la vista previa local (no versionar)
 /.local/
+
+# Fotografías del panel (viven en el servidor, fuera de git)
+/.media/

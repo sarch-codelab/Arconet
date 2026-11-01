@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { parseCliente } from '@/lib/clientes';
+import { guardarImagenSiHaceFalta } from "@/lib/almacen-fotos";
 import { toCliente } from '@/lib/serialize';
 import { requirePermission } from '@/lib/dal';
 
@@ -27,6 +28,13 @@ export async function PATCH(request, { params }) {
   }
 
   const { data, errors } = parseCliente(body, { partial: true });
+  if (!errors.length && Object.hasOwn(data, "foto") && data.foto) {
+    try {
+      data.foto = await guardarImagenSiHaceFalta({ valor: data.foto, carpeta: "clientes", base: id });
+    } catch (error) {
+      errors.push(error.message || "No se pudo guardar la imagen.");
+    }
+  }
   if (errors.length) return Response.json({ error: errors[0], errors }, { status: 400 });
 
   try {
