@@ -316,10 +316,18 @@ useEffect(() => {
       const trigger = heroTriggerRef.current;
       if (!trigger) return;
       const caja = trigger.getBoundingClientRect();
-      const ancho = Math.min(1080, window.innerWidth - 32);
-      // Centrado sobre el disparador, sin salirse de la pantalla.
-      const left = Math.max(16, Math.min(caja.left + caja.width / 2 - ancho / 2, window.innerWidth - ancho - 16));
-      setHeroPanelPos({ left, top: caja.bottom + 10 });
+      // Se ancla al borde inferior del header, no al del botón: el botón
+      // termina más arriba y el panel se montaba encima de la barra.
+      const header = trigger.closest("header");
+      const base = header ? header.getBoundingClientRect().bottom : caja.bottom;
+      const ancho = Math.min(820, window.innerWidth - 32);
+      // Centrado sobre la navegación, no sobre el botón: así el panel queda
+      // alineado con la barra en vez de colgando hacia la izquierda.
+      const nav = trigger.parentElement;
+      const navCaja = nav ? nav.getBoundingClientRect() : caja;
+      const centro = navCaja.left + navCaja.width / 2;
+      const left = Math.max(16, Math.min(centro - ancho / 2, window.innerWidth - ancho - 16));
+      setHeroPanelPos({ left, top: Math.round(base + 10) });
     };
 
     const alClicFuera = (event) => {
@@ -594,7 +602,26 @@ useEffect(() => {
     );
 
     titulos.forEach((titulo) => observador.observe(titulo));
-    return () => observador.disconnect();
+
+    // Los párrafos de entrada se revelan junto a su título, un poco después.
+    const parrafos = document.querySelectorAll(`.${styles.parrafoEntrada}`);
+    const observadorParrafos = new IntersectionObserver(
+      (entradas) => {
+        entradas.forEach((entrada) => {
+          if (entrada.isIntersecting) {
+            entrada.target.classList.add(styles.parrafoEntradaVisible);
+            observadorParrafos.unobserve(entrada.target);
+          }
+        });
+      },
+      { threshold: 0.15, rootMargin: "0px 0px -6% 0px" }
+    );
+    parrafos.forEach((parrafo) => observadorParrafos.observe(parrafo));
+
+    return () => {
+      observador.disconnect();
+      observadorParrafos.disconnect();
+    };
   }, []);
 
   const goTo = (id) => {
@@ -969,7 +996,7 @@ useEffect(() => {
                     ref={heroTriggerRef}
                     aria-expanded={heroMenuOpen}
                     aria-haspopup="true"
-                    onClick={() => setHeroMenuOpen((open) => !open)}
+                    onClick={() => setHeroMenuOpen(true)}
                     onMouseEnter={() => setHeroMenuOpen(true)}
                   >
                     {item.label}
@@ -1135,7 +1162,7 @@ useEffect(() => {
         <div className={styles.companyIntro} data-reveal>
           <p className={styles.eyebrow}><span className={styles.eyebrowMark} /> Nuestra experiencia</p>
           <h2 data-split>La tecnología es importante.<br /><em>Quién te acompaña, también.</em></h2>
-          <p className={styles.companyText}>
+          <p className={`${styles.companyText} ${styles.parrafoEntrada}`}>
             Arconet, S.A. es una empresa hondureña con sede en San Pedro Sula, Cortés. Distribuimos, importamos y brindamos soporte para equipos y accesorios de televisión por cable, fibra óptica y telecomunicaciones.
           </p>
         </div>
@@ -1168,7 +1195,7 @@ useEffect(() => {
         <div className={styles.storyCopy} data-reveal>
           <p className={styles.eyebrow}><span className={styles.eyebrowMark} /> Quiénes somos</p>
           <h2 data-split>Más que una distribuidora.<br /><em>Un aliado para tu red.</em></h2>
-          <p className={styles.storyLead}>
+          <p className={`${styles.storyLead} ${styles.parrafoEntrada}`}>
             Arconet, de la mano de <strong>Arcolab, S.A.</strong>, es la casa de soluciones de
             telecomunicaciones que acompaña a instaladores, operadores e integradores en todo Honduras.
           </p>

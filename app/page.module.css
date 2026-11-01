@@ -1890,7 +1890,7 @@
   z-index: 90;
   display: grid;
   gap: 12px;
-  width: min(1080px, calc(100vw - 32px));
+  width: min(820px, calc(100vw - 32px));
   padding: 16px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 22px;
@@ -1928,8 +1928,12 @@
 
 .cardMegaGroups {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  /* 2x2: los cuatro grupos tienen muy distinto número de enlaces (5, 4, 2 y
+     3), así que en cuatro columnas quedaban huecos grandes bajo los cortos
+     y el panel se veía desparejo. En dos columnas se equilibran. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 14px;
 }
 
 .cardMegaGroup {
@@ -1985,7 +1989,8 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 14px;
+  margin-top: 2px;
+  padding: 9px 16px;
   border-radius: 999px;
   background: rgba(127, 166, 255, 0.14);
   color: #dbe4ff;
@@ -2955,14 +2960,18 @@
   z-index: 2;
   width: 100%;
   display: grid;
-  grid-template-columns: 1fr 0.9fr;
+  /* La columna del texto se queda el espacio que necesita el titular grande;
+     1fr/0.9fr la dejaba en ~530px y el título se partía en cuatro líneas. */
+  grid-template-columns: 1.15fr 0.85fr;
   align-items: center;
-  gap: clamp(40px, 6vw, 100px);
-  padding: 80px clamp(24px, 12vw, 190px);
+  gap: clamp(40px, 5vw, 80px);
+  padding: 80px clamp(24px, 10vw, 160px);
 }
 
 .contactContent {
-  max-width: 600px;
+  /* 600px con una fuente de hasta 112px obligaba a partir "Hagamos que todo
+     conecte" en cuatro líneas. Con más ancho respeta sus dos líneas. */
+  max-width: 760px;
 }
 
 .contactEyebrow {
@@ -3041,16 +3050,24 @@
    ========================================================================== */
 
 .palabra {
-  display: inline-block;
-  overflow: hidden;
-  /* El recorte no corta descendentes (g, p, y) gracias al margen inferior. */
+  /* display: inline y NO inline-block: con inline-block cada palabra es una
+     caja atómica y el navegador deja de medir el título con su ancho real,
+     partiéndolo en más líneas de las que marca el diseño (el título de
+     contacto pasaba de 2 a 4 líneas). Con inline el texto fluye igual que
+     antes y la máscara la hace el clip del propio inline. */
+  display: inline;
+  /* El recorte no corta descendentes (g, p, y). */
   padding-bottom: 0.12em;
   margin-bottom: -0.12em;
-  vertical-align: bottom;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
 }
 
 .palabraInterior {
   display: inline-block;
+  /* La máscara la da el clip-path del propio elemento: así sube desde abajo
+     sin necesidad de un contenedor inline-block que rompa el salto de línea. */
+  clip-path: inset(0 0 0 0);
   transform: translateY(110%);
   opacity: 0;
   transition: transform 720ms cubic-bezier(0.16, 1, 0.3, 1),
@@ -3070,8 +3087,29 @@
   opacity: 1;
 }
 
+/* Párrafos de entrada: suben completos con un retardo corto, después de su
+   título. No se parten en palabras porque en textos de varias líneas el
+   efecto se vuelve ruidoso; aquí lo elegante es que el bloque respire. */
+.parrafoEntrada {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 620ms ease, transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: 260ms;
+}
+
+.parrafoEntradaVisible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* Con menos movimiento se muestra sin animación. */
 @media (prefers-reduced-motion: reduce) {
+  .parrafoEntrada {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
   .palabra {
     overflow: visible;
     padding-bottom: 0;

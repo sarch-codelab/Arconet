@@ -42,9 +42,18 @@ describe("revelado tipográfico de títulos", () => {
 
   it("cada palabra se revela con una máscara, sin mover el layout", () => {
     const ext = css.match(/\.palabra\s*\{[^}]*\}/)?.[0] ?? "";
-    expect(ext).toContain("overflow: hidden");
-    expect(ext).toContain("display: inline-block");
+    // inline y no inline-block: con inline-block el navegador deja de medir el
+    // titular con su ancho real y lo parte en más líneas (de 2 pasaba a 4).
+    expect(ext).toContain("display: inline;");
+    expect(ext).not.toContain("display: inline-block");
     expect(css).toMatch(/\.palabraInterior\s*\{[^}]*translateY\(110%\)/);
+  });
+
+  it("los párrafos de entrada se revelan después de su título", () => {
+    expect(css).toMatch(/\.parrafoEntrada\s*\{[^}]*opacity:\s*0/);
+    expect(css).toMatch(/\.parrafoEntrada\s*\{[^}]*transition-delay/);
+    expect(casa).toContain("parrafoEntradaVisible");
+    expect(casa).not.toMatch(/palabrasListas"[^;]*parrafo/);
   });
 });
 
@@ -72,5 +81,38 @@ describe("menú 1: el panel de Soluciones no se descuadra", () => {
 
   it("los grupos entran escalonados al abrir el panel", () => {
     expect(css).toMatch(/\.cardMegaPanelOpen \.cardMegaGroup:nth-child\(1\)[\s\S]*?transition-delay/);
+  });
+});
+
+describe("menú 1: defectos reales detectados en navegador", () => {
+  it("el clic abre el menú en vez de cerrarlo", () => {
+    // Con un toggle, mouseenter ya lo abría y el cliqueo lo cerraba en el
+    // acto: parecía que el botón no hacía nada.
+    expect(casa).toContain("onClick={() => setHeroMenuOpen(true)}");
+    expect(casa).not.toContain("onClick={() => setHeroMenuOpen((open) => !open)}");
+  });
+
+  it("el panel se ancla al header y no al botón", () => {
+    // El botón termina más arriba que el header; anclarlo a su bottom dejaba
+    // el panel montado encima de la barra.
+    expect(casa).toContain('trigger.closest("header")');
+    expect(casa).toContain("base + 10");
+  });
+
+  it("se centra sobre la navegación, no sobre el botón", () => {
+    expect(casa).toContain("const nav = trigger.parentElement");
+    expect(casa).toContain("const centro = navCaja.left + navCaja.width / 2");
+  });
+
+  it("los cuatro grupos van en 2x2 y no estirados", () => {
+    const grupos = css.match(/\.cardMegaGroups\s*\{[^}]*\}/)?.[0] ?? "";
+    expect(grupos).toContain("repeat(2, minmax(0, 1fr))");
+    expect(grupos).toContain("align-items: start");
+  });
+
+  it("el titular de contacto respeta sus dos líneas", () => {
+    // La rejilla le daba ~531px a 100px de fuente y lo partía en cuatro.
+    const inner = css.match(/\.contactInner\s*\{[^}]*\}/)?.[0] ?? "";
+    expect(inner).toContain("grid-template-columns: 1.15fr 0.85fr");
   });
 });
