@@ -1,0 +1,260 @@
+.previewCard {
+  position: sticky;
+  top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  max-height: calc(100vh - 40px);
+}
+
+.previewHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.previewTitleBlock {
+  min-width: 0;
+}
+
+.previewTitleBlock h3 {
+  margin: 6px 0 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.liveBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #e8f5ec;
+  color: #1d7a43;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.liveDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #1d7a43;
+  animation: livePulse 1.6s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.previewDate {
+  color: var(--text-muted);
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+/* Documento: misma sensación que la factura impresa, en versión tarjeta. */
+.document {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-card);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  overflow-y: auto;
+}
+
+.docHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--border);
+}
+
+.emisor, .docInfo {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.razon {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.docInfo {
+  text-align: right;
+}
+
+.docInfo h4 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--text-main);
+}
+
+.line {
+  margin: 2px 0;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.docNumber {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.pendingNotice {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.meta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.panel {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+}
+
+.panel h5 {
+  margin: 0 0 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.panel p {
+  margin: 2px 0;
+  font-size: 11.5px;
+  color: var(--text-main);
+}
+
+.placeholder {
+  color: var(--text-muted);
+  font-size: 11.5px;
+  font-style: italic;
+}
+
+.items {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 11.5px;
+}
+
+.items th, .items td {
+  padding: 6px 6px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.items th {
+  border-top: 1.5px solid var(--border);
+  border-bottom: 1.5px solid var(--border);
+  color: var(--text-muted);
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.items .num, .totals .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.totals {
+  width: 62%;
+  margin-left: auto;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.totals th, .totals td {
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  color: var(--text-muted);
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+.totals .grand th, .totals .grand td {
+  border-top: 1.5px solid var(--border);
+  border-bottom: 2.5px double var(--border);
+  color: var(--text-main);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.authorization {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+}
+
+.authorization h5 {
+  margin: 0 0 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.authorization p {
+  margin: 2px 0;
+  font-size: 11.5px;
+  color: var(--text-main);
+}
+
+.footer {
+  margin: 0;
+  padding-top: 10px;
+  border-top: 2px solid var(--border);
+  color: var(--text-muted);
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .previewCard {
+    position: static;
+    max-height: none;
+  }
+
+  .meta {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .totals {
+    width: 100%;
+  }
+}

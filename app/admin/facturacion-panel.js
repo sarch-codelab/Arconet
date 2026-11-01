@@ -11,6 +11,7 @@ import { resolveFiscalTab } from "@/lib/admin-navigation";
 import { canEmitFiscalSale } from "@/lib/permisos";
 import { invoiceIssues } from "@/lib/invoice-feedback";
 import BusinessNotice from "./business-notice";
+import FacturaPreview from "./factura-preview";
 import feedbackStyles from "./business-feedback.module.css";
 import { AdminContext } from "./admin-nav";
 
@@ -103,7 +104,7 @@ async function request(url, options) {
   } finally { clearTimeout(timer); }
 }
 
-export default function FacturacionPanel({ session, productos: productosIniciales = [], hideTopbar = false, chromeOnly = false, tabs, activeTab: controlledTab, onTabChange, onClientCreated, saleEditorOpen, onSaleEditorClose, embedded = false, editorRef, detailOnly = false, onDocumentsChange, onStatusChange, onInventoryChanged, onDocumentSaved, onInspectDocument, draftMemory }) {
+export default function FacturacionPanel({ session, productos: productosIniciales = [], hideTopbar = false, chromeOnly = false, tabs, activeTab: controlledTab, onTabChange, onClientCreated, saleEditorOpen, onSaleEditorClose, embedded = false, editorRef, detailOnly = false, onDocumentsChange, onStatusChange, onInventoryChanged, onDocumentSaved, onInspectDocument, draftMemory, livePreview = false }) {
   const adminContext = useContext(AdminContext);
   const [initialDraft] = useState(() => draftMemory?.read() || null);
   const emissionKey = useRef(initialDraft?.emissionKey || null);
@@ -576,6 +577,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
               </BusinessNotice> : <BusinessNotice id="invoice-feedback" kind={validationIssues.length ? "info" : config?.pending || (hasAttempt && config?.canIssue === false) ? "warning" : "success"} title={validationIssues.length ? "Falta completar la venta" : hasAttempt && config?.canIssue === false ? "Verificar el envío anterior" : config?.pending ? "Preparado para guardar pendiente de CAI" : "Preparado para enviar la factura"} issues={validationIssues} message={validationIssues.length ? undefined : hasAttempt && config?.canIssue === false ? "Se puede recuperar un documento ya guardado con esta referencia; no se emitirá uno nuevo sin autorización vigente." : "El servidor validará autorización, precios y existencias antes de confirmar el guardado."} />}
               {error && <button type="button" className={adminStyles.ghostBtn} disabled={loading} onClick={cargar}>Reintentar carga fiscal · conservar borrador</button>}
             </div>
+            <div className={livePreview ? styles.editorLayout : undefined}>
             <fieldset className={styles.invoiceGrid} disabled={guardando || !canEmit} aria-label="Nueva venta · Factura fiscal">
               <section className={adminStyles.card}>
                 <header className={adminStyles.cardHeader}>
@@ -744,6 +746,16 @@ export default function FacturacionPanel({ session, productos: productosIniciale
                 <button type="button" className={adminStyles.ghostBtn} disabled={guardando || clientBusy} onClick={discardDraft}>Descartar borrador</button>
               </section>
             </fieldset>
+            {livePreview && editorOpen ? (
+              <FacturaPreview
+                cliente={clientSnapshot}
+                lineas={lineas}
+                totales={totales}
+                config={config}
+                canEmit={canEmit}
+              />
+            ) : null}
+            </div>
           </form>
         </div>
 
