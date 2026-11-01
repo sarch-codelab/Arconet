@@ -50,15 +50,40 @@ export default function VentasSection({ orders = [], setOrders, clientes = [], s
     setFiscalView("detalle");
   }
 
-  const actions = <>
-    {(canCreateSale || canCreateQuote) && <div className={`${styles.actions} ${!(canCreateSale && canCreateQuote) ? styles.singleAction : ""}`} role="group" aria-label="Crear venta o cotización">
-      {canCreateSale && <button type="button" className={adminStyles.primaryBtn} onClick={() => setFiscalView("nueva")}><Receipt size={16} /> Nueva venta</button>}
-      {canCreateQuote && <button type="button" className={adminStyles.ghostBtn} onClick={createQuote}><Plus size={16} /> Nueva cotización</button>}
-    </div>}
-    {canReadFiscal && <div className={styles.fiscalTools} role="group" aria-label="Gestión fiscal">
-      <button type="button" className={adminStyles.ghostBtn} onClick={() => setFiscalView("libro")}><BookOpen size={15} /> Libro de ventas</button>
-    </div>}
-  </>;
+  const actions = (
+    (canCreateSale || canCreateQuote) && (
+      <div
+        className={`${styles.actions} ${!(canCreateSale && canCreateQuote) ? styles.singleAction : ""}`}
+        role="group"
+        aria-label="Crear venta o cotización"
+      >
+        {canCreateSale && (
+          <button
+            type="button"
+            className={adminStyles.primaryBtn}
+            onClick={() => (window.location.href = "/admin/ventas/nueva")}
+          >
+            <Receipt size={16} /> Nueva venta
+          </button>
+        )}
+        {canCreateQuote && (
+          <button type="button" className={adminStyles.ghostBtn} onClick={createQuote}>
+            <Plus size={16} /> Nueva cotización
+          </button>
+        )}
+      </div>
+    )
+  );
+  const fiscalTools = (
+    canReadFiscal && (
+      <div className={styles.fiscalTools} role="group" aria-label="Gestión fiscal">
+        <button type="button" className={adminStyles.ghostBtn} onClick={() => setFiscalView("libro")}>
+          <BookOpen size={15} /> Libro de ventas
+        </button>
+      </div>
+    )
+  );
+
   const fiscalNotice = <>
     {lastSaved && <BusinessNotice kind={lastSaved.documento.estado === "anulado" ? "warning" : "success"} title={lastSaved.replayed ? "Documento ya guardado · recuperado sin duplicar" : "Venta guardada correctamente"} message={`${lastSaved.documento.correlativo ? `Factura ${lastSaved.documento.correlativo}.` : "Pendiente de CAI; sin numeración ni validez fiscal."} Total L ${Number(lastSaved.documento.total).toLocaleString("es-HN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}.${lastSaved.replayed ? " No se creó otra factura ni se descontó inventario de nuevo." : ""}${lastSaved.documento.estado === "anulado" ? " Este documento figura anulado." : ""}`}>
       <div className={styles.actions}>
