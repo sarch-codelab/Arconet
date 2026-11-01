@@ -1459,10 +1459,14 @@
   top: calc(100% + 10px);
   right: 0;
   z-index: 60;
-  /* Dos cuadros lado a lado: Login y a su derecha Admin. */
+  /* Dos cuadros lado a lado: Login y a su derecha Admin.
+     El ancho es fijo: sin él la rejilla se encogía al ancho del botón
+     dentro del hero y el texto de los cuadros se partía letra por letra. */
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+  width: max-content;
+  min-width: 268px;
   padding: 10px;
   border: 1px solid rgba(20, 30, 55, 0.1);
   border-radius: 18px;
@@ -1488,7 +1492,6 @@
   flex-direction: column;
   align-items: center;
   gap: 7px;
-  min-width: 116px;
   padding: 14px 12px;
   border: 1px solid rgba(20, 30, 55, 0.1);
   border-radius: 14px;
@@ -2594,7 +2597,10 @@
   overflow: visible;
   scrollbar-width: none;
   transform: translate3d(calc(var(--slide-progress) * -75%), 0, 0);
-  will-change: transform;
+  /* Sin will-change: una pista de 400vw promovida a capa propia obligaba a
+     la GPU a mantener y repintar una textura enorme durante todo el scroll,
+     lo que producía el tirón al mover la rueda. El transform por sí solo ya
+     se compone sin esa promesa. */
 }
 
 .scrollReady .solutionTrack::-webkit-scrollbar {
@@ -2675,23 +2681,36 @@
 }
 
 .productList li {
-  min-height: 47px;
   display: flex;
   align-items: center;
-  gap: 12px;
   border-bottom: 1px solid #e6e4df;
 }
 
+/* Toda la fila es clicable: lleva a la categoría real de la tienda. */
+.productList li > a {
+  flex: 1;
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 2px;
+  color: inherit;
+  text-decoration: none;
+}
+
 .productList li > span {
+  min-width: 22px;
   color: #8e929a;
-  font-size: 8px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
 }
 
 .productList li strong {
   flex: 1;
   color: #333841;
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 650;
+  line-height: 1.3;
 }
 
 .productList li svg {
@@ -2699,8 +2718,20 @@
   transition: transform 180ms ease;
 }
 
-.productList li:hover svg {
+.productList li:hover svg,
+.productList li > a:focus-visible svg {
   transform: translate(3px, -3px);
+}
+
+.productList li > a:hover strong,
+.productList li > a:focus-visible strong {
+  color: var(--blue);
+}
+
+.productList li > a:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+  border-radius: 6px;
 }
 
 .catalogLink {
@@ -2998,6 +3029,127 @@
   .companyDetails { padding-top: 0; }
   .productsHeading h3 {
   font-size: 29px; }
+
+/* En pantallas grandes la sección se queda pequeña y obliga a forzar la
+   vista: se sube el titular y la lista de categorías de forma escalonada. */
+@media (min-width: 1440px) {
+  .productsHeading > span {
+    font-size: 11px;
+  }
+
+  .productsHeading h3 {
+    font-size: 38px;
+  }
+
+  .productList li > a {
+    min-height: 62px;
+    gap: 16px;
+  }
+
+  .productList li strong {
+    font-size: 17px;
+  }
+
+  .productList li > span {
+    font-size: 12px;
+  }
+}
+
+@media (min-width: 1800px) {
+  .productsHeading h3 {
+    font-size: 44px;
+  }
+
+  .productList li > a {
+    min-height: 68px;
+  }
+
+  .productList li strong {
+    font-size: 19px;
+  }
+}
+
+/* Barra de navegación: la capsula se queda igual de alta mientras la
+   pantalla crece, así que en monitores grandes el texto se veía diminuto.
+   Se agrandan enlaces y botón manteniendo los 62px de alto. */
+@media (min-width: 1440px) {
+  .navigation a {
+    padding: 8px 17px;
+    font-size: 14px;
+  }
+
+  .topAction {
+    padding: 4px 4px 4px 19px;
+    font-size: 13px;
+  }
+
+  .topActionIcon {
+    width: 34px;
+    height: 34px;
+  }
+}
+
+@media (min-width: 1800px) {
+  .navigation a {
+    padding: 9px 20px;
+    font-size: 15px;
+  }
+
+  .topAction {
+    padding: 4px 4px 4px 22px;
+    font-size: 14px;
+  }
+
+  .topActionIcon {
+    width: 36px;
+    height: 36px;
+  }
+
+  /* Menú desplegable de Soluciones y panel de Acceder: también crecen. */
+  .desktopMenu {
+    width: min(1320px, calc(100vw - 64px));
+    padding: 20px;
+  }
+
+  .desktopMenuPrimary {
+    min-height: 64px;
+  }
+
+  .desktopMenuPrimaryLabel {
+    font-size: 17px;
+  }
+
+  .desktopMenuPrimaryHint {
+    font-size: 13px;
+  }
+
+  .desktopMenuLogin,
+  .desktopMenuAdmin {
+    min-height: 64px;
+    font-size: 15px;
+  }
+
+  .desktopMenuGroup h4 {
+    font-size: 12px;
+  }
+
+  .desktopMenuGroup a {
+    padding: 9px 11px;
+    font-size: 15px;
+  }
+
+  .desktopMenuLegal a {
+    font-size: 13px;
+  }
+
+  .accessMenuPanel a strong {
+    font-size: 14px;
+  }
+
+  .accessMenuPanel a small {
+    font-size: 12px;
+  }
+}
 .contactSection { min-height: 510px; }
   .contactInner { grid-template-columns: 1fr; gap: 32px; padding: 64px 22px 80px; text-align: center; }
   .contactContent { max-width: 100%; }
@@ -3923,6 +4075,11 @@
 
 :global(html[data-theme="dark"]) .productList li strong {
   color: var(--ink);
+}
+
+:global(html[data-theme="dark"]) .productList li > a:hover strong,
+:global(html[data-theme="dark"]) .productList li > a:focus-visible strong {
+  color: var(--accent-ink);
 }
 
 @media (max-width: 420px) {

@@ -116,13 +116,8 @@ const SOLUTIONS = [
   },
 ];
 
-const PRODUCT_LINES = [
-  "Splitters ópticos",
-  "Moduladores",
-  "Patch cords y pigtails de fibra",
-  "Medidores y accesorios",
-  "Equipos CATV y satelitales",
-];
+// Las categorías ya no se escriben a mano: llegan de la base de datos
+// (tabla Categoria) desde app/page.js y se listan en el orden del panel.
 
 const STATS = [
   { value: "+10", label: "Años conectando Honduras" },
@@ -271,7 +266,7 @@ function getTimeOfDay() {
   return "noche";
 }
 
-export default function HomeExperience() {
+export default function HomeExperience({ categorias = [] }) {
   const [timeOfDay, setTimeOfDay] = useState("manana");
   const [mounted, setMounted] = useState(false);
   const [activeSection, setActiveSection] = useState("inicio");
@@ -403,7 +398,10 @@ useEffect(() => {
       lenisOptions: {
         anchors: true,
         gestureOrientation: "vertical",
-        lerp: 0.085,
+        // 0.085 dejaba la inercia muy larga: cada golpe de rueda seguía
+        // deslizándose y al encadenar varios se sentía "trabado". Con 0.11
+        // el desplazamiento acompaña al mouse sin arrastrarse.
+        lerp: 0.11,
         respectReducedMotion: true,
         smoothTouch: false,
         smoothWheel: true,
@@ -968,13 +966,18 @@ useEffect(() => {
           </p>
         </div>
         <div className={styles.companyDetails} data-reveal>
-          <div className={styles.productsHeading}><span>01 / NUESTRO CATÁLOGO</span><h3>Todo empieza con<br />el equipo adecuado.</h3></div>
+          <div className={styles.productsHeading}><span>01 / NUESTRAS CATEGORÍAS</span><h3>Todo empieza con<br />el equipo adecuado.</h3></div>
           <ul className={styles.productList}>
-            {PRODUCT_LINES.map((product, index) => (
-              <li key={product}><span>0{index + 1}</span><strong>{product}</strong><ArrowUpRight size={17} /></li>
+            {categorias.map((categoria, index) => (
+              <li key={categoria.id}>
+                <a href={categoria.href}>
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <strong>{categoria.nombre}</strong>
+                  <ArrowUpRight size={17} aria-hidden="true" />
+                </a>
+              </li>
             ))}
           </ul>
-          
         </div>
       </section>
 
