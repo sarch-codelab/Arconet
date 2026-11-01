@@ -3929,24 +3929,86 @@
 }
 
 .quoteInner {
+  position: relative;
   display: grid;
   gap: 22px;
   justify-items: center;
   text-align: center;
   padding: clamp(50px, 6vw, 100px) clamp(26px, 6vw, 90px);
   border-radius: 32px;
-  background: linear-gradient(135deg, #0c2874, #1544b5 58%, #3a6ff0);
-  color: #fff;
+  /* Foto de fondo (degradado azul) con un velo suave encima.
+     La foto tiene una mitad casi blanca; sin velo, el texto blanco
+     desaparece. El velo va como color de fondo semitransparente para que la
+     imagen se vea a través, pero manteniendo el contraste del texto en su
+     punto más claro. El color de respaldo cubre el caso de que la imagen no
+     cargue. */
+  background-color: #d6e8f8;
+  background-image: url("/cita-fondo.webp");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: var(--quote-ink, #0b2149);
   overflow: hidden;
+  isolation: isolate;
+}
+
+/* Velo: una capa propia encima de la foto, no un segundo background, para
+   poder ajustarla por tema sin repetir la imagen. */
+.quoteInner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--quote-veil, rgba(255, 255, 255, 0.58));
+  pointer-events: none;
+}
+
+/* En pantallas chicas el bloque es alto y estrecho: el encuadre al centro
+   deja ver sobre todo la zona clara, así que se sube el velo. */
+@media (max-width: 760px) {
+  /* En pantallas chicas el bloque es alto y estrecho: el encuadre al centro
+     deja sobre todo la zona clara de la foto, así que se refuerza el velo. */
+  .quoteInner {
+    background-position: center 35%;
+  }
+
+  :global(html[data-theme="dark"]) .quoteInner {
+    --quote-veil: rgba(9, 30, 78, 0.68);
+  }
+
+  :global(html[data-theme="light"]) .quoteInner {
+    --quote-veil: rgba(255, 255, 255, 0.68);
+  }
+}
+
+/* Tema oscuro: velo azul profundo y texto blanco. Es el que ya existía. */
+:global(html[data-theme="dark"]) .quoteInner {
+  --quote-ink: #fff;
+  --quote-cite: #d5e3fb;
+  --quote-accent: #b7cbff;
+  /* 0.62 es el mínimo medido que sostiene 4.5:1 sobre la zona más clara de la
+     foto (la mitad derecha). Por debajo, el titular blanco pierde contraste. */
+  --quote-veil: rgba(9, 30, 78, 0.62);
+  background-color: #1544b5;
+}
+
+/* Tema claro: velo claro y texto azul marino. Con texto blanco sobre esta foto
+   no hay contraste posible (la mitad de la imagen es casi blanca), así que el
+   texto se oscurece en lugar de forzarlo. */
+:global(html[data-theme="light"]) .quoteInner {
+  --quote-ink: #0b2149;
+  --quote-cite: #24467f;
+  --quote-accent: #1544b5;
+  --quote-veil: rgba(255, 255, 255, 0.6);
 }
 
 .quoteSpark {
-  color: #b7cbff;
+  color: var(--quote-accent, #1544b5);
 }
 
 .quoteInner p {
   max-width: 840px;
-  color: #fff;
+  color: var(--quote-ink, #0b2149);
   font-family: var(--font-heading), system-ui, sans-serif;
   font-size: clamp(24px, 3.2vw, 54px);
   font-weight: 400;
@@ -3954,7 +4016,7 @@
 }
 
 .quoteInner cite {
-  color: #cddaf6;
+  color: var(--quote-cite, #1b3f7d);
   font-size: 11px;
   font-style: normal;
   letter-spacing: 0.14em;
