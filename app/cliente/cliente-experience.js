@@ -31,6 +31,7 @@ import styles from "./cliente-experience.module.css";
 import { useContact } from "../contact-provider";
 import { fuerzaPassword, validarPassword } from '@/lib/seguridad';
 import { sileo } from "../toaster";
+import Footer from "../footer";
 
 const FUERZA_LABEL = ["Muy débil", "Débil", "Aceptable", "Fuerte", "Muy fuerte"];
 
@@ -158,104 +159,132 @@ function ClientDashboard({ session, orders, setOrders, onLogout }) {
   };
 
   return (
-    <main className={styles.clientDashboard}>
-      <div className={styles.dashboardShell}>
-        <div className={styles.dashboardContent}>
-          <header className={styles.dashboardTopbar}>
-            <div className={styles.brandArea}>
-              <a className={styles.logo} href="/" aria-label="Arconet, inicio">
-                <img src="/arconet.png" alt="Arconet" />
-              </a>
-              <span className={styles.logoTag}>Portal de clientes</span>
-            </div>
-            <nav className={styles.nav} aria-label="Secciones del portal">
-              {[
-                ["dashboard", "Dashboard", Building2],
-                ["cotizaciones", "Cotizaciones", FileText],
-                ["proyectos", "Proyectos", Package],
-                ["soporte", "Soporte", Check],
-                ["documentos", "Documentos", Download],
-                ["perfil", "Mi perfil", User],
-              ].map(([id, label, Icon]) => (
-                <button
-                  key={id}
-                  type="button"
-                  className={`${styles.navItem} ${activeTab === id ? styles.navActive : ""}`}
-                  onClick={() => setActiveTab(id)}
-                  aria-current={activeTab === id ? "page" : undefined}
-                  title={label}
-                >
-                  <Icon size={15} />
-                  {activeTab === id ? <span>{label}</span> : null}
-                </button>
-              ))}
-            </nav>
-            <div className={styles.topbarTitle}>
-              <h1>
-                {activeTab === "dashboard" && "Dashboard"}
-                {activeTab === "cotizaciones" && "Mis cotizaciones"}
-                {activeTab === "proyectos" && "Mis proyectos"}
-                {activeTab === "soporte" && "Soporte técnico"}
-                {activeTab === "documentos" && "Documentos"}
-                {activeTab === "perfil" && "Mi perfil"}
-                {activeTab === "orden-detalle" && "Detalle de cotización"}
-              </h1>
-            </div>
-            <div className={styles.topbarActions}>
-              {activeTab === "cotizaciones" && (
-                <button type="button" className={styles.primaryBtn} onClick={handleCreateRequest}>
-                  <Plus size={16} /> Nueva solicitud
-                </button>
-              )}
-              <NotificationsBell />
-              <button type="button" className={styles.accountButton} onClick={onLogout} aria-label="Cerrar sesión" title={`Cerrar sesión de ${session.nombre}`}>
-                <span className={styles.userAvatar}>{session.nombre[0]}</span>
-                <LogOut size={15} />
-              </button>
-            </div>
-          </header>
-
-          <div className={styles.dashboardBody}>
-            {session.verificado === false && (
-              <div className={styles.verifyBanner} role="status">
-                <MailWarning size={16} />
-                <p>
-                  Verifica <strong>{session.correo}</strong> para recibir avisos de tus
-                  cotizaciones y entregas.
-                </p>
-                <Link href="/verificar">Verificar ahora</Link>
+    <>
+      <main className={styles.clientDashboard}>
+        <div className={styles.dashboardShell}>
+          <div className={styles.dashboardContent}>
+            <header className={styles.dashboardTopbar}>
+              <div className={styles.brandArea}>
+                <a className={styles.logo} href="/" aria-label="Arconet, inicio">
+                  <img src="/arconet.png" alt="Arconet" />
+                </a>
+                <span className={styles.logoTag}>Portal de clientes</span>
               </div>
-            )}
+              <nav className={styles.nav} aria-label="Secciones del portal">
+                {[
+                  ["dashboard", "Dashboard", Building2],
+                  ["cotizaciones", "Cotizaciones", FileText],
+                  ["proyectos", "Proyectos", Package],
+                  ["soporte", "Soporte", Check],
+                  ["documentos", "Documentos", Download],
+                  ["perfil", "Mi perfil", User],
+                ].map(([id, label, Icon]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    className={`${styles.navItem} ${activeTab === id ? styles.navActive : ""}`}
+                    onClick={() => setActiveTab(id)}
+                    aria-current={activeTab === id ? "page" : undefined}
+                    title={label}
+                  >
+                    <Icon size={15} />
+                    {activeTab === id ? <span>{label}</span> : null}
+                  </button>
+                ))}
+              </nav>
+              <div className={styles.topbarTitle}>
+                <h1>
+                  {activeTab === "dashboard" && "Dashboard"}
+                  {activeTab === "cotizaciones" && "Mis cotizaciones"}
+                  {activeTab === "proyectos" && "Mis proyectos"}
+                  {activeTab === "soporte" && "Soporte técnico"}
+                  {activeTab === "documentos" && "Documentos"}
+                  {activeTab === "perfil" && "Mi perfil"}
+                  {activeTab === "orden-detalle" && "Detalle de cotización"}
+                </h1>
+              </div>
+              <div className={styles.topbarActions}>
+                {activeTab === "cotizaciones" && (
+                  <button type="button" className={styles.primaryBtn} onClick={handleCreateRequest}>
+                    <Plus size={16} /> Nueva solicitud
+                  </button>
+                )}
+                <NotificationsBell />
+                <button type="button" className={styles.accountButton} onClick={onLogout} aria-label="Cerrar sesión" title={`Cerrar sesión de ${session.nombre}`}>
+                  <span className={styles.userAvatar}>{session.nombre[0]}</span>
+                  <LogOut size={15} />
+                </button>
+              </div>
+            </header>
 
-            {activeTab === "dashboard" && (
-              <div className={styles.dashboardGrid}>
-                <section className={styles.welcomeCard}>
-                  <h2>Bienvenido, {session.nombre}</h2>
-                  <p>Gestiona tus cotizaciones y proyectos de infraestructura.</p>
-                </section>
+            <div className={styles.dashboardBody}>
+              {session.verificado === false && (
+                <div className={styles.verifyBanner} role="status">
+                  <MailWarning size={16} />
+                  <p>
+                    Verifica <strong>{session.correo}</strong> para recibir avisos de tus
+                    cotizaciones y entregas.
+                  </p>
+                  <Link href="/verificar">Verificar ahora</Link>
+                </div>
+              )}
 
-                <section className={styles.statsGrid}>
-                  <article className={styles.statCard}>
-                    <span className={styles.statIcon}><FileText size={20} /></span>
-                    <strong className={styles.statValue}>{quoteOrders.length}</strong>
-                    <span className={styles.statLabel}>Cotizaciones</span>
-                  </article>
-                  <article className={styles.statCard}>
-                    <span className={styles.statIcon}><Check size={20} /></span>
-                    <strong className={styles.statValue}>
-                      {orders.filter((order) => order.estado === "completada").length}
-                    </strong>
-                    <span className={styles.statLabel}>Completadas</span>
-                  </article>
-                  <article className={styles.statCard}>
-                    <span className={styles.statIcon}><Package size={20} /></span>
-                    <strong className={styles.statValue}>{totalActivo.toLocaleString("es-HN")} L</strong>
-                    <span className={styles.statLabel}>Total activo</span>
-                  </article>
-                </section>
+              {activeTab === "dashboard" && (
+                <div className={styles.dashboardGrid}>
+                  <section className={styles.welcomeCard}>
+                    <h2>Bienvenido, {session.nombre}</h2>
+                    <p>Gestiona tus cotizaciones y proyectos de infraestructura.</p>
+                  </section>
 
-                <section className={styles.recentOrders}>
-                  <h3>Cotizaciones recientes</h3>
+                  <section className={styles.statsGrid}>
+                    <article className={styles.statCard}>
+                      <span className={styles.statIcon}><FileText size={20} /></span>
+                      <strong className={styles.statValue}>{quoteOrders.length}</strong>
+                      <span className={styles.statLabel}>Cotizaciones</span>
+                    </article>
+                    <article className={styles.statCard}>
+                      <span className={styles.statIcon}><Check size={20} /></span>
+                      <strong className={styles.statValue}>
+                        {orders.filter((order) => order.estado === "completada").length}
+                      </strong>
+                      <span className={styles.statLabel}>Completadas</span>
+                    </article>
+                    <article className={styles.statCard}>
+                      <span className={styles.statIcon}><Package size={20} /></span>
+                      <strong className={styles.statValue}>{totalActivo.toLocaleString("es-HN")} L</strong>
+                      <span className={styles.statLabel}>Total activo</span>
+                    </article>
+                  </section>
+
+                  <section className={styles.recentOrders}>
+                    <h3>Cotizaciones recientes</h3>
+                    <div className={styles.orderList}>
+                      {quoteOrders.length === 0 ? <p>Aún no tienes cotizaciones registradas.</p> : quoteOrders.map((order) => (
+                        <div key={order.id} className={styles.orderCard} onClick={() => handleViewOrder(order)}>
+                          <div className={styles.orderHeader}>
+                            <strong>{order.id}</strong>
+                            <span className={`${styles.orderStatus} ${styles[`status_${order.estado}`]}`}>
+                              {order.estado === "pendiente" ? "Pendiente" : order.estado}
+                            </span>
+                          </div>
+                          <p>{order.notas}</p>
+                          <div className={styles.orderMeta}>
+                            <span>{order.fecha}</span>
+                            <strong>{order.monto.toLocaleString()} L</strong>
+                          </div>
+                          <button type="button" className={styles.viewBtn}>
+                            Ver detalles <ChevronRight size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                </div>
+              )}
+
+              {activeTab === "cotizaciones" && (
+                <div className={styles.ordersPage}>
+                  <h2>Mis cotizaciones</h2>
                   <div className={styles.orderList}>
                     {quoteOrders.length === 0 ? <p>Aún no tienes cotizaciones registradas.</p> : quoteOrders.map((order) => (
                       <div key={order.id} className={styles.orderCard} onClick={() => handleViewOrder(order)}>
@@ -276,250 +305,225 @@ function ClientDashboard({ session, orders, setOrders, onLogout }) {
                       </div>
                     ))}
                   </div>
-                </section>
-              </div>
-            )}
-
-            {activeTab === "cotizaciones" && (
-              <div className={styles.ordersPage}>
-                <h2>Mis cotizaciones</h2>
-                <div className={styles.orderList}>
-                  {quoteOrders.length === 0 ? <p>Aún no tienes cotizaciones registradas.</p> : quoteOrders.map((order) => (
-                    <div key={order.id} className={styles.orderCard} onClick={() => handleViewOrder(order)}>
-                      <div className={styles.orderHeader}>
-                        <strong>{order.id}</strong>
-                        <span className={`${styles.orderStatus} ${styles[`status_${order.estado}`]}`}>
-                          {order.estado === "pendiente" ? "Pendiente" : order.estado}
-                        </span>
-                      </div>
-                      <p>{order.notas}</p>
-                      <div className={styles.orderMeta}>
-                        <span>{order.fecha}</span>
-                        <strong>{order.monto.toLocaleString()} L</strong>
-                      </div>
-                      <button type="button" className={styles.viewBtn}>
-                        Ver detalles <ChevronRight size={14} />
-                      </button>
-                    </div>
-                  ))}
                 </div>
-              </div>
-            )}
+              )}
 
-            {activeTab === "proyectos" && (
-              <div className={styles.projectsPage}>
-                <h2>Mis proyectos</h2>
-                <div className={styles.projectGrid}>
-                  {projectOrders.length === 0 ? (
-                    <p>Los proyectos confirmados aparecerán aquí cuando una cotización sea aprobada.</p>
-                  ) : projectOrders.map((order) => (
-                    <article key={order.id} className={styles.projectCard}>
-                      <div className={styles.projectHeader}>
-                        <span className={styles.projectType}>Proyecto</span>
-                        <span className={`${styles.projectStatus} ${styles[`status_${order.estado}`]}`}>
-                          {order.estado.replaceAll("_", " ")}
-                        </span>
-                      </div>
-                      <h3>{order.notas.split("\n")[0]?.replace(/^Proyecto: /, "") || order.id}</h3>
-                      <p>{order.notas}</p>
-                      <div className={styles.projectMeta}>
-                        <span><Clock size={14} /> {order.fecha}</span>
-                        <span><FileText size={14} /> {order.id}</span>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeTab === "soporte" && (
-              <SupportPage session={session} />
-            )}
-
-            {activeTab === "documentos" && (
-              <DocumentsPage />
-            )}
-
-            {activeTab === "perfil" && (
-              <ProfilePage session={session} onSessionUpdate={setSession} />
-            )}
-
-            {activeTab === "orden-detalle" && selectedOrder && (
-              <div className={styles.orderDetailPage}>
-                <button
-                  type="button"
-                  className={styles.backBtn}
-                  onClick={() => { setActiveTab("cotizaciones"); setSelectedOrder(null); }}
-                >
-                  <ArrowLeft size={16} /> Volver a cotizaciones
-                </button>
-                <div className={styles.orderDetailHeader}>
-                  <div>
-                    <h2>{selectedOrder.id}</h2>
-                    <p>{selectedOrder.notas}</p>
-                  </div>
-                  <span className={`${styles.orderStatus} ${styles[`status_${selectedOrder.estado}`]} ${styles.statusLarge}`}>
-                    {selectedOrder.estado === "pendiente" ? "Pendiente" : selectedOrder.estado}
-                  </span>
-                </div>
-                <div className={styles.orderDetailGrid}>
-                  <div className={styles.orderInfoCard}>
-                    <h3>Información general</h3>
-                    <div className={styles.infoRow}>
-                      <span>Tipo</span>
-                      <strong>{selectedOrder.tipo === "cotizacion" ? "Cotización" : "Venta"}</strong>
-                    </div>
-                    <div className={styles.infoRow}>
-                      <span>Fecha</span>
-                      <strong>{selectedOrder.fecha}</strong>
-                    </div>
-                    <div className={styles.infoRow}>
-                      <span>Monto total</span>
-                      <strong className={styles.highlight}>{selectedOrder.monto.toLocaleString()} L</strong>
-                    </div>
-                  </div>
-                  <div className={styles.orderItemsCard}>
-                    <h3>Items</h3>
-                    <div className={styles.itemsList}>
-                      {selectedOrder.items.map((item, index) => (
-                        <div key={index} className={styles.itemRow}>
-                          <span>{item.nombre}</span>
-                          <div className={styles.itemMeta}>
-                            <span>x{item.cantidad}</span>
-                            <strong>{(item.precio * item.cantidad).toLocaleString()} L</strong>
-                          </div>
+              {activeTab === "proyectos" && (
+                <div className={styles.projectsPage}>
+                  <h2>Mis proyectos</h2>
+                  <div className={styles.projectGrid}>
+                    {projectOrders.length === 0 ? (
+                      <p>Los proyectos confirmados aparecerán aquí cuando una cotización sea aprobada.</p>
+                    ) : projectOrders.map((order) => (
+                      <article key={order.id} className={styles.projectCard}>
+                        <div className={styles.projectHeader}>
+                          <span className={styles.projectType}>Proyecto</span>
+                          <span className={`${styles.projectStatus} ${styles[`status_${order.estado}`]}`}>
+                            {order.estado.replaceAll("_", " ")}
+                          </span>
                         </div>
-                      ))}
-                    </div>
+                        <h3>{order.notas.split("\n")[0]?.replace(/^Proyecto: /, "") || order.id}</h3>
+                        <p>{order.notas}</p>
+                        <div className={styles.projectMeta}>
+                          <span><Clock size={14} /> {order.fecha}</span>
+                          <span><FileText size={14} /> {order.id}</span>
+                        </div>
+                      </article>
+                    ))}
                   </div>
                 </div>
-                <div className={styles.orderActions}>
-                  {selectedOrder.tipo === "cotizacion" && (selectedOrder.estado === "pendiente" || selectedOrder.estado === "en_proceso") && (
-                    <>
-                      <button type="button" className={styles.submit} onClick={() => handleOrderAction(selectedOrder.id, "aprobar")}>
-                        <Check size={16} /> Aprobar cotización
-                      </button>
-                      <button type="button" className={styles.dangerBtn} onClick={() => handleOrderAction(selectedOrder.id, "rechazar")}>
-                        <X size={16} /> Rechazar
-                      </button>
-                      <button type="button" className={styles.ghostBtn} onClick={() => handleOrderAction(selectedOrder.id, "cancelar")}>
-                        Cancelar solicitud
-                      </button>
-                    </>
-                  )}
-                  <a
-                    className={styles.primaryBtn}
-                    href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`Consulta sobre ${selectedOrder.id}`)}`}
-                    style={{ textDecoration: "none" }}
-                  >
-                    <Send size={16} /> Consultar esta solicitud
-                  </a>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+              )}
 
-        {requestModalOpen && (
-          <div
-            className={styles.overlay}
-            role="presentation"
-            onMouseDown={(event) => {
-              if (event.target === event.currentTarget) setRequestModalOpen(false);
-            }}
-          >
-            <div className={styles.modal} role="dialog" aria-modal="true" aria-label="Nueva solicitud">
-              <header className={styles.modalHead}>
-                <div>
-                  <p className={styles.eyebrow}>Nueva</p>
-                  <h2>Solicitar cotización</h2>
-                </div>
-                <button
-                  type="button"
-                  className={styles.iconBtn}
-                  onClick={() => setRequestModalOpen(false)}
-                  aria-label="Cerrar"
-                >
-                  <X size={18} />
-                </button>
-              </header>
+              {activeTab === "soporte" && (
+                <SupportPage session={session} />
+              )}
 
-              <form className={styles.form} onSubmit={handleSubmitRequest}>
-                <div className={styles.fieldGrid}>
-                  <label className={styles.field}>
-                    Tipo de solicitud
-                    <select
-                      value={requestForm.tipo}
-                      onChange={(event) => setRequestForm({ ...requestForm, tipo: event.target.value })}
-                    >
-                      <option value="cotizacion">Cotización</option>
-                      <option value="proyecto">Proyecto</option>
-                      <option value="mantenimiento">Mantenimiento</option>
-                    </select>
-                  </label>
-                  <label className={styles.field}>
-                    Urgencia
-                    <select
-                      value={requestForm.urgencia}
-                      onChange={(event) => setRequestForm({ ...requestForm, urgencia: event.target.value })}
-                    >
-                      <option value="baja">Baja</option>
-                      <option value="normal">Normal</option>
-                      <option value="alta">Alta</option>
-                      <option value="urgente">Urgente</option>
-                    </select>
-                  </label>
-                  <label className={`${styles.field} ${styles.spanFull}`}>
-                    Nombre del proyecto
-                    <input
-                      type="text"
-                      value={requestForm.proyecto}
-                      onChange={(event) => setRequestForm({ ...requestForm, proyecto: event.target.value })}
-                      placeholder="Ej. Instalación fibra óptica edificio X"
-                      required
-                    />
-                  </label>
-                  <label className={`${styles.field} ${styles.spanFull}`}>
-                    Descripción detallada
-                    <textarea
-                      value={requestForm.descripcion}
-                      onChange={(event) => setRequestForm({ ...requestForm, descripcion: event.target.value })}
-                      placeholder="Describe los detalles del proyecto, requerimientos técnicos, ubicación, etc."
-                      rows={4}
-                      required
-                    />
-                  </label>
-                  <label className={styles.field}>
-                    Presupuesto estimado (L)
-                    <input
-                      type="number"
-                      value={requestForm.presupuesto}
-                      onChange={(event) => setRequestForm({ ...requestForm, presupuesto: event.target.value })}
-                      placeholder="0.00"
-                      min="0"
-                      step="0.01"
-                    />
-                  </label>
-                </div>
+              {activeTab === "documentos" && (
+                <DocumentsPage />
+              )}
 
-                <footer className={styles.modalActions}>
+              {activeTab === "perfil" && (
+                <ProfilePage session={session} onSessionUpdate={setSession} />
+              )}
+
+              {activeTab === "orden-detalle" && selectedOrder && (
+                <div className={styles.orderDetailPage}>
                   <button
                     type="button"
-                    className={styles.ghostBtn}
-                    onClick={() => setRequestModalOpen(false)}
+                    className={styles.backBtn}
+                    onClick={() => { setActiveTab("cotizaciones"); setSelectedOrder(null); }}
                   >
-                    Cancelar
+                    <ArrowLeft size={16} /> Volver a cotizaciones
                   </button>
-                  <button type="submit" className={styles.submit}>
-                    <Send size={16} /> Enviar solicitud
-                  </button>
-                </footer>
-              </form>
+                  <div className={styles.orderDetailHeader}>
+                    <div>
+                      <h2>{selectedOrder.id}</h2>
+                      <p>{selectedOrder.notas}</p>
+                    </div>
+                    <span className={`${styles.orderStatus} ${styles[`status_${selectedOrder.estado}`]} ${styles.statusLarge}`}>
+                      {selectedOrder.estado === "pendiente" ? "Pendiente" : selectedOrder.estado}
+                    </span>
+                  </div>
+                  <div className={styles.orderDetailGrid}>
+                    <div className={styles.orderInfoCard}>
+                      <h3>Información general</h3>
+                      <div className={styles.infoRow}>
+                        <span>Tipo</span>
+                        <strong>{selectedOrder.tipo === "cotizacion" ? "Cotización" : "Venta"}</strong>
+                      </div>
+                      <div className={styles.infoRow}>
+                        <span>Fecha</span>
+                        <strong>{selectedOrder.fecha}</strong>
+                      </div>
+                      <div className={styles.infoRow}>
+                        <span>Monto total</span>
+                        <strong className={styles.highlight}>{selectedOrder.monto.toLocaleString()} L</strong>
+                      </div>
+                    </div>
+                    <div className={styles.orderItemsCard}>
+                      <h3>Items</h3>
+                      <div className={styles.itemsList}>
+                        {selectedOrder.items.map((item, index) => (
+                          <div key={index} className={styles.itemRow}>
+                            <span>{item.nombre}</span>
+                            <div className={styles.itemMeta}>
+                              <span>x{item.cantidad}</span>
+                              <strong>{(item.precio * item.cantidad).toLocaleString()} L</strong>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className={styles.orderActions}>
+                    {selectedOrder.tipo === "cotizacion" && (selectedOrder.estado === "pendiente" || selectedOrder.estado === "en_proceso") && (
+                      <>
+                        <button type="button" className={styles.submit} onClick={() => handleOrderAction(selectedOrder.id, "aprobar")}>
+                          <Check size={16} /> Aprobar cotización
+                        </button>
+                        <button type="button" className={styles.dangerBtn} onClick={() => handleOrderAction(selectedOrder.id, "rechazar")}>
+                          <X size={16} /> Rechazar
+                        </button>
+                        <button type="button" className={styles.ghostBtn} onClick={() => handleOrderAction(selectedOrder.id, "cancelar")}>
+                          Cancelar solicitud
+                        </button>
+                      </>
+                    )}
+                    <a
+                      className={styles.primaryBtn}
+                      href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`Consulta sobre ${selectedOrder.id}`)}`}
+                      style={{ textDecoration: "none" }}
+                    >
+                      <Send size={16} /> Consultar esta solicitud
+                    </a>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-        )}
-      </div>
-    </main>
+
+          {requestModalOpen && (
+            <div
+              className={styles.overlay}
+              role="presentation"
+              onMouseDown={(event) => {
+                if (event.target === event.currentTarget) setRequestModalOpen(false);
+              }}
+            >
+              <div className={styles.modal} role="dialog" aria-modal="true" aria-label="Nueva solicitud">
+                <header className={styles.modalHead}>
+                  <div>
+                    <p className={styles.eyebrow}>Nueva</p>
+                    <h2>Solicitar cotización</h2>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.iconBtn}
+                    onClick={() => setRequestModalOpen(false)}
+                    aria-label="Cerrar"
+                  >
+                    <X size={18} />
+                  </button>
+                </header>
+
+                <form className={styles.form} onSubmit={handleSubmitRequest}>
+                  <div className={styles.fieldGrid}>
+                    <label className={styles.field}>
+                      Tipo de solicitud
+                      <select
+                        value={requestForm.tipo}
+                        onChange={(event) => setRequestForm({ ...requestForm, tipo: event.target.value })}
+                      >
+                        <option value="cotizacion">Cotización</option>
+                        <option value="proyecto">Proyecto</option>
+                        <option value="mantenimiento">Mantenimiento</option>
+                      </select>
+                    </label>
+                    <label className={styles.field}>
+                      Urgencia
+                      <select
+                        value={requestForm.urgencia}
+                        onChange={(event) => setRequestForm({ ...requestForm, urgencia: event.target.value })}
+                      >
+                        <option value="baja">Baja</option>
+                        <option value="normal">Normal</option>
+                        <option value="alta">Alta</option>
+                        <option value="urgente">Urgente</option>
+                      </select>
+                    </label>
+                    <label className={`${styles.field} ${styles.spanFull}`}>
+                      Nombre del proyecto
+                      <input
+                        type="text"
+                        value={requestForm.proyecto}
+                        onChange={(event) => setRequestForm({ ...requestForm, proyecto: event.target.value })}
+                        placeholder="Ej. Instalación fibra óptica edificio X"
+                        required
+                      />
+                    </label>
+                    <label className={`${styles.field} ${styles.spanFull}`}>
+                      Descripción detallada
+                      <textarea
+                        value={requestForm.descripcion}
+                        onChange={(event) => setRequestForm({ ...requestForm, descripcion: event.target.value })}
+                        placeholder="Describe los detalles del proyecto, requerimientos técnicos, ubicación, etc."
+                        rows={4}
+                        required
+                      />
+                    </label>
+                    <label className={styles.field}>
+                      Presupuesto estimado (L)
+                      <input
+                        type="number"
+                        value={requestForm.presupuesto}
+                        onChange={(event) => setRequestForm({ ...requestForm, presupuesto: event.target.value })}
+                        placeholder="0.00"
+                        min="0"
+                        step="0.01"
+                      />
+                    </label>
+                  </div>
+
+                  <footer className={styles.modalActions}>
+                    <button
+                      type="button"
+                      className={styles.ghostBtn}
+                      onClick={() => setRequestModalOpen(false)}
+                    >
+                      Cancelar
+                    </button>
+                    <button type="submit" className={styles.submit}>
+                      <Send size={16} /> Enviar solicitud
+                    </button>
+                  </footer>
+                </form>
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
+      <Footer />
+    </>
   );
 }
 

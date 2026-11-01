@@ -2,22 +2,31 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUp, Mail, MapPin, Phone } from "lucide-react";
+import { ArrowUp, Clock, Mail, MapPin, Phone } from "lucide-react";
 import { FAMILIES } from "./tienda/catalogo-data";
 import styles from "./footer.module.css";
 import { useContact } from "./contact-provider";
 
-const COMPANY_LINKS = [
+// Los enlaces de empresa van en tres bloques: la navegación principal arriba,
+// las páginas de ayuda después y lo legal al final. Antes eran una sola lista
+// de diez que se leía como un bloque de texto.
+const EMPRESA_LINKS = [
   { href: "/", label: "Inicio" },
   { href: "/#empresa", label: "La empresa" },
   { href: "/tienda", label: "Tienda" },
   { href: "/contacto", label: "Contacto" },
+];
+
+const AYUDA_LINKS = [
   { href: "/ayuda", label: "Ayuda y preguntas frecuentes" },
+  { href: "/garantias", label: "Garantías y devoluciones" },
+];
+
+const LEGAL_LINKS = [
   { href: "/terminos", label: "Términos de uso" },
   { href: "/privacidad", label: "Aviso de privacidad" },
   { href: "/cookies", label: "Política de cookies" },
   { href: "/aviso-legal", label: "Aviso legal" },
-  { href: "/garantias", label: "Garantías y devoluciones" },
 ];
 
 const SOCIAL = [
@@ -38,6 +47,10 @@ const SOCIAL = [
   },
 ];
 
+const SEDES = ["San Pedro Sula", "Tegucigalpa"];
+const HORARIO = "Lun–Vie 8:00–17:00 · Sáb 8:00–12:00";
+const DIRECCION = "4 Calle 11 Avenida, Barrio Guamilito";
+
 export default function Footer() {
   const { email: CONTACT_EMAIL, phone: CONTACT_PHONE, phoneHref: CONTACT_PHONE_HREF } = useContact();
   const scrollToTop = () => {
@@ -46,6 +59,27 @@ export default function Footer() {
 
   return (
     <footer className={styles.footer}>
+      {/* Banda de contacto: lo que la gente más busca en un pie de página, en
+          primera línea y a tamaño de titular. */}
+      <div className={styles.contacto}>
+        <div className={styles.contactoTexto}>
+          <p className={styles.eyebrow}>Hablemos de tu proyecto</p>
+          <h2 className={styles.contactoTitulo}>
+            ¿Listo para conectar? <em>Escríbenos.</em>
+          </h2>
+        </div>
+        <div className={styles.contactoAcciones}>
+          <a className={styles.ctaPrincipal} href={`mailto:${CONTACT_EMAIL}`}>
+            <Mail aria-hidden="true" />
+            {CONTACT_EMAIL}
+          </a>
+          <a className={styles.ctaSecundario} href={CONTACT_PHONE_HREF}>
+            <Phone aria-hidden="true" />
+            {CONTACT_PHONE}
+          </a>
+        </div>
+      </div>
+
       <div className={styles.inner}>
         <div className={styles.brandCol}>
           <Link className={styles.brand} href="/" aria-label="Arconet, inicio">
@@ -54,7 +88,7 @@ export default function Footer() {
               alt="Arconet"
               width={1200}
               height={200}
-              sizes="(max-width: 1040px) 114px, 176px"
+              sizes="(max-width: 760px) 150px, 190px"
             />
           </Link>
           <p className={styles.tagline}>Conectividad que acerca.</p>
@@ -62,12 +96,14 @@ export default function Footer() {
             Equipos y soluciones de telecomunicaciones para fibra óptica, CATV, satélite e
             infraestructura de red, con asesoría de principio a fin.
           </p>
+
           <div className={styles.social} aria-label="Redes sociales">
             {SOCIAL.map((item) => (
               <a
                 key={item.label}
                 href={item.href}
                 aria-label={item.label}
+                title={item.label}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -80,7 +116,9 @@ export default function Footer() {
         </div>
 
         <nav className={styles.col} aria-label="Soluciones">
-          <h2 className={styles.colTitle}>Soluciones</h2>
+          <h3 className={styles.colTitle}>
+            Soluciones <span className={styles.colCount}>{String(FAMILIES.length).padStart(2, "0")}</span>
+          </h3>
           <ul className={styles.colList}>
             {FAMILIES.map((family) => (
               <li key={family.slug}>
@@ -92,22 +130,37 @@ export default function Footer() {
           </ul>
         </nav>
 
-        <nav className={styles.col} aria-label="Empresa">
-          <h2 className={styles.colTitle}>Empresa</h2>
-          <ul className={styles.colList}>
-            {COMPANY_LINKS.map((link) => (
-              <li key={link.href}>
-                <Link className={styles.colLink} href={link.href}>
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        <div className={styles.col}>
+          <nav aria-label="Empresa">
+            <h3 className={styles.colTitle}>Empresa</h3>
+            <ul className={styles.colList}>
+              {EMPRESA_LINKS.map((link) => (
+                <li key={link.href}>
+                  <Link className={styles.colLink} href={link.href}>
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <nav className={styles.subBloque} aria-label="Ayuda">
+            <h3 className={styles.colTitle}>Ayuda</h3>
+            <ul className={styles.colList}>
+              {AYUDA_LINKS.map((link) => (
+                <li key={link.href}>
+                  <Link className={styles.colLink} href={link.href}>
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
 
         <div className={styles.col}>
-          <h2 className={styles.colTitle}>Contacto</h2>
-          <ul className={styles.colList}>
+          <h3 className={styles.colTitle}>Contacto</h3>
+          <ul className={styles.contactList}>
             <li className={styles.contactItem}>
               <Mail aria-hidden="true" />
               <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
@@ -118,25 +171,41 @@ export default function Footer() {
             </li>
             <li className={styles.contactItem}>
               <MapPin aria-hidden="true" />
-              <span>San Pedro Sula · Honduras</span>
+              <span>
+                {DIRECCION}
+                <br />
+                San Pedro Sula, Cortés
+              </span>
+            </li>
+            <li className={styles.contactItem}>
+              <Clock aria-hidden="true" />
+              <span>{HORARIO}</span>
             </li>
           </ul>
-          <button type="button" className={styles.toTop} onClick={scrollToTop}>
-            <ArrowUp aria-hidden="true" /> Volver arriba
-          </button>
+
+          <div className={styles.sedes}>
+            <span className={styles.sedesLabel}>Sedes</span>
+            {SEDES.map((sede) => (
+              <span key={sede} className={styles.sede}>
+                {sede}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
       <div className={styles.bottom}>
         <span className={styles.copyright}>© 2026 Arconet, S.A. · Honduras</span>
         <div className={styles.legal}>
-          <Link href="/terminos">Términos de uso</Link>
-          <Link href="/privacidad">Privacidad</Link>
-          <Link href="/cookies">Cookies</Link>
-          <Link href="/aviso-legal">Aviso legal</Link>
-          <Link href="/garantias">Garantías</Link>
-          <Link href="/contacto">Contacto</Link>
+          {LEGAL_LINKS.map((link) => (
+            <Link key={link.href} href={link.href}>
+              {link.label}
+            </Link>
+          ))}
         </div>
+        <button type="button" className={styles.toTop} onClick={scrollToTop}>
+          <ArrowUp aria-hidden="true" /> Volver arriba
+        </button>
       </div>
     </footer>
   );
