@@ -1,0 +1,311 @@
+/* Sección de cobertura + marcas de la home.
+   Reemplaza la antigua "Cobertura nacional" (mapa de municipios) por una
+   vitrina de fabricantes con su respaldo. Usa las variables de tema del sitio,
+   así que sirve en claro y oscuro sin duplicar reglas. */
+
+.section {
+  padding: 150px clamp(26px, 12vw, 190px);
+  scroll-margin-top: 78px;
+}
+
+.head {
+  max-width: 780px;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 22px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.eyebrowMark {
+  width: 26px;
+  height: 1px;
+  background: var(--accent-ink);
+}
+
+.head h2 {
+  font-size: clamp(34px, 5.4vw, 68px);
+  font-weight: 500;
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+.head h2 em {
+  font-style: normal;
+  color: var(--accent-ink);
+}
+
+.lead {
+  margin-top: 26px;
+  max-width: 60ch;
+  color: var(--muted);
+  font-size: clamp(14px, 1.15vw, 16px);
+  line-height: 1.7;
+}
+
+/* --- Rejilla de logotipos --- */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: clamp(40px, 5vw, 64px) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 148px;
+  padding: 26px 24px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  transition: border-color 220ms ease, transform 220ms ease, box-shadow 220ms ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--accent-ink) 45%, var(--line));
+  box-shadow: 0 24px 44px -34px rgba(12, 40, 116, 0.55);
+}
+
+.logoCaja {
+  display: flex;
+  align-items: center;
+  min-height: 46px;
+}
+
+/* En tema oscuro los logos con texto negro (Joinwit) desaparecen sobre el
+   fondo. Se les da una placa clara: no es un marco decorativo, es lo que hace
+   legible la marca. En tema claro no hace falta y no se pinta. */
+:global(html[data-theme="dark"]) .logoCaja {
+  align-self: flex-start;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #f6f7f9;
+}
+
+/* Los logos ya vienen recortados: altura fija y ancho por proporción, con tope
+   para que las marcas muy horizontales no invadan la tarjeta. */
+.logo {
+  display: block;
+  width: auto;
+  height: 38px;
+  max-width: 180px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+/* Marca sin archivo de logo: mismo tamaño óptico, sin recuadro inventado. */
+.logoTexto {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  line-height: 1;
+}
+
+/* La placa clara también envuelve el nombre de las marcas sin logo: su texto
+   debe ser oscuro aunque el tema sea oscuro, o quedaría invisible. */
+:global(html[data-theme="dark"]) .logoTexto {
+  color: #12161d;
+}
+
+.rubro {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* --- Cifras --- */
+
+.cifras {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 14px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--line);
+}
+
+.cifra {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 26px 24px;
+  background: var(--surface-2);
+}
+
+.cifra strong {
+  font-size: clamp(26px, 3vw, 38px);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--accent-ink);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.cifra span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* --- Respaldo --- */
+
+.respaldos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 32px;
+  margin: clamp(36px, 4vw, 52px) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.respaldos li {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.respaldoIcono {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--accent-ink) 12%, transparent);
+  color: var(--accent-ink);
+  flex-shrink: 0;
+}
+
+.respaldos h3 {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 650;
+  margin-bottom: 4px;
+}
+
+.respaldos p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* --- Cierre --- */
+
+.acciones {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 18px 26px;
+  margin-top: clamp(36px, 4vw, 52px);
+}
+
+.accionPrincipal {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 26px;
+  border-radius: 999px;
+  background: var(--accent-ink);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  transition: transform 200ms ease, background 200ms ease;
+}
+
+.accionPrincipal:hover {
+  transform: translateY(-2px);
+  background: color-mix(in srgb, var(--accent-ink) 85%, #000);
+}
+
+.accionNota {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.accionNota svg {
+  color: var(--accent-ink);
+  flex-shrink: 0;
+}
+
+/* --- Responsive --- */
+
+@media (max-width: 1080px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .section {
+    padding: 96px 22px;
+  }
+
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .card {
+    min-height: 0;
+    padding: 20px;
+  }
+
+  .cifras {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .cifra {
+    padding: 18px 14px;
+  }
+
+  .respaldos {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .accionPrincipal {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .accionPrincipal {
+    transition: none;
+  }
+
+  .card:hover,
+  .accionPrincipal:hover {
+    transform: none;
+  }
+}
+
+/* Foco visible para navegación con teclado. */
+.accionPrincipal:focus-visible {
+  outline: 2px solid var(--accent-ink);
+  outline-offset: 3px;
+}

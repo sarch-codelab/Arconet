@@ -44,7 +44,7 @@ export async function GET(request) {
       select: {
         id: true, nombre: true, sku: true, codigoBarras: true, categoria: true, marca: true,
         unidad: true, descripcion: true, precio: true, precioDescuento: true, precioMayorista: true, preciosUpdatedAt: true, preciosUpdatedBy: true, costo: canReadProductCost(permisos), stock: true,
-        stockMinimo: true, ubicacion: true, peso: true, estado: true, foto: true, fotos: true, updatedAt: true,
+        stockMinimo: true, ubicacion: true, garantia: true, peso: true, estado: true, foto: true, fotos: true, updatedAt: true,
       },
     });
 

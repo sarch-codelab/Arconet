@@ -663,6 +663,28 @@
   margin-top: 20px;
 }
 
+/* Cantidad y botón de compra como una sola pieza: el selector queda pegado
+   al botón (2px) y ambos se alinean a la misma altura. */
+.compra {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+
+.compra .qty {
+  /* El borde derecho se funde con el botón para que parezcan un control. */
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right: 0;
+}
+
+.compra .primary {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  padding-left: 22px;
+}
+
 .qty {
   display: inline-flex;
   align-items: center;
@@ -686,8 +708,19 @@
   transition: background 160ms ease;
 }
 
-.qty button:hover {
+.qty button:hover:not(:disabled) {
   background: var(--surface-2);
+}
+
+.qty button:disabled {
+  color: var(--muted);
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.qty button:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
 }
 
 .qty span {
@@ -728,6 +761,14 @@
 .primary:focus-visible {
   outline: 2px solid var(--blue);
   outline-offset: 3px;
+}
+
+.primary:disabled {
+  background: var(--line);
+  color: var(--muted);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .secondary {
@@ -1027,6 +1068,12 @@
   /* Área táctil mínima de 44px en los botones de cantidad (accesibilidad). */
   .qty { min-height: 52px; }
   .qty button { width: 44px; height: 44px; }
+
+  /* En móvil el botón cae debajo de la cantidad y ocupa todo el ancho; las
+     esquinas fundidas dejarían un borde raro, así que se redondean de nuevo. */
+  .compra { width: 100%; gap: 8px; }
+  .compra .qty { border-top-right-radius: 999px; border-bottom-right-radius: 999px; border-right: 1px solid var(--line); }
+  .compra .primary { border-top-left-radius: 999px; border-bottom-left-radius: 999px; padding-left: 26px; }
   .primary { min-height: 50px; white-space: normal; text-align: center; justify-content: center; }
   .secondary { min-height: 46px; justify-content: center; }
   .whatsappLink { width: 100%; }

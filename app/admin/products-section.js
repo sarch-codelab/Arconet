@@ -39,6 +39,7 @@ const EMPTY_PRODUCT = {
   costo: "",
   stock: "",
   stockMinimo: "",
+  garantia: "",
   ubicacion: "",
   peso: "",
   estado: "activo",
@@ -194,6 +195,7 @@ export default function ProductsSection({ products = [], setProducts, categorias
       costo: product.costo == null ? "" : product.costo,
       peso: product.peso == null ? "" : product.peso,
       stockMinimo: product.stockMinimo == null ? "" : product.stockMinimo,
+      garantia: product.garantia || "",
       ubicacion: product.ubicacion ?? "",
       codigoBarras: product.codigoBarras ?? "",
       descripcion: product.descripcion ?? "",
@@ -268,6 +270,7 @@ export default function ProductsSection({ products = [], setProducts, categorias
       costo: draft.costo === "" || draft.costo == null ? null : Number(draft.costo) || 0,
       stock: Math.max(0, Math.floor(Number(draft.stock) || 0)),
       stockMinimo: Math.max(0, Math.floor(Number(draft.stockMinimo) || 0)),
+      garantia: draft.garantia.trim(),
       ubicacion: String(draft.ubicacion || "").trim(),
       peso: draft.peso === "" || draft.peso == null ? null : Number(draft.peso) || 0,
     };
@@ -692,6 +695,17 @@ export default function ProductsSection({ products = [], setProducts, categorias
                     {ubicacionOptions.map((value) => <option key={value} value={value} />)}
                   </datalist>
                   <small className={styles.fieldHint}>Autocompleta con ubicaciones y bodegas ya registradas.</small>
+                </label>
+                <label className={styles.field}>
+                  Garantía
+                  <input
+                    type="text"
+                    maxLength={60}
+                    value={draft.garantia}
+                    onChange={(event) => changeField("garantia", event.target.value)}
+                    placeholder="Ej. 12 meses"
+                  />
+                  <small className={styles.fieldHint}>Se muestra al cliente junto a la marca. Vacío = sin garantía declarada.</small>
                 </label>
                 <label className={styles.field}>
                   Peso (kg)

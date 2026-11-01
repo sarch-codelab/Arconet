@@ -1,0 +1,126 @@
+/* Identidad del fabricante bajo el SKU: logo sin marco, nombre y garantía.
+   Usa las variables globales, así que funciona en tema claro y oscuro. */
+
+.franja {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 14px 0 4px;
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* Sin borde, sin fondo, sin sombra: solo la marca.
+   max-width + max-height acotan el tamaño y `object-fit: contain` evita que
+   las marcas muy anchas (Lindsay) o muy altas se deformen: nunca exceden el
+   límite, se encogen dentro de él. */
+.logo {
+  display: block;
+  /* Los archivos ya vienen recortados a su contenido. Se fija la ALTURA y el
+     ancho se calcula por proporción; max-width recorta el ancho de las marcas
+     muy horizontales (FiberHome es 5.2:1) para que no invadan la columna.
+     Con object-fit:contain la marca nunca se deforma: encaja dentro del tope. */
+  width: auto;
+  height: 38px;
+  max-width: 175px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+:global(html[data-theme="dark"]) .logo {
+  filter: brightness(1.08) contrast(1.05);
+}
+
+.nombre {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Monograma para marcas sin archivo de logo: iniciales limpias, sin recuadro. */
+.monograma {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent-ink) 12%, transparent);
+  color: var(--accent-ink);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
+.separador {
+  width: 1px;
+  height: 22px;
+  background: var(--line);
+  flex-shrink: 0;
+}
+
+.garantia {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.garantia svg {
+  color: #1f8a5b;
+  flex-shrink: 0;
+}
+
+.garantia span {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.garantia small {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+:global(html[data-theme="dark"]) .garantia svg {
+  color: #4ade9b;
+}
+
+@media (max-width: 560px) {
+  .franja {
+    gap: 10px;
+  }
+
+  .logo {
+    height: 28px;
+    max-width: 128px;
+  }
+
+  /* En pantallas angostas el separador vertical no aporta y se ve como una
+     raya suelta: la franja pasa a dos líneas. */
+  .separador {
+    display: none;
+  }
+
+  .garantia {
+    width: 100%;
+  }
+}

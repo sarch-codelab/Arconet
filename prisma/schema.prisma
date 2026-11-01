@@ -109,6 +109,7 @@ model Producto {
   stock       Int         @default(0)
   stockMinimo Int         @default(0) // Punto de reorden para alertas de inventario
   ubicacion   String? // Ubicación física en bodega
+  garantia    String? // Garantía que se muestra al cliente (p. ej. "12 meses")
   peso        Decimal?    @db.Decimal(10, 3) // Peso en kilogramos (logística)
   estado      String      @default("activo")
   archivado   Boolean     @default(false) // Baja definitiva conservando el historial
