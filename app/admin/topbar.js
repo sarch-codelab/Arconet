@@ -3,10 +3,11 @@
 import { apiFetch as fetch } from "@/lib/api-fetch";
 
 import Link from "next/link";
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Bell, ExternalLink, HelpCircle, LogOut, Search, User, MessageSquare, AlertTriangle, CheckCircle, X } from "lucide-react";
 import { sileo } from "../toaster";
 import { AdminContext, NAV } from "./admin-nav";
+import { destinoDeNotificacion } from "@/lib/notificaciones-ui";
 import { canAccessSection } from '@/lib/permisos';
 import styles from "./admin-experience.module.css";
 
@@ -101,20 +102,25 @@ export function Topbar({
     return () => { cancelled = true; window.clearTimeout(timer); };
   }, [searchVal]);
 
+  const refreshNotifications = useCallback(async () => {
+    try {
+      const response = await fetch("/api/notificaciones", { cache: "no-store" });
+      const data = await response.json().catch(() => []);
+      if (response.ok) setNotifications(Array.isArray(data) ? data : []);
+    } catch {}
+  }, []);
+
   useEffect(() => {
     if (!currentSession?.correo) return undefined;
     let active = true;
     const loadNotifications = async () => {
-      try {
-        const response = await fetch("/api/notificaciones", { cache: "no-store" });
-        const data = await response.json().catch(() => []);
-        if (active && response.ok) setNotifications(Array.isArray(data) ? data : []);
-      } catch {}
+      if (!active) return;
+      await refreshNotifications();
     };
     loadNotifications();
     const timer = window.setInterval(loadNotifications, 30000);
     return () => { active = false; window.clearInterval(timer); };
-  }, [currentSession?.correo]);
+  }, [currentSession?.correo, refreshNotifications]);
 
   // La foto del perfil se lee del servidor para que la cabecera muestre la
   // última guardada, sin depender de la lista de trabajadores cargada al
@@ -209,7 +215,13 @@ export function Topbar({
     setNotifications((current) => current.map((item) => item.id === notification.id ? { ...item, read: true } : item));
     await fetch("/api/notificaciones", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: notification.id }) }).catch(() => {});
     closeNotifications();
-    if (notification.solicitudId) adminCtx?.goTo?.("solicitudes");
+    // Cada aviso lleva a su pantalla (solicitudes, alertas de inventario o
+    // catálogo); sin destino conocido, solo se marca como leída.
+    const destino = destinoDeNotificacion(notification);
+    if (destino) {
+      if (destino.view) adminCtx?.goToView?.(destino.section, destino.view);
+      else adminCtx?.goTo?.(destino.section);
+    }
   };
 
   // Contenido compartido por el buscador de escritorio y el de móvil.
@@ -426,7 +438,12 @@ export function Topbar({
                     type="button"
                     className={styles.notificationsViewAll}
                       disabled={notifications.length === 0}
-                    onClick={() => setNotificationFilter("all")}
+                    onClick={() => {
+                      // Resetear el filtro y recargar del servidor: el botón
+                      // debe hacer algo visible aunque el filtro ya sea "all".
+                      setNotificationFilter("all");
+                      refreshNotifications();
+                    }}
                   >
                     Ver todas las notificaciones
                   </button>
@@ -658,6 +675,9 @@ export function SectionTabs({ tabs, activeTab, onTabChange, label = "Filtros de 
           >
             {Icon ? <Icon size={15} /> : null}
             <span>{tab.label}</span>
+            {typeof tab.badge === "number" && tab.badge > 0 && (
+              <span className={styles.notifBadge}>{tab.badge > 9 ? "9+" : tab.badge}</span>
+            )}
           </button>
         );
       })}

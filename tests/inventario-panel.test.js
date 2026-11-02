@@ -9,7 +9,7 @@ vi.mock('../lib/admin-navigation', async importOriginal => ({
   canLookupInventoryProducts: undefined,
 }));
 vi.mock('../app/toaster', () => ({ sileo: { success: vi.fn(), error: vi.fn() } }));
-import InventarioPanel from '../app/admin/inventario-panel';
+import InventarioPanel, { contarAlertasUnicas } from '../app/admin/inventario-panel';
 
 const render = session => renderToStaticMarkup(createElement(InventarioPanel, { session }));
 
@@ -31,5 +31,19 @@ describe('Inventario: montaje sin depender de exports de navegación', () => {
   it('no falla antes de recibir una sesión', () => {
     expect(() => render(undefined)).not.toThrow();
     expect(() => render(null)).not.toThrow();
+  });
+});
+
+describe('Alertas de reabastecimiento', () => {
+  it('cuenta cada producto una sola vez aunque aparezca en agotados y bajo mínimo', () => {
+    expect(contarAlertasUnicas({ agotados: [{ id: 'p1' }], alertas: [{ id: 'p1' }, { id: 'p2' }] })).toBe(2);
+    expect(contarAlertasUnicas({ agotados: [], alertas: [{ id: 'p2' }] })).toBe(1);
+    expect(contarAlertasUnicas({ agotados: [], alertas: [] })).toBe(0);
+  });
+
+  it('no falla sin datos de alertas', () => {
+    expect(contarAlertasUnicas(undefined)).toBe(0);
+    expect(contarAlertasUnicas({})).toBe(0);
+    expect(contarAlertasUnicas({ alertas: undefined, agotados: undefined })).toBe(0);
   });
 });

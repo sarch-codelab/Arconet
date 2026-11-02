@@ -54,6 +54,14 @@ const EMPTY_MOVIMIENTO = {
 };
 const EMPTY_BODEGA = { nombre: "", codigo: "", direccion: "", esPrincipal: false, estado: "activo" };
 
+/**
+ * Conteo único de productos en alerta: los agotados también aparecen en la
+ * lista de bajo mínimo (0 <= mínimo), así que se deduplica por producto.
+ */
+export function contarAlertasUnicas(alertas = {}) {
+  return new Set([...(alertas.agotados || []), ...(alertas.alertas || [])].map((producto) => producto?.id)).size;
+}
+
 async function request(url, options) {
   const response = await fetch(url, {
     cache: "no-store",
@@ -263,7 +271,13 @@ export default function InventarioPanel({ session, productos: productosIniciales
     return base;
   }, [stock, tieneMovimiento]);
   const bodegasActivas = bodegas.filter((bodega) => bodega.estado === "activo");
-  const totalAlertas = (alertas.alertas?.length || 0) + (alertas.agotados?.length || 0);
+  const totalAlertas = contarAlertasUnicas(alertas);
+  // Contador visible en la pestaña de alertas: sin abrirla se sabe cuántos
+  // productos necesitan reabastecimiento.
+  const tabsConBadge = useMemo(
+    () => TABS.map((item) => (item.id === "alertas" ? { ...item, badge: totalAlertas } : item)),
+    [totalAlertas],
+  );
 
   async function registrarMovimiento(event) {
     event.preventDefault();
@@ -373,7 +387,7 @@ export default function InventarioPanel({ session, productos: productosIniciales
       />
 
       <div className={adminStyles.body}>
-        {navigation || <SectionTabs tabs={TABS} activeTab={tab} onTabChange={setTab} label="Secciones de inventario" />}
+        {navigation || <SectionTabs tabs={tabsConBadge} activeTab={tab} onTabChange={setTab} label="Secciones de inventario" />}
 
         {/* Atajos y filtros rapidos: solo en Stock, que es donde aplican. */}
         {tab === "stock" && (
@@ -470,6 +484,18 @@ export default function InventarioPanel({ session, productos: productosIniciales
                 ))}
               </select>
             </div>
+
+            {totalAlertas > 0 && (
+              <div className={adminStyles.alertItem} role="alert">
+                <span>
+                  <AlertTriangle size={15} style={{ verticalAlign: "-2px", marginRight: 6 }} aria-hidden="true" />
+                  {totalAlertas} producto(s) en o bajo su mínimo de reorden.
+                </span>
+                <button type="button" className={adminStyles.ghostBtn} onClick={() => setTab("alertas")}>
+                  Ver alertas
+                </button>
+              </div>
+            )}
 
             <div className={adminStyles.tableWrap}>
               <table className={adminStyles.table}>

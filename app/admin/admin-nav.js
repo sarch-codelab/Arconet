@@ -36,6 +36,7 @@ import {
 export const AdminContext = createContext({
   section: "trabajadores",
   goTo: () => {},
+  goToView: () => {},
   onLogout: () => {},
   session: null,
   // Búsqueda global de ventas: al pulsar Enter en el buscador de la cabecera,
