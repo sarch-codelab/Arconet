@@ -113,16 +113,29 @@ describe("ProductoEditor — formulario completo de producto", () => {
     expect(html).toContain("Mayorista (L)");
   });
 
-  it("sin permiso para precios no muestra los campos de nivel de precio", () => {
+  it("sin permiso para precios no aparecen los cuadros Valor 1/2/3 y se avisas de la revisión", () => {
     const html = render(ProductoEditor, {
       session: { nombre: "Admin QA", permisos: ["productos:read", "productos:write"] },
       initial: productoInicial,
       products: [],
       categorias: [],
     });
-    expect(html).not.toContain("Precio de descuento");
-    expect(html).not.toContain("Precio mayorista");
-    expect(html).toContain("Precio"); // el campo base sigue visible.
+    expect(html).not.toContain("Valor 1 · Normal");
+    expect(html).not.toContain("Valor 2 · Descuento");
+    expect(html).not.toContain("Valor 3 · Mayorista");
+    expect(html).toContain("pendiente de revisión");
+  });
+
+  it("en edición de producto pendiente muestra el banner de revisión", () => {
+    const html = render(ProductoEditor, {
+      session: { nombre: "Admin QA", permisos: administrativo },
+      initial: { ...productoInicial, precio: null },
+      editing: true,
+      products: [],
+      categorias: [],
+    });
+    expect(html).toContain("pendiente de revisión");
+    expect(html).toContain("falta el Valor 1");
   });
 
   it("ofrece como opciones las marcas, categorías y ubicaciones ya usadas", () => {
@@ -170,5 +183,27 @@ describe("entrada a la página de nuevo producto", () => {
   it("la ventana emergente de edición se monta desde el ProductoEditor compartido", () => {
     expect(section).toContain("ProductoEditor");
     expect(section).toContain('data-drag-scroll=""');
+  });
+});
+
+describe("alta y revisión de precio (bodega → gerente)", () => {
+  const route = readFileSync("app/api/productos/route.js", "utf8");
+  const patchRoute = readFileSync("app/api/productos/[id]/route.js", "utf8");
+
+  it("el alta sin precio (rol bodega) nace pendiente de revisión", () => {
+    expect(route).toContain('estado: sinPrecios ? "pendiente" : "activo"');
+    expect(route).toContain("precioOpcional");
+    expect(route).toContain("delete data.precio");
+  });
+
+  it("se notifica a gerente/administradores del producto pendiente", () => {
+    expect(route).toContain("notificarProductoPendiente");
+    expect(route).toContain('type: "producto"');
+    expect(route).toContain('"gerente", "administrador"');
+  });
+
+  it("definir el Valor 1 en un producto pendiente lo publica", () => {
+    expect(patchRoute).toContain('actual.estado === "pendiente"');
+    expect(patchRoute).toContain('data: { estado: "activo" }');
   });
 });
