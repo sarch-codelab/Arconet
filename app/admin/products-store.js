@@ -28,6 +28,7 @@ export const PRODUCT_STATUSES = [
   { id: "activo", label: "Activo" },
   { id: "borrador", label: "Borrador" },
   { id: "inactivo", label: "Inactivo" },
+  { id: "pendiente", label: "Pendiente de revisión" },
 ];
 
 export function newProductId() {

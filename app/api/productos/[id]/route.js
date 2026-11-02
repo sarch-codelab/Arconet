@@ -75,7 +75,7 @@ export async function PATCH(request, { params }) {
       async (tx) => {
         const actual = await tx.producto.findUnique({
           where: { id },
-          select: { id: true, stock: true },
+          select: { id: true, stock: true, estado: true },
         });
         if (!actual) {
           const error = new Error("Producto no encontrado.");
@@ -89,7 +89,16 @@ export async function PATCH(request, { params }) {
           const extra = Object.fromEntries(Object.entries(resto).filter(([field]) => !PRICE_FIELDS.includes(field)));
           return updateProductPrices(tx, id, prices, { actor: guard.session?.correo, version: body.preciosVersion, extra: { ...extra, updatedBy: guard.session?.correo ?? null } });
         };
-        if (stock === undefined) return save();
+        // Un producto pendiente que recibe su Valor 1 se publica: al guardar
+        // pasa a activo y aparece en la tienda.
+        const guardar = async () => {
+          const guardado = await save();
+          if (actual.estado === "pendiente" && hasPriceChanges(resto) && resto.precio != null && resto.precio !== "") {
+            return tx.producto.update({ where: { id }, data: { estado: "activo" } });
+          }
+          return guardado;
+        };
+        if (stock === undefined) return guardar();
 
         if (Number(stock) !== actual.stock) {
           // Si el producto venía de antes de existir bodegas, primero se
@@ -110,7 +119,7 @@ export async function PATCH(request, { params }) {
           });
         }
 
-        return save();
+        return guardar();
       },
       { timeout: 20_000 },
     );

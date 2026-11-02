@@ -178,11 +178,16 @@ export default function ProductoEditor({
       notifyError("El nombre del producto es obligatorio.");
       return;
     }
-    const precioNumero = Number(draft.precio);
-    if (!Number.isFinite(precioNumero) || precioNumero < 1) {
-      notifyError("El precio mínimo es L 1.00. Un producto no puede regalarse.");
-      return;
+    // Sin permiso para precios no se exige precio al guardar: el producto
+    // queda pendiente de revisión y el gerente define el Valor 1.
+    if (canWritePrices) {
+      const precioNumero = Number(draft.precio);
+      if (!Number.isFinite(precioNumero) || precioNumero < 1) {
+        notifyError("El precio mínimo es L 1.00. Un producto no puede regalarse.");
+        return;
+      }
     }
+    const precioNumero = Number(draft.precio);
     const payload = {
       ...draft,
       nombre: draft.nombre.trim(),
@@ -213,7 +218,11 @@ export default function ProductoEditor({
         show("Producto actualizado.");
       } else {
         saved = await createProduct(payload);
-        show("Producto agregado.");
+        show(
+          canWritePrices
+            ? "Producto agregado."
+            : "Producto guardado en revisión: queda pendiente de precio.",
+        );
       }
     } catch (error) {
       notifyError(error.message || "No se pudo guardar el producto.");
@@ -291,6 +300,12 @@ export default function ProductoEditor({
         </div>
       )}
 
+      {editing && !draft.precio && (
+        <div className={styles.spanFull} role="alert" style={{ marginBottom: "8px", padding: "10px 12px", borderRadius: "8px", border: "1px solid var(--orange)", background: "var(--orange-light)", color: "var(--text-warning)", fontSize: "13px" }}>
+          Este producto está pendiente de revisión: falta el Valor 1 · Normal. Define los precios y guarda para publicarlo en la tienda.
+        </div>
+      )}
+
       <div className={styles.fieldGrid}>
         <label className={`${styles.field} ${styles.spanFull}`}>
           Nombre del producto
@@ -362,11 +377,17 @@ export default function ProductoEditor({
           </select>
           <small className={styles.fieldHint}>Solo etiqueta el stock; no convierte cantidades.</small>
         </label>
-        {PRICE_LEVELS.map(level => <label className={styles.field} key={level.id}>
-          {level.label} (L)
-          <input type="number" min={level.id === "normal" ? "1" : "0.01"} max="9999999999.99" step="0.01" required={level.id === "normal"} disabled={!canWritePrices} value={draft[level.field]} onChange={event => changeField(level.field, event.target.value)} placeholder={level.id === "normal" ? "Precio original de venta" : "Opcional"} />
-          <small className={styles.fieldHint}>{!canWritePrices ? "Solo lectura: requiere permiso de modificar precios." : level.id === "normal" ? "Precio normal de venta, no costo de compra. Mínimo L 1.00." : "Vacío = sin configurar. No puede superar el precio normal."}</small>
-        </label>)}
+        {canWritePrices ? (
+          PRICE_LEVELS.map(level => <label className={styles.field} key={level.id}>
+            {level.label} (L)
+            <input type="number" min={level.id === "normal" ? "1" : "0.01"} max="9999999999.99" step="0.01" required={level.id === "normal"} value={draft[level.field]} onChange={event => changeField(level.field, event.target.value)} placeholder={level.id === "normal" ? "Precio original de venta" : "Opcional"} />
+            <small className={styles.fieldHint}>{level.id === "normal" ? "Precio normal de venta, no costo de compra. Mínimo L 1.00." : "Vacío = sin configurar. No puede superar el precio normal."}</small>
+          </label>)
+        ) : (
+          <p className={styles.spanFull} style={{ marginBottom: "8px", color: "var(--text-muted)", fontSize: "13px" }} role="note">
+            Los precios (Valor 1/2/3) los definen gerente o administrador. El producto se guarda sin precio y queda <strong>pendiente de revisión</strong> hasta definir el precio normal.
+          </p>
+        )}
         <label className={styles.field}>
           Costo (L)
           <input
