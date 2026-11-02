@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { AlertTriangle, Check, Layers, Package, Pencil, Plus, RotateCw, Search, Trash2, X } from "lucide-react";
 import styles from "./admin-experience.module.css";
@@ -18,6 +19,7 @@ import {
 import ProductoEditor from "./producto-editor";
 
 export default function ProductsSection({ products = [], setProducts, categorias = [], workers = [], session, navigation }) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [status, setStatus] = useState("all");
@@ -120,7 +122,7 @@ export default function ProductsSection({ products = [], setProducts, categorias
         subtitle="Catálogo de Arconet: categoría, precio, stock y disponibilidad."
         action={
           canWrite && (
-            <button type="button" className={styles.primaryBtn} disabled={!canWrite} title={!canWritePrices ? "Crear productos sin precio: queda pendiente de revisión" : undefined} onClick={() => (window.location.href = "/admin/productos/nuevo")}>
+            <button type="button" className={styles.primaryBtn} disabled={!canWrite} title={!canWritePrices ? "Crear productos sin precio: queda pendiente de revisión" : undefined} onClick={() => router.push("/admin/productos/nuevo")}>
               <Plus size={16} /> Nuevo producto
             </button>
           )

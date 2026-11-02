@@ -139,9 +139,16 @@ export default function InventarioPanel({ session, productos: productosIniciales
         canReadProductos ? request("/api/productos?take=500") : Promise.resolve(null),
         request("/api/inventario/alertas"),
       ]);
+      const bodegasCargadas = Array.isArray(bodegasData) ? bodegasData : [];
+      const productosCargados = Array.isArray(productosData) ? productosData : [...new Map((stockData || []).filter(fila => fila.producto).map(fila => [fila.productoId, fila.producto])).values()];
       setStock(Array.isArray(stockData) ? stockData : []);
-      setBodegas(Array.isArray(bodegasData) ? bodegasData : []);
-      setProductos(Array.isArray(productosData) ? productosData : [...new Map((stockData || []).filter(fila => fila.producto).map(fila => [fila.productoId, fila.producto])).values()]);
+      setBodegas(bodegasCargadas);
+      setProductos(productosCargados);
+      setMovimiento((current) => ({
+        ...current,
+        productoId: current.productoId || productosCargados[0]?.id || "",
+        bodegaId: current.bodegaId || bodegasCargadas[0]?.id || "",
+      }));
       setAlertas(alertasData || { alertas: [], agotados: [], total: 0 });
       setError("");
     } catch (err) {
@@ -168,7 +175,8 @@ export default function InventarioPanel({ session, productos: productosIniciales
   }, [kardexProducto, kardexBodega, kardexTipo, kardexDesde, kardexHasta, kardexPagina]);
 
   useEffect(() => {
-    cargarBase();
+    const frame = window.requestAnimationFrame(cargarBase);
+    return () => window.cancelAnimationFrame(frame);
   }, [cargarBase]);
 
   // Se consulta una sola vez: el conjunto de combinaciones que ya se movieron.
@@ -185,22 +193,9 @@ export default function InventarioPanel({ session, productos: productosIniciales
   }, []);
 
   useEffect(() => {
-    cargarKardex();
+    const frame = window.requestAnimationFrame(cargarKardex);
+    return () => window.cancelAnimationFrame(frame);
   }, [cargarKardex]);
-
-  useEffect(() => {
-    setMovimiento((current) =>
-      current.productoId || !productos.length
-        ? current
-        : { ...current, productoId: productos[0].id },
-    );
-  }, [productos]);
-
-  useEffect(() => {
-    setMovimiento((current) =>
-      current.bodegaId || !bodegas.length ? current : { ...current, bodegaId: bodegas[0].id },
-    );
-  }, [bodegas]);
 
   const productosPorId = useMemo(
     () => Object.fromEntries(productos.map((producto) => [producto.id, producto])),

@@ -195,11 +195,14 @@ export default function FacturacionPanel({ session, productos: productosIniciale
   }, [desde, hasta]);
 
   useEffect(() => {
-    cargar();
+    const frame = window.requestAnimationFrame(cargar);
+    return () => window.cancelAnimationFrame(frame);
   }, [cargar]);
 
   useEffect(() => {
-    if (tab === "libro") cargarLibro();
+    if (tab !== "libro") return undefined;
+    const frame = window.requestAnimationFrame(cargarLibro);
+    return () => window.cancelAnimationFrame(frame);
   }, [tab, cargarLibro]);
 
   const documentosFiltrados = useMemo(() => {

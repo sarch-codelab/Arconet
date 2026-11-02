@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import ContadorCifra from "./contador-cifra";
 import VideoFondoCTA from "./video-fondo-cta";
@@ -206,17 +207,7 @@ const COMMITMENTS = [
 
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 
-function getTimeOfDay() {
-  if (typeof window === "undefined") return "manana";
-  const hour = new Date().getHours();
-  if (hour >= 6 && hour < 12) return "manana";
-  if (hour >= 12 && hour < 19) return "tarde";
-  return "noche";
-}
-
 export default function HomeExperience({ categorias = [] }) {
-  const [timeOfDay, setTimeOfDay] = useState("manana");
-  const [mounted, setMounted] = useState(false);
   const [activeSection, setActiveSection] = useState("inicio");
   const [activeSlide, setActiveSlide] = useState(0);
   const [scrollReady, setScrollReady] = useState(false);
@@ -243,14 +234,6 @@ useEffect(() => {
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  useEffect(() => {
-    setMounted(true);
-    const updateTimeOfDay = () => setTimeOfDay(getTimeOfDay());
-    updateTimeOfDay();
-    const interval = setInterval(updateTimeOfDay, 60000);
-    return () => clearInterval(interval);
   }, []);
 
   const trackRef = useRef(null);
@@ -317,17 +300,21 @@ useEffect(() => {
   const [heroPanelListo, setHeroPanelListo] = useState(false);
   useEffect(() => {
     if (heroMenuOpen) {
-      if (heroPanelMounted) {
-        const cuadro = setTimeout(() => setHeroPanelListo(true), 0);
-        return () => clearTimeout(cuadro);
-      }
-      setHeroPanelListo(false);
-      setHeroPanelMounted(true);
-      return undefined;
+      const cuadro = setTimeout(() => {
+        if (heroPanelMounted) setHeroPanelListo(true);
+        else {
+          setHeroPanelListo(false);
+          setHeroPanelMounted(true);
+        }
+      }, 0);
+      return () => clearTimeout(cuadro);
     }
-    setHeroPanelListo(false);
+    const cierre = setTimeout(() => setHeroPanelListo(false), 0);
     const espera = setTimeout(() => setHeroPanelMounted(false), 340);
-    return () => clearTimeout(espera);
+    return () => {
+      clearTimeout(cierre);
+      clearTimeout(espera);
+    };
   }, [heroMenuOpen, heroPanelMounted]);
 
   // Posiciona el panel de Soluciones del menú 1 justo debajo de su botón.
@@ -466,8 +453,12 @@ useEffect(() => {
       if (!frame) frame = window.requestAnimationFrame(updateScrollEffects);
     };
 
-    updateScrollEffects();
-    setScrollReady(true);
+    // La primera medición usa el mismo ciclo de animación que el scroll: así
+    // no provoca una segunda renderización sincrónica dentro del efecto.
+    frame = window.requestAnimationFrame(() => {
+      updateScrollEffects();
+      setScrollReady(true);
+    });
 
     const locomotive = new LocomotiveScroll({
       lenisOptions: {
@@ -716,10 +707,10 @@ useEffect(() => {
               ))
             )}
           </div>
-          <a className={styles.cardMegaAll} href="/tienda">
+          <Link className={styles.cardMegaAll} href="/tienda">
             Ver la tienda completa
             <ArrowRight size={14} aria-hidden="true" />
-          </a>
+          </Link>
         </div>
       )}
 
@@ -825,7 +816,7 @@ useEffect(() => {
           {NAVIGATION.some((item) => item.mega) && (
             <div className={styles.desktopMenu} aria-label="Menú desplegable">
               <div className={styles.desktopMenuTop}>
-                <a className={styles.desktopMenuPrimary} href="/tienda">
+                <Link className={styles.desktopMenuPrimary} href="/tienda">
                   <span className={styles.desktopMenuPrimaryText}>
                     <span className={styles.desktopMenuPrimaryLabel}>Tienda</span>
                     <span className={styles.desktopMenuPrimaryHint}>Explora todos los productos</span>
@@ -833,7 +824,7 @@ useEffect(() => {
                   <span className={styles.desktopMenuPrimaryIcon}>
                     <ArrowRight size={18} aria-hidden="true" />
                   </span>
-                </a>
+                </Link>
 
                 <div className={styles.desktopMenuAuth}>
                   <a className={styles.desktopMenuLogin} href="/login">
@@ -898,7 +889,7 @@ useEffect(() => {
                 </button>
               </div>
 
-              <a
+              <Link
                 className={styles.mobileMenuPrimary}
                 href="/tienda"
                 onClick={() => setMenuOpen(false)}
@@ -910,7 +901,7 @@ useEffect(() => {
                 <span className={styles.mobileMenuPrimaryIcon}>
                   <ArrowRight size={18} aria-hidden="true" />
                 </span>
-              </a>
+              </Link>
 
               <div className={styles.mobileMenuAuth}>
                 <a
@@ -1243,7 +1234,7 @@ useEffect(() => {
             equipo que responde cuando de verdad se le necesita.
           </p>
           <div className={styles.storyActions}>
-            <a className={styles.storyActionPrimary} href="/tienda">Ver la tienda <ArrowUpRight size={16} /></a>
+            <Link className={styles.storyActionPrimary} href="/tienda">Ver la tienda <ArrowUpRight size={16} /></Link>
             <a className={styles.storyActionGhost} href="#contacto">Hablar con un asesor <ArrowRight size={16} /></a>
           </div>
         </div>
@@ -1367,7 +1358,7 @@ useEffect(() => {
             <p className={styles.contactEyebrow}>Tu próximo proyecto empieza aquí</p>
             <h2 data-split>Hagamos que<br /><em>todo conecte.</em></h2>
             <p>Cuéntanos qué necesita tu red. Nuestro equipo puede ayudarte a encontrar el equipo y la solución correctos.</p>
-            <a href="/tienda" className={styles.contactAction}>Ver productos y soluciones <ArrowUpRight size={17} /></a>
+            <Link href="/tienda" className={styles.contactAction}>Ver productos y soluciones <ArrowUpRight size={17} /></Link>
           </div>
         </div>
         <span className={styles.contactLocation}>San Pedro Sula — Honduras</span>

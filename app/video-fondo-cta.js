@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import styles from "./video-fondo-cta.module.css";
 
 // Fondo en movimiento de las bandas de contacto ("Hagamos que todo conecte").
@@ -19,19 +19,36 @@ import styles from "./video-fondo-cta.module.css";
 
 const VIDEO = "/lines-fondo.mp4";
 const POSTER = "/lines-poster.jpg";
+const REDUCED_DATA_QUERY = "(prefers-reduced-data: reduce)";
+
+function conexionDeRed() {
+  return navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+}
+
+function leerAhorroDeDatos() {
+  const conexion = conexionDeRed();
+  return Boolean(conexion?.saveData || window.matchMedia?.(REDUCED_DATA_QUERY)?.matches);
+}
+
+function suscribirAhorroDeDatos(listener) {
+  const conexion = conexionDeRed();
+  const consulta = window.matchMedia?.(REDUCED_DATA_QUERY);
+  conexion?.addEventListener?.("change", listener);
+  consulta?.addEventListener?.("change", listener);
+  return () => {
+    conexion?.removeEventListener?.("change", listener);
+    consulta?.removeEventListener?.("change", listener);
+  };
+}
+
+const leerAhorroDelServidor = () => true;
 
 export default function VideoFondoCTA({ className = "" }) {
   const contenedor = useRef(null);
   const video = useRef(null);
-  // Con ahorro de datos no se pide el archivo: se queda el póster.
-  const [ahorro, setAhorro] = useState(true);
-
-  useEffect(() => {
-    const conexion = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    const datosLimitados = Boolean(conexion?.saveData);
-    const sinDatos = window.matchMedia?.("(prefers-reduced-data: reduce)")?.matches;
-    setAhorro(Boolean(datosLimitados || sinDatos));
-  }, []);
+  // Con ahorro de datos no se pide el archivo: se queda el póster. La
+  // suscripción también apaga el video si la preferencia cambia en caliente.
+  const ahorro = useSyncExternalStore(suscribirAhorroDeDatos, leerAhorroDeDatos, leerAhorroDelServidor);
 
   useEffect(() => {
     if (ahorro) return undefined;

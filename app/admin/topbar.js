@@ -59,7 +59,7 @@ export function Topbar({
   const myWorker = useMemo(() => {
     if (!currentSession?.correo) return null;
     return workers.find((w) => w.correo?.toLowerCase() === currentSession.correo.toLowerCase()) || null;
-  }, [workers, currentSession?.correo]);
+  }, [workers, currentSession]);
 
   const [searchVal, setSearchVal] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -80,14 +80,19 @@ export function Topbar({
   const notificationsRef = useRef(null);
   const notificationsButtonRef = useRef(null);
 
-  useEffect(() => {
-    if (searchVal.trim().length < 2) {
+  const updateSearch = (value) => {
+    const valid = value.trim().length >= 2;
+    setSearchVal(value);
+    setSearchLoading(valid);
+    if (!valid) {
       setSearchResults([]);
       setSearchOpen(false);
-      return undefined;
     }
+  };
+
+  useEffect(() => {
+    if (searchVal.trim().length < 2) return undefined;
     let cancelled = false;
-    setSearchLoading(true);
     const timer = window.setTimeout(async () => {
       try {
         const response = await fetch(`/api/admin/search?q=${encodeURIComponent(searchVal.trim())}`, { cache: "no-store" });
@@ -196,8 +201,11 @@ export function Topbar({
   }, [accountOpen, notificationsOpen]);
 
   useEffect(() => {
-    setAccountOpen(false);
-    setNotificationsOpen(false);
+    const frame = window.requestAnimationFrame(() => {
+      setAccountOpen(false);
+      setNotificationsOpen(false);
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, [activeSection]);
 
   const closeAccount = () => setAccountOpen(false);
@@ -400,7 +408,7 @@ export function Topbar({
               type="search"
               placeholder="Buscar..."
               value={searchVal}
-              onChange={(e) => setSearchVal(e.target.value)}
+              onChange={(e) => updateSearch(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && activeSection === "ventas") {
                   e.preventDefault();
@@ -412,6 +420,8 @@ export function Topbar({
                 } else if (e.key === "Escape") setSearchOpen(false);
               }}
               onFocus={() => { if (searchVal.trim().length >= 2) setSearchOpen(true); }}
+              role="combobox"
+              aria-autocomplete="list"
               aria-expanded={searchOpen}
               aria-controls="admin-global-search-results"
               className={styles.searchInput}
@@ -667,7 +677,7 @@ export function Topbar({
               type="search"
               placeholder="Buscar productos, clientes, órdenes…"
               value={searchVal}
-              onChange={(event) => setSearchVal(event.target.value)}
+              onChange={(event) => updateSearch(event.target.value)}
               onKeyDown={(event) => {
                 if (event.key === "Enter" && activeSection === "ventas") {
                   event.preventDefault();

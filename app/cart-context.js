@@ -47,8 +47,14 @@ export function CartProvider({ children }) {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    setItems(readStoredItems());
-    setHydrated(true);
+    // Hidratar después del primer pintado evita una cascada sincrónica y,
+    // sobre todo, que el efecto de persistencia sobrescriba el carrito con []
+    // antes de haber leído el valor guardado.
+    const frame = window.requestAnimationFrame(() => {
+      setItems(readStoredItems());
+      setHydrated(true);
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, []);
 
   useEffect(() => {

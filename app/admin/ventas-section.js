@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useCallback, useContext, useMemo, useRef, useState } from "react";
 import { BookOpen, Plus, Receipt } from "lucide-react";
 import CotizacionesSection from "./cotizaciones-section";
@@ -16,6 +17,7 @@ import styles from "./ventas-section.module.css";
 
 /** Ventas y cotizaciones comparten listado, nunca autorización ni doble emisión. */
 export default function VentasSection({ orders = [], setOrders, clientes = [], setClientes, products = [], setProducts, workers = [], session, draftMemory }) {
+  const router = useRouter();
   const adminContext = useContext(AdminContext);
   const applyVentasSearch = useCallback(term => {
     window.dispatchEvent(new CustomEvent("arconet:ventas-search", { detail: String(term || "") }));
@@ -61,7 +63,7 @@ export default function VentasSection({ orders = [], setOrders, clientes = [], s
           <button
             type="button"
             className={adminStyles.primaryBtn}
-            onClick={() => (window.location.href = "/admin/ventas/nueva")}
+            onClick={() => router.push("/admin/ventas/nueva")}
           >
             <Receipt size={16} /> Nueva venta
           </button>

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import LocomotiveScroll from "locomotive-scroll";
 import {
@@ -128,7 +129,7 @@ export default function ContactExperience() {
       "Proyecto:",
       form.get("message"),
     ].join("\n");
-    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.assign(`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
     const hasRecipient = Boolean(CONTACT_EMAIL);
     sileo.show({
       type: "info",
@@ -187,7 +188,7 @@ export default function ContactExperience() {
           </div>
 
           <header className={styles.heroHeader}>
-            <a className={styles.logoTab} href="/" aria-label="Arconet, inicio">
+            <Link className={styles.logoTab} href="/" aria-label="Arconet, inicio">
               <Image
               src="/arconet.png"
               alt="Arconet"
@@ -196,7 +197,7 @@ export default function ContactExperience() {
               sizes="(max-width: 1040px) 114px, 176px"
               priority
             />
-            </a>
+            </Link>
             <nav className={styles.navigation} aria-label="Navegación principal">
               {NAVIGATION.map((item, index) => (
                 <a className={index === 3 ? styles.navigationActive : ""} href={item.href} key={item.label}>
@@ -309,7 +310,7 @@ export default function ContactExperience() {
 
       <section className={styles.lastWord} data-reveal>
         <span>Honduras · Conectividad que acerca</span>
-        <a href="/tienda">Explorar el catálogo <ArrowRight size={16} /></a>
+        <Link href="/tienda">Explorar el catálogo <ArrowRight size={16} /></Link>
       </section>
 
       <Footer />

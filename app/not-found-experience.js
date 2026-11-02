@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Compass, Home, LifeBuoy } from "lucide-react";
 import styles from "./not-found-experience.module.css";
 import Footer from "./footer";
@@ -37,7 +38,7 @@ export default function NotFoundExperience() {
           </div>
 
           <header className={styles.heroHeader}>
-            <a className={styles.logoTab} href="/" aria-label="Arconet, inicio">
+            <Link className={styles.logoTab} href="/" aria-label="Arconet, inicio">
               <Image
               src="/arconet.png"
               alt="Arconet"
@@ -46,7 +47,7 @@ export default function NotFoundExperience() {
               sizes="(max-width: 1040px) 114px, 176px"
               priority
             />
-            </a>
+            </Link>
             <nav className={styles.navigation} aria-label="Navegación principal">
               {NAVIGATION.map((item) => (
                 <a href={item.href} key={item.label}>{item.label}</a>
@@ -54,7 +55,7 @@ export default function NotFoundExperience() {
             </nav>
             <div className={styles.headerActionTab}>
               <MobileSiteMenu />
-              <a className={styles.headerAction} href="/">Ir al inicio <span><ArrowUpRight size={15} /></span></a>
+              <Link className={styles.headerAction} href="/">Ir al inicio <span><ArrowUpRight size={15} /></span></Link>
             </div>
           </header>
 
@@ -64,8 +65,8 @@ export default function NotFoundExperience() {
             <h1>Esta página<br /><em>se desconectó.</em></h1>
             <p>No pudimos encontrar lo que buscabas. Puede que el enlace haya cambiado o que la página ya no exista.</p>
             <div className={styles.heroActions}>
-              <a className={styles.primaryAction} href="/">Volver al inicio <span><ArrowRight size={16} /></span></a>
-              <a className={styles.secondaryAction} href="/tienda">Explorar catálogo</a>
+              <Link className={styles.primaryAction} href="/">Volver al inicio <span><ArrowRight size={16} /></span></Link>
+              <Link className={styles.secondaryAction} href="/tienda">Explorar catálogo</Link>
             </div>
           </div>
 

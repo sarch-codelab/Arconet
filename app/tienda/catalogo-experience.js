@@ -162,15 +162,18 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
   }, []);
 
   useEffect(() => {
-    let stored = "";
-    try {
-      stored = window.localStorage.getItem(BRANCH_KEY) || "";
-    } catch {
-      stored = "";
-    }
-    if (BRANCHES.some((item) => item.id === stored)) {
-      setBranch(stored);
-    }
+    const frame = window.requestAnimationFrame(() => {
+      let stored = "";
+      try {
+        stored = window.localStorage.getItem(BRANCH_KEY) || "";
+      } catch {
+        stored = "";
+      }
+      if (BRANCHES.some((item) => item.id === stored)) {
+        setBranch(stored);
+      }
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, []);
 
   useEffect(() => {
@@ -436,7 +439,7 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
         </span>
 
         <div className={styles.topbarShell}>
-          <a className={styles.topbarBrand} href="/" aria-label="Arconet, inicio" tabIndex={scrolledPastHero ? 0 : -1}>
+          <Link className={styles.topbarBrand} href="/" aria-label="Arconet, inicio" tabIndex={scrolledPastHero ? 0 : -1}>
             <Image
               src="/arconet.png"
               alt="Arconet"
@@ -444,7 +447,7 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
               height={200}
               sizes="(max-width: 1040px) 114px, 176px"
             />
-          </a>
+          </Link>
 
           <nav className={styles.topbarNav} aria-label="Navegación del catálogo" ref={navRef}>
             <span className={styles.navIndicator} aria-hidden="true" />
@@ -538,7 +541,7 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
           </div>
 
           <header className={styles.heroHeader}>
-            <a className={styles.heroBrand} href="/" aria-label="Arconet, inicio">
+            <Link className={styles.heroBrand} href="/" aria-label="Arconet, inicio">
               <Image
               src="/arconet.png"
               alt="Arconet"
@@ -547,7 +550,7 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
               sizes="(max-width: 1040px) 114px, 176px"
               priority
             />
-            </a>
+            </Link>
             <nav className={styles.navigation} aria-label="Navegación principal">
               {NAVIGATION.map((item) => (
                 <a
@@ -586,9 +589,9 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
               <a className={styles.primaryButton} href="#familias">
                 Ver soluciones <ArrowDown size={15} />
               </a>
-              <a className={styles.ghostButton} href="/#contacto">
+              <Link className={styles.ghostButton} href="/#contacto">
                 Pedir asesoría <ArrowRight size={15} />
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -691,9 +694,9 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
             <p>
               Dinos qué necesitas conectar. Te respondemos con una recomendación concreta y una cotización clara, sin compromiso.
             </p>
-            <a className={styles.contactAction} href="/#contacto">
+            <Link className={styles.contactAction} href="/#contacto">
               Escribir al equipo <ArrowUpRight size={17} />
-            </a>
+            </Link>
           </div>
         </div>
         <span className={styles.contactLocation}>San Pedro Sula · Honduras</span>

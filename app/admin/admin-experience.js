@@ -3,7 +3,7 @@
 import { apiFetch as fetch } from "@/lib/api-fetch";
 
 import { useRouter } from "next/navigation";
-import { Suspense, lazy, useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useRef, useState } from "react";
 import styles from "./admin-experience.module.css";
 import { AdminContext, NAV } from "./admin-nav";
 import { AdminPreferences } from "./admin-preferences";
@@ -112,14 +112,16 @@ function AdminShell({ session, onLogout, initialSection }) {
   //
   // Cada sección declara lo que necesita; lo que ya está cargado no se vuelve a
   // pedir.
-  const [cargados, setCargados] = useState(() => ({}));
+  // Las marcas de peticiones no se pintan: un ref evita renders extra y
+  // conserva la deduplicación entre los dos efectos de StrictMode.
+  const cargadosRef = useRef({});
 
   useEffect(() => {
     // Sin bandera de "sigo activo": el efecto se ejecuta dos veces al montar
     // (el doble render que hace React en desarrollo) y el cleanup de la
     // primera ejecución llegaba antes de que respondiera la API, así que los
     // datos se descartaban y la sección quedaba vacía. Como la marca de
-    // `cargados` ya evita repetir la petición, no hace falta cancelarla.
+    // `cargadosRef` ya evita repetir la petición, no hace falta cancelarla.
     const RECURSOS = {
       trabajadores: { permiso: "trabajadores:read", fetcher: fetchWorkers, setter: setWorkers },
       productos: { permiso: "productos:read", fetcher: fetchProducts, setter: setProducts },
@@ -151,26 +153,22 @@ function AdminShell({ session, onLogout, initialSection }) {
     // vez por recurso (cada `setCargados` lo volvería a disparar).
     const pendientes = (NECESITA[section] || []).filter((clave) => {
       const recurso = RECURSOS[clave];
-      return recurso && !cargados[clave] && session?.permisos?.includes(recurso.permiso);
+      return recurso && !cargadosRef.current[clave] && session?.permisos?.includes(recurso.permiso);
     });
     if (!pendientes.length) return undefined;
 
-    setCargados((prev) => {
-      const siguiente = { ...prev };
-      for (const clave of pendientes) siguiente[clave] = true;
-      return siguiente;
-    });
+    for (const clave of pendientes) cargadosRef.current[clave] = true;
 
     for (const clave of pendientes) {
       RECURSOS[clave].fetcher()
         .then((remoto) => RECURSOS[clave].setter(remoto))
         .catch(() => {
           // Si falla, se libera la marca para reintentar al volver a la sección.
-          setCargados((prev) => ({ ...prev, [clave]: false }));
+          cargadosRef.current[clave] = false;
         });
     }
     return undefined;
-  }, [section, session?.permisos, cargados]);
+  }, [section, session?.permisos]);
 
 
   const goTo = (id) => {

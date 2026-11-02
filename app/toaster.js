@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { Toaster, sileo } from "sileo";
 
 export { sileo };
@@ -18,20 +18,19 @@ function readTheme() {
     : "light";
 }
 
+function subscribeTheme(listener) {
+  const observer = new MutationObserver(listener);
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["data-theme"],
+  });
+  return () => observer.disconnect();
+}
+
+const readServerTheme = () => "light";
+
 export default function AppToaster() {
-  const [theme, setTheme] = useState("light");
-
-  useEffect(() => {
-    setTheme(readTheme());
-
-    const observer = new MutationObserver(() => setTheme(readTheme()));
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["data-theme"],
-    });
-
-    return () => observer.disconnect();
-  }, []);
+  const theme = useSyncExternalStore(subscribeTheme, readTheme, readServerTheme);
 
   return (
     <Toaster

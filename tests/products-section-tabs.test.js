@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("../app/toaster", () => ({ sileo: { show: vi.fn(), success: vi.fn(), error: vi.fn() } }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn() }) }));
 
 import ProductsSection from "../app/admin/products-section";
 import { SECTION_NAV_CONFIG } from "../app/admin/admin-nav";

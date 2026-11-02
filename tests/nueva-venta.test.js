@@ -107,6 +107,6 @@ describe("entrada a la página de nueva venta", () => {
   });
 
   it("el botón Nueva venta abre la página completa, no una emergente", () => {
-    expect(section).toContain('window.location.href = "/admin/ventas/nueva"');
+    expect(section).toContain('router.push("/admin/ventas/nueva")');
   });
 });

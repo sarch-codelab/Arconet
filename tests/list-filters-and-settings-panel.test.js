@@ -2,6 +2,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 vi.mock("../app/toaster", () => ({ sileo: { show: vi.fn(), success: vi.fn(), error: vi.fn() } }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn() }) }));
 import Workers from "../app/admin/workers-section";
 import Roles from "../app/admin/roles-section";
 import Categories from "../app/admin/categorias-section";

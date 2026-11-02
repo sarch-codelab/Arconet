@@ -69,17 +69,25 @@ export default function LogsSection({ session, workers = [] }) {
     [endpoint],
   );
 
-  // Al cambiar filtros se vuelve a la primera pagina.
-  useEffect(() => {
+  const changeTab = (next) => {
+    setTab(next);
     setPage(1);
-  }, [tab, nivel]);
+    setRefreshing(true);
+  };
+  const changeNivel = (next) => {
+    setNivel(next);
+    setPage(1);
+    setRefreshing(true);
+  };
 
   useEffect(() => {
-    setRefreshing(true);
-    loadLogs(tab, nivel);
-    if (paused) return () => setRefreshing(false);
+    const frame = window.requestAnimationFrame(() => loadLogs(tab, nivel));
+    if (paused) return () => window.cancelAnimationFrame(frame);
     const timer = setInterval(() => loadLogs(tab, nivel), LOG_REFRESH_MS);
-    return () => clearInterval(timer);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      clearInterval(timer);
+    };
   }, [loadLogs, tab, nivel, paused]);
 
   const totalPages = Math.max(1, Math.ceil(logs.length / LOG_PAGE_SIZE));
@@ -125,7 +133,7 @@ export default function LogsSection({ session, workers = [] }) {
         <SectionTabs
           tabs={scoped ? [{ id: "all", label: "Área de Inventario", icon: ScrollText }] : SECTION_NAV_CONFIG.logs?.tabs}
           activeTab={tab}
-          onTabChange={setTab}
+          onTabChange={changeTab}
           label="Filtros de registros"
         />
 
@@ -141,7 +149,7 @@ export default function LogsSection({ session, workers = [] }) {
                 Nivel
                 <select
                   value={nivel}
-                  onChange={(event) => setNivel(event.target.value)}
+                  onChange={(event) => changeNivel(event.target.value)}
                   className={styles.select}
                 >
                   <option value="todos">Todos</option>
