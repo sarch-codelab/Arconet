@@ -158,6 +158,11 @@ describe("entrada a la página de nuevo producto", () => {
     // Sin esto, el cierre del cliente siempre ve [] y niega al administrador.
   });
 
+  it("la ruta aplica la preferencia de tema del panel (AdminPreferences)", () => {
+    expect(page).toContain("AdminPreferences");
+    // Sin esto, al entrar desde el panel en tema oscuro la página sale en blanco.
+  });
+
   it("el botón Nuevo producto abre la página completa, no una emergente", () => {
     expect(section).toContain('window.location.href = "/admin/productos/nuevo"');
   });
