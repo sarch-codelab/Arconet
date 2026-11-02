@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { DEFAULT_SALES_PERMISSIONS } from "../lib/roles-defaults";
+import { DEFAULT_MANAGER_PERMISSIONS, DEFAULT_SALES_PERMISSIONS, DEFAULT_WAREHOUSE_PERMISSIONS } from "../lib/roles-defaults";
 
 const mocks = vi.hoisted(() => ({
   permissions: [],
@@ -50,6 +50,18 @@ describe("emisión fiscal operativa del rol Ventas", () => {
     expect(mocks.stock).toHaveBeenCalledOnce();
     expect(mocks.permissions).not.toContain("facturacion:write");
     expect(mocks.permissions).not.toContain("precios:write");
+  });
+  it("el rol Gerente también puede emitir una venta real y descontar su stock", async () => {
+    mocks.permissions = [...DEFAULT_MANAGER_PERMISSIONS];
+    expect((await POST(request())).status).toBe(201);
+    expect(mocks.emit).toHaveBeenCalledOnce();
+    expect(mocks.stock).toHaveBeenCalledOnce();
+  });
+  it("el rol Bodega no puede emitir una venta aunque llame directamente al endpoint", async () => {
+    mocks.permissions = [...DEFAULT_WAREHOUSE_PERMISSIONS];
+    expect((await POST(request())).status).toBe(403);
+    expect(mocks.transaction).not.toHaveBeenCalled();
+    expect(mocks.stock).not.toHaveBeenCalled();
   });
   it.each([[], ["facturacion:read"], ["facturacion:emit"], ["facturacion:write"], ["ordenes:read", "ordenes:write"]].map(permissions => [permissions]))("no autoriza permisos incompletos ni infiere emisión de órdenes: %j", async permissions => {
     mocks.permissions = permissions;

@@ -8,7 +8,7 @@ import CotizacionesSection from "../app/admin/cotizaciones-section";
 import FacturacionPanel from "../app/admin/facturacion-panel";
 import { allowedSalesCreationModes } from "../lib/admin-navigation";
 import { ALL_PERMISSIONS } from "../lib/permisos";
-import { DEFAULT_SALES_PERMISSIONS } from "../lib/roles-defaults";
+import { DEFAULT_MANAGER_PERMISSIONS, DEFAULT_SALES_PERMISSIONS } from "../lib/roles-defaults";
 
 const commercial = ["ordenes:read", "ordenes:write"];
 const fiscal = ["facturacion:read", "facturacion:write"];
@@ -172,6 +172,16 @@ describe("regresión del rol Ventas real, no un administrador", () => {
   });
 });
 
+
+
+describe("regresión del rol Gerente guardado en producción", () => {
+  it("con sus permisos operativos ve Nueva venta además de Nueva cotización", () => {
+    const html = render(VentasSection, { session: { rol: "gerente", permisos: DEFAULT_MANAGER_PERMISSIONS } });
+    expect(buttons(html, "Nueva venta")).toHaveLength(1);
+    expect(buttons(html, "Nueva cotización")).toHaveLength(1);
+    expect(allowedSalesCreationModes(DEFAULT_MANAGER_PERMISSIONS)).toEqual(["fiscal"]);
+  });
+});
 
 describe("acciones comerciales limitadas por rol", () => {
   const legacy = { id: "LEGADO-QA", tipo: "venta", estado: "completada", cliente: "QA", monto: 75, fecha: "2026-10-30" };
