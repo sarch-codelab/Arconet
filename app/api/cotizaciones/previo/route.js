@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { DOCUMENT_HEADERS, DOCUMENT_SETTINGS_KEYS, printOptions, renderOrderDocument } from "@/lib/print-document";
+import { DOCUMENT_HEADERS, DOCUMENT_SETTINGS_KEYS, huellaCotizacion, printOptions, renderOrderDocument } from "@/lib/print-document";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -76,7 +76,9 @@ export async function POST(request) {
       items,
     };
 
-    const html = renderOrderDocument({ order, settings: Object.fromEntries(config.map(({ clave, valor }) => [clave, valor])), ...printOptions(request) });
+    // Huella del contenido impreso: la misma que firma el PDF del panel.
+    const hash = huellaCotizacion(order);
+    const html = renderOrderDocument({ order, settings: Object.fromEntries(config.map(({ clave, valor }) => [clave, valor])), hash, ...printOptions(request) });
     return new Response(html, { headers: DOCUMENT_HEADERS });
   } catch (error) {
     console.error("POST /api/cotizaciones/previo", error?.message);
