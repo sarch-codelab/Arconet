@@ -19,7 +19,7 @@ import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
 import { DialogBackdrop } from "./admin-overlay";
 import { Topbar, SectionMarker } from "./topbar";
 
-export default function ClientesSection({ clientes = [], setClientes, workers = [], session }) {
+export default function ClientesSection({ clientes = [], setClientes, setOrders, workers = [], session }) {
   const canWrite = session?.permisos?.includes("clientes:write");
   const canDelete = session?.permisos?.includes("clientes:delete");
   const [query, setQuery] = useState("");
@@ -429,18 +429,21 @@ export default function ClientesSection({ clientes = [], setClientes, workers = 
           title="Eliminar cliente"
           message={
             <>
-              ¿Seguro que deseas eliminar a <strong>{confirmCliente.nombre}</strong>? Esta
-              acción no se puede deshacer.
+              ¿Seguro que deseas eliminar a <strong>{confirmCliente.nombre}</strong>? También
+              se eliminarán todas sus órdenes y documentos asociados, y se devolverá el
+              inventario que aún esté descontado. Esta acción no se puede deshacer.
             </>
           }
           onCancel={() => setConfirmCliente(null)}
           onConfirm={async () => {
             try {
-              await deleteCliente(confirmCliente.id);
+              const result = await deleteCliente(confirmCliente.id);
               setClientes((current) =>
                 current.filter((cliente) => cliente.id !== confirmCliente.id),
               );
-              show("Cliente eliminado.");
+              setOrders?.((current) => current.filter((order) => order.clienteId !== confirmCliente.id));
+              const asociados = Number(result.ordenesEliminadas || 0) + Number(result.documentosEliminados || 0);
+              show(asociados ? "Cliente, órdenes y documentos asociados eliminados." : "Cliente eliminado.");
             } catch (error) {
               show(error.message || "No se pudo eliminar el cliente.", "error");
             }

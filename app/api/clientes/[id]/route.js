@@ -3,6 +3,9 @@ import { parseCliente } from '@/lib/clientes';
 import { guardarImagenSiHaceFalta } from "@/lib/almacen-fotos";
 import { toCliente } from '@/lib/serialize';
 import { requirePermission } from '@/lib/dal';
+import { revertirStock } from "@/lib/stock-ventas";
+import { writeLog } from "@/lib/logs";
+import { SUPER_ROLE } from "@/lib/permisos";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -69,16 +72,95 @@ export async function DELETE(_request, { params }) {
   const guard = await requirePermission("clientes:delete");
   if (guard.response) return guard.response;
   const { id } = await params;
+  const permisos = guard.permisos || [];
+  const actor = guard.session?.correo ?? null;
+  const canDeleteFiscalDocuments = guard.session?.rol === SUPER_ROLE;
+
   try {
-    await prisma.cliente.delete({ where: { id } });
-    return Response.json({ ok: true });
+    const resultado = await prisma.$transaction(async (tx) => {
+      // Bloquea el cliente mientras se leen y eliminan sus relaciones. Una alta
+      // concurrente no puede quedar fuera de la cascada por una lectura vieja.
+      await tx.$executeRaw`SELECT id FROM "Cliente" WHERE id = ${id} FOR UPDATE`;
+      const cliente = await tx.cliente.findUnique({
+        where: { id },
+        select: { id: true, nombre: true },
+      });
+      if (!cliente) throw Object.assign(new Error("Cliente no encontrado."), { status: 404 });
+
+      const ordenes = await tx.orden.findMany({
+        where: { clienteId: id },
+        select: { id: true, tipo: true },
+      });
+      const ordenIds = ordenes.map(orden => orden.id);
+      const documentos = await tx.documentoFiscal.findMany({
+        where: ordenIds.length
+          ? { OR: [{ clienteId: id }, { ordenId: { in: ordenIds } }] }
+          : { clienteId: id },
+        select: { id: true, tipo: true },
+      });
+
+      // Eliminar el cliente no debe convertirse en un atajo para saltarse los
+      // permisos de otros módulos. La cascada fiscal es exclusiva de administrador.
+      if (ordenes.length && !permisos.includes("ordenes:delete")) {
+        throw Object.assign(new Error("Tu rol también necesita permiso para eliminar las órdenes asociadas."), { status: 403 });
+      }
+      if (documentos.length && !canDeleteFiscalDocuments) {
+        throw Object.assign(new Error("Solo el rol administrador puede eliminar un cliente con documentos fiscales asociados."), { status: 403 });
+      }
+
+      // Devuelve solamente saldos aún descontados. Los reversos anteriores se
+      // respetan y una factura vinculada a una venta no se devuelve dos veces.
+      for (const orden of ordenes.filter(orden => orden.tipo === "venta")) {
+        await revertirStock(tx, {
+          referencia: `venta:${orden.id}`,
+          actor,
+          motivo: `Cliente ${cliente.nombre} eliminado: devolución de inventario de la orden`,
+        });
+      }
+      for (const documento of documentos.filter(documento => documento.tipo === "factura")) {
+        await revertirStock(tx, {
+          referencia: `factura:${documento.id}`,
+          actor,
+          motivo: `Cliente ${cliente.nombre} eliminado: devolución de inventario de la factura`,
+        });
+      }
+
+      // DocumentoFiscalItem, OrdenItem, pagos, eventos, entregas y devoluciones
+      // ya tienen cascada en sus relaciones. Primero se eliminan los documentos
+      // que referencian esas órdenes y después la cuenta del cliente.
+      if (documentos.length) {
+        await tx.documentoFiscal.deleteMany({ where: { id: { in: documentos.map(documento => documento.id) } } });
+      }
+      if (ordenIds.length) {
+        await tx.orden.deleteMany({ where: { id: { in: ordenIds } } });
+      }
+      await tx.cliente.delete({ where: { id } });
+      return { cliente, ordenes, documentos };
+    }, { timeout: 30_000 });
+
+    await writeLog("panel", `Cliente eliminado con sus registros asociados: ${resultado.cliente.nombre}`, {
+      nivel: "warn",
+      actor,
+      ruta: `/api/clientes/${id}`,
+      detalle: {
+        clienteId: id,
+        ordenesEliminadas: resultado.ordenes.length,
+        documentosEliminados: resultado.documentos.length,
+      },
+    });
+    return Response.json({
+      ok: true,
+      ordenesEliminadas: resultado.ordenes.length,
+      documentosEliminados: resultado.documentos.length,
+    });
   } catch (error) {
+    if (error?.status) return Response.json({ error: error.message }, { status: error.status });
     if (error?.code === "P2025") {
       return Response.json({ error: "Cliente no encontrado." }, { status: 404 });
     }
     if (error?.code === "P2003") {
       return Response.json(
-        { error: "No se puede eliminar: el cliente tiene órdenes asociadas." },
+        { error: "No se pudo eliminar porque aún existen registros asociados. Recarga e inténtalo de nuevo." },
         { status: 409 },
       );
     }

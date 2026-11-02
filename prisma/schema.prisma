@@ -213,6 +213,7 @@ model ClienteCuenta {
 
 model Orden {
   id               String      @id
+  numero           String?     @unique // Código interno legible de cotización: cot-N
   tipo             String
   clienteId        String
   fecha            DateTime    @default(now())
@@ -555,6 +556,7 @@ model DevolucionItem {
 
 model DocumentoFiscal {
   id              String              @id @default(cuid())
+  numero          String?             @unique // Código interno legible; no sustituye el correlativo fiscal
   tipo            String // factura | nota_credito | nota_debito
   cai             String? // CAI autorizado (pendiente)
   serie           String? // Rango/serie autorizado (pendiente)

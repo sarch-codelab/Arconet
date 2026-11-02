@@ -22,6 +22,15 @@ describe("listado único de ventas y cotizaciones", () => {
     expect(rows.find(row => row.fiscal).clienteObj.rtn).toBe("");
     expect(rows.find(row => row.fiscal).numero).toBe("fiscal");
   });
+  it("muestra los códigos cot-N/fac-N sin reemplazar los ids internos ni el correlativo legal", () => {
+    const rows = salesDocuments(
+      [{ ...quote, id: "o-interno-largo", numero: "cot-0" }],
+      [{ ...fiscal, id: "cmvymefpn0001qkv0ounfil9p", numero: "fac-0" }],
+    );
+    expect(rows.find(row => row.fiscal)).toMatchObject({ id: "cmvymefpn0001qkv0ounfil9p", numero: "fac-0" });
+    expect(rows.find(row => row.fiscal).fiscal.correlativo).toBe(fiscal.correlativo);
+    expect(rows.find(row => !row.fiscal)).toMatchObject({ id: "o-interno-largo", numero: "cot-0" });
+  });
   it("incluye ventas fiscales en el resumen de la misma sección", () => {
     expect(salesSummary(salesDocuments([commercial, quote], [fiscal]))).toEqual({ total: 1, pendientes: 1, ventas: 2, totalMonto: 288.45 });
   });

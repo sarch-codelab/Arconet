@@ -112,14 +112,16 @@ describe('precios de catálogo en órdenes, sin confiar en el navegador', () => 
 });
 
 describe('lectura de órdenes y regresión de snapshots en el listado', () => {
-  it('el listado incluye id, tarifa, precio base y versión usados al reabrir el formulario', async () => {
+  it('el listado incluye número, id, tarifa, precio base y versión usados al reabrir el formulario', async () => {
+    existing.numero = 'cot-0';
     existing.items = [{ ...items[0], id: 'linea', nivelPrecio: 'descuento', precioBase: 30 }];
     const response = await GET(request({}));
     expect(response.status).toBe(200);
     const query = mocks.prisma.orden.findMany.mock.calls[0][0];
     expect(query.select.items.select).toMatchObject({ id: true, nivelPrecio: true, precioBase: true });
+    expect(query.select.numero).toBe(true);
     expect(query.select.updatedAt).toBe(true);
-    expect((await response.json())[0].items[0]).toMatchObject({ id: 'linea', nivelPrecio: 'descuento', precioBase: 30 });
+    expect((await response.json())[0]).toMatchObject({ numero: 'cot-0', items: [{ id: 'linea', nivelPrecio: 'descuento', precioBase: 30 }] });
   });
   it('solo ver precios no autoriza consultar la lista comercial', async () => {
     mocks.requirePermission.mockResolvedValue({ response: new Response(null, { status: 403 }) });

@@ -119,6 +119,17 @@ describe("consulta fiscal integrada sin convertir históricos", () => {
     expect(html).not.toContain('aria-label="Editar FY-QA"');
     expect(html).not.toContain('aria-label="Eliminar FY-QA"');
   });
+  it("la columna Documento presenta los códigos cortos en lugar del cuid", () => {
+    const html = render(CotizacionesSection, {
+      orders: [{ id: "o-interno-largo", numero: "cot-0", tipo: "cotizacion", cliente: "QA", estado: "pendiente", monto: 50, fecha: "2026-10-30" }],
+      fiscalDocuments: [{ ...doc, id: "cmvymefpn0001qkv0ounfil9p", numero: "fac-0" }],
+      session: { permisos: [...commercial, ...fiscal] },
+    });
+    expect(html).toContain("<code>cot-0</code>");
+    expect(html).toContain("<code>fac-0</code>");
+    expect(html).not.toContain("<code>cmvymefpn0001qkv0ounfil9p</code>");
+    expect(html).toContain('aria-label="Imprimir o guardar PDF de fac-0"');
+  });
   it("sólo lectura mantiene detalle e impresión sin anulación", () => {
     const html = render(CotizacionesSection, { fiscalDocuments: [doc], session: { permisos: ["facturacion:read"] } });
     expect(html).toContain('aria-label="Ver FY-QA"');
