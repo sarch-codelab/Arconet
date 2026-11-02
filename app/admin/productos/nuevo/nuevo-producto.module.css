@@ -1,0 +1,72 @@
+/* La página completa no reutiliza el padding del diálogo: define su propio
+   marco para que el formulario respire tanto en escritorio como en teléfono. */
+.pageHeader {
+  padding: 16px clamp(16px, 3vw, 32px);
+}
+
+.backLink {
+  min-height: 32px;
+  padding: 2px 0;
+  white-space: normal;
+}
+
+.account {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.pageBody {
+  padding: 0 clamp(12px, 3vw, 32px) 32px;
+}
+
+.productCard {
+  width: min(100%, 1440px);
+  min-width: 0;
+  margin: 0 auto;
+}
+
+.productCard .cardBody {
+  min-width: 0;
+  padding: 20px 22px;
+}
+
+@media (max-width: 620px) {
+  .pageHeader {
+    padding: 14px 16px;
+  }
+
+  .pageHeader .account {
+    width: auto;
+    min-height: 32px;
+    padding: 4px 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .pageBody {
+    padding: 0 12px 24px;
+  }
+
+  .productCard .cardBody {
+    padding: 14px;
+  }
+}
+
+@media (max-width: 420px) {
+  .pageHeader {
+    padding: 14px 12px;
+  }
+
+  .pageBody {
+    padding: 0 8px 20px;
+  }
+
+  .productCard {
+    border-radius: 14px;
+  }
+
+  .productCard .cardBody {
+    padding: 10px;
+  }
+}

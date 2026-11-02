@@ -189,6 +189,51 @@ describe("ProductoEditor — formulario completo de producto", () => {
   });
 });
 
+describe("editor de producto responsive y publicación para bodega", () => {
+  const editorCss = readFileSync("app/admin/producto-editor.module.css", "utf8");
+  const pageCss = readFileSync("app/admin/productos/nuevo/nuevo-producto.module.css", "utf8");
+
+  it("mantiene dos radios nativos excluyentes con valores de estado explícitos", () => {
+    const html = render(NuevaProducto, {
+      session: { nombre: "Bodega QA", permisos: ["productos:read", "productos:write"] },
+    });
+
+    expect(html.match(/type="radio"/g)).toHaveLength(2);
+    expect(html.match(/name="estado-bodega"/g)).toHaveLength(2);
+    expect(html).toContain('role="radiogroup"');
+    expect(html).toContain('aria-label="Estado de publicación"');
+    expect(html).toContain('value="pendiente"');
+    expect(html).toContain('value="borrador"');
+    expect(html).toContain("Pendiente de revisión");
+    expect(html).toContain("Borrador");
+  });
+
+  it("usa indicadores cuadrados compactos sin convertir cada opción en una tarjeta", () => {
+    const box = editorCss.split(".warehouseBox {")[1].split("}")[0];
+    const option = editorCss.split(".warehouseOption {")[1].split("}")[0];
+
+    expect(box).toContain("appearance: none");
+    expect(box).toContain("width: 18px");
+    expect(box).toContain("height: 18px");
+    expect(box).toContain("border-radius: 3px");
+    expect(box).not.toContain("border-radius: 50%");
+    expect(option).not.toContain("border:");
+    expect(option).not.toContain("background:");
+    expect(editorCss).toContain(".warehouseBox:checked::before");
+    expect(editorCss).toContain(".warehouseBox:focus-visible");
+  });
+
+  it("define un marco móvil propio y acciones que caben en pantallas estrechas", () => {
+    expect(pageCss).toContain("@media (max-width: 620px)");
+    expect(pageCss).toContain("@media (max-width: 420px)");
+    expect(pageCss).toContain("min-width: 0");
+    expect(editorCss).toContain("@media (max-width: 520px)");
+    expect(editorCss).toContain("grid-template-columns: minmax(0, 1fr)");
+    expect(editorCss).toContain("box-sizing: border-box");
+    expect(editorCss).toContain("width: 100%");
+  });
+});
+
 describe("entrada a la página de nuevo producto", () => {
   const page = readFileSync("app/admin/productos/nuevo/page.js", "utf8");
   const section = readFileSync("app/admin/products-section.js", "utf8");

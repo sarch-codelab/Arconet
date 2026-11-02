@@ -1,0 +1,268 @@
+/* Ajustes acotados al editor de producto. También se aplican cuando el mismo
+   formulario se abre dentro del diálogo de edición del catálogo. */
+.editor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+  min-width: 0;
+}
+
+.editor input,
+.editor select,
+.editor textarea {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.editor .section {
+  min-width: 0;
+}
+
+.fieldLabel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.photoGroup {
+  flex-wrap: wrap;
+}
+
+.uploadActions {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
+.uploadActions p {
+  min-width: 0;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.uploadButton {
+  max-width: 100%;
+  white-space: normal;
+}
+
+.galleryLabel {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  margin: 10px 12px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.galleryRow {
+  align-items: flex-start;
+  margin-top: 14px;
+}
+
+.galleryPreview {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 80px);
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+.galleryItem {
+  position: relative;
+  display: inline-flex;
+  width: 80px;
+  height: 80px;
+}
+
+.galleryImage {
+  object-fit: cover;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+}
+
+.galleryRemove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--red);
+  box-shadow: var(--shadow-sm);
+  color: white;
+  cursor: pointer;
+  line-height: 1;
+  touch-action: manipulation;
+}
+
+.reviewNotice {
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--orange);
+  border-radius: 8px;
+  background: var(--orange-light);
+  color: var(--text-warning);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Bodega solo elige entre dos estados excluyentes. El input conserva la
+   semántica de radio; únicamente su indicador visible es un cuadrado simple. */
+.warehouseStates {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 24px;
+}
+
+.warehouseOption {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  min-width: 0;
+  padding: 2px 0;
+  cursor: pointer;
+}
+
+.warehouseBox {
+  display: grid;
+  place-content: center;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  margin: 1px 0 0;
+  padding: 0;
+  border: 1.5px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg-card);
+  cursor: pointer;
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+.warehouseBox::before {
+  width: 8px;
+  height: 8px;
+  border-radius: 1px;
+  background: var(--orange);
+  content: "";
+  transform: scale(0);
+  transition: transform 120ms ease;
+}
+
+.warehouseBox:checked {
+  border-color: var(--orange);
+  background: var(--orange-light);
+}
+
+.warehouseBox:checked::before {
+  transform: scale(1);
+}
+
+.warehouseBox:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 3px;
+}
+
+.warehouseCopy {
+  display: block;
+  min-width: 0;
+  color: var(--text-main);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.warehouseCopy strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.warehouseCopy small {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-light);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.actions,
+.actions button {
+  min-width: 0;
+}
+
+@media (max-width: 700px) {
+  .warehouseStates {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+}
+
+@media (max-width: 520px) {
+  .editor .section {
+    margin-top: 12px;
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .editor .section:first-of-type {
+    margin-top: 0;
+  }
+
+  .photoGroup {
+    flex: 1 1 100%;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .galleryLabel {
+    flex: 1 1 100%;
+    margin: 0;
+  }
+
+  .uploadButton {
+    min-height: 42px;
+    padding: 8px 12px;
+    text-align: center;
+  }
+
+  .galleryPreview {
+    grid-template-columns: repeat(auto-fill, 72px);
+  }
+
+  .galleryItem,
+  .galleryImage {
+    width: 72px;
+    height: 72px;
+  }
+
+  .actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    padding-top: 2px;
+  }
+
+  .actions button {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 16px;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 360px) {
+  .editor .section {
+    padding: 12px;
+  }
+}
+

@@ -10,6 +10,7 @@ import { Avatar, useToast, notifyError } from "./admin-ui";
 import { compressImage } from "./image-utils";
 import BarcodeScanner from "./barcode-scan";
 import styles from "./admin-experience.module.css";
+import editorStyles from "./producto-editor.module.css";
 import {
   PRODUCT_CATEGORIES,
   PRODUCT_STATUSES,
@@ -254,13 +255,16 @@ export default function ProductoEditor({
   }
 
   return (
-    <form className={formClassName ?? styles.form} onSubmit={submitProduct}>
-      <section className={styles.formSection}>
+    <form
+      className={`${editorStyles.editor} ${formClassName ?? styles.form}`}
+      onSubmit={submitProduct}
+    >
+      <section className={`${styles.formSection} ${editorStyles.section}`}>
         <h3 className={styles.formSectionHead}><Camera size={15} /> Fotos</h3>
         <div className={styles.photoRow}>
-          <div className={styles.photoCol}>
+          <div className={`${styles.photoCol} ${editorStyles.photoGroup}`}>
             <Avatar src={draft.foto} name={draft.nombre} className={styles.photoPreview} shape="square" />
-            <div className={styles.photoActions}>
+            <div className={`${styles.photoActions} ${editorStyles.uploadActions}`}>
               <input
                 id="product-photo"
                 type="file"
@@ -268,18 +272,18 @@ export default function ProductoEditor({
                 className={styles.fileInput}
                 onChange={handlePhoto}
               />
-              <label htmlFor="product-photo" className={styles.upload}>Subir imagen principal</label>
+              <label htmlFor="product-photo" className={`${styles.upload} ${editorStyles.uploadButton}`}>Subir imagen principal</label>
               {draft.foto && (
-                <button type="button" className={styles.ghostBtn} onClick={() => changeField("foto", "")}>
+                <button type="button" className={`${styles.ghostBtn} ${editorStyles.uploadButton}`} onClick={() => changeField("foto", "")}>
                   Quitar imagen principal
                 </button>
               )}
               <p>JPG o PNG. Imagen principal del producto.</p>
             </div>
           </div>
-          <div className={styles.photoCol}>
-            <strong style={{ fontSize: "13px", color: "var(--text-muted)", marginRight: "12px", alignSelf: "flex-start" }}>Galería:</strong>
-            <div className={styles.photoActions} style={{ flex: 1, flexWrap: "wrap" }}>
+          <div className={`${styles.photoCol} ${editorStyles.photoGroup}`}>
+            <strong className={editorStyles.galleryLabel}>Galería:</strong>
+            <div className={`${styles.photoActions} ${editorStyles.uploadActions}`}>
               <input
                 id="product-gallery"
                 type="file"
@@ -288,34 +292,29 @@ export default function ProductoEditor({
                 className={styles.fileInput}
                 onChange={handleGalleryPhotos}
               />
-              <label htmlFor="product-gallery" className={styles.upload}>Agregar imágenes a galería</label>
+              <label htmlFor="product-gallery" className={`${styles.upload} ${editorStyles.uploadButton}`}>Agregar imágenes a galería</label>
               <p>JPG o PNG. Múltiples imágenes para mostrar detalles del producto.</p>
             </div>
           </div>
         </div>
 
         {draft.fotos && draft.fotos.length > 0 && (
-          <div className={styles.photoRow} style={{ alignItems: "flex-start", marginTop: "14px" }}>
-            <div className={styles.galleryPreview} style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
+          <div className={`${styles.photoRow} ${editorStyles.galleryRow}`}>
+            <div className={editorStyles.galleryPreview}>
               {draft.fotos.map((galleryImg, idx) => (
-                <div key={idx} style={{ position: "relative", display: "inline-flex" }}>
+                <div key={idx} className={editorStyles.galleryItem}>
                   <Image
                     src={galleryImg}
                     alt={`Galería ${idx + 1}`}
                     width={80}
                     height={80}
                     unoptimized
-                    style={{ objectFit: "cover", borderRadius: "8px", border: "2px solid var(--border)" }}
+                    className={editorStyles.galleryImage}
                   />
                   <button
                     type="button"
+                    className={editorStyles.galleryRemove}
                     onClick={() => removeGalleryPhoto(idx)}
-                    style={{
-                      position: "absolute", top: "-6px", right: "-6px", width: "22px", height: "22px",
-                      borderRadius: "50%", background: "var(--red)", color: "white", border: "none",
-                      cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: "12px", lineHeight: 1, boxShadow: "var(--shadow-sm)",
-                    }}
                     aria-label={`Eliminar imagen ${idx + 1}`}
                   >
                     <X size={12} />
@@ -327,11 +326,11 @@ export default function ProductoEditor({
         )}
       </section>
 
-      <section className={styles.formSection}>
+      <section className={`${styles.formSection} ${editorStyles.section}`}>
         <h3 className={styles.formSectionHead}><Tag size={15} /> Ficha del producto</h3>
         <div className={styles.fieldGrid}>
           <label className={`${styles.field} ${styles.spanFull}`}>
-            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span className={editorStyles.fieldLabel}>
               Nombre del producto
               <span className={styles.fieldRequired}>Obligatorio</span>
             </span>
@@ -415,16 +414,16 @@ export default function ProductoEditor({
         </div>
       </section>
 
-      <section className={styles.formSection}>
+      <section className={`${styles.formSection} ${editorStyles.section}`}>
         <h3 className={styles.formSectionHead}><Coins size={15} /> Precios y costo</h3>
         {editing && !draft.precio && (
-          <div className={styles.spanFull} role="alert" style={{ marginBottom: "8px", padding: "10px 12px", borderRadius: "8px", border: "1px solid var(--orange)", background: "var(--orange-light)", color: "var(--text-warning)", fontSize: "13px" }}>
+          <div className={`${styles.spanFull} ${editorStyles.reviewNotice}`} role="alert">
             Este producto está pendiente de revisión: falta el Valor 1 · Normal. Define los precios y guarda para publicarlo en la tienda.
           </div>
         )}
         <div className={styles.fieldGrid}>
           {canWritePrices && PRICE_LEVELS.map(level => <label className={styles.field} key={level.id}>
-            <span style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <span className={editorStyles.fieldLabel}>
               {level.label} (L)
               {level.id === "normal" && <span className={styles.fieldRequired}>Obligatorio</span>}
             </span>
@@ -446,7 +445,7 @@ export default function ProductoEditor({
         </div>
       </section>
 
-      <section className={styles.formSection}>
+      <section className={`${styles.formSection} ${editorStyles.section}`}>
         <h3 className={styles.formSectionHead}><Boxes size={15} /> Inventario y ubicación</h3>
         <div className={styles.fieldGrid}>
           <label className={styles.field}>
@@ -514,7 +513,7 @@ export default function ProductoEditor({
         </div>
       </section>
 
-      <section className={styles.formSection}>
+      <section className={`${styles.formSection} ${editorStyles.section}`}>
         <h3 className={styles.formSectionHead}><Eye size={15} /> Publicación</h3>
         {canWritePrices ? (
           <div className={styles.fieldGrid}>
@@ -531,26 +530,40 @@ export default function ProductoEditor({
             </label>
           </div>
         ) : (
-          <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-            <label className={styles.field} style={{ flex: "1 1 240px", padding: "12px 14px", border: "1px solid var(--border)", borderRadius: "12px", background: "var(--bg-card)" }}>
-              <span style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: "13.5px", color: "var(--text-main)" }}>
-                <input type="radio" name="estado-bodega" checked={draft.estado === "pendiente"} onChange={() => changeField("estado", "pendiente")} />
-                Pendiente de revisión
+          <div className={editorStyles.warehouseStates} role="radiogroup" aria-label="Estado de publicación">
+            <label className={editorStyles.warehouseOption}>
+              <input
+                className={editorStyles.warehouseBox}
+                type="radio"
+                name="estado-bodega"
+                value="pendiente"
+                checked={draft.estado === "pendiente"}
+                onChange={() => changeField("estado", "pendiente")}
+              />
+              <span className={editorStyles.warehouseCopy}>
+                <strong>Pendiente de revisión</strong>
+                <small>Sin precio: no aparece en la tienda hasta que el gerente defina el Valor 1.</small>
               </span>
-              <small className={styles.fieldHint}>Sin precio: no aparece en la tienda hasta que el gerente defina el Valor 1.</small>
             </label>
-            <label className={styles.field} style={{ flex: "1 1 240px", padding: "12px 14px", border: "1px solid var(--border)", borderRadius: "12px", background: "var(--bg-card)" }}>
-              <span style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: "13.5px", color: "var(--text-main)" }}>
-                <input type="radio" name="estado-bodega" checked={draft.estado === "borrador"} onChange={() => changeField("estado", "borrador")} />
-                Borrador
+            <label className={editorStyles.warehouseOption}>
+              <input
+                className={editorStyles.warehouseBox}
+                type="radio"
+                name="estado-bodega"
+                value="borrador"
+                checked={draft.estado === "borrador"}
+                onChange={() => changeField("estado", "borrador")}
+              />
+              <span className={editorStyles.warehouseCopy}>
+                <strong>Borrador</strong>
+                <small>Guardado pero oculto del catálogo y de la tienda.</small>
               </span>
-              <small className={styles.fieldHint}>Guardado pero oculto del catálogo y de la tienda.</small>
             </label>
           </div>
         )}
       </section>
 
-      <footer className={styles.modalActions}>
+      <footer className={`${styles.modalActions} ${editorStyles.actions}`}>
         <button type="button" className={styles.ghostBtn} onClick={onCancel}>
           Cancelar
         </button>
