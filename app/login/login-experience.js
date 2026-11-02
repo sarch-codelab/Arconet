@@ -2,7 +2,6 @@
 
 import { rememberLocalPreviewSession, clientApiFetch as fetch } from "@/lib/api-fetch";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -55,49 +54,6 @@ export default function LoginExperience() {
       <main className={styles.loginPage}>
         <MobileSiteMenu floating />
         <div className={styles.loginCard}>
-          <div className={styles.loginVisual}>
-            <Image
-              src="/catalogo/infraestructura.jpg"
-              alt=""
-              fill
-              priority
-              sizes="(max-width: 900px) 100vw, 50vw"
-              className={styles.loginVisualImg}
-            />
-            <div className={styles.loginVisualOverlay} />
-
-            <Link className={styles.logoTab} href="/" aria-label="Arconet, inicio">
-              <Image
-                src="/arconet.png"
-                alt="Arconet"
-                width={1200}
-                height={200}
-                sizes="(max-width: 1040px) 114px, 176px"
-                priority
-              />
-            </Link>
-
-            <div className={styles.loginVisualCopy}>
-              <p className={styles.eyebrow}><i /> Portal de clientes · Arconet</p>
-              <h1>
-                Tus proyectos,
-                <br />
-                <em>en un solo lugar.</em>
-              </h1>
-              <p className={styles.lead}>
-                Ingresa para dar seguimiento a tus solicitudes, cotizaciones y
-                entregas de fibra óptica, CATV e infraestructura.
-              </p>
-            </div>
-
-            <div className={styles.loginVisualFooter}>
-              <span>FIBRA ÓPTICA · CATV · TELECOMUNICACIONES</span>
-              <Link href="/contacto">
-                ¿Necesitas ayuda? Escríbenos <ArrowRight size={14} />
-              </Link>
-            </div>
-          </div>
-
           <section className={styles.loginPanel} aria-label="Formulario de acceso">
             <div className={styles.loginPanelBody}>
               <header>
@@ -169,7 +125,7 @@ export default function LoginExperience() {
                   <Link href="/recuperar">¿Olvidaste tu contraseña?</Link>
                 </div>
 
-                <button type="submit" className={styles.submit} disabled={submitting}>
+                <button type="submit" className={`${styles.submit} ${styles.clientLoginSubmit}`} disabled={submitting}>
                   {submitting ? "Verificando..." : "Ingresar a mi cuenta"} <span><ArrowRight size={15} /></span>
                 </button>
               </form>
