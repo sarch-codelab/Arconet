@@ -178,7 +178,7 @@ function CategoryProductCard({ product, index, onAdd }) {
           </div>
           <button
             type="button"
-            className={styles.familyCartButton}
+            className={`${styles.familyCartButton} ${soldOut ? styles.agotado : ""}`}
             onClick={add}
             disabled={soldOut}
             aria-label={`Añadir ${product.nombre} al carrito`}
@@ -201,7 +201,10 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
         category: category.nombre,
         title: category.nombre,
         badge: staticFamily?.badge || "Línea",
-        summary: category.descripcion || staticFamily?.summary || "Productos disponibles en esta línea.",
+        // El resumen es el teaser corto; la descripcion larga puede venir de
+        // la base. Cuando la base solo tiene un texto, queda una sola
+        // linea (antes se pintaba dos veces iguales).
+        summary: staticFamily?.summary || category.descripcion || "Productos disponibles en esta línea.",
         description:
           category.descripcion ||
           staticFamily?.description ||
@@ -444,12 +447,12 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
           type="button"
           className={styles.headerAction}
           onClick={openCart}
-          aria-label={`Carrito de cotización, ${cartCount} ${cartCount === 1 ? "unidad" : "unidades"}`}
+          aria-label={`Carrito, ${cartCount} ${cartCount === 1 ? "unidad" : "unidades"}`}
         >
-          Cotización
-          <span>
+          Carrito
+          <span className={styles.headerCartIcon}>
             <ShoppingCart size={15} aria-hidden="true" />
-            {cartCount > 0 && <i className="cartBadge" aria-hidden="true">{cartCount > 99 ? "99+" : cartCount}</i>}
+            {cartCount > 0 && <i className={styles.cartBadge} aria-hidden="true">{cartCount > 99 ? "99+" : cartCount}</i>}
           </span>
         </button>
       </header>
@@ -494,7 +497,9 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
         <div className={styles.heroContent}>
           <span className={styles.badge}>{family.badge}</span>
           <h1>{family.category}</h1>
-          <p className={styles.heroDescription}>{family.summary}</p>
+          {family.summary && family.summary !== family.description ? (
+            <p className={styles.heroDescription}>{family.summary}</p>
+          ) : null}
           <p className={styles.heroText}>{family.description}</p>
           
           <ul className={styles.featureList}>

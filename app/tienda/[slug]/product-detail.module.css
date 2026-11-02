@@ -209,6 +209,26 @@
   transition: background 240ms ease, color 240ms ease;
 }
 
+.cartBadge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #d92f2f;
+  color: #fff;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 0 0 2px var(--paper);
+  pointer-events: none;
+}
+
 .topbarCartIcon svg {
   color: #fff;
   stroke: #fff;

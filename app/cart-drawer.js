@@ -8,10 +8,12 @@ import {
   ArrowUpRight,
   Check,
   Copy,
+  FileText,
   Mail,
   MessageCircle,
   Minus,
   Plus,
+  RefreshCw,
   ShoppingCart,
   Trash2,
   X,
@@ -43,6 +45,7 @@ export default function CartDrawer() {
   const { items, count, isOpen, close, setQuantity, removeItem, clear } = useCart();
   const [copied, setCopied] = useState(false);
   const [whatsappNumber, setWhatsappNumber] = useState("");
+  const [generandoCotizacion, setGenerandoCotizacion] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -87,28 +90,63 @@ export default function CartDrawer() {
     }
   };
 
+  // Vista previa de la cotización: el mismo documento que genera el panel
+  // administrativo, con los productos y precios de la base.
+  const generarCotizacion = async () => {
+    if (generandoCotizacion) return;
+    setGenerandoCotizacion(true);
+    try {
+      const response = await fetch("/api/cotizaciones/previo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: items.map((item) => ({
+            slug: item.slug,
+            titulo: item.title,
+            cantidad: item.quantity,
+            presentacion: item.presentation,
+          })),
+        }),
+      });
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error?.error || "No se pudo generar la cotización.");
+      }
+      const html = await response.text();
+      const blob = new Blob([html], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank", "noopener");
+      setTimeout(() => URL.revokeObjectURL(url), 120000);
+      sileo.success({ title: "Vista previa de la cotización abierta." });
+    } catch (err) {
+      sileo.error({ title: err.message || "No se pudo generar la cotización." });
+    } finally {
+      setGenerandoCotizacion(false);
+    }
+  };
+
   return (
     <div
       className={isOpen ? `${styles.layer} ${styles.layerOpen}` : styles.layer}
       aria-hidden={!isOpen}
       inert={!isOpen ? true : undefined}
     >
-      <button type="button" className={styles.backdrop} aria-label="Cerrar cotización" onClick={close} />
+      <button type="button" className={styles.backdrop} aria-label="Cerrar carrito" onClick={close} />
 
-      <aside className={styles.panel} role="dialog" aria-modal="true" aria-label="Carrito de cotización">
+      <aside className={styles.panel} role="dialog" aria-modal="true" aria-label="Mi Carrito">
         <header className={styles.panelHeader}>
           <div className={styles.panelTitle}>
             <span className={styles.panelIcon}>
               <ShoppingCart size={18} aria-hidden="true" />
             </span>
             <div>
-              <strong>Tu cotización</strong>
+              <strong>Mi Carrito</strong>
               <span>
                 {count > 0 ? `${count} ${count === 1 ? "unidad" : "unidades"}` : "Sin productos aún"}
               </span>
             </div>
           </div>
-          <button type="button" className={styles.closeButton} onClick={close} aria-label="Cerrar cotización">
+          <button type="button" className={styles.closeButton} onClick={close} aria-label="Cerrar carrito">
             <X size={18} />
           </button>
         </header>
@@ -120,7 +158,7 @@ export default function CartDrawer() {
             </span>
             <p className={styles.emptyTitle}>Todavía no agregaste nada.</p>
             <p className={styles.emptyHint}>
-              Agrega productos desde la tienda y preparamos tu pedido o cotización en un solo lugar.
+              Agrega productos desde la tienda y prepáralos para pedir en un solo lugar.
             </p>
             <Link prefetch={precargar} className={styles.emptyButton} href="/tienda#catalogo-items" onClick={close}>
               Explorar catálogo <ArrowUpRight size={15} />
@@ -227,11 +265,20 @@ export default function CartDrawer() {
                   </a>
                 ) : null}
                 <a
-                  className={`${styles.action} ${whatsappHref ? "" : styles.actionPrimary}`}
+                  className={styles.action}
                   href={mailHref}
                 >
                   <Mail size={16} aria-hidden="true" /> Enviar por correo
                 </a>
+                <button
+                  type="button"
+                  className={`${styles.action} ${styles.actionPrimary}`}
+                  onClick={generarCotizacion}
+                  disabled={generandoCotizacion}
+                >
+                  {generandoCotizacion ? <RefreshCw size={16} className={styles.spin} aria-hidden="true" /> : <FileText size={16} aria-hidden="true" />}
+                  {generandoCotizacion ? "Generando…" : "Generar cotización"}
+                </button>
                 <button type="button" className={styles.action} onClick={copyOrder}>
                   {copied ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
                   {copied ? "Copiado" : "Copiar pedido"}

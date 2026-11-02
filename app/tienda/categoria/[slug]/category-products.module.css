@@ -157,6 +157,29 @@
   color: #0d1422;
   font-size: 11px;
   font-weight: 700;
+  /* El badge del conteo es absoluto: su contenedor debe ser el recuadro
+     blanco, no el header. Sin position:relative se pegaba a otro lado. */
+  position: relative;
+}
+
+.cartBadge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #d92f2f;
+  color: #fff;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 0 0 2px var(--paper);
+  pointer-events: none;
 }
 
 .readingProgress {
@@ -242,7 +265,7 @@
    ocupando algo más de espacio que el texto. */
 @media (min-width: 901px) {
   .hero {
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
   }
 
   /* En pantallas tipo PC la foto va centrada y COMPLETA (sin marco que la
@@ -251,13 +274,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    max-height: 72vh;
+    max-height: 68vh;
   }
 
   .heroImage {
     width: auto !important;
     max-width: 100%;
-    max-height: 72vh;
+    max-height: 68vh;
     margin-inline: auto;
   }
 }
@@ -823,6 +846,14 @@
 
 .familyCartButton:disabled {
   opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Agotado: el botón se pone rojo (no solo opaco), así se distingue a
+   primera vista que no se puede pedir. */
+.familyCartButton.agotado {
+  background: #c62828;
+  opacity: 1;
   cursor: not-allowed;
 }
 

@@ -429,6 +429,16 @@
   color: #fff;
 }
 
+.spin {
+  animation: girar 900ms linear infinite;
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .clearButton {
   margin-top: 14px;
   display: inline-flex;
