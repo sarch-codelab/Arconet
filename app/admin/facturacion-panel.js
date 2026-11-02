@@ -27,7 +27,9 @@ import {
   Plus,
   Receipt,
   RefreshCw,
+  ShoppingCart,
   Trash2,
+  User,
   X,
 } from "lucide-react";
 import { sileo } from "../toaster";
@@ -598,7 +600,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
                 <header className={adminStyles.cardHeader}>
                   <div>
                     <p className={adminStyles.eyebrow}>Paso 1 · Datos</p>
-                    <h3>Cliente e impuesto</h3>
+                    <h3><User size={15} aria-hidden="true" /> Cliente e impuesto</h3>
                   </div>
                 </header>
                 <div className={`${adminStyles.form} ${adminStyles.cardBody}`}>
@@ -634,7 +636,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
                 <header className={adminStyles.cardHeader}>
                   <div>
                     <p className={adminStyles.eyebrow}>Paso 2 · Líneas</p>
-                    <h3>Líneas de la factura</h3>
+                    <h3><ShoppingCart size={15} aria-hidden="true" /> Líneas de la factura</h3>
                   </div>
                   <div className={salesStyles.actions}>
                     <button type="button" className={adminStyles.ghostBtn} onClick={() => agregarLinea("producto")} disabled={lineas.length >= 100}><Plus size={15} /> Añadir producto</button>
@@ -731,7 +733,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
 
               <section className={styles.resumen}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, marginBottom: 8 }}>
-                  <h3 style={{ margin: 0, fontSize: "15px", color: "var(--text-main)" }}>Resumen</h3>
+                  <h3 style={{ margin: 0, fontSize: "15px", color: "var(--text-main)" }}><Receipt size={15} aria-hidden="true" /> Resumen</h3>
                   <small style={{ color: "var(--text-muted)" }}>Se actualiza al cambiar las líneas</small>
                 </div>
                 <div className={styles.resumenFila}>
@@ -770,6 +772,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
               <FacturaPreview
                 cliente={clientSnapshot}
                 lineas={lineas}
+                productos={productos}
                 totales={totales}
                 config={config}
                 canEmit={canEmit}

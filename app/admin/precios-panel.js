@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { History, Pencil, RefreshCw, X } from "lucide-react";
+import { History, Pencil, Package, RefreshCw, X } from "lucide-react";
 import { apiFetch } from "@/lib/api-fetch";
 import { PRICE_LEVELS, parsePrices, validatePriceSet } from "@/lib/precios";
 import { formatPrice } from "./products-store";
@@ -12,6 +12,14 @@ import adminStyles from "./admin-experience.module.css";
 import styles from "./precios-panel.module.css";
 const amount = (value) =>
   value == null ? "Sin configurar" : formatPrice(value);
+
+// Para cada valor su uso real: la tarifa que se elige al cotizar, vender o
+// facturar.
+const LEVEL_HINTS = {
+  normal: "Tarifa por defecto al vender",
+  descuento: "Precio con promoción aplicada",
+  mayorista: "Tarifa para ventas al por mayor",
+};
 async function request(path, options) {
   const response = await apiFetch(path, { cache: "no-store", ...options });
   const data = await response.json();
@@ -208,15 +216,22 @@ export default function PreciosPanel({ hideNavigation = false,
       <div className={styles.grid}>
         {rows.map((product) => (
           <article key={product.id} className={styles.card}>
-            <span className={styles.meta}>
-              {product.sku} · {product.estado}
-            </span>
-            <h2>{product.nombre}</h2>
-            <span className={styles.meta}>{product.categoria}</span>
+            <header className={styles.cardHead}>
+              <span className={styles.productIcon} aria-hidden="true"><Package size={15} /></span>
+              <div className={styles.productTitles}>
+                <h2>{product.nombre}</h2>
+                <p className={styles.meta}>
+                  {product.sku} · {product.categoria} · {product.estado}
+                </p>
+              </div>
+            </header>
             <div className={styles.prices}>
               {PRICE_LEVELS.map((level) => (
                 <div key={level.id} className={styles.price}>
-                  <span>{level.label}</span>
+                  <div className={styles.priceLabel}>
+                    <span>{level.label}</span>
+                    <small>{LEVEL_HINTS[level.id]}</small>
+                  </div>
                   <strong>{amount(product[level.field])}</strong>
                 </div>
               ))}
