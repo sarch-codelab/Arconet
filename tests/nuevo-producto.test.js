@@ -51,9 +51,23 @@ describe("página completa de nuevo producto", () => {
 
   it("sin permiso para crear muestra aviso y no monta el formulario", () => {
     const html = render(NuevaProducto, { session: { nombre: "Lectura", permisos: ["productos:read"] } });
-    expect(html).toContain("No tienes permisos para crear productos y modificar precios.");
+    expect(html).toContain("No tienes permisos para crear productos.");
     expect(html).not.toContain("Nombre del producto");
     expect(html).not.toContain("Agregar producto");
+  });
+
+  it("rol bodega (productos:write sin precios:write) accede al formulario sin los cuadros de precio", () => {
+    const html = render(NuevaProducto, {
+      session: { nombre: "Bodega QA", permisos: ["productos:read", "productos:write"] },
+    });
+    expect(html).not.toContain("No tienes permisos");
+    expect(html).toContain("Nuevo producto · Catálogo");
+    expect(html).toContain("Agregar producto");
+    expect(html).toContain("Nombre del producto");
+    expect(html).not.toContain("Valor 1 · Normal");
+    expect(html).not.toContain("Valor 2 · Descuento");
+    expect(html).not.toContain("Valor 3 · Mayorista");
+    expect(html).toContain("pendiente de revisión");
   });
 });
 
