@@ -219,7 +219,7 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
   const [orden, setOrden] = useState("relevancia");
   const [vista, setVista] = useState("grande");
   const { addItem, open: openCart, count: cartCount } = useCart();
-  const { loading: productsLoading } = useCatalogProducts();
+  const { products, loading: productsLoading } = useCatalogProducts();
 
   // La preferencia de vista es del usuario, no de la sesión: se recuerda entre
   // visitas para que quien prefiere la lista no tenga que cambiarla cada vez.
