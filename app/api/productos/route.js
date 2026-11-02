@@ -139,6 +139,10 @@ export async function POST(request) {
             ...resto,
             ...fotosGuardadas,
             stock: 0,
+            // La columna "precio" es NOT NULL sin default: un producto sin
+            // precio (bodega) nace con 0 y queda pendiente de revisión hasta
+            // que gerente defina el Valor 1.
+            precio: resto.precio ?? 0,
             estado: sinPrecios ? "pendiente" : "activo",
             ...(sinPrecios
               ? {}
