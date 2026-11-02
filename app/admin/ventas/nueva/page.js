@@ -1,4 +1,5 @@
 import { isLocalPreviewAuthEnabled } from "@/lib/local-preview-auth";
+import { getPermisos } from "@/lib/dal";
 import LocalPreviewEntry from "../../local-preview-entry";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
@@ -31,5 +32,8 @@ export default async function NuevaVentaPage() {
   if (!session) {
     redirect("/login");
   }
-  return <NuevaVenta session={session} />;
+  // La cookie de sesión no incluye permisos: hay que calcularlos del rol en
+  // el servidor (admin => todos) para que el cierre de la página funcione.
+  const permisos = await getPermisos(session);
+  return <NuevaVenta session={{ ...session, permisos }} />;
 }
