@@ -110,16 +110,36 @@ describe("autorización de precios y rutas alternas", () => {
     );
     expect((await PATCH(req({ precio: 120 }), context)).status).toBe(409);
   });
-  it("productos:write solo no permite cambiar tarifas por la ruta de productos ni crear con precio", async () => {
+  it("bodega (productos:write) no puede setear precios: el PATCH los rechaza y el POST los descarta creando pendiente", async () => {
     mocks.permission.mockResolvedValue({
       session: { correo: "bodega@local" },
       permisos: ["productos:write"],
     });
+    // Cambiar tarifas por la ruta de productos sigue rechazado.
     expect(
       (await productPatch(req({ precioDescuento: 1 }), context)).status,
     ).toBe(403);
-    expect((await productCreate(req({ precio: 10 }))).status).toBe(403);
-    expect(mocks.prisma.$transaction).not.toHaveBeenCalled();
+    // El alta con precio ya no se bloquea: se descarta el precio entrante y
+    // el producto nace pendiente de revisión (no publicado).
+    let createdData;
+    mocks.prisma.$transaction.mockImplementation(async (fn) => {
+      const tx = {
+        producto: {
+          create: vi.fn(async ({ data }) => { createdData = data; return { ...data, id: data.id }; }),
+          findUnique: vi.fn(async ({ where }) => ({ ...(createdData || {}), ...where })),
+        },
+        log: { create: vi.fn() },
+      };
+      return fn(tx);
+    });
+    const response = await productCreate(
+      req({ nombre: "Cable", sku: "CBL-1", categoria: "Cables", stock: 0, precio: 10 }),
+    );
+    expect(response.status).toBe(201);
+    expect(createdData.estado).toBe("pendiente");
+    expect(createdData).not.toHaveProperty("precio");
+    expect(createdData).not.toHaveProperty("precioDescuento");
+    expect(createdData).not.toHaveProperty("precioMayorista");
   });
 });
 

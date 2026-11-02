@@ -11,6 +11,33 @@ import { guardarImagen } from "@/lib/almacen-fotos";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+/**
+ * Un producto sin precio no puede publicarse: se avisa a quienes pueden
+ * definir los precios (gerente/administrador) para que pongan el Valor 1.
+ * Best-effort: nunca rompe el alta si falla.
+ */
+async function notificarProductoPendiente({ nombre, sku, actorEmail }) {
+  try {
+    const users = await prisma.usuario.findMany({ where: { activo: true }, select: { correo: true, rol: true } });
+    const roles = new Set(["gerente", "administrador"]);
+    const actor = (actorEmail || "").toLowerCase();
+    const recipients = [...new Set(
+      users.filter((user) => roles.has(user.rol)).map((user) => user.correo.toLowerCase()),
+    )].filter((email) => email && email !== actor);
+    if (!recipients.length) return;
+    await prisma.notificacion.createMany({
+      data: recipients.map((recipient) => ({
+        recipient,
+        title: "Producto pendiente de precio",
+        message: `"${nombre}" (${sku || "sin SKU"}) quedó pendiente de revisión: falta el Valor 1 · Normal, obligatorio para publicarlo.`,
+        type: "producto",
+      })),
+    });
+  } catch (error) {
+    console.error("No se pudieron generar notificaciones de producto pendiente", error?.message);
+  }
+}
+
 export async function GET(request) {
   const guard = await requireSession();
   if (guard.response) return guard.response;
@@ -66,8 +93,17 @@ export async function POST(request) {
     return Response.json({ error: "JSON inválido." }, { status: 400 });
   }
 
-  if (!guard.permisos?.includes("precios:write")) return Response.json({ error: "Crear productos con precio requiere permiso de modificar precios." }, { status: 403 });
-  const { data, errors } = parseProducto(body);
+  // Sin permiso para precios (rol bodega) se permite el alta sin precio:
+  // el producto queda pendiente de revisión y se notifica al gerente para
+  // que defina el Valor 1. Con permiso, el precio sigue siendo obligatorio.
+  const sinPrecios = !guard.permisos?.includes("precios:write");
+  const { data, errors } = parseProducto(body, { precioOpcional: sinPrecios });
+  if (sinPrecios) {
+    // El servidor no acepta precios entrando de un rol que no puede setearlos.
+    delete data.precio;
+    delete data.precioDescuento;
+    delete data.precioMayorista;
+  }
   errors.push(...validatePriceSet(data));
   if (errors.length) {
     return Response.json({ error: errors[0], errors }, { status: 400 });
@@ -94,10 +130,25 @@ export async function POST(request) {
     const { stock = 0, ...resto } = data;
     const producto = await prisma.$transaction(
       async (tx) => {
+        // Sin precio no se publica: nace pendiente de revisión hasta que el
+        // gerente defina el Valor 1.
+        delete resto.estado;
         const creado = await tx.producto.create({
-          data: { id: newProductoId(), ...resto, ...fotosGuardadas, stock: 0, preciosUpdatedAt: new Date(), preciosUpdatedBy: guard.session?.correo ?? null, createdBy: guard.session?.correo ?? null },
+          data: {
+            id: newProductoId(),
+            ...resto,
+            ...fotosGuardadas,
+            stock: 0,
+            estado: sinPrecios ? "pendiente" : "activo",
+            ...(sinPrecios
+              ? {}
+              : { preciosUpdatedAt: new Date(), preciosUpdatedBy: guard.session?.correo ?? null }),
+            createdBy: guard.session?.correo ?? null,
+          },
         });
-        await tx.log.create({ data: { categoria: "panel", mensaje: `Precios iniciales: ${creado.nombre}`, actor: guard.session?.correo ?? null, ruta: `/api/precios/${creado.id}`, detalle: JSON.stringify({ antes: null, despues: priceSnapshot(creado) }) } });
+        if (!sinPrecios) {
+          await tx.log.create({ data: { categoria: "panel", mensaje: `Precios iniciales: ${creado.nombre}`, actor: guard.session?.correo ?? null, ruta: `/api/precios/${creado.id}`, detalle: JSON.stringify({ antes: null, despues: priceSnapshot(creado) }) } });
+        }
         // El stock inicial entra por kardex: así el producto nace con saldo
         // trazable en la bodega principal y no como un número suelto.
         if (Number(stock) > 0) {
@@ -121,6 +172,15 @@ export async function POST(request) {
       ruta: "/api/productos",
       detalle: { id: producto.id, categoria: producto.categoria },
     });
+    // Pendiente de revisión: avisar a gerente/administradores para que
+    // definan el Valor 1 obligatorio y lo publiquen.
+    if (sinPrecios) {
+      await notificarProductoPendiente({
+        nombre: producto.nombre,
+        sku: producto.sku,
+        actorEmail: guard.session?.correo ?? "",
+      });
+    }
     return Response.json(toProducto(producto), { status: 201 });
   } catch (error) {
     if (error?.status) return Response.json({ error: error.message }, { status: error.status });
