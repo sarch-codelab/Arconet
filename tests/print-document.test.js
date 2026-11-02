@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PRINT_PAPERS, documentDate, esc, logoDataUrl, normalizePaper, printOptions, renderFiscalDocument, renderOrderDocument, renderPurchaseDocument } from '../lib/print-document';
+import { PRINT_PAPERS, documentDate, esc, huellaCotizacion, logoDataUrl, normalizePaper, printOptions, renderFiscalDocument, renderOrderDocument, renderPurchaseDocument } from '../lib/print-document';
 import { documento, order, settings } from './fixtures/print-documents';
 
 describe('plantilla de impresión compartida',()=>{
@@ -171,5 +171,39 @@ describe("configuración empresarial fijada al emitir", () => {
   it("una instantánea sin dato no recibe el contacto futuro como si fuera histórico", () => {
     const html = renderFiscalDocument({ documento: { ...documento, fiscalSnapshot: { version: 1, nombre: "QA", nit: null, email: null, phone: null } }, settings: { ...settings, email: "futuro@qa.local" } });
     expect(html).not.toContain("futuro@qa.local"); expect(html).toContain("No registrado");
+  });
+});
+
+
+describe("pie fiscal de la cotización (carrito y portal)", () => {
+  const fiscalSettings = {
+    "fiscal.cai": "CAI-2026-1234", "fiscal.serie": "001-001-01",
+    "fiscal.rangoInicio": "001-001-01-000000001", "fiscal.rangoFin": "001-001-01-000000100",
+    "fiscal.fechaLimite": "2027-06-30",
+  };
+  it("muestra autorización, firma, totales, huella y agradecimiento en el pie", () => {
+    const html = renderOrderDocument({ order, settings: { ...settings, ...fiscalSettings }, hash: huellaCotizacion(order) });
+    for (const text of ["Autorización fiscal", "CAI: CAI-2026-1234", "Serie: 001-001-01", "Rango autorizado: 001-001-01-000000001 al 001-001-01-000000100", "Fecha límite de emisión: 30/06/2027", "Firma / recibido conforme", "Fecha de recepción", "Huella SHA-256 del registro", "Arconet · Conserve todas las páginas del documento.", "Gracias por su preferencia"]) expect(html).toContain(text);
+    expect(html).toContain('class="fiscal-footer"');
+  });
+  it("sin configuración fiscal muestra avisos de pendiencia, no inventa datos", () => {
+    const html = renderOrderDocument({ order, settings });
+    for (const text of ["Autorización fiscal", "CAI: Pendiente de asignación", "Serie: No registrada", "Rango autorizado: No registrado en este documento", "Fecha límite de emisión: No registrada"]) expect(html).toContain(text);
+    expect(html).not.toContain("CAI-2026");
+  });
+  it("el pie fiscal se fija al fondo de cada página impresa; los recibos lo corren tras el detalle", () => {
+    const html = renderOrderDocument({ order, settings });
+    expect(html).toContain(".fiscal-footer{margin-top:3mm}");
+    expect(html).toContain(".sheet .fiscal-footer{position:fixed;bottom:0;left:var(--margin);right:var(--margin);z-index:5;background:#fff}");
+    expect(html).toContain(".sheet{padding-bottom:40mm}");
+    expect(html).toContain("body[data-layout=\"receipt\"] .fiscal-footer{position:static}");
+    expect(html).toContain("body[data-layout=\"receipt\"] .sheet{padding-bottom:0}");
+  });
+  it("la huella SHA-256 es determinista y cambia con el contenido", () => {
+    const a = huellaCotizacion(order);
+    const b = huellaCotizacion({ ...order, monto: 350 });
+    expect(a).toMatch(/^[0-9a-f]{64}$/);
+    expect(a).not.toBe(b);
+    expect(huellaCotizacion(order)).toBe(a);
   });
 });
