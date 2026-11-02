@@ -1,0 +1,1400 @@
+/* ==========================================================================
+   DOCK DE NAVEGACIÓN SECUNDARIA (MENÚ 2 DEL HOME) — COMPONENTE COMPARTIDO
+   ==========================================================================
+   Misma cápsula, navegación con indicador y mega menú que el dock del home.
+   Se extrajo de app/page.module.css al crear app/nav-dock.js; el home mantiene
+   su propio CSS hasta adoptar el componente.
+
+   variant="scroll": oculta hasta superar el hero (topbarHidden/Visible).
+   variant="fixed":   siempre visible, sin animación de aparición.
+   ========================================================================== */
+/* ==========================================================================
+   DOCK DE NAVEGACIÓN SECUNDARIA
+   Cápsula flotante de cristal que aparece al superar el hero.
+   ========================================================================== */
+
+.topbar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 40;
+  display: flex;
+  justify-content: center;
+  padding: 12px clamp(14px, 2.4vw, 28px) 0;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-124%);
+  will-change: transform, opacity;
+  transition: transform 480ms cubic-bezier(0.22, 1, 0.36, 1), opacity 260ms ease,
+    visibility 0s linear 480ms;
+}
+
+.topbarVisible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition: transform 620ms cubic-bezier(0.22, 1, 0.36, 1), opacity 300ms ease,
+    visibility 0s linear 0s;
+}
+
+.topbarHidden {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-124%);
+}
+
+/* Barra de progreso de lectura, anclada al borde superior de la ventana */
+.scrollProgress {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 2px;
+  overflow: hidden;
+  background: rgba(21, 68, 181, 0.12);
+  pointer-events: none;
+}
+
+.scrollProgress i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #1544b5, #558eff 62%, #9dc0ff);
+  border-radius: inherit;
+  transform: scaleX(var(--scroll-progress, 0));
+  transform-origin: left center;
+}
+
+/* Cápsula */
+.topbarShell {
+  position: relative;
+  width: 100%;
+  max-width: clamp(1240px, 94vw, 1980px);
+  height: clamp(62px, 3.6vw, 78px);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: clamp(12px, 1.8vw, 30px);
+  padding: clamp(6px, 0.4vw, 9px) clamp(7px, 0.45vw, 10px) clamp(6px, 0.4vw, 9px) clamp(16px, 1.1vw, 26px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 999px;
+  background: rgba(250, 249, 246, 0.84);
+  backdrop-filter: blur(22px) saturate(180%);
+  box-shadow: 0 1px 2px rgba(12, 24, 52, 0.05),
+    0 18px 40px -24px rgba(12, 24, 52, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  pointer-events: auto;
+}
+
+/* Halo azul que se enciende al pasar el cursor por la cápsula */
+.topbarShell::after {
+  content: "";
+  position: absolute;
+  right: 14%;
+  bottom: -7px;
+  left: 14%;
+  height: 16px;
+  background: radial-gradient(60% 100% at 50% 0%, rgba(21, 68, 181, 0.42), transparent 72%);
+  filter: blur(13px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 420ms ease;
+}
+
+.topbarShell:hover::after {
+  opacity: 1;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 9px;
+  border-radius: 999px;
+  transition: background 240ms ease, transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.brand:hover {
+  background: rgba(20, 30, 55, 0.05);
+  transform: translateY(-1px);
+}
+
+.brand img {
+  display: block;
+  /* Anchos fijos (no clamp) para que coincidan con el atributo `sizes` y el
+     navegador pida la variante pequeña de la imagen. */
+  width: 176px;
+  height: auto;
+}
+
+/* Track segmentado con indicador deslizante */
+.navigation {
+  position: relative;
+  justify-self: center;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 5px;
+  border: 1px solid rgba(20, 30, 55, 0.07);
+  border-radius: 999px;
+  background: rgba(20, 30, 55, 0.045);
+}
+
+.navIndicator {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: 0;
+  z-index: 0;
+  width: var(--nav-indicator-w, 0px);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: 0 6px 16px -9px rgba(12, 24, 52, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  opacity: var(--nav-indicator-opacity, 0);
+  transform: translateX(var(--nav-indicator-x, 0px));
+  pointer-events: none;
+  transition: transform 460ms cubic-bezier(0.22, 1, 0.36, 1),
+    width 460ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms ease;
+}
+
+.navigation a {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border-radius: 999px;
+  color: #586074;
+  /* Crece con la pantalla en vez de saltar en escalones fijos: a 1900px
+     (donde el usuario vio que seguía chico) da ~17px en vez de 15px. */
+  padding: clamp(8px, 0.42vw, 14px) clamp(14px, 1.05vw, 26px);
+  font-size: clamp(12.5px, 0.95vw, 18px);
+  font-weight: 600;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+  transition: color 220ms ease;
+}
+
+.navigation a:hover {
+  color: var(--blue);
+}
+
+.navigation .navigationActive {
+  color: var(--blue-deep);
+  font-weight: 700;
+}
+
+.navigation a:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+
+/* Chevron del disparador del mega menú */
+.megaTrigger {
+  position: relative;
+}
+
+/* Puente de hover: mantiene abierto el menú mientras el cursor baja desde
+   "Soluciones" hasta las opciones. Sin él el menú se cerraba solo a mitad
+   del recorrido. */
+.megaTrigger::before {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: -10px;
+  right: -10px;
+  height: 34px;
+}
+
+.megaTrigger::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  margin-top: -3px;
+  border-right: 1.6px solid currentColor;
+  border-bottom: 1.6px solid currentColor;
+  border-radius: 1px;
+  opacity: 0.6;
+  transform: rotate(45deg);
+  transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms ease;
+}
+
+.topbar:has(.megaTrigger:hover) .megaTrigger::after,
+.topbar:has(.megaTrigger:focus-visible) .megaTrigger::after {
+  margin-top: 3px;
+  opacity: 1;
+  transform: rotate(-135deg);
+}
+
+/* Mega menú: tarjeta flotante con columnas */
+.desktopMenu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  left: 0;
+  z-index: 60;
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  /* Mismo contenido que el menú de móvil, repartido a lo ancho. */
+  width: min(1180px, calc(100vw - 48px));
+  margin: 0 auto;
+  border: 1px solid rgba(20, 30, 55, 0.08);
+  border-radius: 26px;
+  background: rgba(250, 249, 246, 0.985);
+  backdrop-filter: blur(26px) saturate(180%);
+  box-shadow: 0 44px 90px -46px rgba(9, 18, 40, 0.65), 0 2px 8px rgba(12, 24, 52, 0.05);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-14px) scale(0.985);
+  transform-origin: top center;
+  pointer-events: none;
+  transition: opacity 260ms ease, transform 340ms cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 340ms;
+}
+
+/* Puente invisible para que el cursor no pierda el menú */
+.desktopMenu::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  right: 0;
+  left: 0;
+  height: 8px;
+}
+
+.topbar:has(.megaTrigger:hover) .desktopMenu,
+.topbar:has(.megaTrigger:focus-visible) .desktopMenu,
+.desktopMenu:hover,
+.desktopMenu:focus-within {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+  transition: opacity 240ms ease, transform 340ms cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 0s;
+}
+
+.desktopMenuTop {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.desktopMenuPrimary {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 58px;
+  padding: 10px 12px 10px 18px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #1544b5 0%, #2f6df0 100%);
+  color: #fff !important;
+  text-decoration: none;
+  box-shadow: 0 16px 30px -22px rgba(21, 68, 181, 0.95);
+  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 200ms ease;
+}
+
+.desktopMenuPrimary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 22px 38px -22px rgba(21, 68, 181, 1);
+}
+
+.desktopMenuPrimaryText {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.desktopMenuPrimaryLabel {
+  font-size: 15px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+.desktopMenuPrimaryHint {
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 11.5px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.desktopMenuPrimaryIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+.desktopMenuAuth {
+  display: flex;
+  gap: 10px;
+}
+
+.desktopMenuLogin,
+.desktopMenuAdmin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 58px;
+  padding: 0 20px;
+  border-radius: 16px;
+  font-size: 13.5px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.desktopMenuLogin {
+  border: 1px solid rgba(21, 68, 181, 0.28);
+  background: rgba(21, 68, 181, 0.07);
+  color: #1544b5;
+}
+
+.desktopMenuLogin:hover {
+  background: rgba(21, 68, 181, 0.12);
+}
+
+.desktopMenuAdmin {
+  border: 1px solid #171a22;
+  background: #171a22;
+  color: #fff;
+}
+
+.desktopMenuAdmin:hover {
+  border-color: #2a2f3b;
+  background: #2a2f3b;
+}
+
+.desktopMenuGroups {
+  display: grid;
+  /* Son 4 grupos: 2x2 queda parejo y sin columnas cojas. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.desktopMenuGroup {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid rgba(20, 30, 55, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.desktopMenuGroup h4 {
+  margin: 0;
+  color: #1544b5;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.desktopMenuGroup ul {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.desktopMenuGroup a {
+  display: block;
+  padding: 8px 10px;
+  border-radius: 10px;
+  color: #172033;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.desktopMenuGroup a:hover,
+.desktopMenuGroup a:focus-visible {
+  background: rgba(21, 68, 181, 0.09);
+  color: #1544b5;
+}
+
+.desktopMenuLegal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  padding: 10px 4px 2px;
+  border-top: 1px solid rgba(20, 30, 55, 0.1);
+}
+
+.desktopMenuLegal a {
+  color: #55607a;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+.desktopMenuLegal a:hover,
+.desktopMenuLegal a:focus-visible {
+  color: #1544b5;
+}
+
+/* Botón hamburguesa */
+.menuToggle {
+  display: none;
+  position: relative;
+  z-index: 1;
+  width: 42px;
+  height: 42px;
+  padding: 12px;
+  border: 1px solid rgba(20, 30, 55, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: background 220ms ease, border-color 220ms ease;
+}
+
+.menuToggle:hover {
+  border-color: rgba(21, 68, 181, 0.3);
+  background: #fff;
+}
+
+.menuToggle:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+
+.menuToggle .menuBar {
+  display: block;
+  width: 100%;
+  height: 2px;
+  margin: 2px auto;
+  border-radius: 999px;
+  background-color: #4b5468;
+  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 200ms ease,
+    background 200ms ease;
+}
+
+.menuToggle:hover .menuBar {
+  background-color: var(--blue);
+}
+
+.menuToggleActive .menuBar:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.menuToggleActive .menuBar:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0.4);
+}
+
+.menuToggleActive .menuBar:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+/* Panel móvil */
+.mobileMenu {
+  display: none;
+}
+
+@keyframes dockPanelIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 760px) {
+  .navigation a {
+    display: none;
+  }
+
+  .navigation {
+    justify-self: end;
+    padding: 4px;
+    background: transparent;
+    border-color: transparent;
+  }
+
+  .menuToggle {
+    display: block;
+    width: 44px;
+    height: 44px;
+    padding: 13px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobileMenu {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    left: 0;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: calc(100vh - 86px - env(safe-area-inset-bottom, 0px));
+    max-height: calc(100dvh - 86px - env(safe-area-inset-bottom, 0px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 14px 14px max(14px, env(safe-area-inset-bottom, 0px));
+    border: 1px solid rgba(20, 30, 55, 0.08);
+    border-radius: 22px;
+    background: rgba(250, 249, 246, 0.985);
+    backdrop-filter: blur(26px) saturate(180%);
+    -webkit-backdrop-filter: blur(26px) saturate(180%);
+    box-shadow: 0 44px 90px -46px rgba(9, 18, 40, 0.65);
+    animation: dockPanelIn 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    outline: none;
+    touch-action: pan-y;
+    scrollbar-width: thin;
+  }
+
+  /* Al abrir el hamburguesa del hero, muestra solo su panel, sin el dock superior. */
+  .topbarMenuOpen .topbarShell {
+    display: block;
+    width: 100%;
+    height: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .topbarMenuOpen .topbarShell::after,
+  .topbarMenuOpen .topbarShell > :not(.mobileMenu) {
+    display: none;
+  }
+
+  .topbarMenuOpen .mobileMenu {
+    position: fixed;
+    top: 72px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+  }
+
+  .mobileMenuHead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 2px 2px 0 4px;
+  }
+
+  .mobileMenuEyebrow {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .mobileMenuClose {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+    padding: 0;
+    border: 1px solid rgba(20, 30, 55, 0.08);
+    border-radius: 999px;
+    background: rgba(20, 30, 55, 0.04);
+    color: var(--ink);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 200ms ease, color 200ms ease, border-color 200ms ease;
+  }
+
+  .mobileMenuClose:hover,
+  .mobileMenuClose:focus-visible {
+    border-color: rgba(21, 68, 181, 0.3);
+    background: rgba(21, 68, 181, 0.1);
+    color: var(--blue);
+    outline: none;
+  }
+
+  .mobileMenuClose:focus-visible {
+    box-shadow: 0 0 0 3px rgba(21, 68, 181, 0.22);
+  }
+
+  .mobileMenuPrimary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    min-height: 64px;
+    padding: 13px 13px 13px 16px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #1544b5 0%, #2f6df0 100%);
+    color: #fff !important;
+    box-shadow: 0 18px 34px -20px rgba(21, 68, 181, 0.95);
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 200ms ease;
+  }
+
+  .mobileMenuPrimary:active {
+    transform: scale(0.985);
+  }
+
+  .mobileMenuPrimaryText {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .mobileMenuPrimaryLabel {
+    font-size: 16px;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+  }
+
+  .mobileMenuPrimaryHint {
+    overflow: hidden;
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 11.5px;
+    font-weight: 500;
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobileMenuPrimaryIcon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+  }
+
+  .mobileMenuAuth {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .mobileMenuLogin,
+  .mobileMenuAdmin {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 0 14px;
+    border-radius: 14px;
+    font-size: 13.5px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1), background 200ms ease,
+      border-color 200ms ease, color 200ms ease;
+  }
+
+  .mobileMenuLogin {
+    border: 1px solid rgba(21, 68, 181, 0.28);
+    background: rgba(21, 68, 181, 0.07);
+    color: var(--blue) !important;
+  }
+
+  .mobileMenuAdmin {
+    border: 1px solid #171a22;
+    background: #171a22;
+    color: #fff !important;
+  }
+
+  .mobileMenuLogin:active,
+  .mobileMenuAdmin:active {
+    transform: scale(0.97);
+  }
+
+  .mobileMenuLogin:hover,
+  .mobileMenuLogin:focus-visible {
+    border-color: rgba(21, 68, 181, 0.5);
+    background: rgba(21, 68, 181, 0.13);
+    outline: none;
+  }
+
+  .mobileMenuAdmin:hover,
+  .mobileMenuAdmin:focus-visible {
+    border-color: var(--blue);
+    background: var(--blue);
+    outline: none;
+  }
+
+  .mobileMenuLogin:focus-visible,
+  .mobileMenuAdmin:focus-visible {
+    box-shadow: 0 0 0 3px rgba(21, 68, 181, 0.22);
+  }
+
+  .mobileMenuLinks {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-top: 4px;
+    border-top: 1px solid rgba(20, 30, 55, 0.07);
+  }
+
+  .mobileMenuLegal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    margin-top: 6px;
+    padding: 12px 4px 2px;
+    border-top: 1px solid rgba(20, 30, 55, 0.07);
+  }
+
+  .mobileMenuLegal a {
+    padding: 6px 0;
+    color: #667085;
+    font-size: 12.5px;
+    font-weight: 600;
+    transition: color 180ms ease;
+  }
+
+  .mobileMenuLegal a:hover,
+  .mobileMenuLegal a:focus-visible {
+    color: var(--blue);
+    outline: none;
+  }
+
+  .mobileMenuLink,
+  .mobileMenuGroupTitle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 46px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 600;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: background 180ms ease, color 180ms ease;
+  }
+
+  .mobileMenuLink:hover,
+  .mobileMenuLink:focus-visible,
+  .mobileMenuGroupTitle:hover,
+  .mobileMenuGroupTitle:focus-visible {
+    color: var(--blue);
+    background: rgba(21, 68, 181, 0.08);
+    outline: none;
+  }
+
+  .mobileMenuLink:focus-visible,
+  .mobileMenuGroupTitle:focus-visible {
+    box-shadow: inset 0 0 0 2px rgba(21, 68, 181, 0.28);
+  }
+
+  .mobileMenuGroup {
+    display: grid;
+    gap: 2px;
+    margin-top: 2px;
+    padding: 6px;
+    border: 1px solid rgba(20, 30, 55, 0.06);
+    border-radius: 16px;
+    background: rgba(20, 30, 55, 0.03);
+  }
+
+  .mobileMenuGroupTitle {
+    color: var(--blue) !important;
+    font-weight: 700;
+  }
+
+  .mobileMenuSubgroup {
+    display: grid;
+    gap: 2px;
+    padding: 4px 2px 6px;
+  }
+
+  .mobileMenuSubgroup strong {
+    display: block;
+    padding: 10px 10px 4px;
+    color: var(--blue);
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .mobileMenuSubgroup a {
+    display: block;
+    padding: 9px 10px;
+    border-radius: 10px;
+    color: var(--muted);
+    font-size: 12.5px;
+    font-weight: 550;
+    line-height: 1.35;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: background 180ms ease, color 180ms ease;
+  }
+
+  .mobileMenuSubgroup a:hover,
+  .mobileMenuSubgroup a:focus-visible {
+    color: var(--blue);
+    background: rgba(21, 68, 181, 0.08);
+    outline: none;
+  }
+
+  .mobileMenuSubgroup a:focus-visible {
+    box-shadow: inset 0 0 0 2px rgba(21, 68, 181, 0.24);
+  }
+}
+
+.topAction,
+.primaryAction,
+.contactAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 13px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.topAction {
+  justify-self: end;
+  /* Era un <a>; ahora es el <button> del desplegable "Acceder", así que se
+     neutralizan los estilos nativos para que se vea igual que antes. */
+  display: inline-flex;
+  align-items: center;
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
+  gap: clamp(10px, 0.6vw, 14px);
+  padding: clamp(4px, 0.28vw, 6px) clamp(4px, 0.28vw, 6px) clamp(4px, 0.28vw, 6px)
+    clamp(16px, 1.15vw, 26px);
+  border-radius: 999px;
+  background: #171a22;
+  color: #fff !important;
+  font-size: clamp(11.5px, 0.86vw, 16px);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  box-shadow: 0 10px 24px -14px rgba(23, 26, 34, 0.9);
+  transition: background 240ms ease, transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 240ms ease;
+}
+
+.topAction > span:first-child {
+  color: #fff !important;
+}
+
+.accessMenu {
+  position: relative;
+  justify-self: end;
+  display: inline-flex;
+}
+
+.accessMenuPanel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 60;
+  /* Dos cuadros lado a lado: Login y a su derecha Admin.
+     El ancho es fijo: sin él la rejilla se encogía al ancho del botón
+     dentro del hero y el texto de los cuadros se partía letra por letra. */
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  width: max-content;
+  min-width: 268px;
+  padding: 10px;
+  border: 1px solid rgba(20, 30, 55, 0.1);
+  border-radius: 18px;
+  background: rgba(250, 249, 246, 0.98);
+  box-shadow: 0 22px 48px -20px rgba(12, 24, 52, 0.5);
+  backdrop-filter: blur(18px) saturate(160%);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px) scale(0.98);
+  pointer-events: none;
+  /* `visibility 180ms` interpola el valor y el panel se ocultaba a mitad de la
+     animación: se veía como un corte. Se retrasa hasta el final del cierre. */
+  transition: opacity 240ms ease, transform 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 280ms;
+}
+
+.accessMenu:hover .accessMenuPanel,
+.accessMenu:focus-within .accessMenuPanel {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+  transition: opacity 240ms ease, transform 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 0s;
+}
+
+/* Cada cuadro: icono arriba y texto debajo, centrados. */
+.accessMenuPanel a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 14px 12px;
+  border: 1px solid rgba(20, 30, 55, 0.1);
+  border-radius: 14px;
+  background: #fff;
+  color: #172033;
+  text-align: center;
+  text-decoration: none;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.accessMenuPanel a > svg {
+  flex: 0 0 auto;
+  color: #1544b5;
+}
+
+/* Ojo con el selector: antes .panelTitle span pisaba el color del icono por
+   especificidad. Aquí se apunta solo al bloque de texto. */
+.accessMenuPanel a > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.accessMenuPanel a strong {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.accessMenuPanel a small {
+  color: #6b6b66;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* Login: secundario. Admin: sólido, para que se distinga de un vistazo. */
+.accessMenuLogin:hover,
+.accessMenuLogin:focus-visible {
+  border-color: rgba(21, 68, 181, 0.34);
+  background: rgba(21, 68, 181, 0.08);
+  color: #1544b5;
+}
+
+.accessMenuAdmin {
+  border-color: #171a22 !important;
+  background: #171a22 !important;
+  color: #fff !important;
+}
+
+.accessMenuAdmin > svg {
+  color: #fff !important;
+}
+
+.accessMenuAdmin small {
+  color: #c3cad6 !important;
+}
+
+.accessMenuAdmin:hover,
+.accessMenuAdmin:focus-visible {
+  border-color: #2a2f3b !important;
+  background: #2a2f3b !important;
+}
+
+.topActionIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: clamp(30px, 1.95vw, 42px);
+  height: clamp(30px, 1.95vw, 42px);
+  border-radius: 50%;
+  background: #2a2f3b;
+  color: #fff;
+  transition: background 240ms ease, color 240ms ease, transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.topActionIcon svg {
+  color: #fff;
+  stroke: #fff;
+}
+
+.topAction:hover {
+  background: var(--blue);
+  transform: translateY(-2px);
+  box-shadow: 0 16px 32px -16px rgba(21, 68, 181, 0.85);
+}
+
+.topAction:hover .topActionIcon {
+  background: #fff;
+  color: var(--blue);
+  transform: translate(2px, -2px) rotate(8deg);
+}
+
+.topAction:hover .topActionIcon svg {
+  color: var(--blue);
+  stroke: var(--blue);
+}
+
+.topAction:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+
+/* Navegadores sin desenfoque de fondo: superficies casi opacas para no perder legibilidad */
+@supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))) {
+  .topbarShell {
+    background: rgba(250, 249, 246, 0.97);
+  }
+
+  .desktopMenu,
+  .mobileMenu {
+    background: rgba(250, 249, 246, 0.99);
+  }
+
+  .desktopMenuGroup {
+    background: #fff;
+  }
+}
+
+
+/* variant="fixed": el dock no se mueve ni aparece al hacer scroll. */
+.topbarFixed {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: none;
+}
+
+/* Accesos finales de la cápsula: botón del carrito (categoría) + Acceder. */
+.topbarActions {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(8px, 1vw, 16px);
+}
+
+/* Fila del toggle de tema dentro del menú móvil. */
+.mobileMenuTheme {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  margin-top: 4px;
+  padding: 12px 14px;
+  border: 1px solid rgba(20, 30, 55, 0.08);
+  border-radius: 14px;
+  background: rgba(20, 30, 55, 0.04);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: background 180ms ease, border-color 180ms ease;
+}
+
+.mobileMenuTheme:hover,
+.mobileMenuTheme:focus-visible {
+  border-color: rgba(21, 68, 181, 0.3);
+  background: rgba(21, 68, 181, 0.08);
+  color: var(--blue);
+  outline: none;
+}
+
+
+/* Medidas del dock que en home vivían en sus media queries generales. */
+@media (max-width: 1040px) {
+  .topbar { padding-right: 16px; padding-left: 16px; }
+  .topbarShell { gap: 10px; padding-left: 12px; }
+  .brand img { width: 114px; }
+  .navigation a { font-size: 11.5px; padding: 7px 11px; }
+  .topAction { padding-left: 14px; font-size: 11px; }
+}
+
+@media (max-width: 760px) {
+  .topbar { padding: 10px 12px 0; }
+  .topbarShell { height: 58px; gap: 8px; padding: 5px 6px 5px 12px; }
+  .brand { padding: 5px 7px; }
+  .brand img { width: 106px; }
+  .topAction { gap: 8px; padding: 3px 3px 3px 13px; font-size: 11px; }
+  .topActionIcon { width: 28px; height: 28px; }
+  .topActionIcon svg { width: 14px; height: 14px; }
+}
+
+@media (max-width: 420px) {
+  .topbar { padding: 8px 9px 0; }
+  .topbarShell { height: 54px; padding-left: 10px; }
+  .brand { padding: 4px 6px; }
+  .brand img { width: 96px; }
+  .topAction { gap: 7px; padding: 3px 3px 3px 11px; font-size: 10px; }
+  .topActionIcon { width: 26px; height: 26px; }
+  .topActionIcon svg { width: 13px; height: 13px; }
+}
+
+/* Con carrito hay una acción más que en el home. En tableta y móvil ambas
+   conservan su icono y su nombre accesible, pero ocultan el texto visible
+   para que marca, navegación y acciones quepan sin desplazamiento lateral. */
+@media (max-width: 1180px) {
+  .topbarWithCart .topAction > span:first-child { display: none; }
+  .topbarWithCart .topAction { padding: 4px; }
+  .topbarWithCart .topbarActions { gap: 8px; }
+}
+
+/* Tema oscuro: mismas superficies y contrastes del dock original. */
+:global(html[data-theme="dark"]) .topbarShell {
+  border-color: #ffffff14;
+  background: rgba(20, 24, 32, 0.85);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 20px 44px -26px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+:global(html[data-theme="dark"]) .brand img {
+  filter: brightness(0) invert(1);
+}
+
+:global(html[data-theme="dark"]) .navigation {
+  border-color: #ffffff12;
+  background: #ffffff0a;
+}
+
+:global(html[data-theme="dark"]) .navIndicator {
+  background: #232b37;
+  box-shadow: 0 8px 18px -10px #000, inset 0 1px 0 #ffffff14;
+}
+
+:global(html[data-theme="dark"]) .navigation a {
+  color: var(--muted);
+}
+
+:global(html[data-theme="dark"]) .navigation .navigationActive {
+  color: #cddcff;
+}
+
+:global(html[data-theme="dark"]) .menuToggle {
+  border-color: #ffffff1f;
+  background: #ffffff12;
+}
+
+:global(html[data-theme="dark"]) .menuToggle .menuBar {
+  background-color: var(--ink);
+}
+
+:global(html[data-theme="dark"]) .desktopMenu,
+:global(html[data-theme="dark"]) .mobileMenu {
+  border-color: #ffffff14;
+  background: rgba(18, 22, 29, 0.98);
+}
+
+:global(html[data-theme="dark"]) .desktopMenuGroup {
+  border-color: #ffffff12;
+  background: #ffffff08;
+}
+
+:global(html[data-theme="dark"]) .desktopMenuGroup h4 {
+  color: #a8c2ff;
+}
+
+:global(html[data-theme="dark"]) .desktopMenuGroup a,
+:global(html[data-theme="dark"]) .mobileMenuLink,
+:global(html[data-theme="dark"]) .mobileMenuSubgroup a {
+  color: #c7cedb;
+}
+
+:global(html[data-theme="dark"]) .desktopMenuGroup a:hover,
+:global(html[data-theme="dark"]) .desktopMenuGroup a:focus-visible {
+  background: rgba(127, 166, 255, 0.15);
+  color: #dbe4ff;
+}
+
+:global(html[data-theme="dark"]) .desktopMenuLogin {
+  border-color: rgba(127, 166, 255, 0.34);
+  background: rgba(127, 166, 255, 0.12);
+  color: #dbe4ff;
+}
+
+:global(html[data-theme="dark"]) .desktopMenuLogin:hover {
+  background: rgba(127, 166, 255, 0.2);
+}
+
+:global(html[data-theme="dark"]) .desktopMenuAdmin {
+  border-color: #eef1f7;
+  background: #eef1f7;
+  color: #101827;
+}
+
+:global(html[data-theme="dark"]) .desktopMenuAdmin:hover {
+  border-color: #fff;
+  background: #fff;
+}
+
+/* Desplegable "Acceder" */
+:global(html[data-theme="dark"]) .accessMenuPanel {
+  border-color: #ffffff1f;
+  background: rgba(21, 27, 35, 0.98);
+  box-shadow: 0 24px 50px -18px rgba(0, 0, 0, 0.85);
+}
+
+:global(html[data-theme="dark"]) .accessMenuPanel a {
+  color: #e9ebef;
+}
+
+:global(html[data-theme="dark"]) .accessMenuPanel a:hover,
+:global(html[data-theme="dark"]) .accessMenuPanel a:focus-visible {
+  background: rgba(127, 166, 255, 0.16);
+  color: #a8c2ff;
+}
+
+:global(html[data-theme="dark"]) .accessMenuPanel a > svg {
+  color: #9db8ff;
+}
+
+:global(html[data-theme="dark"]) .accessMenuPanel a small {
+  color: #9aa1ab;
+}
+
+:global(html[data-theme="dark"]) .accessMenuPanel a {
+  border-color: #ffffff1a;
+  background: #ffffff0a;
+  color: #e9ebef;
+}
+
+:global(html[data-theme="dark"]) .accessMenuLogin:hover,
+:global(html[data-theme="dark"]) .accessMenuLogin:focus-visible {
+  border-color: rgba(127, 166, 255, 0.4);
+  background: rgba(127, 166, 255, 0.16);
+  color: #dbe4ff;
+}
+
+:global(html[data-theme="dark"]) .accessMenuAdmin {
+  border-color: #eef1f7 !important;
+  background: #eef1f7 !important;
+  color: #101827 !important;
+}
+
+:global(html[data-theme="dark"]) .accessMenuAdmin > svg {
+  color: #101827 !important;
+}
+
+:global(html[data-theme="dark"]) .accessMenuAdmin small {
+  color: #4a5568 !important;
+}
+
+:global(html[data-theme="dark"]) .mobileMenuClose {
+  border-color: #ffffff1f;
+  background: #ffffff12;
+  color: var(--ink);
+}
+
+:global(html[data-theme="dark"]) .mobileMenuGroup {
+  border-color: #ffffff12;
+  background: #ffffff08;
+}
+
+:global(html[data-theme="dark"]) .mobileMenuGroupTitle,
+:global(html[data-theme="dark"]) .mobileMenuSubgroup strong {
+  color: var(--accent-ink) !important;
+}
+
+:global(html[data-theme="dark"]) .mobileMenuLinks {
+  border-top-color: #ffffff12;
+}
+
+:global(html[data-theme="dark"]) .mobileMenuLegal {
+  border-top-color: #ffffff12;
+}
+
+:global(html[data-theme="dark"]) .mobileMenuLegal a {
+  color: #aab5c7;
+}
+
+:global(html[data-theme="dark"]) .mobileMenuLegal a:hover,
+:global(html[data-theme="dark"]) .mobileMenuLegal a:focus-visible {
+  color: #a8c2ff;
+}
+
+:global(html[data-theme="dark"]) .mobileMenuLogin {
+  border-color: rgba(127, 166, 255, 0.34);
+  background: rgba(127, 166, 255, 0.12);
+  color: var(--accent-ink) !important;
+}
+
+:global(html[data-theme="dark"]) .mobileMenuAdmin {
+  border-color: #eef1f7;
+  background: #eef1f7;
+  color: #101827 !important;
+}
+
+:global(html[data-theme="dark"]) .desktopMenuLegal {
+  border-top-color: #ffffff14;
+}
+
+:global(html[data-theme="dark"]) .desktopMenuLegal a {
+  color: #aab5c7;
+}
+
+:global(html[data-theme="dark"]) .desktopMenuLegal a:hover,
+:global(html[data-theme="dark"]) .desktopMenuLegal a:focus-visible {
+  color: #a8c2ff;
+}
+
+:global(html[data-theme="dark"]) .topAction {
+  background: #eef1f7;
+  box-shadow: 0 12px 26px -16px rgba(0, 0, 0, 0.9);
+}
+
+:global(html[data-theme="dark"]) .topAction > span:first-child {
+  color: #101827 !important;
+}
+
+:global(html[data-theme="dark"]) .topActionIcon {
+  background: rgba(16, 24, 39, 0.1);
+}
+
+:global(html[data-theme="dark"]) .topActionIcon svg {
+  color: #101827;
+  stroke: #101827;
+}
+
+:global(html[data-theme="dark"]) .topAction:hover {
+  background: var(--blue);
+}
+
+:global(html[data-theme="dark"]) .topAction:hover > span:first-child {
+  color: #fff !important;
+}
+
+:global(html[data-theme="dark"]) .topAction:hover .topActionIcon {
+  background: #fff;
+}
+
+:global(html[data-theme="dark"]) .topAction:hover .topActionIcon svg {
+  color: #fff;
+  stroke: #fff;
+}

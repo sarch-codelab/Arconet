@@ -57,8 +57,10 @@ describe("el copy visible acompaña al nombre de la ruta", () => {
     expect(footer).not.toContain('label: "Catálogo"');
 
     const home = readFileSync("app/home-experience.js", "utf8");
-    expect(home).toContain('{ label: "Tienda", href: "/tienda"');
-    expect(home).not.toContain('{ label: "Catálogo", href: "/tienda"');
+    const navigation = readFileSync("app/navigation-data.js", "utf8");
+    expect(navigation).toContain('{ label: "Tienda", href: "/tienda"');
+    expect(navigation).not.toContain('{ label: "Catálogo", href: "/tienda"');
+    expect(home).toContain('import { NAVIGATION } from "./navigation-data"');
     expect(home).toContain("mobileMenuPrimaryLabel}>Tienda<");
 
     const menu = readFileSync("app/mobile-site-menu.js", "utf8");

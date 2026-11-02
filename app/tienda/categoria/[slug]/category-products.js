@@ -60,17 +60,17 @@ import { useCatalogProducts } from "../../catalogo-products";
 import { useCart } from "../../../cart-context";
 import styles from "./category-products.module.css";
 import Footer from "../../../footer";
-import MobileSiteMenu from "../../../mobile-site-menu";
+import NavDock from "../../../nav-dock";
+import { NAVIGATION } from "../../../navigation-data";
 import CategoryFilters, { ORDEN_OPCIONES } from "./category-filters";
 import CategoryToolbar from "./category-toolbar";
 
-// Misma navegación que la ficha de producto: aquí antes había un solo enlace
-// ("Tienda"), así que el menú se veía como una etiqueta suelta en el centro.
-const NAVIGATION = [
-  { href: "/tienda", label: "Soluciones" },
-  { href: "/#empresa", label: "La empresa" },
-  { href: "/contacto", label: "Contacto" },
-];
+// El menú 2 usa anclas dentro del home. Desde una categoría esas mismas
+// entradas deben volver al home para encontrar su sección.
+const CATEGORY_NAVIGATION = NAVIGATION.map((item) => ({
+  ...item,
+  href: item.href.startsWith("#") ? `/${item.href}` : item.href,
+}));
 
 // Clave de la preferencia de tamaño de tarjeta (vista grande, compacta o lista).
 const VISTA_KEY = "arconet-catalogo-vista";
@@ -192,29 +192,36 @@ function CategoryProductCard({ product, index, onAdd }) {
   );
 }
 
-export default function CategoryProducts({ slug, category = null, blocked = false }) {
-  const staticFamily = findFamily(slug) || (category ? findFamily(category.slug) || findFamily(category.nombre) : null);
-  const family = category
+export default function CategoryProducts({
+  slug,
+  categoryName = null,
+  categoryDescription = "",
+  categoryPhoto = "",
+  blocked = false,
+}) {
+  const staticFamily = findFamily(slug) || (categoryName ? findFamily(categoryName) : null);
+  const family = categoryName
     ? {
         ...(staticFamily || {}),
-        slug: category.slug || staticFamily?.slug || slug,
-        category: category.nombre,
-        title: category.nombre,
+        slug: staticFamily?.slug || slug,
+        category: categoryName,
+        title: categoryName,
         badge: staticFamily?.badge || "Línea",
         // El resumen es el teaser corto; la descripcion larga puede venir de
         // la base. Cuando la base solo tiene un texto, queda una sola
         // linea (antes se pintaba dos veces iguales).
-        summary: staticFamily?.summary || category.descripcion || "Productos disponibles en esta línea.",
+        summary: staticFamily?.summary || categoryDescription || "Productos disponibles en esta línea.",
         description:
-          category.descripcion ||
+          categoryDescription ||
           staticFamily?.description ||
           "Explora las referencias disponibles y cotiza con el equipo técnico de Arconet.",
         items: staticFamily?.items || [],
-        image: category.foto || staticFamily?.image || "",
-        imageAlt: category.nombre,
+        image: categoryPhoto || staticFamily?.image || "",
+        imageAlt: categoryName,
       }
     : staticFamily;
   const pageRef = useRef(null);
+  const topbarRef = useRef(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [rangoPrecio, setRangoPrecio] = useState({ min: "", max: "" });
   const [marcasActivas, setMarcasActivas] = useState([]);
@@ -251,7 +258,7 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
     const updateScroll = ({ scroll = window.scrollY, limit, progress } = {}) => {
       const scrollable = Math.max(limit ?? document.documentElement.scrollHeight - window.innerHeight, 1);
       const pageProgress = typeof progress === "number" ? progress : Math.min(1, Math.max(0, scroll / scrollable));
-      page.style.setProperty("--page-progress", pageProgress.toFixed(4));
+      topbarRef.current?.style.setProperty("--scroll-progress", pageProgress.toFixed(4));
     };
 
     /* EL SCROLL LATERAL (la pagina se deslizaba a izquierda/derecha):
@@ -330,7 +337,7 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
   // Coincidencia tolerante: el valor guardado en el producto puede ser el
   // nombre o el slug, con distinta mayúscula o acentos.
   const targetCategoria = normalizarCategoria(nombreCategoria);
-  const targetSlug = normalizarCategoria(category?.slug || slug);
+  const targetSlug = normalizarCategoria(slug);
   const categoryProducts = useMemo(
     () =>
       targetCategoria || targetSlug
@@ -423,39 +430,28 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
 
   return (
     <main className={styles.category} ref={pageRef}>
-      <div className={styles.readingProgress} aria-hidden="true" />
-      <header className={styles.header}>
-        <Link className={styles.brand} href="/" aria-label="Arconet, inicio">
-          <Image
-              src="/arconet.png"
-              alt="Arconet"
-              width={1200}
-              height={200}
-              sizes="(max-width: 1040px) 114px, 176px"
-              priority
-            />
-        </Link>
-        <MobileSiteMenu />
-        <nav className={styles.nav} aria-label="Navegación principal">
-          {NAVIGATION.map((item) => (
-            <a key={item.label} href={item.href}>
-              {item.label}
-            </a>
-          ))}
-        </nav>
-        <button
-          type="button"
-          className={styles.headerAction}
-          onClick={openCart}
-          aria-label={`Carrito, ${cartCount} ${cartCount === 1 ? "unidad" : "unidades"}`}
-        >
-          Carrito
-          <span className={styles.headerCartIcon}>
-            <ShoppingCart size={15} aria-hidden="true" />
-            {cartCount > 0 && <i className={styles.cartBadge} aria-hidden="true">{cartCount > 99 ? "99+" : cartCount}</i>}
-          </span>
-        </button>
-      </header>
+      {/* Menú 2 del home, fijo desde el primer render: no depende de
+          scrolledPastHero ni aparece después de hacer scroll. */}
+      <NavDock
+        variant="fixed"
+        activeId="soluciones"
+        navigation={CATEGORY_NAVIGATION}
+        topbarRef={topbarRef}
+        cartAction={
+          <button
+            type="button"
+            className={styles.headerAction}
+            onClick={openCart}
+            aria-label={`Carrito, ${cartCount} ${cartCount === 1 ? "unidad" : "unidades"}`}
+          >
+            <span className={styles.headerCartLabel}>Carrito</span>
+            <span className={styles.headerCartIcon}>
+              <ShoppingCart size={15} aria-hidden="true" />
+              {cartCount > 0 && <i className={styles.cartBadge} aria-hidden="true">{cartCount > 99 ? "99+" : cartCount}</i>}
+            </span>
+          </button>
+        }
+      />
 
       <div className={styles.breadcrumb}>
         <Link href="/tienda">Tienda</Link>

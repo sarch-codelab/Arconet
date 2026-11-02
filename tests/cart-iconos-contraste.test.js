@@ -18,7 +18,7 @@ describe("iconos del carrito y del catálogo", () => {
   });
 
   it("el botón de cotización mantiene el icono visible en tema oscuro", () => {
-    const regla = CATEGORIA.match(/html\[data-theme="dark"\]\) \.headerAction span \{([^}]*)\}/)?.[1] || "";
+    const regla = CATEGORIA.match(/html\[data-theme="dark"\]\) \.headerCartIcon \{([^}]*)\}/)?.[1] || "";
     expect(regla).toContain("background: #ffffff");
     expect(regla).toContain("color: #0d1422");
     expect(regla).not.toContain("#101827");

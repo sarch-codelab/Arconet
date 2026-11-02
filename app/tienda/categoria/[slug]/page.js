@@ -59,8 +59,18 @@ export default async function CategoryPage({ params }) {
   const categoria = await getCategoria(slug);
 
   if (categoria && categoria.estado !== "activo") {
-    return <CategoryProducts slug={slug} category={null} blocked />;
+    return <CategoryProducts slug={slug} blocked />;
   }
 
-  return <CategoryProducts slug={slug} category={categoria} />;
+  // Solo datos primitivos cruzan la frontera servidor → cliente. Pasar el
+  // registro completo permitía que el objeto de Categoria terminara en el
+  // render de React (error #31) en lugar de limitarse a consultar la página.
+  return (
+    <CategoryProducts
+      slug={slug}
+      categoryName={categoria?.nombre ?? null}
+      categoryDescription={categoria?.descripcion ?? ""}
+      categoryPhoto={categoria?.foto ?? ""}
+    />
+  );
 }
