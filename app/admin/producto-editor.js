@@ -4,7 +4,7 @@ import { PRICE_FIELDS, PRICE_LEVELS, parsePrices, validatePriceSet } from "@/lib
 import { apiFetch as fetch } from "@/lib/api-fetch";
 
 import { useEffect, useMemo, useState } from "react";
-import { X } from "lucide-react";
+import { Boxes, Camera, Coins, Eye, Tag, X } from "lucide-react";
 import { Avatar, useToast, notifyError } from "./admin-ui";
 import { compressImage } from "./image-utils";
 import BarcodeScanner from "./barcode-scan";
@@ -236,7 +236,7 @@ export default function ProductoEditor({
   return (
     <form className={formClassName ?? styles.form} onSubmit={submitProduct}>
       <section className={styles.formSection}>
-        <h3 className={styles.formSectionTitle}>Fotos</h3>
+        <h3 className={styles.formSectionHead}><Camera size={15} /> Fotos</h3>
         <div className={styles.photoRow}>
           <div className={styles.photoCol}>
             <Avatar src={draft.foto} name={draft.nombre} className={styles.photoPreview} shape="square" />
@@ -305,16 +305,28 @@ export default function ProductoEditor({
       </section>
 
       <section className={styles.formSection}>
-        <h3 className={styles.formSectionTitle}>Ficha del producto</h3>
+        <h3 className={styles.formSectionHead}><Tag size={15} /> Ficha del producto</h3>
         <div className={styles.fieldGrid}>
           <label className={`${styles.field} ${styles.spanFull}`}>
-            Nombre del producto
+            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              Nombre del producto
+              <span className={styles.fieldRequired}>Obligatorio</span>
+            </span>
             <input
               type="text"
               value={draft.nombre}
               onChange={(event) => changeField("nombre", event.target.value)}
               placeholder="Ej. Splitter óptico 1x8 PLC"
               required
+            />
+          </label>
+          <label className={`${styles.field} ${styles.spanFull}`}>
+            Descripción
+            <textarea
+              value={draft.descripcion}
+              onChange={(event) => changeField("descripcion", event.target.value)}
+              placeholder="Detalles técnicos, presentación o notas de venta."
+              rows={3}
             />
           </label>
           <label className={styles.field}>
@@ -381,7 +393,7 @@ export default function ProductoEditor({
       </section>
 
       <section className={styles.formSection}>
-        <h3 className={styles.formSectionTitle}>Precios y costo</h3>
+        <h3 className={styles.formSectionHead}><Coins size={15} /> Precios y costo</h3>
         {editing && !draft.precio && (
           <div className={styles.spanFull} role="alert" style={{ marginBottom: "8px", padding: "10px 12px", borderRadius: "8px", border: "1px solid var(--orange)", background: "var(--orange-light)", color: "var(--text-warning)", fontSize: "13px" }}>
             Este producto está pendiente de revisión: falta el Valor 1 · Normal. Define los precios y guarda para publicarlo en la tienda.
@@ -390,7 +402,10 @@ export default function ProductoEditor({
         <div className={styles.fieldGrid}>
           {canWritePrices ? (
             PRICE_LEVELS.map(level => <label className={styles.field} key={level.id}>
-              {level.label} (L)
+              <span style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                {level.label} (L)
+                {level.id === "normal" && <span className={styles.fieldRequired}>Obligatorio</span>}
+              </span>
               <input type="number" min={level.id === "normal" ? "1" : "0.01"} max="9999999999.99" step="0.01" required={level.id === "normal"} value={draft[level.field]} onChange={event => changeField(level.field, event.target.value)} placeholder={level.id === "normal" ? "Precio original de venta" : "Opcional"} />
               <small className={styles.fieldHint}>{level.id === "normal" ? "Precio normal de venta, no costo de compra. Mínimo L 1.00." : "Vacío = sin configurar. No puede superar el precio normal."}</small>
             </label>)
@@ -415,7 +430,7 @@ export default function ProductoEditor({
       </section>
 
       <section className={styles.formSection}>
-        <h3 className={styles.formSectionTitle}>Inventario y ubicación</h3>
+        <h3 className={styles.formSectionHead}><Boxes size={15} /> Inventario y ubicación</h3>
         <div className={styles.fieldGrid}>
           <label className={styles.field}>
             {`Stock (${unitLabel(draft.unidad, 2)})`}
@@ -481,7 +496,7 @@ export default function ProductoEditor({
       </section>
 
       <section className={styles.formSection}>
-        <h3 className={styles.formSectionTitle}>Publicación</h3>
+        <h3 className={styles.formSectionHead}><Eye size={15} /> Publicación</h3>
         <div className={styles.fieldGrid}>
           <label className={styles.field}>
             Estado
@@ -490,15 +505,9 @@ export default function ProductoEditor({
                 <option key={item.id} value={item.id}>{item.label}</option>
               ))}
             </select>
-          </label>
-          <label className={`${styles.field} ${styles.spanFull}`}>
-            Descripción
-            <textarea
-              value={draft.descripcion}
-              onChange={(event) => changeField("descripcion", event.target.value)}
-              placeholder="Detalles técnicos, presentación o notas de venta."
-              rows={3}
-            />
+            <small className={styles.fieldHint}>
+              Activo = aparece en la tienda · Pendiente = falta precio, no se publica · Borrador = no se muestra · Inactivo = retirado del catálogo.
+            </small>
           </label>
         </div>
       </section>
