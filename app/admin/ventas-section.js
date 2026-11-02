@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useContext, useMemo, useRef, useState } from "react";
-import { BookOpen, Plus, Receipt, ScrollText } from "lucide-react";
+import { BookOpen, Plus, Receipt } from "lucide-react";
 import CotizacionesSection from "./cotizaciones-section";
 import FacturacionPanel from "./facturacion-panel";
 import PreciosPanel from "./precios-panel";
@@ -84,18 +84,6 @@ export default function VentasSection({ orders = [], setOrders, clientes = [], s
     )
   );
 
-  // Registro de actividad: para quienes no tienen logs:read muestra el scope
-  // de inventario (misma regla que la seccion Logs).
-  const logsTool = (
-    (permisos.includes("inventario:read") || permisos.includes("logs:read")) && (
-      <div className={styles.fiscalTools} role="group" aria-label="Registro de actividad">
-        <button type="button" className={adminStyles.ghostBtn} onClick={() => adminContext?.goTo?.("logs")}>
-          <ScrollText size={15} /> Logs
-        </button>
-      </div>
-    )
-  );
-
   const fiscalNotice = <>
     {lastSaved && <BusinessNotice kind={lastSaved.documento.estado === "anulado" ? "warning" : "success"} title={lastSaved.replayed ? "Documento ya guardado · recuperado sin duplicar" : "Venta guardada correctamente"} message={`${lastSaved.documento.correlativo ? `Factura ${lastSaved.documento.correlativo}.` : "Pendiente de CAI; sin numeración ni validez fiscal."} Total L ${Number(lastSaved.documento.total).toLocaleString("es-HN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}.${lastSaved.replayed ? " No se creó otra factura ni se descontó inventario de nuevo." : ""}${lastSaved.documento.estado === "anulado" ? " Este documento figura anulado." : ""}`}>
       <div className={styles.actions}>
@@ -115,7 +103,7 @@ export default function VentasSection({ orders = [], setOrders, clientes = [], s
       orders={canReadCommercial ? orders : []} setOrders={setOrders} clientes={clientes} setClientes={setClientes} products={products} workers={workers} session={session}
       hideTopbar chromeOnly hideCreateActions editorRef={quoteEditor}
       tabs={tabs} activeTab={selectedTab} onTabChange={setActiveTab}
-      headerActions={<>{actions}{fiscalTools}{logsTool}</>} hideList={selectedTab === "precios"} listNotice={fiscalNotice}
+      headerActions={<>{actions}{fiscalTools}</>} hideList={selectedTab === "precios"} listNotice={fiscalNotice}
       fiscalDocuments={canReadFiscal ? fiscalDocuments : []}
       onFiscalDetail={showFiscalDetail}
       onFiscalAnnul={documento => fiscalEditor.current?.annul(documento)}

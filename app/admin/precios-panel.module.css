@@ -72,9 +72,47 @@
 .price span {
   color: var(--text-muted);
 }
+.cardHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.productIcon {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--bg-card-subtle);
+  color: var(--text-muted);
+}
+
+.productTitles {
+  min-width: 0;
+}
+
+.productTitles h2 {
+  margin: 0 0 2px;
+}
+
 .price strong {
   white-space: nowrap;
   color: var(--text-main);
+  font-size: 14px;
+}
+
+.priceLabel {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.priceLabel small {
+  color: var(--text-muted);
+  font-size: 10.5px;
 }
 .actions {
   display: flex;

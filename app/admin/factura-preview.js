@@ -33,7 +33,7 @@ function calcularLinea(linea) {
  * factura de la derecha muestra el documento tal como se emitiría, sin
  * enviar nada al servidor.
  */
-export default function FacturaPreview({ cliente, lineas = [], totales, config, canEmit = true }) {
+export default function FacturaPreview({ cliente, lineas = [], productos = [], totales, config, canEmit = true }) {
   const emisor = {
     nombre: config?.nombre || config?.companyName || "Arconet",
     rtn: config?.nit || "",
@@ -102,7 +102,15 @@ export default function FacturaPreview({ cliente, lineas = [], totales, config, 
             <h5>Presentado a · Datos del cliente</h5>
             {cliente ? (
               <>
-                <p><strong>{cliente.nombre || "No registrado"}</strong></p>
+                <div className={styles.clientBlock}>
+                  {cliente.foto ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={cliente.foto} alt="" width={36} height={36} className={styles.clientAvatar} />
+                  ) : (
+                    <span className={styles.clientAvatar} aria-hidden="true">{(cliente.nombre || "?").charAt(0).toUpperCase()}</span>
+                  )}
+                  <p><strong>{cliente.nombre || "No registrado"}</strong></p>
+                </div>
                 <p>RTN: {cliente.rtn || "No registrado"}</p>
                 {cliente.telefono ? <p>Tel.: {cliente.telefono}</p> : null}
                 {cliente.correo ? <p>Correo: {cliente.correo}</p> : null}
@@ -132,16 +140,29 @@ export default function FacturaPreview({ cliente, lineas = [], totales, config, 
             </tr>
           </thead>
           <tbody>
-            {calculadas.length ? calculadas.map((linea) => (
-              <tr key={linea.key}>
-                <td data-label="Descripción">{linea.descripcion || "—"}</td>
+            {calculadas.length ? calculadas.map((linea) => {
+              const producto = productos.find((item) => item.id === linea.productoId);
+              return (
+                <tr key={linea.key}>
+                <td data-label="Descripción">
+                  {producto?.foto ? (
+                    <div className={styles.lineWithFoto}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={producto.foto} alt="" width={28} height={28} className={styles.lineFoto} />
+                      <span>{linea.descripcion || "—"}</span>
+                    </div>
+                  ) : (
+                    <span>{linea.descripcion || "—"}</span>
+                  )}
+                </td>
                 <td data-label="Cant." className={styles.num}>{Number(linea.cantidad) || 0}</td>
                 <td data-label="Precio" className={styles.num}>{money(linea.precio)}</td>
                 <td data-label="Desc." className={styles.num}>{Number(linea.descuento) ? money(linea.descuento) : "—"}</td>
                 <td data-label="ISV" className={styles.num}>{Number(linea.impuestoPorcentaje) || 0}%</td>
                 <td data-label="Subtotal" className={styles.num}>{money(linea.calculo.base)}</td>
-              </tr>
-            )) : (
+                </tr>
+              );
+            }) : (
               <tr>
                 <td colSpan={6} className={styles.placeholder}>
                   Aún no hay líneas. Añade productos o conceptos y la factura se completa aquí.

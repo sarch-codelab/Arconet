@@ -50,8 +50,21 @@ export default function ReferenciaSelector({ kind, value = "", fallback, onChang
   const [result, setResult] = useState(null);
   const [retry, setRetry] = useState(0);
   const [highlight, setHighlight] = useState({ key: "", index: -1 });
+  const [categoria, setCategoria] = useState("");
+  const [categorias, setCategorias] = useState([]);
   const resolvedCallback = useRef(onResolved);
   useEffect(() => { resolvedCallback.current = onResolved; }, [onResolved]);
+
+  // Solo para productos: lista de categorias para filtrar la busqueda.
+  useEffect(() => {
+    if (kind !== "productos" || !open) return undefined;
+    let activo = true;
+    fetch("/api/categorias", { cache: "no-store" })
+      .then((response) => response.json().catch(() => []))
+      .then((data) => { if (activo && Array.isArray(data)) setCategorias(data); })
+      .catch(() => {});
+    return () => { activo = false; };
+  }, [kind, open]);
 
   const selected = value ? (current?.id === value ? current : fallback?.id === value ? fallback : null) : null;
   const text = search.editing ? search.text : selected?.nombre || "";
@@ -81,14 +94,14 @@ export default function ReferenciaSelector({ kind, value = "", fallback, onChang
     if (!open || disabled) return;
     const controller = new AbortController();
     const timer = setTimeout(() => {
-      lookup(kind, { q: text.trim(), take: "12" }, controller.signal).then(data => {
+      lookup(kind, { q: text.trim(), take: "12", categoria: categoria || undefined }, controller.signal).then(data => {
         if (!controller.signal.aborted) setResult({ key: searchKey, items: data.items, hasMore: data.hasMore });
       }).catch(error => {
         if (!controller.signal.aborted) setResult({ key: searchKey, items: [], error: error.message });
       });
     }, 180);
     return () => { clearTimeout(timer); controller.abort(); };
-  }, [kind, text, open, disabled, searchKey]);
+    }, [kind, text, open, disabled, searchKey, categoria]);
 
   useEffect(() => {
     if (!open) return;
@@ -146,7 +159,7 @@ export default function ReferenciaSelector({ kind, value = "", fallback, onChang
           maxLength={100}
           disabled={disabled}
           value={text}
-          placeholder={kind === "clientes" ? "Escribe nombre o identificación / RTN" : "Busca por nombre, SKU o código"}
+          placeholder={kind === "clientes" ? "Escribe nombre o identificación / RTN" : "Busca por nombre, SKU, marca o categoría"}
           onFocus={() => {
             setSearch(previous => previous.editing ? previous : { text: selected?.nombre || "", editing: true });
             setOpen(true);
@@ -159,6 +172,20 @@ export default function ReferenciaSelector({ kind, value = "", fallback, onChang
           }}
           onKeyDown={keyDown}
         />
+        {kind === "productos" && (
+          <select
+            className={styles.categorySelect}
+            value={categoria}
+            disabled={disabled}
+            aria-label="Filtrar por categoría"
+            onChange={event => setCategoria(event.target.value)}
+          >
+            <option value="">Categoría</option>
+            {categorias.map((categoriaItem) => (
+              <option key={categoriaItem} value={categoriaItem}>{categoriaItem}</option>
+            ))}
+          </select>
+        )}
         {(value || text) && <button type="button" className={styles.clear} disabled={disabled} aria-label={kind === "clientes" ? "Limpiar cliente" : `Limpiar ${label || "producto"}`} onClick={() => {
           setSearch({ text: "", editing: true });
           setOpen(true);
@@ -189,10 +216,12 @@ export default function ReferenciaSelector({ kind, value = "", fallback, onChang
           >
             {kind === "productos" && item.foto ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={item.foto} alt="" width={32} height={32} style={{ borderRadius: 6, objectFit: "cover", background: "var(--bg-card-subtle)" }} />
+              <img src={item.foto} alt="" width={32} height={32} style={{ borderRadius: 6, objectFit: "cover", background: "var(--bg-card-subtle)", flexShrink: 0 }} />
             ) : null}
-            <strong>{item.nombre}</strong>
-            <span>{detail(kind, item)}</span>
+            <span className={styles.optionText}>
+              <strong>{item.nombre}</strong>
+              <span>{detail(kind, item)}</span>
+            </span>
           </button>)}
         </div>
         <div className={fresh && result.error ? styles.error : styles.hint} role="status" aria-live="polite">

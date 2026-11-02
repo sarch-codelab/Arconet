@@ -28,6 +28,21 @@ export default function ClienteSelector({ value, fallback, onChange, onCreated, 
     onModeChange?.(open);
   }
 
+  // La busqueda devuelve solo los campos de referencia (nombre, RTN, tel.):
+  // completa direccion y ciudad del registro guardado para que la
+  // previsualizacion de la factura muestre la direccion completa.
+  function changeClient(client) {
+    if (!client?.id) { onChange?.(client); return; }
+    fetch(`/api/clientes/${encodeURIComponent(client.id)}`, { cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) return onChange?.(client);
+        const full = await response.json().catch(() => null);
+        if (full?.id) onChange?.({ ...client, ...full });
+        else onChange?.(client);
+      })
+      .catch(() => onChange?.(client));
+  }
+
   async function saveAndUse() {
     if (!canCreate || disabled || inFlight.current) return;
     if (draft.nombre.trim().length < 2) { setError("Escribe el nombre o razón social (al menos 2 caracteres)."); return; }
@@ -63,7 +78,7 @@ export default function ClienteSelector({ value, fallback, onChange, onCreated, 
         value={value}
         fallback={saved?.id === value ? saved : fallback}
         disabled={disabled || busy || creating}
-        onChange={onChange}
+        onChange={changeClient}
         onCreate={canCreate && !creating ? term => {
           // Un número buscado nunca se inventa como identificación del alta.
           setDraft(previous => ({ ...previous, nombre: previous.nombre || (/\p{L}/u.test(term) ? term.trim() : "") }));

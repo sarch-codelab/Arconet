@@ -85,10 +85,23 @@
 }
 
 .option strong { font-size: 13px; }
-.optionConFoto { grid-template-columns: 36px 1fr; align-items: center; }
+.optionConFoto { grid-template-columns: 36px minmax(0, 1fr); align-items: center; gap: 8px 10px; }
+.optionText { display: grid; gap: 2px; min-width: 0; }
 .option span, .hint, .error { font-size: 12px; line-height: 1.55; overflow-wrap: anywhere; }
 .option span, .hint { color: var(--text-muted); }
 .error { color: var(--text-danger); }
+
+.categorySelect {
+  flex-shrink: 0;
+  max-width: 150px;
+  box-sizing: border-box;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-size: 13px;
+}
 
 .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .actions button { white-space: normal; }

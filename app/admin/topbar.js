@@ -221,9 +221,12 @@ export function Topbar({
     setNotificationsAllOpen(false);
     // Avisos de producto pendiente: abrir el resumen del producto para
     // definir el Valor 1 directamente desde la notificación.
-    if (notification.type === "producto" && notification.productoId) {
-      setProductApproval({ notification, producto: null, precio: "", guardando: false, error: "" });
-      return;
+    if (notification.type === "producto") {
+      const productoId = notification.productoId || await resolveProductoPendiente(notification);
+      if (productoId) {
+        setProductApproval({ productoId, notification, producto: null, precio: "", guardando: false, error: "" });
+        return;
+      }
     }
     // Cada aviso lleva a su pantalla (solicitudes, alertas de inventario o
     // catálogo); sin destino conocido, solo se marca como leída.
@@ -234,13 +237,29 @@ export function Topbar({
     }
   };
 
+  // Notificaciones antiguas (creadas antes de guardar productoId): el SKU
+  // queda en el mensaje, así que se busca el producto por él.
+  async function resolveProductoPendiente(notification) {
+    const sku = String(notification?.message || "").match(/\(([^()]+)\)\s*quedó/)?.[1]?.trim();
+    if (!sku || sku === "sin SKU") return "";
+    try {
+      const response = await fetch(`/api/productos?q=${encodeURIComponent(sku)}&take=5`, { cache: "no-store" });
+      const data = await response.json().catch(() => []);
+      const productos = Array.isArray(data) ? data : [];
+      const producto = productos.find((item) => String(item.sku || "").toLowerCase() === sku.toLowerCase()) || productos[0];
+      return producto?.id || "";
+    } catch {
+      return "";
+    }
+  }
+
   // Cargar el producto del aviso "pendiente de precio" para el resumen.
   useEffect(() => {
-    if (!productApproval?.notification?.productoId) return undefined;
+    if (!productApproval?.productoId) return undefined;
     let activo = true;
     (async () => {
       try {
-        const response = await fetch(`/api/productos/${encodeURIComponent(productApproval.notification.productoId)}`, { cache: "no-store" });
+        const response = await fetch(`/api/productos/${encodeURIComponent(productApproval.productoId)}`, { cache: "no-store" });
         const data = await response.json().catch(() => ({}));
         if (!activo) return;
         if (!response.ok || !data?.id) {
@@ -257,7 +276,7 @@ export function Topbar({
       }
     })();
     return () => { activo = false; };
-  }, [productApproval?.notification?.productoId]);
+  }, [productApproval?.productoId]);
 
   const guardarPrecioProducto = async (event) => {
     event.preventDefault();
