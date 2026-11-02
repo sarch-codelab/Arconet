@@ -431,6 +431,14 @@
   padding: 4px 6px 4px 20px;
 }
 
+.loginPanelBody .clientLoginSubmit {
+  white-space: nowrap;
+}
+
+.loginPanelBody .clientLoginSubmit span {
+  flex: none;
+}
+
 .loginFooter {
   text-align: center;
 }
@@ -3152,6 +3160,18 @@
   /* Más aire útil dentro del vidrio sin acercar la tarjeta a los bordes. */
   .loginPanelBody .form {
     padding-inline: 12px;
+  }
+
+  .loginPanelBody .clientLoginSubmit {
+    gap: 8px;
+    padding-left: 14px;
+    font-size: 11px;
+  }
+
+  .loginPanelBody .clientLoginSubmit span {
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
   }
 }
 
