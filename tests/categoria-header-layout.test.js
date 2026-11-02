@@ -1,43 +1,59 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-// La página de categoría tenía tres defectos de maquetación que se veían en
-// producción: la nav salía flotando suelta a la derecha, el menú móvil rompía
-// la retícula del header y el botón quedaba ilegible en tema oscuro.
+// La categoría reutiliza el menú 2 del home, pero con presencia fija: debe
+// estar visible desde el primer render y no aparecer al superar el hero.
 const JS = "app/tienda/categoria/[slug]/category-products.js";
 const CSS = "app/tienda/categoria/[slug]/category-products.module.css";
+const DOCK_CSS = "app/nav-dock.module.css";
+const NAVIGATION = "app/navigation-data.js";
 
 const leer = (f) => readFileSync(f, "utf8");
 const sinComentarios = (css) => css.replace(/\/\*[\s\S]*?\*\//g, "");
 
 describe("header de la página de categoría", () => {
-  it("la navegación no lleva estilos inline que la saquen del header", () => {
+  it("usa el menú 2 fijo y visible, sin el header sticky anterior", () => {
     const js = leer(JS);
-    const nav = js.match(/<nav className=\{styles\.nav\}[^>]*>/)?.[0] || "";
-    expect(nav).toBeTruthy();
-    expect(nav).not.toContain("position");
-    expect(nav).not.toContain("style=");
-    expect(js).not.toContain("position: \"fixed\", right");
+    const css = sinComentarios(leer(DOCK_CSS));
+    const fija = css.match(/\.topbarFixed\s*\{([^}]*)\}/)?.[1] || "";
+
+    expect(js).toContain("<NavDock");
+    expect(js).toContain('variant="fixed"');
+    expect(js).toContain("cartAction={");
+    expect(js).not.toContain("<header className={styles.header}>");
+    expect(css).toMatch(/\.topbar\s*\{[^}]*position: fixed/);
+    expect(fija).toContain("opacity: 1");
+    expect(fija).toContain("visibility: visible");
+    expect(fija).toContain("transform: none");
+    expect(fija).toContain("transition: none");
   });
 
-  it("el menú de la cabecera tiene varios destinos, no una etiqueta suelta", () => {
+  it("comparte los destinos del home y adapta sus anclas para salir de la categoría", () => {
     const js = leer(JS);
-    const bloque = js.match(/const NAVIGATION = \[([\s\S]*?)\];/)?.[1] || "";
-    const enlaces = (bloque.match(/href:/g) || []).length;
-    expect(enlaces).toBeGreaterThan(1);
+    const navigation = leer(NAVIGATION);
+    const bloque = navigation.match(/export const NAVIGATION = \[([\s\S]*?)\];/)?.[1] || "";
+
+    expect((bloque.match(/href:/g) || []).length).toBeGreaterThan(6);
+    expect(navigation).toContain('label: "Soluciones"');
+    expect(navigation).toContain('label: "Tienda", href: "/tienda"');
+    expect(js).toContain("const CATEGORY_NAVIGATION = NAVIGATION.map");
+    expect(js).toContain('item.href.startsWith("#")');
+    expect(js).toContain("`/${item.href}`");
   });
 
-  it("el menú móvil queda fuera de la retícula para no empujar la nav", () => {
+  it("mantiene navegación móvil y acciones compactas sin romper la cápsula", () => {
+    const js = leer(JS);
+    const dock = sinComentarios(leer(DOCK_CSS));
     const css = sinComentarios(leer(CSS));
-    // Oculto por defecto y solo flotante en pantallas chicas.
-    expect(css).toMatch(/\.header > div \{\s*display: none;?\s*\}/);
-    const movil = css.match(/@media \(max-width: 760px\) \{([\s\S]*?)\n\}/g) || [];
-    const reglaMenu = movil.find((b) => b.includes(".header > div"));
-    expect(reglaMenu, "falta la regla del menú móvil en <=760px").toBeTruthy();
-    expect(reglaMenu).toContain("position: fixed");
+
+    expect(js).not.toContain("MobileSiteMenu");
+    expect(dock).toMatch(/@media \(max-width: 760px\)[\s\S]*?\.navigation a\s*\{\s*display: none;/);
+    expect(dock).toMatch(/\.menuToggle\s*\{[^}]*display: block/);
+    expect(dock).toMatch(/\.topbarMenuOpen \.mobileMenu\s*\{[^}]*position: fixed/);
+    expect(css).toMatch(/\.headerCartLabel\s*\{\s*display: none;/);
   });
 
-  it("solo un breakpoint manda en el header (700px ya no lo contradice)", () => {
+  it("ningún breakpoint de 700px reintroduce el header sustituido", () => {
     const css = sinComentarios(leer(CSS));
     const bloques700 = css.match(/@media \(max-width: 700px\) \{([\s\S]*?)\n\}/g) || [];
     for (const bloque of bloques700) {

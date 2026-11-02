@@ -33,7 +33,7 @@ describe("carrito y cotización de la tienda", () => {
     }
     expect(CATALOGO).toMatch(/Carrito\s*<\/button>/);
     expect(PRODUCTO).toMatch(/Carrito\s*<\/button>/);
-    expect(CATEGORIA).toMatch(/Carrito\s*<span/);
+    expect(CATEGORIA).toContain('className={styles.headerCartLabel}>Carrito</span>');
   });
 
   it("el badge del conteo es scoped y su contenedor está posicionado", () => {
@@ -43,12 +43,12 @@ describe("carrito y cotización de la tienda", () => {
     expect(DETALLLE).toContain("styles.cartBadge");
     // En la categoría el badge estaba en un span sin posicionar: el círculo
     // absoluto se pegaba al header. Ahora el contenedor es position:relative.
-    expect(CATEGORIA_CSS).toMatch(/\.headerAction span\s*\{[^}]*position: relative/);
+    expect(CATEGORIA_CSS).toMatch(/\.headerCartIcon\s*\{[^}]*position: relative/);
   });
 
   it("el resumen de la categoría no se repite cuando la descripción es la misma", () => {
     expect(CATEGORIA).toMatch(/\{family.summary && family.summary !== family.description \?/);
-    expect(CATEGORIA).toMatch(/summary: staticFamily\?.summary \|| category.descripcion/);
+    expect(CATEGORIA).toMatch(/summary: staticFamily\?.summary \|| categoryDescription/);
   });
 
   it("el botón agotado se pone rojo", () => {
