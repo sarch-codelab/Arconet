@@ -4,8 +4,8 @@ import { describe, expect, it } from "vitest";
 // Hay un solo pie de página y se usa en todas partes.
 //
 // Antes cada pantalla montaba su propio cierre: el home tenía cuatro columnas
-// planas con todo el texto gris, las páginas legales repetían otra versión y el
-// acceso, el registro y el portal de cliente simplemente terminaban en seco.
+// planas con todo el texto gris, las páginas legales repetían otra versión y
+// el registro, la recuperación y el portal de cliente terminaban en seco.
 // Ahora `app/footer.js` es el único footer del sitio y las páginas lo importan
 // en vez de copiarlo.
 //
@@ -19,8 +19,7 @@ const APP = globSync("app/**/*.js", { cwd: raiz }).map((f) => [f, leer(f)]);
 const CON_FOOTER = [
   // Home
   "app/home-experience.js",
-  // Acceso
-  "app/login/login-experience.js",
+  // Registro y recuperación; el login conserva una sola pantalla de acceso.
   "app/registro/registro-experience.js",
   "app/recuperar/recuperar-experience.js",
   // Portal de cliente
@@ -98,12 +97,11 @@ describe("el footer llega a todas las páginas que lo necesitan", () => {
 });
 
 describe("el footer no se rompe en las pantallas que lo reciben", () => {
-  it("va fuera del <main> flexible del acceso y del portal", () => {
+  it("va fuera del <main> flexible en las páginas que lo montan", () => {
     // `loginPage` es display:flex en fila para que la tarjeta ocupe la
     // pantalla. Un <Footer /> dentro de ese main entraba como tercera columna
     // y salía deformado (1055 px de alto en una franja de 400).
     for (const ruta of [
-      "app/login/login-experience.js",
       "app/registro/registro-experience.js",
       "app/recuperar/recuperar-experience.js",
       "app/cliente/cliente-experience.js",

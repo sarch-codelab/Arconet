@@ -11,7 +11,6 @@ vi.mock("../lib/api-fetch", () => ({
 vi.mock("../app/toaster", () => ({ sileo: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("../lib/local-preview", () => ({ isLocalPreview: () => false }));
 vi.mock("../app/mobile-site-menu", () => ({ default: () => null }));
-vi.mock("../app/footer", () => ({ default: () => null }));
 
 import LoginExperience from "../app/login/login-experience";
 
@@ -52,8 +51,12 @@ describe("acceso de clientes con el fondo y vidrio compartidos", () => {
     expect(css).toMatch(/\.loginPanelBody \.clientLoginSubmit\s*\{[^}]*white-space: nowrap;/);
   });
 
-  it("mantiene la navegación pública y el footer fuera del fondo a pantalla completa", () => {
+  it("mantiene la navegación esencial sin un footer completo detrás del acceso", () => {
     expect(source).toContain("<MobileSiteMenu floating />");
-    expect(source.indexOf("<Footer />")).toBeGreaterThan(source.indexOf("</main>"));
+    expect(source).not.toContain('import Footer from "../footer"');
+    expect(source).not.toContain("<Footer />");
+    expect(html).toContain('href="/terminos"');
+    expect(html).toContain('href="/privacidad"');
+    expect(html).toContain('href="/ayuda"');
   });
 });

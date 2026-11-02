@@ -9,7 +9,6 @@ import { ArrowRight, Check, Eye, EyeOff } from "lucide-react";
 import styles from "../admin/admin-experience.module.css";
 import { sileo } from "../toaster";
 import MobileSiteMenu from "../mobile-site-menu";
-import Footer from "../footer";
 import { isLocalPreview } from "@/lib/local-preview";
 
 export default function LoginExperience() {
@@ -147,7 +146,6 @@ export default function LoginExperience() {
           </section>
         </div>
       </main>
-      <Footer />
     </>
   );
 }
