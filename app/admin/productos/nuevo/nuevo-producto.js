@@ -8,6 +8,7 @@ import ProductoEditor from "../../producto-editor";
 import { fetchProducts } from "../../products-store";
 import { fetchCategorias } from "../../categories-store";
 import adminStyles from "../../admin-experience.module.css";
+import pageStyles from "./nuevo-producto.module.css";
 
 // Ruta canónica del panel: Inventario → vista Productos.
 const INVENTORY_URL = "/panel-administrativo?section=inventario&view=productos";
@@ -65,9 +66,9 @@ export default function NuevaProducto({ session }) {
     <main className={adminStyles.adminPage} aria-label="Nuevo producto · Catálogo">
       <div className={adminStyles.shell}>
         <div className={adminStyles.content}>
-          <header className={adminStyles.sectionSubBar} style={{ padding: "16px clamp(16px, 3vw, 32px)" }}>
+          <header className={`${adminStyles.sectionSubBar} ${pageStyles.pageHeader}`}>
             <div className={adminStyles.topbarTitle}>
-              <Link href={INVENTORY_URL} className={adminStyles.ghostBtn} style={{ padding: "2px 0" }}>
+              <Link href={INVENTORY_URL} className={`${adminStyles.ghostBtn} ${pageStyles.backLink}`}>
                 <ArrowLeft size={15} /> Volver a Inventario
               </Link>
               <h1>Nuevo producto · Catálogo</h1>
@@ -77,33 +78,35 @@ export default function NuevaProducto({ session }) {
               </p>
             </div>
             <div className={adminStyles.topbarActions}>
-              <span className={adminStyles.ghostBtn}>{session?.nombre}</span>
+              <span className={`${adminStyles.ghostBtn} ${pageStyles.account}`}>{session?.nombre}</span>
             </div>
           </header>
 
-          <section className={adminStyles.card}>
-            <header className={adminStyles.cardHeader}>
-              <div>
-                <p className={adminStyles.eyebrow}>Nuevo</p>
-                <h3>Agregar producto</h3>
+          <div className={pageStyles.pageBody}>
+            <section className={`${adminStyles.card} ${pageStyles.productCard}`}>
+              <header className={adminStyles.cardHeader}>
+                <div>
+                  <p className={adminStyles.eyebrow}>Nuevo</p>
+                  <h3>Agregar producto</h3>
+                </div>
+              </header>
+              <div className={`${adminStyles.cardBody} ${pageStyles.cardBody}`}>
+                <ProductoEditor
+                  session={session}
+                  products={products}
+                  categorias={categorias}
+                  formClassName=""
+                  onSaved={() => {
+                    // Tras el alta, volver a la lista de productos del
+                    // inventario: el producto queda visible junto a los demás.
+                    refreshCatalog();
+                    router.push(INVENTORY_URL);
+                  }}
+                  onCancel={() => router.push(INVENTORY_URL)}
+                />
               </div>
-            </header>
-            <div className={adminStyles.cardBody}>
-              <ProductoEditor
-                session={session}
-                products={products}
-                categorias={categorias}
-                formClassName=""
-                onSaved={() => {
-                  // Tras el alta, volver a la lista de productos del
-                  // inventario: el producto queda visible junto a los demás.
-                  refreshCatalog();
-                  router.push(INVENTORY_URL);
-                }}
-                onCancel={() => router.push(INVENTORY_URL)}
-              />
-            </div>
-          </section>
+            </section>
+          </div>
         </div>
       </div>
     </main>
