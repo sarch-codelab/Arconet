@@ -115,7 +115,12 @@
   padding: clamp(24px, 6vh, 64px) clamp(32px, 10vw, 160px);
   overflow-x: clip;
   overflow-y: auto;
-  background: var(--paper);
+  /* La imagen se muestra directamente, sin degradados ni velos que la oscurezcan. */
+  background-color: #dceeff;
+  background-image: url("/admin-login-fondo.webp");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
   color: var(--ink);
 }
 
@@ -132,12 +137,37 @@
 .loginCard {
   position: relative;
   flex: 0 0 auto;
-  width: min(100%, 760px);
+  width: min(100%, 560px);
   min-height: 0;
   margin: auto 0;
   overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.64);
   border-radius: 28px;
-  background: var(--paper);
+  /* El vidrio sólo pertenece a la tarjeta: el resto del fondo queda intacto. */
+  background: rgba(250, 249, 246, 0.7);
+  box-shadow: none;
+  -webkit-backdrop-filter: blur(24px) saturate(120%);
+  backdrop-filter: blur(24px) saturate(120%);
+}
+
+:global(html[data-theme="dark"]) .loginCard {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(14, 17, 22, 0.68);
+}
+
+:global(html[data-theme="dark"]) .loginPanelBody .sectionLabel,
+:global(html[data-theme="dark"]) .loginPanelBody h2 em {
+  color: #7fa6ff;
+}
+
+@supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))) {
+  .loginCard {
+    background: rgba(250, 249, 246, 0.96);
+  }
+
+  :global(html[data-theme="dark"]) .loginCard {
+    background: rgba(14, 17, 22, 0.96);
+  }
 }
 
 .eyebrow {
@@ -162,7 +192,7 @@
   z-index: 2;
   display: flex;
   flex-direction: column;
-  background: var(--paper);
+  background: transparent;
   color: var(--ink);
 }
 
@@ -3115,6 +3145,13 @@
 
   .statValue {
     font-size: 20px;
+  }
+}
+
+@media (max-width: 360px) {
+  /* Más aire útil dentro del vidrio sin acercar la tarjeta a los bordes. */
+  .loginPanelBody .form {
+    padding-inline: 12px;
   }
 }
 
