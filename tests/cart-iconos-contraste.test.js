@@ -24,9 +24,12 @@ describe("iconos del carrito y del catálogo", () => {
     expect(regla).not.toContain("#101827");
   });
 
-  it("el icono del carrito en la ficha de producto es blanco sobre el botón oscuro", () => {
-    const regla = PRODUCTO.match(/\.headerAction > span \{([^}]*)\}/)?.[1] || "";
-    expect(regla).toContain("color: #ffffff");
+  it("el carrito de producto tiene etiqueta blanca e icono oscuro sobre su recuadro blanco", () => {
+    const etiqueta = PRODUCTO.match(/\.headerAction > span \{([^}]*)\}/)?.[1] || "";
+    const icono = PRODUCTO.match(/\.headerAction > \.headerCartIcon \{([^}]*)\}/)?.[1] || "";
+    expect(etiqueta).toContain("color: #ffffff");
+    expect(icono).toContain("background: #fff");
+    expect(icono).toContain("color: #0d1422");
   });
 
   it("el contador del carrito usa un texto legible en tema oscuro", () => {
