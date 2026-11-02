@@ -80,7 +80,11 @@ describe("página completa de nuevo producto", () => {
     expect(html).not.toContain("Valor 1 · Normal");
     expect(html).not.toContain("Valor 2 · Descuento");
     expect(html).not.toContain("Valor 3 · Mayorista");
-    expect(html).toContain("pendiente de revisión");
+    // Estado como selector de bodega: Pendiente por defecto o Borrador.
+    expect(html).toContain("Pendiente de revisión");
+    expect(html).toContain("Borrador");
+    // Garantía es decisión de gerente: no aparece para bodega.
+    expect(html).not.toContain("Garantía");
   });
 });
 
@@ -125,6 +129,9 @@ describe("ProductoEditor — formulario completo de producto", () => {
     expect(html).toContain('value="Bodega A"');
     expect(html).toContain('value="2.5"');
     expect(html).toContain("Producto de ejemplo.");
+    // Garantía es de gerente: visible con permiso de precios.
+    expect(html).toContain("Garantía");
+    expect(html).toContain('value="2 años"');
   });
 
   it("en edición muestra Guardar cambios y los precios del nivel completo", () => {
@@ -150,7 +157,8 @@ describe("ProductoEditor — formulario completo de producto", () => {
     expect(html).not.toContain("Valor 1 · Normal");
     expect(html).not.toContain("Valor 2 · Descuento");
     expect(html).not.toContain("Valor 3 · Mayorista");
-    expect(html).toContain("pendiente de revisión");
+    expect(html).toContain("Pendiente de revisión");
+    expect(html).not.toContain("Garantía");
   });
 
   it("en edición de producto pendiente muestra el banner de revisión", () => {

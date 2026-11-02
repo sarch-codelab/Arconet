@@ -3,7 +3,7 @@
 import { PRICE_FIELDS, PRICE_LEVELS, parsePrices, validatePriceSet } from "@/lib/precios";
 import { apiFetch as fetch } from "@/lib/api-fetch";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Boxes, Camera, Coins, Eye, Tag, X } from "lucide-react";
 import { Avatar, useToast, notifyError } from "./admin-ui";
 import { compressImage } from "./image-utils";
@@ -66,6 +66,8 @@ export default function ProductoEditor({
     ...EMPTY_PRODUCT,
     id: newProductId(),
     categoria: PRODUCT_CATEGORIES[0],
+    // Sin permiso para precios nace pendiente de revisión por defecto.
+    estado: session?.permisos?.includes("precios:write") ? "activo" : "pendiente",
   });
   const [guardando, setGuardando] = useState(false);
   const { show } = useToast();
@@ -134,6 +136,23 @@ export default function ProductoEditor({
 
   function changeField(field, value) {
     setDraft((prev) => ({ ...prev, [field]: value }));
+  }
+
+  // El stock mínimo se calcula solo mientras el usuario no lo toca: una
+  // aproximación del 25% del stock añadido, que queda editable después.
+  const stockMinimoTouched = useRef(false);
+
+  function changeStock(value) {
+    changeField("stock", value);
+    if (!stockMinimoTouched.current) {
+      const stockNum = Number(value) || 0;
+      changeField("stockMinimo", String(Math.max(0, Math.round(stockNum * 0.25))));
+    }
+  }
+
+  function changeStockMinimo(value) {
+    stockMinimoTouched.current = true;
+    changeField("stockMinimo", value);
   }
 
   async function handlePhoto(event) {
@@ -400,20 +419,14 @@ export default function ProductoEditor({
           </div>
         )}
         <div className={styles.fieldGrid}>
-          {canWritePrices ? (
-            PRICE_LEVELS.map(level => <label className={styles.field} key={level.id}>
-              <span style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                {level.label} (L)
-                {level.id === "normal" && <span className={styles.fieldRequired}>Obligatorio</span>}
-              </span>
-              <input type="number" min={level.id === "normal" ? "1" : "0.01"} max="9999999999.99" step="0.01" required={level.id === "normal"} value={draft[level.field]} onChange={event => changeField(level.field, event.target.value)} placeholder={level.id === "normal" ? "Precio original de venta" : "Opcional"} />
-              <small className={styles.fieldHint}>{level.id === "normal" ? "Precio normal de venta, no costo de compra. Mínimo L 1.00." : "Vacío = sin configurar. No puede superar el precio normal."}</small>
-            </label>)
-          ) : (
-            <p className={styles.spanFull} style={{ marginBottom: "8px", color: "var(--text-muted)", fontSize: "13px" }} role="note">
-              Los precios (Valor 1/2/3) los definen gerente o administrador. El producto se guarda sin precio y queda <strong>pendiente de revisión</strong> hasta definir el precio normal.
-            </p>
-          )}
+          {canWritePrices && PRICE_LEVELS.map(level => <label className={styles.field} key={level.id}>
+            <span style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              {level.label} (L)
+              {level.id === "normal" && <span className={styles.fieldRequired}>Obligatorio</span>}
+            </span>
+            <input type="number" min={level.id === "normal" ? "1" : "0.01"} max="9999999999.99" step="0.01" required={level.id === "normal"} value={draft[level.field]} onChange={event => changeField(level.field, event.target.value)} placeholder={level.id === "normal" ? "Precio original de venta" : "Opcional"} />
+            <small className={styles.fieldHint}>{level.id === "normal" ? "Precio normal de venta, no costo de compra. Mínimo L 1.00." : "Vacío = sin configurar. No puede superar el precio normal."}</small>
+          </label>)}
           <label className={styles.field}>
             Costo (L)
             <input
@@ -439,7 +452,7 @@ export default function ProductoEditor({
               min="0"
               step="1"
               value={draft.stock}
-              onChange={(event) => changeField("stock", event.target.value)}
+              onChange={(event) => changeStock(event.target.value)}
               placeholder="0"
             />
           </label>
@@ -450,10 +463,10 @@ export default function ProductoEditor({
               min="0"
               step="1"
               value={draft.stockMinimo}
-              onChange={(event) => changeField("stockMinimo", event.target.value)}
+              onChange={(event) => changeStockMinimo(event.target.value)}
               placeholder="0"
             />
-            <small className={styles.fieldHint}>Aviso de reposición cuando el stock baja de este valor.</small>
+            <small className={styles.fieldHint}>Se calcula al 25% del stock añadido y queda editable. Aviso de reposición cuando el stock baja de este valor.</small>
           </label>
           <label className={styles.field}>
             Ubicación en bodega
@@ -470,17 +483,19 @@ export default function ProductoEditor({
             </datalist>
             <small className={styles.fieldHint}>Autocompleta con ubicaciones y bodegas ya registradas.</small>
           </label>
-          <label className={styles.field}>
-            Garantía
-            <input
-              type="text"
-              maxLength={60}
-              value={draft.garantia}
-              onChange={(event) => changeField("garantia", event.target.value)}
-              placeholder="Ej. 12 meses"
-            />
-            <small className={styles.fieldHint}>Se muestra al cliente junto a la marca. Vacío = sin garantía declarada.</small>
-          </label>
+          {canWritePrices && (
+            <label className={styles.field}>
+              Garantía
+              <input
+                type="text"
+                maxLength={60}
+                value={draft.garantia}
+                onChange={(event) => changeField("garantia", event.target.value)}
+                placeholder="Ej. 12 meses"
+              />
+              <small className={styles.fieldHint}>Se muestra al cliente junto a la marca. Vacío = sin garantía declarada.</small>
+            </label>
+          )}
           <label className={styles.field}>
             Peso (kg)
             <input
@@ -497,19 +512,38 @@ export default function ProductoEditor({
 
       <section className={styles.formSection}>
         <h3 className={styles.formSectionHead}><Eye size={15} /> Publicación</h3>
-        <div className={styles.fieldGrid}>
-          <label className={styles.field}>
-            Estado
-            <select value={draft.estado} onChange={(event) => changeField("estado", event.target.value)}>
-              {PRODUCT_STATUSES.map((item) => (
-                <option key={item.id} value={item.id}>{item.label}</option>
-              ))}
-            </select>
-            <small className={styles.fieldHint}>
-              Activo = aparece en la tienda · Pendiente = falta precio, no se publica · Borrador = no se muestra · Inactivo = retirado del catálogo.
-            </small>
-          </label>
-        </div>
+        {canWritePrices ? (
+          <div className={styles.fieldGrid}>
+            <label className={styles.field}>
+              Estado
+              <select value={draft.estado} onChange={(event) => changeField("estado", event.target.value)}>
+                {PRODUCT_STATUSES.map((item) => (
+                  <option key={item.id} value={item.id}>{item.label}</option>
+                ))}
+              </select>
+              <small className={styles.fieldHint}>
+                Activo = aparece en la tienda · Pendiente = falta precio, no se publica · Borrador = no se muestra · Inactivo = retirado del catálogo.
+              </small>
+            </label>
+          </div>
+        ) : (
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+            <label className={styles.field} style={{ flex: "1 1 240px", padding: "12px 14px", border: "1px solid var(--border)", borderRadius: "12px", background: "var(--bg-card)" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: "13.5px", color: "var(--text-main)" }}>
+                <input type="radio" name="estado-bodega" checked={draft.estado === "pendiente"} onChange={() => changeField("estado", "pendiente")} />
+                Pendiente de revisión
+              </span>
+              <small className={styles.fieldHint}>Sin precio: no aparece en la tienda hasta que el gerente defina el Valor 1.</small>
+            </label>
+            <label className={styles.field} style={{ flex: "1 1 240px", padding: "12px 14px", border: "1px solid var(--border)", borderRadius: "12px", background: "var(--bg-card)" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: "13.5px", color: "var(--text-main)" }}>
+                <input type="radio" name="estado-bodega" checked={draft.estado === "borrador"} onChange={() => changeField("estado", "borrador")} />
+                Borrador
+              </span>
+              <small className={styles.fieldHint}>Guardado pero oculto del catálogo y de la tienda.</small>
+            </label>
+          </div>
+        )}
       </section>
 
       <footer className={styles.modalActions}>
