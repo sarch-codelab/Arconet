@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -53,41 +52,6 @@ export default function LoginView() {
   return (
     <main className={styles.loginPage}>
       <div className={styles.loginCard}>
-        <div className={styles.loginVisual}>
-          <Image
-            src="/catalogo/infraestructura.jpg"
-            alt=""
-            fill
-            priority
-            sizes="(max-width: 900px) 100vw, 50vw"
-            className={styles.loginVisualImg}
-          />
-          <div className={styles.loginVisualOverlay} />
-
-          <Link className={styles.logoTab} href="/" aria-label="Arconet, inicio">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/arconet.png" alt="Arconet" width={1200} height={200} />
-          </Link>
-
-          <div className={styles.loginVisualCopy}>
-            <p className={styles.eyebrow}><i /> Panel interno · Arconet</p>
-            <h1>
-              Gestiona a tu equipo,
-              <br />
-              <em>desde un solo lugar.</em>
-            </h1>
-            <p className={styles.lead}>
-              Administra trabajadores, productos, roles y sucursales de Arconet con un
-              panel pensado para el personal autorizado.
-            </p>
-          </div>
-
-          <div className={styles.loginVisualFooter}>
-            <span>ACCESO RESTRINGIDO · PERSONAL AUTORIZADO</span>
-            <Link href="/">Volver al sitio <ArrowRight size={14} /></Link>
-          </div>
-        </div>
-
         <section className={styles.loginPanel} aria-label="Formulario de acceso">
           <div className={styles.loginPanelBody}>
             <header>
