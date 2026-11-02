@@ -10,6 +10,7 @@ import { fetchClientes } from "../../clientes-store";
 import { allowedSalesCreationModes } from "@/lib/admin-navigation";
 import adminStyles from "../../admin-experience.module.css";
 import styles from "../../ventas-section.module.css";
+import pageStyles from "./nueva-venta.module.css";
 
 /**
  * Página completa «Nueva venta»: el editor fiscal ocupa toda la página
@@ -63,9 +64,9 @@ export default function NuevaVenta({ session }) {
     <main className={adminStyles.adminPage}>
       <div className={adminStyles.shell}>
         <div className={adminStyles.content}>
-          <header className={adminStyles.sectionSubBar} style={{ padding: "16px clamp(16px, 3vw, 32px)" }}>
+          <header className={`${adminStyles.sectionSubBar} ${pageStyles.pageHeader}`}>
             <div className={adminStyles.topbarTitle}>
-              <Link href="/panel-administrativo?section=ventas" className={adminStyles.ghostBtn} style={{ padding: "2px 0" }}>
+              <Link href="/panel-administrativo?section=ventas" className={`${adminStyles.ghostBtn} ${pageStyles.backLink}`}>
                 <ArrowLeft size={15} /> Volver a Ventas
               </Link>
               <h1>Nueva venta · Factura fiscal</h1>
@@ -75,8 +76,8 @@ export default function NuevaVenta({ session }) {
                 agregas productos, servicios o cambias sus datos.
               </p>
             </div>
-            <div className={adminStyles.topbarActions}>
-              <span className={adminStyles.ghostBtn}>{session?.nombre}</span>
+            <div className={`${adminStyles.topbarActions} ${pageStyles.account}`}>
+              <span className={`${adminStyles.ghostBtn} ${pageStyles.accountName}`}>{session?.nombre}</span>
             </div>
           </header>
 

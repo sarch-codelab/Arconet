@@ -78,12 +78,17 @@ describe("líneas de producto con placas pastel", () => {
     expect(visual).toContain("display: flex");
   });
 
-  it("la imagen se funde con el fondo en vez de verse como un recorte", () => {
+  it("mantiene la placa pastel sin duplicar la imagen ni aplicar blur", () => {
     const css = readFileSync(CSS, "utf8");
-    // Relleno difuminado de la propia imagen.
-    expect(css).toMatch(/\.exampleVisual::before \{[\s\S]*?background-image: var\(--imagen\)/);
-    expect(css).toMatch(/\.exampleVisual::before \{[\s\S]*?filter: blur/);
-    // Desvanecido de bordes de la imagen.
+    const js = readFileSync(JS, "utf8");
+    const fondo = css.match(/\.exampleVisual::before \{[\s\S]*?\n\}/)?.[0] || "";
+    // El fondo es un degradado estático: no vuelve a descargar la imagen
+    // original ni crea una superficie filtrada por cada tarjeta.
+    expect(fondo).toContain("linear-gradient(");
+    expect(fondo).not.toContain("var(--imagen)");
+    expect(fondo).not.toContain("filter: blur");
+    expect(js).not.toContain('"--imagen"');
+    // Se conserva el desvanecido de bordes de la imagen principal.
     expect(css).toMatch(/mask-image: radial-gradient\(/);
   });
 
@@ -105,8 +110,8 @@ describe("líneas de producto con placas pastel", () => {
     const card = js.slice(js.indexOf("className={styles.exampleCard}"), js.indexOf("styles.exampleCopy"));
     // Como atributo JSX, no como mención en el comentario que lo explica.
     expect(card).not.toMatch(/\bdata-reveal\b\s*[\s>]/);
-    // La imagen viaja al CSS para el relleno difuminado.
-    expect(js).toContain('"--imagen"');
+    // Las tarjetas no precargan todas las páginas dinámicas al hacer scroll.
+    expect(card).toContain("prefetch={false}");
   });
 
   it("no quedan restos del diseño anterior", () => {
@@ -135,11 +140,11 @@ describe("líneas de producto con placas pastel", () => {
     expect(posFoto).toBeLessThan(posArte);
   });
 
-  it("el título se lee también sobre una foto oscura del panel", () => {
-    const css = readFileSync(CSS, "utf8");
+  it("el título se lee también sobre una foto oscura sin backdrop-filter", () => {
+    const css = readFileSync(CSS, "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
     const bloque = css.match(/\.exampleCopy h3 \{[\s\S]*?\n\}/)?.[0] || "";
-    expect(bloque).toMatch(/background:\s*rgba\(255, 255, 255/);
-    expect(bloque).toContain("backdrop-filter");
+    expect(bloque).toMatch(/background:\s*rgba\(255, 255, 255, 0\.88\)/);
+    expect(bloque).not.toContain("backdrop-filter");
   });
 
   it("se adapta a móvil sin desbordar", () => {

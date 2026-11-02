@@ -1,0 +1,49 @@
+.pageHeader {
+  box-sizing: border-box;
+  align-items: flex-start;
+  padding: 16px clamp(16px, 3vw, 32px);
+}
+
+.pageHeader > * {
+  min-width: 0;
+}
+
+.pageHeader h1,
+.pageHeader p,
+.accountName {
+  overflow-wrap: anywhere;
+}
+
+.backLink {
+  min-height: 44px;
+  padding: 2px 0;
+  white-space: normal;
+  text-align: left;
+}
+
+.account {
+  max-width: 100%;
+}
+
+.accountName {
+  max-width: 100%;
+  white-space: normal;
+}
+
+@media (max-width: 620px) {
+  .pageHeader {
+    align-items: stretch;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .account {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .accountName {
+    box-sizing: border-box;
+    width: 100%;
+  }
+}

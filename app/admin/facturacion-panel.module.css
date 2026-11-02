@@ -263,6 +263,9 @@
   gap: 18px;
   grid-template-columns: minmax(0, 1fr) minmax(0, 430px);
   align-items: start;
+  width: 100%;
+  max-width: 1800px;
+  margin-inline: auto;
 }
 
 .embedded .editorLayout .invoiceGrid {
@@ -278,5 +281,114 @@
   .editorLayout,
   .embedded .editorLayout {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Nueva venta: todos los hijos pueden encoger y las acciones largas envuelven
+   en vez de ensanchar el formulario. */
+.editorLayout,
+.editorLayout > * {
+  min-width: 0;
+}
+
+.linesCard > header > div {
+  min-width: 0;
+}
+
+.linesCard > header button,
+.resumen button {
+  max-width: 100%;
+  white-space: normal;
+  text-align: center;
+}
+
+.resumenHeading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-bottom: 8px;
+}
+
+.resumenHeading h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--text-main);
+  font-size: 15px;
+}
+
+.resumenHeading small {
+  color: var(--text-muted);
+}
+
+@media (max-width: 900px) {
+  /* Debe superar la especificidad de .embedded .editorLayout .invoiceGrid:
+     esa regla de escritorio dejaba dos columnas incluso en el teléfono. */
+  .editorLayout .invoiceGrid,
+  .embedded .editorLayout .invoiceGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .editorLayout,
+  .embedded .editorLayout {
+    gap: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .embedded > div {
+    padding: 16px 12px 24px;
+  }
+
+  .lineaGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .lineaTop {
+    align-items: flex-start;
+  }
+
+  .linesCard > header {
+    align-items: stretch;
+  }
+
+  .linesCard > header > div:last-child {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+  }
+
+  .linesCard > header button,
+  .resumen button {
+    box-sizing: border-box;
+    width: 100%;
+    padding-inline: 14px;
+  }
+
+  .resumen {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 380px) {
+  .embedded > div {
+    padding-inline: 10px;
+  }
+
+  .resumenFila {
+    flex-wrap: wrap;
+  }
+
+  .resumenFila strong,
+  .resumenFila output {
+    margin-left: auto;
+  }
+
+  .resumenTotal strong,
+  .resumenTotal output {
+    font-size: 16px;
   }
 }
