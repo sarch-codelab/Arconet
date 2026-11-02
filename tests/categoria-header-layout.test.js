@@ -28,7 +28,7 @@ describe("header de la página de categoría", () => {
     expect(fija).toContain("transition: none");
   });
 
-  it("comparte los destinos del home y adapta sus anclas para salir de la categoría", () => {
+  it("comparte los destinos del home y adapta sus anclas para las páginas de tienda", () => {
     const js = leer(JS);
     const navigation = leer(NAVIGATION);
     const bloque = navigation.match(/export const NAVIGATION = \[([\s\S]*?)\];/)?.[1] || "";
@@ -36,9 +36,10 @@ describe("header de la página de categoría", () => {
     expect((bloque.match(/href:/g) || []).length).toBeGreaterThan(6);
     expect(navigation).toContain('label: "Soluciones"');
     expect(navigation).toContain('label: "Tienda", href: "/tienda"');
-    expect(js).toContain("const CATEGORY_NAVIGATION = NAVIGATION.map");
-    expect(js).toContain('item.href.startsWith("#")');
-    expect(js).toContain("`/${item.href}`");
+    expect(navigation).toContain("export const STORE_NAVIGATION = NAVIGATION.map");
+    expect(navigation).toContain('item.href.startsWith("#")');
+    expect(navigation).toContain("`/${item.href}`");
+    expect(js).toContain("navigation={STORE_NAVIGATION}");
   });
 
   it("mantiene navegación móvil y acciones compactas sin romper la cápsula", () => {

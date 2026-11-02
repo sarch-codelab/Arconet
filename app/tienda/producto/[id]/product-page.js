@@ -30,8 +30,9 @@ import { formatPrice } from "../../catalogo-data";
 import { useCatalogProducts } from "../../catalogo-products";
 import { useCart } from "../../../cart-context";
 import Footer from "../../../footer";
+import NavDock from "../../../nav-dock";
+import { STORE_NAVIGATION } from "../../../navigation-data";
 import styles from "./product-page.module.css";
-import MobileSiteMenu from "../../../mobile-site-menu";
 import ProductBrand from "./product-brand";
 
 const CATEGORY_ICONS = {
@@ -90,12 +91,6 @@ export default function ProductPage({ product }) {
       .catch(() => { if (active) setWhatsappNumber(""); });
     return () => { active = false; };
   }, []);
-  const NAVIGATION = [
-    { href: "/tienda", label: "Soluciones" },
-    { href: "/#empresa", label: "La empresa" },
-    { href: "/contacto", label: "Contacto" },
-  ];
-
   useEffect(() => {
     const page = pageRef.current;
     const topbar = topbarRef.current;
@@ -149,60 +144,26 @@ export default function ProductPage({ product }) {
 
   return (
     <main className={styles.page} ref={pageRef}>
-      <header
-        ref={topbarRef}
-        className={styles.topbar}
-      >
-        <span className={styles.scrollProgress} aria-hidden="true">
-          <i />
-        </span>
-
-        {/* El menú móvil va FUERA del shell: en desktop el shell es una grilla
-            de exactamente 3 columnas (logo | nav | acción) y este componente,
-            aunque oculta su UI con display:none en pantallas grandes, al ser
-            un div hijo ocupaba una cuarta columna y desplazaba la navegación
-            y el botón de cotización ("barra rara" en PC). Acá queda como
-            botón flotante fijo, visible solo en móvil/tableta. */}
-        <div className={styles.menuFloat}>
-          <MobileSiteMenu />
-        </div>
-
-        <div className={styles.topbarShell}>
-          <Link className={styles.topbarBrand} href="/" aria-label="Arconet, inicio">
-            <Image
-              src="/arconet.png"
-              alt="Arconet"
-              width={1200}
-              height={200}
-              sizes="(max-width: 1040px) 114px, 176px"
-            />
-          </Link>
-
-          <nav className={styles.topbarNav} aria-label="Navegación del catálogo">
-            {NAVIGATION.map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-              >
-                {item.label}
-              </a>
-            ))}
-          </nav>
-
+      <NavDock
+        variant="fixed"
+        activeId="soluciones"
+        navigation={STORE_NAVIGATION}
+        topbarRef={topbarRef}
+        cartAction={
           <button
             type="button"
-            className={styles.topbarAction}
+            className={styles.headerAction}
             onClick={openCart}
             aria-label={`Carrito, ${cartCount} ${cartCount === 1 ? "unidad" : "unidades"}`}
           >
-            <span className={styles.topbarCartIcon}>
+            <span className={styles.headerCartLabel}>Carrito</span>
+            <span className={styles.headerCartIcon}>
               <ShoppingCart size={15} aria-hidden="true" />
               {cartCount > 0 && <i className={styles.cartBadge} aria-hidden="true">{cartCount > 99 ? "99+" : cartCount}</i>}
             </span>
-            Carrito
           </button>
-        </div>
-      </header>
+        }
+      />
 
       <div className={styles.breadcrumb}>
         <Link href="/">Inicio</Link>

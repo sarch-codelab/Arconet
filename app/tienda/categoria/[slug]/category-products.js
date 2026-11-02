@@ -61,16 +61,9 @@ import { useCart } from "../../../cart-context";
 import styles from "./category-products.module.css";
 import Footer from "../../../footer";
 import NavDock from "../../../nav-dock";
-import { NAVIGATION } from "../../../navigation-data";
+import { STORE_NAVIGATION } from "../../../navigation-data";
 import CategoryFilters, { ORDEN_OPCIONES } from "./category-filters";
 import CategoryToolbar from "./category-toolbar";
-
-// El menú 2 usa anclas dentro del home. Desde una categoría esas mismas
-// entradas deben volver al home para encontrar su sección.
-const CATEGORY_NAVIGATION = NAVIGATION.map((item) => ({
-  ...item,
-  href: item.href.startsWith("#") ? `/${item.href}` : item.href,
-}));
 
 // Clave de la preferencia de tamaño de tarjeta (vista grande, compacta o lista).
 const VISTA_KEY = "arconet-catalogo-vista";
@@ -438,7 +431,7 @@ export default function CategoryProducts({
       <NavDock
         variant="fixed"
         activeId="soluciones"
-        navigation={CATEGORY_NAVIGATION}
+        navigation={STORE_NAVIGATION}
         topbarRef={topbarRef}
         cartAction={
           <button

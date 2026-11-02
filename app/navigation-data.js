@@ -1,6 +1,6 @@
 // Navegación principal compartida por el dock del home (menú 2) y las
-// páginas de categoría. Misma estructura: items planos y un mega menú
-// (Soluciones) con grupos de enlaces de la tienda.
+// páginas de categoría y producto. Misma estructura: items planos y un mega
+// menú (Soluciones) con grupos de enlaces de la tienda.
 export const NAVIGATION = [
   { id: "inicio", label: "Inicio", href: "#inicio", mega: false },
   { id: "soluciones", label: "Soluciones", href: "#soluciones", mega: true, megaGroups: [
@@ -32,3 +32,10 @@ export const NAVIGATION = [
   { id: "compania", label: "Nosotros", href: "#compania", mega: false },
   { label: "Contacto", href: "/contacto", mega: false },
 ];
+
+// Fuera del home, las anclas deben volver a la portada para encontrar su
+// sección. Categoría y producto comparten esta misma configuración.
+export const STORE_NAVIGATION = NAVIGATION.map((item) => ({
+  ...item,
+  href: item.href.startsWith("#") ? `/${item.href}` : item.href,
+}));

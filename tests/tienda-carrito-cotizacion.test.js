@@ -32,7 +32,7 @@ describe("carrito y cotización de la tienda", () => {
       expect(js, nombre).toMatch(re);
     }
     expect(CATALOGO).toMatch(/Carrito\s*<\/button>/);
-    expect(PRODUCTO).toMatch(/Carrito\s*<\/button>/);
+    expect(PRODUCTO).toContain('className={styles.headerCartLabel}>Carrito</span>');
     expect(CATEGORIA).toContain('className={styles.headerCartLabel}>Carrito</span>');
   });
 
@@ -41,9 +41,10 @@ describe("carrito y cotización de la tienda", () => {
     expect(CATALOGO).toContain("styles.cartBadge");
     expect(PRODUCTO).toContain("styles.cartBadge");
     expect(DETALLLE).toContain("styles.cartBadge");
-    // En la categoría el badge estaba en un span sin posicionar: el círculo
-    // absoluto se pegaba al header. Ahora el contenedor es position:relative.
+    // El círculo absoluto debe quedar anclado al recuadro del icono, tanto en
+    // categoría como en producto, y no a otro antecesor del dock.
     expect(CATEGORIA_CSS).toMatch(/\.headerCartIcon\s*\{[^}]*position: relative/);
+    expect(PRODUCTO_CSS).toMatch(/\.headerAction > \.headerCartIcon\s*\{[^}]*position: relative/);
   });
 
   it("el resumen de la categoría no se repite cuando la descripción es la misma", () => {

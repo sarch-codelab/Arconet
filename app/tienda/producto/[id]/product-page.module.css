@@ -8,6 +8,9 @@
   --blue: #1544b5;
   --blue-deep: #0c2874;
   min-height: 100vh;
+  /* El dock compartido es fixed: se reserva su altura para que no tape las
+     migas ni la ficha. Es la misma medida usada por la página de categoría. */
+  padding-top: calc(clamp(62px, 3.6vw, 78px) + 24px);
   padding-bottom: 0;
   background: var(--bg);
   color: var(--ink);
@@ -358,25 +361,30 @@
   border-radius: 2px;
 }
 
+/* Botón de carrito integrado en el mismo dock que usa categoría. */
 .headerAction {
+  justify-self: end;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  min-height: 44px;
-  padding: 0 16px;
-  border: 1px solid var(--line);
+  gap: 11px;
+  padding: 4px 5px 4px 16px;
+  border: 1px solid #0d1422;
   border-radius: 999px;
-  background: var(--surface);
-  color: var(--ink);
-  font-size: 12.5px;
-  font-weight: 750;
+  background: #171a22;
+  color: #fff !important;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   cursor: pointer;
-  transition: border-color 180ms ease, color 180ms ease;
+  transition: background 180ms ease, transform 180ms ease;
 }
 
 .headerAction:hover {
-  border-color: var(--blue);
-  color: var(--blue);
+  background: #2a2f3a;
+  transform: translateY(-1px);
 }
 
 .headerAction > span {
@@ -387,13 +395,56 @@
   color: #ffffff;
 }
 
+.headerAction > .headerCartIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #fff;
+  color: #0d1422;
+  font-size: 11px;
+  font-weight: 700;
+  /* El badge absoluto debe quedar anclado a este recuadro, no al dock. */
+  position: relative;
+}
+
+/* En pantallas medianas y móviles el carrito conserva su icono y su etiqueta
+   accesible; se oculta solo el texto visible para que quepa junto a Acceder. */
+@media (max-width: 1180px) {
+  .headerAction {
+    min-width: 44px;
+    justify-content: center;
+    gap: 0;
+    padding: 4px;
+  }
+
+  .headerCartLabel {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding-top: 76px;
+  }
+}
+
+@media (max-width: 420px) {
+  .page {
+    padding-top: 70px;
+  }
+}
+
 /* ---------------- Migas ---------------- */
 .breadcrumb {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 88px clamp(20px, 6vw, 96px) 0;
+  padding: 20px clamp(20px, 6vw, 96px) 0;
   color: var(--muted);
   font-size: 12px;
   font-weight: 650;
