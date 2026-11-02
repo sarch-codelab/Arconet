@@ -24,14 +24,8 @@ import { useCart } from "../../cart-context";
 import styles from "./product-detail.module.css";
 import VideoFondoCTA from "../../video-fondo-cta";
 import Footer from "../../footer";
-
-const NAVIGATION = [
-  { href: "/tienda#familias", label: "Soluciones" },
-  { href: "/tienda#catalogo-items", label: "Tienda" },
-  { href: "/#empresa", label: "La empresa" },
-  { href: "/contacto", label: "Contacto" },
-  { href: "/terminos", label: "Términos" },
-];
+import NavDock from "../../nav-dock";
+import { STORE_NAVIGATION } from "../../navigation-data";
 
 const PRESENTATIONS = ["Unidad", "Caja", "Proyecto completo"];
 
@@ -82,7 +76,6 @@ export default function ProductDetail({ slug }) {
   const [quantity, setQuantity] = useState(1);
   const [presentation, setPresentation] = useState(PRESENTATIONS[0]);
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { addItem, open: openCart, count: cartCount } = useCart();
   const { byCategory, loading: productsLoading } = useCatalogProducts();
 
@@ -180,53 +173,27 @@ export default function ProductDetail({ slug }) {
     <main className={styles.detail} ref={pageRef}>
       <div className={styles.readingProgress} aria-hidden="true" />
 
-      <header
-        ref={topbarRef}
-        className={`${styles.topbar} ${scrolledPastHero ? styles.topbarVisible : styles.topbarHidden}`}
-        aria-hidden={!scrolledPastHero}
-      >
-        <span className={styles.scrollProgress} aria-hidden="true">
-          <i />
-        </span>
-
-        <div className={styles.topbarShell}>
-          <Link className={styles.topbarBrand} href="/" aria-label="Arconet, inicio" tabIndex={scrolledPastHero ? 0 : -1}>
-            <Image
-              src="/arconet.png"
-              alt="Arconet"
-              width={1200}
-              height={200}
-              sizes="(max-width: 1040px) 114px, 176px"
-            />
-          </Link>
-
-          <nav className={styles.topbarNav} aria-label="Navegación del catálogo">
-            {NAVIGATION.map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-                tabIndex={scrolledPastHero ? 0 : -1}
-              >
-                {item.label}
-              </a>
-            ))}
-          </nav>
-
+      <NavDock
+        variant="scroll"
+        visible={scrolledPastHero}
+        activeId="soluciones"
+        navigation={STORE_NAVIGATION}
+        topbarRef={topbarRef}
+        cartAction={
           <button
             type="button"
-            className={styles.topbarAction}
+            className={styles.headerAction}
             onClick={openCart}
-            tabIndex={scrolledPastHero ? 0 : -1}
             aria-label={`Carrito, ${cartCount} ${cartCount === 1 ? "unidad" : "unidades"}`}
           >
-            <span className={styles.topbarCartIcon}>
+            <span className={styles.headerCartLabel}>Carrito</span>
+            <span className={styles.headerCartIcon}>
               <ShoppingCart size={15} aria-hidden="true" />
               {cartCount > 0 && <i className={styles.cartBadge} aria-hidden="true">{cartCount > 99 ? "99+" : cartCount}</i>}
             </span>
-            Carrito
           </button>
-        </div>
-      </header>
+        }
+      />
 
       <div className={styles.breadcrumb}>
         <Link href="/tienda">Tienda</Link>
