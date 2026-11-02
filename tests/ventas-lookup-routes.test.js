@@ -136,6 +136,29 @@ it("las consultas excluyen bajas para búsquedas nuevas pero resuelven el produc
   expect(sql).toContain("IS NOT NULL AND p.id =");
 });
 
+it("sin categoría no interpola una cadena vacía que rompa el SQL de productos", async () => {
+  await products(request("productos"));
+  const [strings, ...values] = mocks.query.mock.calls[0];
+  expect(strings.join("?")).toContain("?::text IS NULL OR p.categoria = ?");
+  expect(values).not.toContain("");
+});
+
+it("acepta la URL antigua con categoria=undefined sin convertirla en un filtro literal", async () => {
+  await products(request("productos", { categoria: "undefined" }));
+  const [strings, ...values] = mocks.query.mock.calls[0];
+  expect(strings.join("?")).toContain("?::text IS NULL OR p.categoria = ?");
+  expect(values).not.toContain("undefined");
+});
+
+it("filtra por categoría con un valor parametrizado, nunca con un fragmento de SQL", async () => {
+  const categoria = "Soluciones activas y Accesorios FTTH";
+  await products(request("productos", { categoria }));
+  const [strings, ...values] = mocks.query.mock.calls[0];
+  expect(strings.join("?")).toContain("?::text IS NULL OR p.categoria = ?");
+  expect(values).toContain(categoria);
+  expect(values.some(value => typeof value === "string" && value.includes("AND p.categoria"))).toBe(false);
+});
+
 it("la búsqueda también coincide por marca y entrega la ruta de la foto, nunca el data URL", async () => {
   const dataUrl = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
   mocks.query.mockResolvedValue([{ ...product, marca: "Fiberhome", foto: dataUrl }]);

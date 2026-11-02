@@ -239,9 +239,9 @@
 
 .embedded .resumen { position: static; }
 
-/* Nueva venta a página completa: el formulario deja un espacio fijo a la
-   derecha para la previsualización de la factura en vivo. En pantallas
-   pequeñas la previsualización se acomoda debajo del formulario. */
+/* Nueva venta a página completa: el formulario deja una columna a la
+   derecha para el carrito del cliente. En pantallas pequeñas el carrito
+   se acomoda debajo del formulario. */
 .editorLayout {
   display: grid;
   gap: 18px;

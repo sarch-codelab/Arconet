@@ -13,8 +13,8 @@ import styles from "../../ventas-section.module.css";
 
 /**
  * Página completa «Nueva venta»: el editor fiscal ocupa toda la página
- * (no es una pantalla emergente) y a la derecha se actualiza en vivo la
- * previsualización de la factura mientras escribes o el panel ejecuta algo.
+ * (no es una pantalla emergente) y a la derecha se actualiza en vivo el
+ * carrito del cliente mientras agregas o editas productos y servicios.
  */
 export default function NuevaVenta({ session }) {
   const router = useRouter();
@@ -70,9 +70,9 @@ export default function NuevaVenta({ session }) {
               </Link>
               <h1>Nueva venta · Factura fiscal</h1>
               <p>
-                Registra esta venta una sola vez con su comprobante fiscal. La
-                previsualización de la factura se actualiza en vivo a la derecha mientras
-                escribes o cambias los datos.
+                Registra esta venta una sola vez con su comprobante fiscal. El
+                carrito del cliente se actualiza en vivo a la derecha mientras
+                agregas productos, servicios o cambias sus datos.
               </p>
             </div>
             <div className={adminStyles.topbarActions}>

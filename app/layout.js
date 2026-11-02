@@ -79,6 +79,9 @@ const orbitron = localFont({
   src: "./fonts/orbitron-latin-wght-normal.woff2",
   weight: "400 900",
   display: "swap",
+  // La marca no aparece en todas las rutas administrativas. Precargarla desde
+  // el layout raíz generaba avisos de recurso descargado y no utilizado.
+  preload: false,
   variable: "--font-display",
 });
 
@@ -88,6 +91,9 @@ const exo2 = localFont({
     { path: "./fonts/exo-2-latin-wght-italic.woff2", weight: "100 900", style: "italic" },
   ],
   display: "swap",
+  // Normal e italic comparten esta familia: al desactivar su preload global
+  // evitamos descargar también la cursiva en páginas donde nunca se utiliza.
+  preload: false,
   variable: "--font-heading",
 });
 

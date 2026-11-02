@@ -73,7 +73,18 @@ const nextConfig = {
             ? { ...header, value: header.value.replace("frame-ancestors 'none'; ", "") }
             : header)
       : securityHeaders;
-    return [{ source: "/(.*)", headers }];
+    // Cloudflare Web Analytics reescribe el HTML en el borde e inyecta
+    // beacon.min.js. En las páginas privadas no queremos esa dependencia:
+    // no-transform impide la inyección (y el ERR_BLOCKED_BY_CLIENT cuando un
+    // bloqueador la detiene), sin cambiar la caché del sitio público/assets.
+    const privateHtmlHeaders = [
+      { key: "Cache-Control", value: "private, no-store, no-transform" },
+    ];
+    return [
+      { source: "/(.*)", headers },
+      { source: "/admin/:path*", headers: privateHtmlHeaders },
+      { source: "/panel-administrativo/:path*", headers: privateHtmlHeaders },
+    ];
   },
 };
 

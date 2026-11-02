@@ -1,0 +1,367 @@
+.cartCard {
+  position: sticky;
+  top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  max-height: calc(100vh - 40px);
+}
+
+.cartHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cartTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.cartTitleIcon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: var(--accent-soft, #e9f0ff);
+  color: var(--accent, #1544b5);
+}
+
+.cartTitle p {
+  margin: 0 0 2px;
+  color: var(--text-muted);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cartTitle h3 {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 16px;
+  font-weight: 750;
+}
+
+.cartCount {
+  flex: 0 0 auto;
+  padding: 4px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.cartBody {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  min-height: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-card);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  overflow-y: auto;
+}
+
+.customer {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 11px;
+  border-bottom: 1px solid var(--border);
+}
+
+.customer span {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.customer strong {
+  min-width: 0;
+  color: var(--text-main);
+  font-size: 12.5px;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.cartList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cartItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card-subtle);
+}
+
+.itemVisual {
+  flex: 0 0 auto;
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.itemVisual img {
+  display: block;
+  width: 52px;
+  height: 52px;
+  object-fit: cover;
+  background: var(--bg-card);
+}
+
+.itemVisual > span {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  background: var(--accent-soft, #e9f0ff);
+  color: var(--accent, #1544b5);
+}
+
+.itemContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.itemTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.itemName {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.itemName > span {
+  color: var(--text-muted);
+  font-size: 9.5px;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.itemName strong {
+  color: var(--text-main);
+  font-size: 12.5px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.removeButton {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  margin: -3px -3px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.removeButton:hover:not(:disabled),
+.removeButton:focus-visible:not(:disabled) {
+  background: #fee2e2;
+  color: #b91c1c;
+  outline: none;
+}
+
+.removeButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.itemMeta,
+.itemBottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 5px 10px;
+}
+
+.itemMeta {
+  margin-top: 8px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.itemBottom {
+  margin-top: 6px;
+  color: var(--text-muted);
+  font-size: 10.5px;
+}
+
+.itemBottom strong {
+  margin-left: auto;
+  color: var(--text-main);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.emptyCart {
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  padding: 30px 16px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.emptyCart > span {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 3px;
+  border-radius: 50%;
+  background: var(--bg-card-subtle);
+  color: var(--accent, #1544b5);
+}
+
+.emptyCart strong {
+  color: var(--text-main);
+  font-size: 13px;
+}
+
+.emptyCart p {
+  max-width: 270px;
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.totals {
+  display: grid;
+  gap: 8px;
+  padding-top: 13px;
+  border-top: 1px solid var(--border);
+}
+
+.totals > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.totals strong,
+.totals output {
+  color: var(--text-main);
+  font-variant-numeric: tabular-nums;
+}
+
+.totals .grandTotal {
+  margin-top: 2px;
+  padding-top: 11px;
+  border-top: 1px solid var(--border);
+  color: var(--text-main);
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.grandTotal output {
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.cartHint {
+  margin: -3px 0 0;
+  color: var(--text-muted);
+  font-size: 10.5px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+@media (max-width: 1240px) {
+  .cartCard {
+    position: static;
+    max-height: none;
+  }
+
+  .cartBody {
+    overflow-y: visible;
+  }
+}
+
+@media (max-width: 520px) {
+  .cartHead {
+    align-items: flex-start;
+  }
+
+  .cartTitleIcon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .cartTitle h3 {
+    font-size: 15px;
+  }
+
+  .cartBody {
+    padding: 13px;
+  }
+
+  .customer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .customer strong {
+    text-align: left;
+  }
+
+  .cartItem {
+    gap: 9px;
+    padding: 10px;
+  }
+
+  .itemVisual,
+  .itemVisual img {
+    width: 44px;
+    height: 44px;
+  }
+}

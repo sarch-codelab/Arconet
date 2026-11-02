@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { apiFetch } from "@/lib/api-fetch";
-import { clientIdentity } from "@/lib/ventas-form";
+import { clientIdentity, lookupSearchParams } from "@/lib/ventas-form";
 import { formatPrice } from "./products-store";
 import styles from "./ventas-form.module.css";
 
@@ -14,7 +14,7 @@ async function lookup(kind, params, signal) {
   signal.addEventListener("abort", cancel, { once: true });
   const timer = setTimeout(() => { timedOut = true; cancel(); }, 12000);
   try {
-    const response = await apiFetch(`${kind === "compras-productos" ? "/api/compras/productos" : kind === "proveedores" ? "/api/compras/proveedores" : `/api/ventas/${kind}`}?${new URLSearchParams(params)}`, { cache: "no-store", signal: controller.signal });
+    const response = await apiFetch(`${kind === "compras-productos" ? "/api/compras/productos" : kind === "proveedores" ? "/api/compras/proveedores" : `/api/ventas/${kind}`}?${lookupSearchParams(params)}`, { cache: "no-store", signal: controller.signal });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || "No se pudo realizar la búsqueda.");
     if (!Array.isArray(data.items)) throw new Error("La búsqueda devolvió una respuesta inválida.");

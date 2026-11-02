@@ -8,16 +8,16 @@ import NuevaVenta from "./nueva-venta";
 
 export const metadata = {
   title: "Nueva venta · Factura fiscal",
-  description: "Registro de venta fiscal con previsualización de la factura en vivo.",
+  description: "Registro de venta fiscal con carrito del cliente en vivo.",
   robots: { index: false, follow: false },
 };
 
 export const dynamic = "force-dynamic";
 
 /**
- * Página completa de nueva venta (no emergente): el panel administrative
- * abre este route con los datos de la venta y la previsualización en vivo
- * de la factura a la derecha.
+ * Página completa de nueva venta (no emergente): el panel administrativo
+ * abre esta ruta con los datos de la venta y el carrito del cliente en vivo
+ * a la derecha.
  */
 export default async function NuevaVentaPage() {
   const session = await getSession();

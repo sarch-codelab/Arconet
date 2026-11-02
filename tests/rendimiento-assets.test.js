@@ -50,6 +50,33 @@ describe("el logo se sirve al tamaño que se ve", () => {
   });
 });
 
+describe("las fuentes no se precargan donde no se utilizan", () => {
+  it("sólo la fuente de texto conserva preload global", () => {
+    const layout = leer("app/layout.js");
+    const fuente = (nombre) => layout.match(new RegExp(`const ${nombre} = localFont\\(\\{([\\s\\S]*?)\\n\\}\\);`))?.[1] || "";
+    // Nueva venta siempre usa Inter, pero no necesariamente la marca Orbitron
+    // ni la variante itálica de Exo 2. Estas últimas se cargan bajo demanda.
+    expect(fuente("inter")).not.toContain("preload: false");
+    expect(fuente("orbitron")).toContain("preload: false");
+    expect(fuente("exo2")).toContain("preload: false");
+  });
+});
+
+describe("el beacon de Cloudflare no se inyecta en páginas privadas", () => {
+  it("marca sólo el HTML administrativo como privado y no transformable", async () => {
+    const { default: config } = await import("../next.config.mjs");
+    const rules = await config.headers();
+    const privateRules = rules.filter(({ source }) => ["/admin/:path*", "/panel-administrativo/:path*"].includes(source));
+    expect(privateRules.map(({ source }) => source)).toEqual(["/admin/:path*", "/panel-administrativo/:path*"]);
+    for (const { headers } of privateRules) {
+      expect(headers.find(({ key }) => key === "Cache-Control")?.value).toBe("private, no-store, no-transform");
+    }
+    // No convertir el sitio público en no-store ni desactivar sus optimizaciones.
+    const general = rules.find(({ source }) => source === "/(.*)");
+    expect(general.headers.some(({ key }) => key === "Cache-Control")).toBe(false);
+  });
+});
+
 describe("no quedan archivos muertos en public/", () => {
   const sinUso = [
     "public/neto-manana.png",
