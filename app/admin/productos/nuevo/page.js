@@ -1,6 +1,7 @@
 import { isLocalPreviewAuthEnabled } from "@/lib/local-preview-auth";
 import { getPermisos } from "@/lib/dal";
 import LocalPreviewEntry from "../../local-preview-entry";
+import { AdminPreferences } from "../../admin-preferences";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import NuevaProducto from "./nuevo-producto";
@@ -25,7 +26,11 @@ export default async function NuevaProductoPage() {
       <LocalPreviewEntry
         protectedPage
         hasCookieSession={Boolean(session)}
-        render={(sesion) => <NuevaProducto session={sesion} />}
+        render={(sesion) => (
+          <AdminPreferences key={sesion?.correo} account={sesion?.correo}>
+            <NuevaProducto session={sesion} />
+          </AdminPreferences>
+        )}
       />
     );
   }
@@ -35,5 +40,9 @@ export default async function NuevaProductoPage() {
   // La cookie de sesión no incluye permisos: hay que calcularlos del rol en
   // el servidor (admin => todos) para que el cierre de la página funcione.
   const permisos = await getPermisos(session);
-  return <NuevaProducto session={{ ...session, permisos }} />;
+  return (
+    <AdminPreferences key={session?.correo} account={session?.correo}>
+      <NuevaProducto session={{ ...session, permisos }} />
+    </AdminPreferences>
+  );
 }
