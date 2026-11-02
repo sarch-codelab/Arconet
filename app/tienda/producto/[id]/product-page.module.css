@@ -1,4 +1,4 @@
-﻿.page {
+.page {
   /* EL SCROLL LATERAL: ver explicacion en category-products.module.css.
      Lenis (LocomotiveScroll v5) scrollea en diagonal, asi que cualquier hijo
      que sobresalga del viewport habilita deslizar la pagina a los lados.
@@ -750,6 +750,32 @@
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
+}
+
+/* Agotado: rojo, no gris, para que se vea a primera vista. */
+.primary.agotado {
+  background: #c62828;
+  color: #fff;
+}
+
+.cartBadge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #d92f2f;
+  color: #fff;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 0 0 2px var(--paper);
+  pointer-events: none;
 }
 
 .secondary {

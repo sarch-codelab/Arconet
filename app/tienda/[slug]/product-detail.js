@@ -217,13 +217,13 @@ export default function ProductDetail({ slug }) {
             className={styles.topbarAction}
             onClick={openCart}
             tabIndex={scrolledPastHero ? 0 : -1}
-            aria-label={`Carrito de cotización, ${cartCount} ${cartCount === 1 ? "unidad" : "unidades"}`}
+            aria-label={`Carrito, ${cartCount} ${cartCount === 1 ? "unidad" : "unidades"}`}
           >
             <span className={styles.topbarCartIcon}>
               <ShoppingCart size={15} aria-hidden="true" />
-              {cartCount > 0 && <i className="cartBadge" aria-hidden="true">{cartCount > 99 ? "99+" : cartCount}</i>}
+              {cartCount > 0 && <i className={styles.cartBadge} aria-hidden="true">{cartCount > 99 ? "99+" : cartCount}</i>}
             </span>
-            Cotización
+            Carrito
           </button>
         </div>
       </header>

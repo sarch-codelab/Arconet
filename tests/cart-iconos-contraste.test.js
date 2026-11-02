@@ -34,4 +34,15 @@ describe("iconos del carrito y del catálogo", () => {
     const oscuro = GLOBALS.match(/html\[data-theme="dark"\] \{([^}]*)\}/)?.[1] || "";
     expect(oscuro).toContain("--badge-ink:");
   });
+
+  it("el badge del conteo en las páginas está scoped y contenedor posicionado", () => {
+    // El badge global se reemplazó por la clase del módulo en cada página:
+    // sin ella, el círculo absoluto del badge se pegaba a otro lado.
+    const catCss = CATEGORIA.match(/\.cartBadge\s*\{([^}]*)\}/)?.[1] || "";
+    expect(catCss).toContain("background: #d92f2f");
+    expect(catCss).toContain("position: absolute");
+    expect(catCss).toContain("box-shadow: 0 0 0 2px var(--paper)");
+    const prodCss = PRODUCTO.match(/\.cartBadge\s*\{([^}]*)\}/)?.[1] || "";
+    expect(prodCss).toContain("background: #d92f2f");
+  });
 });
