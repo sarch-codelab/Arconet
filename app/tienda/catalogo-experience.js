@@ -115,6 +115,7 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
   const [gateOpen, setGateOpen] = useState(false);
   const heroRef = useRef(null);
   const topbarRef = useRef(null);
+  const scrolledPastHeroRef = useRef(false);
   const { count: cartCount, open: openCart } = useCart();
   // Llegan del servidor ya resueltas. Solo si la base no devolvió nada (por
   // ejemplo, sin conexión) se cae al catálogo estático del código.
@@ -206,23 +207,44 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
     if (gateOpen) return undefined;
 
     const topbar = topbarRef.current;
+    const hero = heroRef.current;
+    let viewportHeight = window.innerHeight;
+    let scrollable = 1;
+    let heroRange = 1;
 
-    const update = ({ scroll = window.scrollY } = {}) => {
-      const shouldShow = scroll > window.innerHeight * 0.7;
-      setScrolledPastHero((current) => current === shouldShow ? current : shouldShow);
+    // Medir fuera del callback evita leer scrollHeight/offsetHeight en cada
+    // frame. Esas lecturas, mezcladas con escrituras de estilo, obligaban al
+    // navegador a recalcular el layout durante todo el desplazamiento.
+    const measure = () => {
+      viewportHeight = window.innerHeight;
+      scrollable = Math.max(document.documentElement.scrollHeight - viewportHeight, 1);
+      heroRange = Math.max((hero?.offsetHeight || viewportHeight) * 0.8, 1);
+    };
+
+    const update = ({ scroll = window.scrollY, limit } = {}) => {
+      if (Number.isFinite(limit) && limit > 0) scrollable = Math.max(limit, 1);
+
+      const shouldShow = scroll > viewportHeight * 0.7;
+      if (shouldShow !== scrolledPastHeroRef.current) {
+        scrolledPastHeroRef.current = shouldShow;
+        setScrolledPastHero(shouldShow);
+      }
 
       if (topbar) {
-        const scrollable = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
         topbar.style.setProperty("--scroll-progress", Math.min(1, Math.max(0, scroll / scrollable)).toFixed(4));
       }
 
-      const hero = heroRef.current;
       if (hero) {
-        const range = Math.max(hero.offsetHeight * 0.8, 1);
-        hero.style.setProperty("--hero-progress", Math.min(1, Math.max(0, scroll / range)).toFixed(4));
+        hero.style.setProperty("--hero-progress", Math.min(1, Math.max(0, scroll / heroRange)).toFixed(4));
       }
     };
 
+    const handleResize = () => {
+      measure();
+      update({ scroll: window.scrollY });
+    };
+
+    measure();
     const locomotive = new LocomotiveScroll({
       lenisOptions: {
         anchors: true,
@@ -235,8 +257,17 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
       scrollCallback: update,
     });
 
+    const resizeObserver = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(handleResize);
+    resizeObserver?.observe(document.documentElement);
+    if (hero) resizeObserver?.observe(hero);
+    window.addEventListener("resize", handleResize);
     update({ scroll: window.scrollY });
-    return () => locomotive.destroy();
+
+    return () => {
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", handleResize);
+      locomotive.destroy();
+    };
   }, [gateOpen]);
 
   useEffect(() => {
@@ -384,10 +415,10 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
         <section className={styles.heroCard} ref={heroRef}>
           <div className={styles.heroBackground}>
             <Image
-              src="/catalogo/ingeniero-caso-panoramica.png"
+              src="/catalogo/ingeniero-caso-panoramica.webp"
               alt="Ingeniero de telecomunicaciones de Arconet"
               fill
-              loading="eager"
+              priority
               sizes="100vw"
               className={styles.heroImage}
               data-scroll
@@ -500,7 +531,9 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
               /* La tarjeta no usa data-reveal: esa animación escribe
                  transform y choca con la elevación del :hover, que dejaba de
                  responder tras revelarse. El CSS ya anima la entrada. */
-              style={{ "--imagen": `url("${example.image}")` }}
+              /* Cargar once páginas dinámicas al recorrer la rejilla genera
+                 trabajo de red y render en segundo plano. Se carga al hacer clic. */
+              prefetch={false}
             >
               <div className={styles.exampleCopy}>
                 <h3>{example.title}</h3>

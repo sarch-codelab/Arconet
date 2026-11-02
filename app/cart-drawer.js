@@ -45,16 +45,24 @@ export default function CartDrawer() {
   const { items, count, isOpen, close, setQuantity, removeItem, clear } = useCart();
   const [copied, setCopied] = useState(false);
   const [whatsappNumber, setWhatsappNumber] = useState("");
+  const [contactLoaded, setContactLoaded] = useState(false);
   const [generandoCotizacion, setGenerandoCotizacion] = useState(false);
 
   useEffect(() => {
+    // El carrito vive en el layout raíz. No pedir la configuración en cada
+    // página antes de que el visitante siquiera abra el panel.
+    if (!isOpen || contactLoaded) return undefined;
     let active = true;
     fetch("/api/site-config", { cache: "no-store" })
       .then((response) => response.ok ? response.json() : null)
-      .then((data) => { if (active) setWhatsappNumber(data?.whatsapp || ""); })
+      .then((data) => {
+        if (!active) return;
+        setWhatsappNumber(data?.whatsapp || "");
+        setContactLoaded(true);
+      })
       .catch(() => { if (active) setWhatsappNumber(""); });
     return () => { active = false; };
-  }, []);
+  }, [isOpen, contactLoaded]);
 
   useEffect(() => {
     if (!isOpen) return undefined;

@@ -32,7 +32,7 @@ describe("dock compartido con aparición al hacer scroll", () => {
     const catalogo = leer(CATALOGO);
     const detalle = leer(DETALLE);
 
-    expect(catalogo).toContain("scroll > window.innerHeight * 0.7");
+    expect(catalogo).toContain("scroll > viewportHeight * 0.7");
     expect(detalle).toContain("scroll > window.innerHeight * 0.15");
     for (const fuente of [catalogo, detalle]) {
       expect(fuente).toContain('topbar.style.setProperty("--scroll-progress"');

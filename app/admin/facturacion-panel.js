@@ -216,6 +216,11 @@ export default function FacturacionPanel({ session, productos: productosIniciale
   }, [documentos, query]);
 
   const totales = useMemo(() => fiscalPreviewTotals(lineas), [lineas]);
+  // Un Map evita recorrer todo el catálogo por cada línea en cada pulsación.
+  const productosPorId = useMemo(
+    () => new Map(productos.map((producto) => [producto.id, producto])),
+    [productos],
+  );
 
   const validationIssues = invoiceIssues({ canEmit, loading, loadError: error, clientBusy, clientCreating, clienteId, lineas, config, recovering: hasAttempt });
   const canReadSettings = session?.permisos?.includes("ajustes:read");
@@ -237,7 +242,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
     setLineas((current) =>
       current.map((linea) => {
         if (linea.key !== key) return linea;
-        if (campo === "nivelPrecio") return { ...linea, nivelPrecio: valor, precio: String(priceAt(productos.find(item => item.id === linea.productoId), valor) ?? "") };
+        if (campo === "nivelPrecio") return { ...linea, nivelPrecio: valor, precio: String(priceAt(productosPorId.get(linea.productoId), valor) ?? "") };
         return { ...linea, [campo]: valor };
       }),
     );
@@ -650,7 +655,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
                 <div className={adminStyles.cardBody}>
                   {!lineas.length && <p className={salesStyles.hint}>Añade productos del catálogo o conceptos / servicios para calcular el total de la factura.</p>}
                   {lineas.map((linea, index) => {
-                    const producto = productos.find((item) => item.id === linea.productoId);
+                    const producto = productosPorId.get(linea.productoId);
                     return (
                       <div className={styles.linea} key={linea.key} role="group" aria-label={`Línea ${index + 1}`}>
                         <div className={styles.lineaTop}>
@@ -735,9 +740,9 @@ export default function FacturacionPanel({ session, productos: productosIniciale
               </section>
 
               <section className={styles.resumen}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, marginBottom: 8 }}>
-                  <h3 style={{ margin: 0, fontSize: "15px", color: "var(--text-main)" }}><Receipt size={15} aria-hidden="true" /> Resumen</h3>
-                  <small style={{ color: "var(--text-muted)" }}>Se actualiza al cambiar las líneas</small>
+                <div className={styles.resumenHeading}>
+                  <h3><Receipt size={15} aria-hidden="true" /> Resumen</h3>
+                  <small>Se actualiza al cambiar las líneas</small>
                 </div>
                 <div className={styles.resumenFila}>
                   <span>Subtotal neto</span>

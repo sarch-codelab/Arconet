@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { Package, ReceiptText, ShoppingCart, Trash2 } from "lucide-react";
 import { roundMoney } from "@/lib/ventas-form";
 import styles from "./carrito-cliente.module.css";
@@ -23,7 +24,14 @@ function calcularLinea(linea) {
 
 /** Lista de productos y servicios que el cliente lleva en la venta actual. */
 export default function CarritoCliente({ cliente, lineas = [], productos = [], totales, onQuitarLinea, disabled = false }) {
-  const calculadas = lineas.map((linea) => ({ ...linea, calculo: calcularLinea(linea) }));
+  const calculadas = useMemo(
+    () => lineas.map((linea) => ({ ...linea, calculo: calcularLinea(linea) })),
+    [lineas],
+  );
+  const productosPorId = useMemo(
+    () => new Map(productos.map((producto) => [producto.id, producto])),
+    [productos],
+  );
   const subtotal = totales?.subtotal ?? calculadas.reduce((suma, { calculo }) => suma + calculo.base, 0);
   const descuento = totales?.descuento ?? calculadas.reduce((suma, linea) => suma + (Number(linea.descuento) || 0), 0);
   const impuesto = totales?.impuesto ?? calculadas.reduce((suma, { calculo }) => suma + calculo.impuesto, 0);
@@ -51,7 +59,7 @@ export default function CarritoCliente({ cliente, lineas = [], productos = [], t
         {calculadas.length ? (
           <ul className={styles.cartList} aria-label="Productos y servicios de la venta">
             {calculadas.map((linea) => {
-              const producto = productos.find((item) => item.id === linea.productoId);
+              const producto = productosPorId.get(linea.productoId);
               const esProducto = linea.kind === "producto" || Boolean(linea.productoId);
               const descripcion = linea.descripcion || (esProducto ? "Producto sin descripción" : "Concepto / servicio");
               return (
