@@ -2452,33 +2452,46 @@
   grid-column: 1 / -1;
 }
 
-/* Secciones del formulario largo de producto (alta/edición). Dividen la
-   forma en bloques lógicos con títulos que ocupan toda la width. */
+/* Secciones del formulario largo de producto (alta/edición): cada bloque es
+   una tarjeta con header de ícono y título para que no se pierda el orden. */
 .formSection {
-  margin-top: 24px;
+  margin-top: 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background: var(--bg-card-subtle);
+  padding: 16px 18px;
 }
 
 .formSection:first-of-type {
   margin-top: 0;
 }
 
-.formSectionTitle {
+.formSectionHead {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-  font-size: 11px;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--text-light);
+  color: var(--text-main);
 }
 
-.formSectionTitle::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: var(--border);
+.formSectionHead svg {
+  color: var(--orange);
+}
+
+/* Marca de obligatorio en los campos clave (nombre y Valor 1). */
+.fieldRequired {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--red);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 /* Columna de foto (principal o galería) dentro de la fila de fotos. */

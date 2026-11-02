@@ -53,6 +53,13 @@ describe("página completa de nuevo producto", () => {
     expect(html).toContain("Precios y costo");
     expect(html).toContain("Inventario y ubicación");
     expect(html).toContain("Publicación");
+    // Descripción vive en la ficha, justo bajo el nombre.
+    expect(html.indexOf("Nombre del producto")).toBeLessThan(html.indexOf("Descripción"));
+    expect(html.indexOf("Descripción")).toBeLessThan(html.indexOf("Código / SKU"));
+    // Campos clave marcados como obligatorios.
+    expect(html.toLowerCase()).toContain("obligatorio");
+    // La Publicación explica qué hace cada estado.
+    expect(html).toContain("no se publica");
   });
 
   it("sin permiso para crear muestra aviso y no monta el formulario", () => {
