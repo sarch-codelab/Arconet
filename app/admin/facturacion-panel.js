@@ -11,7 +11,7 @@ import { resolveFiscalTab } from "@/lib/admin-navigation";
 import { canEmitFiscalSale } from "@/lib/permisos";
 import { invoiceIssues } from "@/lib/invoice-feedback";
 import BusinessNotice from "./business-notice";
-import FacturaPreview from "./factura-preview";
+import CarritoCliente from "./carrito-cliente";
 import feedbackStyles from "./business-feedback.module.css";
 import { AdminContext } from "./admin-nav";
 
@@ -769,13 +769,13 @@ export default function FacturacionPanel({ session, productos: productosIniciale
               </section>
             </fieldset>
             {livePreview && editorOpen ? (
-              <FacturaPreview
+              <CarritoCliente
                 cliente={clientSnapshot}
                 lineas={lineas}
                 productos={productos}
                 totales={totales}
-                config={config}
-                canEmit={canEmit}
+                onQuitarLinea={quitarLinea}
+                disabled={guardando || !canEmit}
               />
             ) : null}
             </div>

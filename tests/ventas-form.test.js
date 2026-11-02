@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("../lib/prisma", () => ({ prisma: {} }));
 import { calcularTotales, emitirDocumentoFiscal } from "../lib/facturacion";
 import { parseOrden } from "../lib/ordenes";
-import { commercialTotal, checkedCommercialTotal, MAX_DOCUMENT_AMOUNT, sameCommercialAmounts, sameCatalogQuantities, fiscalPreviewTotals, validCommercialLine, lookupTerms, clientIdentity } from "../lib/ventas-form";
+import { commercialTotal, checkedCommercialTotal, MAX_DOCUMENT_AMOUNT, sameCommercialAmounts, sameCatalogQuantities, fiscalPreviewTotals, validCommercialLine, lookupTerms, lookupSearchParams, clientIdentity } from "../lib/ventas-form";
 
 const concept = { kind: "concepto", nombre: "Visita técnica", cantidad: "1", precio: "100.50" };
 
@@ -114,6 +114,12 @@ describe("búsqueda e identidad del cliente", () => {
   it("normaliza tildes, mayúsculas y palabras; mantiene los números guardados", () => {
     expect(lookupTerms(" JOSÉ   García  0801-1990 ")).toEqual(["jose", "garcia", "0801-1990"]);
     expect(lookupTerms("ÓPTICA Ñúñez")).toEqual(["optica", "nunez"]);
+  });
+  it("omite filtros undefined sin convertirlos en texto y conserva la búsqueda vacía", () => {
+    expect(lookupSearchParams({ q: "", take: "12", categoria: undefined }).toString()).toBe("q=&take=12");
+    const filtrada = lookupSearchParams({ q: "F", take: "12", categoria: "Soluciones activas y Accesorios FTTH" }).toString();
+    expect(filtrada).toContain("categoria=Soluciones+activas+y+Accesorios+FTTH");
+    expect(filtrada).not.toContain("undefined");
   });
   it("acota términos y longitud del query", () => {
     expect(lookupTerms("a ".repeat(100))).toHaveLength(10);
