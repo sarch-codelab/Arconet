@@ -61,6 +61,18 @@ describe('documentos autenticados',()=>{
     expect(response.headers.get('Content-Disposition')).toBe(`inline; filename="${documento.id}.html"`);
     expect(response.headers.get('Cache-Control')).toBe('private, no-store');
   });
+  it('una factura antigua se abre con la plantilla vigente, sin crear otra venta',async()=>{
+    const historical={...documento,id:'fac-0',fecha:new Date('2024-01-15T18:00:00Z')};
+    mocks.prisma.documentoFiscal.findUnique.mockResolvedValue(historical);
+    const response=await fiscalDocument(new Request('https://arconet.test/api/documento?formato=media-hoja'),{params:Promise.resolve({id:'fac-0'})});
+    const html=await response.text();
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.documentoFiscal.findUnique).toHaveBeenCalledWith(expect.objectContaining({where:{id:'fac-0'}}));
+    expect(html).toContain('data-paper="media-hoja"');
+    expect(html).toContain('@media screen{body:not([data-layout="receipt"]) .sheet{display:flex;flex-direction:column}body:not([data-layout="receipt"]) .document-end{margin-top:auto}}');
+    expect(html).toContain(historical.pdfHash);
+    expect(response.headers.get('Cache-Control')).toBe('private, no-store');
+  });
   it.each([['orden',adminDocument],['fiscal',fiscalDocument]])('devuelve 404 cuando no existe el documento %s',async(kind,get)=>{
     mocks.prisma.orden.findUnique.mockResolvedValue(null);mocks.prisma.documentoFiscal.findUnique.mockResolvedValue(null);
     expect((await get(request,context)).status).toBe(404);

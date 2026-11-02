@@ -199,6 +199,22 @@ describe("pie fiscal de la cotización (carrito y portal)", () => {
     expect(html).toContain("body[data-layout=\"receipt\"] .fiscal-footer{position:static}");
     expect(html).toContain("body[data-layout=\"receipt\"] .sheet{padding-bottom:0}");
   });
+  it("la vista previa de una hoja corta lleva todo el cierre al pie sin afectar tickets", () => {
+    const html = renderFiscalDocument({ documento, settings, paper: "media-hoja" });
+    expect(html).toContain('@media screen{body:not([data-layout="receipt"]) .sheet{display:flex;flex-direction:column}body:not([data-layout="receipt"]) .document-end{margin-top:auto}}');
+    expect(html).toContain("min-height:var(--paper-height)");
+    expect(html).toContain('data-layout="sheet"');
+    const ticket = renderFiscalDocument({ documento, settings, paper: "ticket-80" });
+    expect(ticket).toContain('data-layout="receipt"');
+    expect(ticket).toContain('body:not([data-layout="receipt"]) .document-end{margin-top:auto}');
+  });
+  it("la reserva del pie impreso se aplica después del reinicio general de la hoja", () => {
+    const html = renderFiscalDocument({ documento, settings });
+    const generalPrint = html.indexOf("@media print{html,body");
+    const fixedFooter = html.indexOf("@media print{.sheet .fiscal-footer");
+    expect(generalPrint).toBeGreaterThan(-1);
+    expect(fixedFooter).toBeGreaterThan(generalPrint);
+  });
   it("la huella SHA-256 es determinista y cambia con el contenido", () => {
     const a = huellaCotizacion(order);
     const b = huellaCotizacion({ ...order, monto: 350 });
