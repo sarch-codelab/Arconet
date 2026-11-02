@@ -31,8 +31,9 @@ describe("carrito y cotización de la tienda", () => {
     for (const [nombre, js] of [["catalogo", CATALOGO], ["producto", PRODUCTO], ["detalle", DETALLLE], ["categoría", CATEGORIA]]) {
       expect(js, nombre).toMatch(re);
     }
-    expect(CATALOGO).toMatch(/Carrito\s*<\/button>/);
+    expect(CATALOGO).toContain('className={styles.headerCartLabel}>Carrito</span>');
     expect(PRODUCTO).toContain('className={styles.headerCartLabel}>Carrito</span>');
+    expect(DETALLLE).toContain('className={styles.headerCartLabel}>Carrito</span>');
     expect(CATEGORIA).toContain('className={styles.headerCartLabel}>Carrito</span>');
   });
 

@@ -24,6 +24,8 @@ import { FAMILIES, findFamily } from "./catalogo-data";
 import { useCart } from "../cart-context";
 import Footer from "../footer";
 import MobileSiteMenu from "../mobile-site-menu";
+import NavDock from "../nav-dock";
+import { STORE_NAVIGATION } from "../navigation-data";
 
 const NAVIGATION = [
   { id: "inicio", label: "Inicio", mega: false, href: "/" },
@@ -106,14 +108,12 @@ const FALLBACK_CATEGORIES = FAMILIES.map((family) => ({
 export default function CatalogoExperience({ categoriasIniciales = [] }) {
   const [activeSection, setActiveSection] = useState("");
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [branch, setBranch] = useState("");
   // La "puerta" de sucursal se muestra solo si el visitante ya eligio una antes
   // (primera visita entra directo al catalog: no bloquea la compra ni genera
   // scroll lateral por el overlay).
   const [gateOpen, setGateOpen] = useState(false);
   const heroRef = useRef(null);
-  const navRef = useRef(null);
   const topbarRef = useRef(null);
   const { count: cartCount, open: openCart } = useCart();
   // Llegan del servidor ya resueltas. Solo si la base no devolvió nada (por
@@ -152,14 +152,6 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
       }),
     [catalogCategories]
   );
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth > 1080) setMobileMenuOpen(false);
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -247,37 +239,6 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
     return () => locomotive.destroy();
   }, [gateOpen]);
 
-  // Indicador deslizante del dock: sigue al enlace de la sección activa.
-  useEffect(() => {
-    const nav = navRef.current;
-    if (!nav) return undefined;
-
-    const syncIndicator = () => {
-      const active = nav.querySelector('[data-active="true"]');
-      if (!active || !active.offsetWidth) {
-        nav.style.setProperty("--nav-indicator-opacity", "0");
-        return;
-      }
-      nav.style.setProperty("--nav-indicator-x", `${active.offsetLeft}px`);
-      nav.style.setProperty("--nav-indicator-w", `${active.offsetWidth}px`);
-      nav.style.setProperty("--nav-indicator-opacity", "1");
-    };
-
-    syncIndicator();
-    window.addEventListener("resize", syncIndicator);
-
-    let observer;
-    if (typeof ResizeObserver !== "undefined") {
-      observer = new ResizeObserver(syncIndicator);
-      observer.observe(nav);
-    }
-
-    return () => {
-      window.removeEventListener("resize", syncIndicator);
-      observer?.disconnect();
-    };
-  }, [activeSection, mobileMenuOpen, scrolledPastHero]);
-
   useEffect(() => {
     const ids = NAVIGATION.map((item) => item.id).filter(Boolean);
     const sections = ids.map((id) => document.getElementById(id)).filter(Boolean);
@@ -317,38 +278,6 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
     targets.forEach((target) => observer.observe(target));
     return () => observer.disconnect();
   }, []);
-
-  const megaItems = NAVIGATION.filter((item) => item.mega);
-  const megaMenu = megaItems.length > 0 ? (
-    <div className={styles.megaMenuCatalogo}>
-      {megaItems.map((item) => (
-        <div key={item.id} className={styles.megaMenuCategoryCatalogo}>
-          <h4>{item.label}</h4>
-          <ul>
-            {item.megaGroups.map((group) => (
-              <li key={group.title}>
-                <strong>{group.title}</strong>
-                <ul>
-                  {group.links.map((link) => (
-                    <li key={link.label}>
-                      <a href={link.href}>{link.label}</a>
-                    </li>
-                  ))}
-                </ul>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
-      <div className={styles.megaMenuFooter}>
-        <span>Compra por sucursal con asesoría técnica directa</span>
-        <a href="#familias">
-          Ver soluciones
-          <ArrowRight size={14} aria-hidden="true" />
-        </a>
-      </div>
-    </div>
-  ) : null;
 
   const branchLabel = (BRANCHES.find((item) => item.id === branch) || BRANCHES[0]).label;
 
@@ -429,100 +358,27 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
       ) : null}
 
       <div aria-hidden={gateOpen} inert={gateOpen}>
-      <header
-        ref={topbarRef}
-        className={`${styles.topbar} ${scrolledPastHero ? styles.topbarVisible : styles.topbarHidden}`}
-        aria-hidden={!scrolledPastHero}
-      >
-        <span className={styles.scrollProgress} aria-hidden="true">
-          <i />
-        </span>
-
-        <div className={styles.topbarShell}>
-          <Link className={styles.topbarBrand} href="/" aria-label="Arconet, inicio" tabIndex={scrolledPastHero ? 0 : -1}>
-            <Image
-              src="/arconet.png"
-              alt="Arconet"
-              width={1200}
-              height={200}
-              sizes="(max-width: 1040px) 114px, 176px"
-            />
-          </Link>
-
-          <nav className={styles.topbarNav} aria-label="Navegación del catálogo" ref={navRef}>
-            <span className={styles.navIndicator} aria-hidden="true" />
-            {NAVIGATION.map((item) => {
-              const isActive = Boolean(item.id) && activeSection === item.id;
-              return (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  data-active={isActive ? "true" : "false"}
-                  className={`${isActive ? styles.topbarNavActive : ""}${item.mega ? ` ${styles.megaTrigger}` : ""}`}
-                  aria-current={isActive ? "location" : undefined}
-                  tabIndex={scrolledPastHero ? 0 : -1}
-                >
-                  {item.label}
-                </a>
-              );
-            })}
-            <button
-              type="button"
-              className={`${styles.menuToggleCatalogo}${mobileMenuOpen ? ` ${styles.menuToggleActiveCatalogo}` : ""}`}
-              aria-expanded={mobileMenuOpen}
-              aria-label={mobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              tabIndex={scrolledPastHero ? 0 : -1}
-            >
-              <span className={styles.menuBar} />
-              <span className={styles.menuBar} />
-              <span className={styles.menuBar} />
-            </button>
-          </nav>
-
+      <NavDock
+        variant="scroll"
+        visible={scrolledPastHero}
+        activeId={activeSection === "familias" ? "soluciones" : activeSection}
+        navigation={STORE_NAVIGATION}
+        topbarRef={topbarRef}
+        cartAction={
           <button
             type="button"
-            className={styles.topbarAction}
+            className={styles.headerAction}
             onClick={openCart}
-            tabIndex={scrolledPastHero ? 0 : -1}
             aria-label={`Carrito, ${cartCount} ${cartCount === 1 ? "unidad" : "unidades"}`}
           >
-            <span className={styles.topbarCartIcon}>
+            <span className={styles.headerCartLabel}>Carrito</span>
+            <span className={styles.headerCartIcon}>
               <ShoppingCart size={15} aria-hidden="true" />
               {cartCount > 0 && <i className={styles.cartBadge} aria-hidden="true">{cartCount > 99 ? "99+" : cartCount}</i>}
             </span>
-            Carrito
           </button>
-
-          {megaMenu}
-          {mobileMenuOpen && (
-            <div className={styles.mobileMenu}>
-              {NAVIGATION.map((item) =>
-                item.mega ? (
-                  <div key={item.label}>
-                    <a href={item.href} onClick={() => setMobileMenuOpen(false)}>{item.label}</a>
-                    {item.megaGroups.map((group) => (
-                      <div key={group.title}>
-                        <strong>{group.title}</strong>
-                        {group.links.map((link) => (
-                          <a key={link.label} href={link.href} onClick={() => setMobileMenuOpen(false)}>{link.label}</a>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <a key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)}>{item.label}</a>
-                )
-              )}
-              <div className={styles.mobileMenuLegal}>
-                <Link href="/terminos" onClick={() => setMobileMenuOpen(false)}>Términos</Link>
-                <Link href="/privacidad" onClick={() => setMobileMenuOpen(false)}>Privacidad</Link>
-                <Link href="/ayuda" onClick={() => setMobileMenuOpen(false)}>Ayuda</Link>
-              </div>
-            </div>
-          )}
-        </div>
-      </header>
+        }
+      />
 
       <div className={styles.heroFrame}>
         <section className={styles.heroCard} ref={heroRef}>

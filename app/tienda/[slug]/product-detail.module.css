@@ -172,6 +172,64 @@
   outline-offset: 3px;
 }
 
+/* Carrito integrado en el dock compartido. */
+.headerAction {
+  justify-self: end;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  padding: 4px 5px 4px 16px;
+  border: 1px solid #0d1422;
+  border-radius: 999px;
+  background: #171a22;
+  color: #fff !important;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 180ms ease, transform 180ms ease;
+}
+
+.headerAction:hover {
+  background: #2a2f3a;
+  transform: translateY(-1px);
+}
+
+.headerCartLabel {
+  color: #fff;
+}
+
+.headerCartIcon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #fff;
+  color: #0d1422;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+@media (max-width: 1180px) {
+  .headerAction {
+    min-width: 44px;
+    justify-content: center;
+    gap: 0;
+    padding: 4px;
+  }
+
+  .headerCartLabel {
+    display: none;
+  }
+}
+
 /* Botón de cotización con carrito */
 .topbarAction {
   justify-self: end;
