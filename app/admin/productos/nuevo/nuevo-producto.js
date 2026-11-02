@@ -20,8 +20,9 @@ const INVENTORY_URL = "/panel-administrativo?section=inventario&view=productos";
 export default function NuevaProducto({ session }) {
   const router = useRouter();
   const permisos = useMemo(() => session?.permisos || [], [session?.permisos]);
-  const canCreate =
-    permisos.includes("productos:write") && permisos.includes("precios:write");
+  // Sin precios:write el producto se guarda sin precio y queda pendiente de
+  // revisión: el acceso a la página solo exige productos:write.
+  const canCreate = permisos.includes("productos:write");
   const [products, setProducts] = useState([]);
   const [categorias, setCategorias] = useState([]);
 
@@ -49,7 +50,7 @@ export default function NuevaProducto({ session }) {
         <div className={adminStyles.shell}>
           <div className={adminStyles.body}>
             <p className={adminStyles.alertItem} role="alert">
-              No tienes permisos para crear productos y modificar precios.
+              No tienes permisos para crear productos.
             </p>
             <Link href={INVENTORY_URL} className={adminStyles.ghostBtn}>
               <ArrowLeft size={15} /> Volver a Inventario
