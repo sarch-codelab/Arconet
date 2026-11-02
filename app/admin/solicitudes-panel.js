@@ -70,7 +70,13 @@ export default function SolicitudesPanel({ session }) {
     }
   }, [canManageAreas, canReadRoles]);
 
-  useEffect(() => { load(); loadAreas(); }, [load, loadAreas]);
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      load();
+      loadAreas();
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [load, loadAreas]);
   useEffect(() => {
     const timer = window.setInterval(() => load(true), 20000);
     return () => window.clearInterval(timer);
@@ -78,14 +84,14 @@ export default function SolicitudesPanel({ session }) {
 
   const selected = items.find((item) => item.id === selectedId) || null;
   const activeAreas = areas.filter((area) => area.activa);
-  const areaName = (slug) => areas.find((area) => area.slug === slug)?.nombre || slug;
+  const areaName = useCallback((slug) => areas.find((area) => area.slug === slug)?.nombre || slug, [areas]);
   const filtered = useMemo(() => {
     const q = query.trim().toLocaleLowerCase("es-HN");
     return items.filter((item) => {
       if (filter !== "todas" && item.estado !== filter) return false;
       return !q || `${item.id} ${item.titulo} ${item.descripcion} ${item.solicitanteNombre} ${areaName(item.area)}`.toLocaleLowerCase("es-HN").includes(q);
     });
-  }, [items, filter, query, areas]);
+  }, [items, filter, query, areaName]);
 
   const create = async (event) => {
     event.preventDefault();

@@ -2,6 +2,7 @@
 
 import { apiFetch as fetch } from "@/lib/api-fetch";
 
+import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Activity, Calendar, Camera, Lock, LogIn, Pencil, Phone, RotateCw, Save, ShieldCheck, User, Users, X } from "lucide-react";
 import styles from "./admin-experience.module.css";
@@ -27,7 +28,7 @@ export default function MiPerfilSection({ session, workers = [], sucursales = []
     if (profile?.trabajador) return profile.trabajador;
     if (!session?.correo) return null;
     return workers.find((w) => w.correo?.toLowerCase() === session.correo.toLowerCase()) || null;
-  }, [profile, workers, session?.correo]);
+  }, [profile, workers, session]);
 
   const [formData, setFormData] = useState({
     nombre: session?.nombre || "",
@@ -48,7 +49,10 @@ export default function MiPerfilSection({ session, workers = [], sucursales = []
       setProfileError(error.message);
     }
   }, []);
-  useEffect(() => { refreshProfile(); }, [refreshProfile]);
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(refreshProfile);
+    return () => window.cancelAnimationFrame(frame);
+  }, [refreshProfile]);
   const refreshSessions = useCallback(async () => {
     setSessionsLoading(true);
     try {
@@ -60,7 +64,11 @@ export default function MiPerfilSection({ session, workers = [], sucursales = []
     } catch (error) { setSessionsError(error.message); }
     finally { setSessionsLoading(false); }
   }, []);
-  useEffect(() => { if (activeTab === "security") refreshSessions(); }, [activeTab, refreshSessions]);
+  useEffect(() => {
+    if (activeTab !== "security") return undefined;
+    const frame = window.requestAnimationFrame(refreshSessions);
+    return () => window.cancelAnimationFrame(frame);
+  }, [activeTab, refreshSessions]);
 
 
   const [photoPreview, setPhotoPreview] = useState(null);
@@ -225,9 +233,9 @@ export default function MiPerfilSection({ session, workers = [], sucursales = []
               <div className={styles.profileCard}>
                 <div className={styles.profileAvatarLarge}>
                   {photoPreview ? (
-                    <img src={photoPreview} alt={formData.nombre || "Usuario"} width={120} height={120} />
+                    <Image src={photoPreview} alt={formData.nombre || "Usuario"} width={120} height={120} unoptimized />
                   ) : myWorker?.foto ? (
-                    <img src={myWorker.foto} alt={session?.nombre || "Usuario"} width={120} height={120} />
+                    <Image src={myWorker.foto} alt={session?.nombre || "Usuario"} width={120} height={120} unoptimized />
                   ) : (
                     <span className={styles.avatarFallback}>{initials(formData.nombre || session?.nombre)}</span>
                   )}

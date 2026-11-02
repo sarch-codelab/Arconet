@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Eye, EyeOff } from "lucide-react";
@@ -63,10 +64,10 @@ export default function LoginView() {
           />
           <div className={styles.loginVisualOverlay} />
 
-          <a className={styles.logoTab} href="/" aria-label="Arconet, inicio">
+          <Link className={styles.logoTab} href="/" aria-label="Arconet, inicio">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/arconet.png" alt="Arconet" width={1200} height={200} />
-          </a>
+          </Link>
 
           <div className={styles.loginVisualCopy}>
             <p className={styles.eyebrow}><i /> Panel interno · Arconet</p>
@@ -83,7 +84,7 @@ export default function LoginView() {
 
           <div className={styles.loginVisualFooter}>
             <span>ACCESO RESTRINGIDO · PERSONAL AUTORIZADO</span>
-            <a href="/">Volver al sitio <ArrowRight size={14} /></a>
+            <Link href="/">Volver al sitio <ArrowRight size={14} /></Link>
           </div>
         </div>
 
@@ -171,7 +172,7 @@ export default function LoginView() {
             </form>
 
             <p className={styles.loginFooter}>
-              <a href="/"><ArrowLeft size={14} /> Volver al inicio</a>
+              <Link href="/"><ArrowLeft size={14} /> Volver al inicio</Link>
             </p>
           </div>
         </section>

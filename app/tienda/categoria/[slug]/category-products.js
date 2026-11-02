@@ -199,8 +199,11 @@ export default function CategoryProducts({
   categoryPhoto = "",
   blocked = false,
 }) {
-  const staticFamily = findFamily(slug) || (categoryName ? findFamily(categoryName) : null);
-  const family = categoryName
+  const staticFamily = useMemo(
+    () => findFamily(slug) || (categoryName ? findFamily(categoryName) : null),
+    [slug, categoryName],
+  );
+  const family = useMemo(() => categoryName
     ? {
         ...(staticFamily || {}),
         slug: staticFamily?.slug || slug,
@@ -219,7 +222,7 @@ export default function CategoryProducts({
         image: categoryPhoto || staticFamily?.image || "",
         imageAlt: categoryName,
       }
-    : staticFamily;
+    : staticFamily, [categoryName, categoryDescription, categoryPhoto, slug, staticFamily]);
   const pageRef = useRef(null);
   const topbarRef = useRef(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -234,12 +237,15 @@ export default function CategoryProducts({
   // La preferencia de vista es del usuario, no de la sesión: se recuerda entre
   // visitas para que quien prefiere la lista no tenga que cambiarla cada vez.
   useEffect(() => {
-    try {
-      const guardado = window.localStorage.getItem(VISTA_KEY);
-      if (guardado === "grande" || guardado === "compacta" || guardado === "lista") setVista(guardado);
-    } catch {
-      // Sin almacenamiento (modo privado estricto) se queda la vista grande.
-    }
+    const frame = window.requestAnimationFrame(() => {
+      try {
+        const guardado = window.localStorage.getItem(VISTA_KEY);
+        if (guardado === "grande" || guardado === "compacta" || guardado === "lista") setVista(guardado);
+      } catch {
+        // Sin almacenamiento (modo privado estricto) se queda la vista grande.
+      }
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, []);
 
   const cambiarVista = (nueva) => {
@@ -333,22 +339,19 @@ export default function CategoryProducts({
     );
   };
 
-  const nombreCategoria = family?.category || "";
-  // Coincidencia tolerante: el valor guardado en el producto puede ser el
-  // nombre o el slug, con distinta mayúscula o acentos.
-  const targetCategoria = normalizarCategoria(nombreCategoria);
-  const targetSlug = normalizarCategoria(slug);
-  const categoryProducts = useMemo(
-    () =>
-      targetCategoria || targetSlug
-        ? products.filter(
-            (product) =>
-              (targetCategoria && normalizarCategoria(product.categoria) === targetCategoria) ||
-              (targetSlug && normalizarCategoria(product.categoria) === targetSlug),
-          )
-        : [],
-    [products, targetCategoria, targetSlug],
-  );
+  const categoryProducts = useMemo(() => {
+    // Coincidencia tolerante: el valor guardado en el producto puede ser el
+    // nombre o el slug, con distinta mayúscula o acentos.
+    const targetCategoria = normalizarCategoria(family?.category);
+    const targetSlug = normalizarCategoria(slug);
+    return targetCategoria || targetSlug
+      ? products.filter(
+          (product) =>
+            (targetCategoria && normalizarCategoria(product.categoria) === targetCategoria) ||
+            (targetSlug && normalizarCategoria(product.categoria) === targetSlug),
+        )
+      : [];
+  }, [products, family, slug]);
 
   // Solo las marcas que de verdad aparecen en esta línea; una lista con
   // marcas ausentes haría perder clics.

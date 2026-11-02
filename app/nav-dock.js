@@ -7,6 +7,7 @@
 //   - "fixed":  fija al viewport y siempre visible, sin aparecer al hacer
 //     scroll (páginas de categoría).
 import Image from "next/image";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowRight, ArrowUpRight, LogIn, ShieldCheck, X } from "lucide-react";
 import { NAVIGATION } from "./navigation-data";
@@ -136,7 +137,7 @@ export default function NavDock({
       </span>
 
       <div className={styles.topbarShell}>
-        <a className={styles.brand} href="/" aria-label="Arconet, inicio">
+        <Link className={styles.brand} href="/" aria-label="Arconet, inicio">
           <Image
             src="/arconet.png"
             alt="Arconet"
@@ -146,7 +147,7 @@ export default function NavDock({
             loading="eager"
             fetchPriority="high"
           />
-        </a>
+        </Link>
 
         <nav className={styles.navigation} aria-label="Navegación principal" ref={navRef}>
           <span className={styles.navIndicator} aria-hidden="true" />
@@ -225,7 +226,7 @@ export default function NavDock({
         {navigation.some((item) => item.mega) && (
           <div className={styles.desktopMenu} aria-label="Menú desplegable">
             <div className={styles.desktopMenuTop}>
-              <a className={styles.desktopMenuPrimary} href="/tienda">
+              <Link className={styles.desktopMenuPrimary} href="/tienda">
                 <span className={styles.desktopMenuPrimaryText}>
                   <span className={styles.desktopMenuPrimaryLabel}>Tienda</span>
                   <span className={styles.desktopMenuPrimaryHint}>Explora todos los productos</span>
@@ -233,7 +234,7 @@ export default function NavDock({
                 <span className={styles.desktopMenuPrimaryIcon}>
                   <ArrowRight size={18} aria-hidden="true" />
                 </span>
-              </a>
+              </Link>
 
               <div className={styles.desktopMenuAuth}>
                 <a className={styles.desktopMenuLogin} href="/login">
@@ -295,7 +296,7 @@ export default function NavDock({
               </button>
             </div>
 
-            <a
+            <Link
               className={styles.mobileMenuPrimary}
               href="/tienda"
               onClick={() => setMenuOpen(false)}
@@ -307,7 +308,7 @@ export default function NavDock({
               <span className={styles.mobileMenuPrimaryIcon}>
                 <ArrowRight size={18} aria-hidden="true" />
               </span>
-            </a>
+            </Link>
 
             <div className={styles.mobileMenuAuth}>
               <a

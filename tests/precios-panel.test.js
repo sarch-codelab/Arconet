@@ -2,6 +2,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 vi.mock("../app/toaster", () => ({ sileo: { show: vi.fn(), error: vi.fn() } }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn() }) }));
 import PreciosPanel from "../app/admin/precios-panel";
 import PrecioSelector from "../app/admin/precio-selector";
 import VentasSection from "../app/admin/ventas-section";

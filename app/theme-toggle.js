@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useSyncExternalStore } from "react";
 import { resolvePanelTheme } from "@/lib/panel-theme";
 import { Clock, Moon, Sun } from "lucide-react";
 
@@ -85,25 +86,22 @@ function subscribeTheme(listener) {
 
 /** Estado del tema para cualquier control: { mode, theme, label, cycle }. */
 export function useThemeMode() {
+  // El snapshot del servidor es "auto"; useSyncExternalStore realiza la
+  // hidratación con ese valor y después suscribe el modo real, sin un estado
+  // `mounted` ni un render sincrónico adicional desde un efecto.
   const mode = useSyncExternalStore(subscribeTheme, getThemeMode, () => "auto");
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    // Aplica lo guardado (o el modo automático) la primera vez y arranca el
-    // reloj que reevalúa el modo automático cada minuto.
+    // Aplica lo guardado (o el modo automático) la primera vez.
     setThemeMode(readStoredMode());
   }, []);
 
   useEffect(() => {
-    if (!mounted) return undefined;
+    // Reevalúa el modo automático cada minuto mientras haya controles montados.
     syncAutoTimer();
-    return undefined;
-  }, [mode, mounted]);
+  }, [mode]);
 
-  // Hasta montar se muestra "auto" para no hidratar con un icono distinto al
-  // que pintó el servidor.
-  const active = mounted ? mode : "auto";
+  const active = mode;
   const theme = resolveTheme(active);
 
   return {
@@ -120,14 +118,8 @@ export default function ThemeToggle() {
   // En el panel el botón flotante quedaba encima de tablas y formularios:
   // robaba clics y cambiaba el tema sin querer. Ahí el tema se controla desde
   // Mi perfil (Apariencia), así que el botón flotante no se muestra.
-  const [hidden, setHidden] = useState(false);
-
-  useEffect(() => {
-    const path = window.location.pathname;
-    setHidden(path.startsWith("/panel-administrativo") || path.startsWith("/admin"));
-  }, []);
-
-  if (hidden) return null;
+  const pathname = usePathname() || "";
+  if (pathname.startsWith("/panel-administrativo") || pathname.startsWith("/admin")) return null;
 
   return (
     <button

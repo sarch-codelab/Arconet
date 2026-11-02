@@ -61,7 +61,9 @@ export default function BarcodeScanner({ onDetect, disabled = false }) {
   // El callback cambia en cada render del formulario; guardarlo en un ref
   // evita reiniciar la cámara cada vez que el padre se vuelve a pintar.
   const onDetectRef = useRef(onDetect);
-  onDetectRef.current = onDetect;
+  useEffect(() => {
+    onDetectRef.current = onDetect;
+  }, [onDetect]);
 
   const stop = useCallback(() => {
     if (frameRef.current) {

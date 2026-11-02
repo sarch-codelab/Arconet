@@ -168,7 +168,7 @@ export default function ProductPage({ product }) {
         </div>
 
         <div className={styles.topbarShell}>
-          <a className={styles.topbarBrand} href="/" aria-label="Arconet, inicio">
+          <Link className={styles.topbarBrand} href="/" aria-label="Arconet, inicio">
             <Image
               src="/arconet.png"
               alt="Arconet"
@@ -176,7 +176,7 @@ export default function ProductPage({ product }) {
               height={200}
               sizes="(max-width: 1040px) 114px, 176px"
             />
-          </a>
+          </Link>
 
           <nav className={styles.topbarNav} aria-label="Navegación del catálogo">
             {NAVIGATION.map((item) => (

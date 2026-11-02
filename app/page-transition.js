@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import styles from "./page-transition.module.css";
@@ -46,7 +47,9 @@ export default function PageTransition() {
   const playRef = useRef(null);
   const lastPathRef = useRef(pathname);
 
-  routerRef.current = router;
+  useEffect(() => {
+    routerRef.current = router;
+  }, [router]);
 
   const setPhaseSafe = (next) => {
     phaseRef.current = next;
@@ -92,8 +95,10 @@ export default function PageTransition() {
     }, COVER_MS);
   };
 
-  navigateRef.current = navigate;
-  playRef.current = playTransition;
+  useEffect(() => {
+    navigateRef.current = navigate;
+    playRef.current = playTransition;
+  });
 
   useEffect(() => {
     const computeGrid = () => {
@@ -229,13 +234,15 @@ export default function PageTransition() {
         ))}
       </div>
       <span className={styles.logo}>
-        <img
+        <Image
           src="/arconet.png"
           alt=""
-          width="1200"
-          height="200"
+          width={1200}
+          height={200}
+          sizes="176px"
+          loading="eager"
           decoding="async"
-          draggable="false"
+          draggable={false}
         />
       </span>
       {message ? <span className={styles.message}>{message}</span> : null}

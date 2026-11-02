@@ -2,6 +2,7 @@
 
 import { clientApiFetch as fetch } from "@/lib/api-fetch";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -118,7 +119,7 @@ export default function VerificarExperience() {
     <main className={styles.page}>
       <div className={styles.topbar}>
         <Link className={styles.brand} href="/" aria-label="Arconet, inicio">
-          <img src="/arconet.png" alt="Arconet" />
+          <Image src="/arconet.png" alt="Arconet" width={1200} height={200} sizes="(max-width: 1040px) 114px, 176px" />
         </Link>
         <Link className={styles.back} href="/cliente">
           <ArrowLeft size={14} /> Ir a mi portal

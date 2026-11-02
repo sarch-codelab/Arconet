@@ -18,7 +18,7 @@ describe("listado de productos de categoría", () => {
     const js = leer(JS);
     expect(js).toContain("products.filter(");
     // `products` debe figurar en el array de dependencias del useMemo.
-    expect(js).toMatch(/\[products,\s*targetCategoria,\s*targetSlug\]/);
+    expect(js).toMatch(/\[products,\s*family,\s*slug\]/);
   });
 
   it("coincide por nombre o slug de categoría normalizados", () => {

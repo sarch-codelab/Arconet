@@ -41,9 +41,12 @@ export default function MonitoreoSection({ session, workers = [] }) {
   }, []);
 
   useEffect(() => {
-    load(false);
+    const frame = window.requestAnimationFrame(() => load(false));
     const id = setInterval(() => load(true), 30000);
-    return () => clearInterval(id);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      clearInterval(id);
+    };
   }, [load]);
 
   const severity = (value) => {

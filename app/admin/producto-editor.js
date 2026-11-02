@@ -3,6 +3,7 @@
 import { PRICE_FIELDS, PRICE_LEVELS, parsePrices, validatePriceSet } from "@/lib/precios";
 import { apiFetch as fetch } from "@/lib/api-fetch";
 
+import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Boxes, Camera, Coins, Eye, Tag, X } from "lucide-react";
 import { Avatar, useToast, notifyError } from "./admin-ui";
@@ -298,10 +299,13 @@ export default function ProductoEditor({
             <div className={styles.galleryPreview} style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
               {draft.fotos.map((galleryImg, idx) => (
                 <div key={idx} style={{ position: "relative", display: "inline-flex" }}>
-                  <img
+                  <Image
                     src={galleryImg}
                     alt={`Galería ${idx + 1}`}
-                    style={{ width: "80px", height: "80px", objectFit: "cover", borderRadius: "8px", border: "2px solid var(--border)" }}
+                    width={80}
+                    height={80}
+                    unoptimized
+                    style={{ objectFit: "cover", borderRadius: "8px", border: "2px solid var(--border)" }}
                   />
                   <button
                     type="button"

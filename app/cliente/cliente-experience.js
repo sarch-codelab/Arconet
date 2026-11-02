@@ -4,6 +4,7 @@ import { previewDocumentClick } from "@/lib/api-document";
 
 import { clearLocalPreviewSession, clientApiFetch as fetch } from "@/lib/api-fetch";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -165,9 +166,9 @@ function ClientDashboard({ session, orders, setOrders, onLogout }) {
           <div className={styles.dashboardContent}>
             <header className={styles.dashboardTopbar}>
               <div className={styles.brandArea}>
-                <a className={styles.logo} href="/" aria-label="Arconet, inicio">
-                  <img src="/arconet.png" alt="Arconet" />
-                </a>
+                <Link className={styles.logo} href="/" aria-label="Arconet, inicio">
+                  <Image src="/arconet.png" alt="Arconet" width={1200} height={200} sizes="(max-width: 1040px) 114px, 176px" />
+                </Link>
                 <span className={styles.logoTag}>Portal de clientes</span>
               </div>
               <nav className={styles.nav} aria-label="Secciones del portal">
