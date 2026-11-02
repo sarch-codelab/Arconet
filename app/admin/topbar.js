@@ -4,10 +4,11 @@ import { apiFetch as fetch } from "@/lib/api-fetch";
 
 import Link from "next/link";
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Bell, ExternalLink, HelpCircle, LogOut, Search, User, MessageSquare, AlertTriangle, CheckCircle, X } from "lucide-react";
+import { Bell, ExternalLink, HelpCircle, LogOut, Search, User, MessageSquare, AlertTriangle, CheckCircle, Package, X } from "lucide-react";
 import { sileo } from "../toaster";
 import { AdminContext, NAV } from "./admin-nav";
-import { destinoDeNotificacion } from "@/lib/notificaciones-ui";
+import { DialogBackdrop } from "./admin-overlay";
+import { destinoDeNotificacion, seccionDeNotificacion } from "@/lib/notificaciones-ui";
 import { canAccessSection } from '@/lib/permisos';
 import styles from "./admin-experience.module.css";
 
@@ -69,6 +70,8 @@ export function Topbar({
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [notificationFilter, setNotificationFilter] = useState("all");
   const [notifications, setNotifications] = useState([]);
+  const [notificationsAllOpen, setNotificationsAllOpen] = useState(false);
+  const [productApproval, setProductApproval] = useState(null);
   const [photo, setPhoto] = useState("");
   const [photoFailed, setPhotoFailed] = useState(false);
   const mobileSearchInputRef = useRef(null);
@@ -215,12 +218,72 @@ export function Topbar({
     setNotifications((current) => current.map((item) => item.id === notification.id ? { ...item, read: true } : item));
     await fetch("/api/notificaciones", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: notification.id }) }).catch(() => {});
     closeNotifications();
+    setNotificationsAllOpen(false);
+    // Avisos de producto pendiente: abrir el resumen del producto para
+    // definir el Valor 1 directamente desde la notificación.
+    if (notification.type === "producto" && notification.productoId) {
+      setProductApproval({ notification, producto: null, precio: "", guardando: false, error: "" });
+      return;
+    }
     // Cada aviso lleva a su pantalla (solicitudes, alertas de inventario o
     // catálogo); sin destino conocido, solo se marca como leída.
     const destino = destinoDeNotificacion(notification);
     if (destino) {
       if (destino.view) adminCtx?.goToView?.(destino.section, destino.view);
       else adminCtx?.goTo?.(destino.section);
+    }
+  };
+
+  // Cargar el producto del aviso "pendiente de precio" para el resumen.
+  useEffect(() => {
+    if (!productApproval?.notification?.productoId) return undefined;
+    let activo = true;
+    (async () => {
+      try {
+        const response = await fetch(`/api/productos/${encodeURIComponent(productApproval.notification.productoId)}`, { cache: "no-store" });
+        const data = await response.json().catch(() => ({}));
+        if (!activo) return;
+        if (!response.ok || !data?.id) {
+          setProductApproval((current) => ({ ...current, error: data?.error || "No se pudo cargar el producto." }));
+          return;
+        }
+        setProductApproval((current) => ({
+          ...current,
+          producto: data,
+          precio: data.precio ? String(Number(data.precio)) : "",
+        }));
+      } catch {
+        if (activo) setProductApproval((current) => ({ ...current, error: "No se pudo cargar el producto." }));
+      }
+    })();
+    return () => { activo = false; };
+  }, [productApproval?.notification?.productoId]);
+
+  const guardarPrecioProducto = async (event) => {
+    event.preventDefault();
+    const producto = productApproval?.producto;
+    const precio = Number(productApproval?.precio);
+    if (!producto || !Number.isFinite(precio) || precio < 1) {
+      setProductApproval((current) => ({ ...current, error: "El precio debe ser un número mayor o igual a L 1.00." }));
+      return;
+    }
+    setProductApproval((current) => ({ ...current, guardando: true }));
+    try {
+      const response = await fetch(`/api/productos/${encodeURIComponent(producto.id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ precio }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setProductApproval((current) => ({ ...current, guardando: false, error: data?.error || "No se pudo guardar el precio." }));
+        return;
+      }
+      setProductApproval(null);
+      sileo.success({ title: "Precio definido", message: `"${producto.nombre}" quedó publicado en la tienda.` });
+      adminCtx?.goToView?.("inventario", "productos");
+    } catch {
+      setProductApproval((current) => ({ ...current, guardando: false, error: "No se pudo guardar el precio." }));
     }
   };
 
@@ -439,10 +502,11 @@ export function Topbar({
                     className={styles.notificationsViewAll}
                       disabled={notifications.length === 0}
                     onClick={() => {
-                      // Resetear el filtro y recargar del servidor: el botón
-                      // debe hacer algo visible aunque el filtro ya sea "all".
+                      // Pantalla emergente con la lista completa: el dropdown
+                      // solo muestra la lista filtrada actual.
                       setNotificationFilter("all");
                       refreshNotifications();
+                      setNotificationsAllOpen(true);
                     }}
                   >
                     Ver todas las notificaciones
@@ -642,6 +706,124 @@ export function Topbar({
       <div className={styles.scrollProgress} aria-hidden="true">
         <span className={styles.scrollProgressBar} />
       </div>
+
+      {/* Lista completa de notificaciones (pantalla emergente). */}
+      {notificationsAllOpen && (
+        <DialogBackdrop
+          className={`${styles.overlay} ${styles.centeredOverlay}`}
+          onDismiss={() => setNotificationsAllOpen(false)}
+        >
+          <section className={styles.card} style={{ width: "min(560px, 92vw)" }}>
+            <header className={styles.cardHeader}>
+              <div>
+                <p className={styles.eyebrow}>Panel</p>
+                <h3>Todas las notificaciones</h3>
+              </div>
+              <button type="button" className={styles.ghostBtn} aria-label="Cerrar lista de notificaciones" onClick={() => setNotificationsAllOpen(false)}>
+                <X size={16} />
+              </button>
+            </header>
+            <div className={styles.cardBody}>
+              {notifications.length === 0 ? (
+                <p className={styles.emptyText}>Aún no tienes notificaciones.</p>
+              ) : (
+                <div className={styles.notificationsList} style={{ maxHeight: "50vh", overflowY: "auto" }}>
+                  {notifications.map((notif) => (
+                    <button
+                      key={notif.id}
+                      type="button"
+                      className={`${styles.notificationItem} ${!notif.read ? styles.notificationUnread : ""}`}
+                      onClick={() => markNotificationRead(notif)}
+                    >
+                      <div className={styles.notificationContent}>
+                        <p className={styles.notificationTitle}>{notif.title}</p>
+                        <p className={styles.notificationMessage}>{notif.message}</p>
+                        <time className={styles.notificationTime}>{seccionDeNotificacion(notif)}</time>
+                      </div>
+                      {!notif.read && <span className={styles.notificationDot} />}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <p className={styles.fieldHint}>Al tocar una notificación se marca como leída y se abre su sección.</p>
+            </div>
+          </section>
+        </DialogBackdrop>
+      )}
+
+      {/* Resumen del producto pendiente de precio: definir el Valor 1. */}
+      {productApproval && (
+        <DialogBackdrop
+          className={`${styles.overlay} ${styles.centeredOverlay}`}
+          onDismiss={() => { if (!productApproval.guardando) setProductApproval(null); }}
+        >
+          <form onSubmit={guardarPrecioProducto} className={styles.card} style={{ width: "min(560px, 92vw)" }}>
+            <header className={styles.cardHeader}>
+              <div>
+                <p className={styles.eyebrow}>Revisión</p>
+                <h3>Definir precio del producto</h3>
+              </div>
+              <button type="button" className={styles.ghostBtn} aria-label="Cerrar" onClick={() => setProductApproval(null)} disabled={productApproval.guardando}>
+                <X size={16} />
+              </button>
+            </header>
+            <div className={styles.cardBody}>
+              {productApproval.producto ? (
+                <>
+                  <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+                    {productApproval.producto.foto ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={productApproval.producto.foto}
+                        alt=""
+                        width={96}
+                        height={96}
+                        style={{ borderRadius: 12, objectFit: "cover", background: "var(--bg-card-subtle)", flexShrink: 0 }}
+                      />
+                    ) : (
+                      <span style={{ width: 96, height: 96, borderRadius: 12, background: "var(--bg-card-subtle)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        <Package size={28} aria-hidden="true" />
+                      </span>
+                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <h4 style={{ margin: 0, color: "var(--text-main)", fontSize: "17px" }}>{productApproval.producto.nombre}</h4>
+                      {productApproval.producto.marca ? <p style={{ margin: "2px 0 0", color: "var(--text-muted)", fontSize: "13.5px" }}>{productApproval.producto.marca}</p> : null}
+                      <p style={{ margin: "6px 0 0", color: "var(--text-muted)", fontSize: "13px", whiteSpace: "pre-wrap" }}>{productApproval.producto.descripcion || "Sin descripción."}</p>
+                    </div>
+                  </div>
+                  <label className={styles.field}>
+                    Valor 1 · Normal (L)
+                    <input
+                      type="number"
+                      min="1"
+                      step="0.01"
+                      required
+                      autoFocus
+                      value={productApproval.precio}
+                      onChange={(event) => setProductApproval((current) => ({ ...current, precio: event.target.value, error: "" }))}
+                      placeholder="Precio de venta"
+                    />
+                    <small className={styles.fieldHint}>Mínimo L 1.00. Al guardar, el producto queda publicado (activo) en la tienda.</small>
+                  </label>
+                </>
+              ) : (
+                <p className={styles.fieldHint} role="status">
+                  {productApproval.guardando ? "Guardando…" : (productApproval.error || "Cargando el producto…")}
+                </p>
+              )}
+              {productApproval.error && productApproval.producto ? (
+                <p className={styles.error} role="alert">{productApproval.error}</p>
+              ) : null}
+            </div>
+            <div className={styles.cardBody} style={{ display: "flex", gap: 10, justifyContent: "flex-end", paddingTop: 0 }}>
+              <button type="button" className={styles.ghostBtn} onClick={() => setProductApproval(null)} disabled={productApproval.guardando}>Cancelar</button>
+              <button type="submit" className={styles.primaryBtn} disabled={productApproval.guardando || !productApproval.producto}>
+                {productApproval.guardando ? "Guardando…" : "Guardar y publicar"}
+              </button>
+            </div>
+          </form>
+        </DialogBackdrop>
+      )}
     </header>
   );
 }

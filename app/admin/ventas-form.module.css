@@ -85,6 +85,7 @@
 }
 
 .option strong { font-size: 13px; }
+.optionConFoto { grid-template-columns: 36px 1fr; align-items: center; }
 .option span, .hint, .error { font-size: 12px; line-height: 1.55; overflow-wrap: anywhere; }
 .option span, .hint { color: var(--text-muted); }
 .error { color: var(--text-danger); }

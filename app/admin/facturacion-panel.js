@@ -421,8 +421,23 @@ export default function FacturacionPanel({ session, productos: productosIniciale
                 <tbody>
                   {(detalle.items || []).map((item) => (
                     <tr key={item.id}>
-                      <td data-label="Descripción">{item.descripcion}</td>
-                      <td data-label="Cant.">{Number(item.cantidad)}</td>
+                      <td data-label="Descripción">
+                        {item.producto ? (
+                          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                            {item.producto.foto ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={item.producto.foto} alt="" width={28} height={28} style={{ borderRadius: 6, objectFit: "cover", flexShrink: 0, background: "var(--bg-card-subtle)" }} />
+                            ) : null}
+                            <span>
+                              <strong>{item.descripcion}</strong>
+                              {item.producto.sku ? <small style={{ display: "block", color: "var(--text-muted)" }}>{item.producto.sku}</small> : null}
+                            </span>
+                          </div>
+                        ) : (
+                          <strong>{item.descripcion}</strong>
+                        )}
+                      </td>
+                      <td data-label="Cant.">{Number(item.cantidad)} {item.producto?.unidad || ""}</td>
                       <td data-label="Precio">{money(item.precio)}</td>
                       <td data-label="ISV">{Number(item.impuestoPorcentaje)}%</td>
                       <td data-label="Subtotal">{money(item.subtotal)}</td>
@@ -582,7 +597,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
               <section className={adminStyles.card}>
                 <header className={adminStyles.cardHeader}>
                   <div>
-                    <p className={adminStyles.eyebrow}>Datos</p>
+                    <p className={adminStyles.eyebrow}>Paso 1 · Datos</p>
                     <h3>Cliente e impuesto</h3>
                   </div>
                 </header>
@@ -618,7 +633,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
               <section className={`${adminStyles.card} ${styles.linesCard}`}>
                 <header className={adminStyles.cardHeader}>
                   <div>
-                    <p className={adminStyles.eyebrow}>Detalle</p>
+                    <p className={adminStyles.eyebrow}>Paso 2 · Líneas</p>
                     <h3>Líneas de la factura</h3>
                   </div>
                   <div className={salesStyles.actions}>
@@ -654,6 +669,7 @@ export default function FacturacionPanel({ session, productos: productosIniciale
                             placeholder="Detalle del producto o servicio"
                             required
                           />
+                          <small className={adminStyles.fieldHint}>Texto que aparece en la factura. Lleva por defecto el nombre del producto; lo cambias para renombrar la línea o añadir detalles (ej. «12 unidades + montaje»).</small>
                         </label>
 
                         {linea.productoId && <label className={adminStyles.field}>Tarifa de venta<PrecioSelector product={producto} value={linea.nivelPrecio} onChange={value => cambiarLinea(linea.key, "nivelPrecio", value)} label="Tarifa de venta" disabled={guardando || !canEmit} /></label>}
@@ -714,6 +730,10 @@ export default function FacturacionPanel({ session, productos: productosIniciale
               </section>
 
               <section className={styles.resumen}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, marginBottom: 8 }}>
+                  <h3 style={{ margin: 0, fontSize: "15px", color: "var(--text-main)" }}>Resumen</h3>
+                  <small style={{ color: "var(--text-muted)" }}>Se actualiza al cambiar las líneas</small>
+                </div>
                 <div className={styles.resumenFila}>
                   <span>Subtotal neto</span>
                   <strong>{money(totales.subtotal)}</strong>
@@ -869,6 +889,19 @@ export default function FacturacionPanel({ session, productos: productosIniciale
             </header>
 
             {detailContent}
+            <div style={{ display: "flex", gap: 12, alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", padding: "14px 4px 0", borderTop: "1px solid var(--border)", marginTop: 8 }}>
+              <span style={{ fontSize: "13px", color: "var(--text-muted)" }}>Total</span>
+              <strong style={{ fontSize: "18px", color: "var(--text-main)" }}>{money(detalle.total)}</strong>
+              <a
+                className={adminStyles.ghostBtn}
+                href={`/api/facturacion/documentos/${encodeURIComponent(detalle.id)}/pdf`}
+                data-no-transition="true"
+                onClick={event => previewDocumentClick(event, "admin")?.catch(error => sileo.error({ title: error.message }))}
+                rel="noopener noreferrer"
+              >
+                <Download size={14} /> Imprimir PDF
+              </a>
+            </div>
           </div>
         </DialogBackdrop>
       ) : null}

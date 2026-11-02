@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { destinoDeNotificacion, NOTIFICATION_DESTINATIONS } from "../lib/notificaciones-ui";
+import { destinoDeNotificacion, NOTIFICATION_DESTINATIONS, seccionDeNotificacion } from "../lib/notificaciones-ui";
 
 describe("destino de las notificaciones al hacer clic", () => {
   it("los avisos de stock llevan a las alertas de inventario", () => {
@@ -18,5 +18,20 @@ describe("destino de las notificaciones al hacer clic", () => {
     expect(destinoDeNotificacion({ type: "otro" })).toBeNull();
     expect(destinoDeNotificacion(undefined)).toBeNull();
     expect(destinoDeNotificacion(null)).toBeNull();
+  });
+});
+
+describe("etiqueta de la sección de cada notificación (lista completa)", () => {
+  it("identifica la sección de cada tipo de aviso", () => {
+    expect(seccionDeNotificacion({ type: "stock" })).toContain("Inventario");
+    expect(seccionDeNotificacion({ type: "stock" })).toContain("Alertas de stock");
+    expect(seccionDeNotificacion({ type: "producto" })).toContain("Productos");
+    expect(seccionDeNotificacion({ type: "producto" })).toContain("Pendiente de precio");
+    expect(seccionDeNotificacion({ type: "solicitud", solicitudId: "s1" })).toContain("Órdenes");
+  });
+
+  it("una notificación de tipo desconocido cae en Panel", () => {
+    expect(seccionDeNotificacion({ type: "otro" })).toContain("Panel");
+    expect(seccionDeNotificacion(null)).toContain("Panel");
   });
 });

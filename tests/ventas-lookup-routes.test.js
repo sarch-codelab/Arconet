@@ -135,3 +135,14 @@ it("las consultas excluyen bajas para búsquedas nuevas pero resuelven el produc
   expect(sql).toContain("p.estado = 'activo' AND p.archivado = false");
   expect(sql).toContain("IS NOT NULL AND p.id =");
 });
+
+it("la búsqueda también coincide por marca y entrega la ruta de la foto, nunca el data URL", async () => {
+  const dataUrl = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
+  mocks.query.mockResolvedValue([{ ...product, marca: "Fiberhome", foto: dataUrl }]);
+  const body = await (await products(request("productos", { q: "Fiberhome" }))).json();
+  expect(body.items[0].marca).toBe("Fiberhome");
+  expect(body.items[0].foto).toMatch(new RegExp(`^/api/productos/${product.id}/foto`));
+  expect(body.items[0].foto).not.toContain("data:image");
+  const sql = mocks.query.mock.calls[0][0].join("?");
+  expect(sql).toContain("p.marca");
+});
