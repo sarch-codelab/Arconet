@@ -235,249 +235,273 @@ export default function ProductoEditor({
 
   return (
     <form className={formClassName ?? styles.form} onSubmit={submitProduct}>
-      <div className={styles.photoRow}>
-        <Avatar src={draft.foto} name={draft.nombre} className={styles.photoPreview} shape="square" />
-        <div className={styles.photoActions}>
-          <input
-            id="product-photo"
-            type="file"
-            accept="image/*"
-            className={styles.fileInput}
-            onChange={handlePhoto}
-          />
-          <label htmlFor="product-photo" className={styles.upload}>Subir imagen principal</label>
-          {draft.foto && (
-            <button type="button" className={styles.ghostBtn} onClick={() => changeField("foto", "")}>
-              Quitar imagen principal
-            </button>
-          )}
-          <p>JPG o PNG. Imagen principal del producto.</p>
-        </div>
-      </div>
-
-      <div className={styles.photoRow}>
-        <strong style={{fontSize:"13px",color:"var(--text-muted)",marginRight:"12px"}}>Galería:</strong>
-        <div className={styles.photoActions} style={{flex:1,flexWrap:"wrap"}}>
-          <input
-            id="product-gallery"
-            type="file"
-            accept="image/*"
-            multiple
-            className={styles.fileInput}
-            onChange={handleGalleryPhotos}
-          />
-          <label htmlFor="product-gallery" className={styles.upload}>Agregar imágenes a galería</label>
-          <p>JPG o PNG. Múltiples imágenes para mostrar detalles del producto.</p>
-        </div>
-      </div>
-
-      {draft.fotos && draft.fotos.length > 0 && (
-        <div className={styles.photoRow} style={{alignItems:"flex-start"}}>
-          <div className={styles.galleryPreview} style={{display:"flex",flexWrap:"wrap",gap:"8px",alignItems:"center"}}>
-            {draft.fotos.map((galleryImg, idx) => (
-              <div key={idx} style={{position:"relative",display:"inline-flex"}}>
-                <img
-                  src={galleryImg}
-                  alt={`Galería ${idx + 1}`}
-                  style={{width:"80px",height:"80px",objectFit:"cover",borderRadius:"8px",border:"2px solid var(--border)"}}
-                />
-                <button
-                  type="button"
-                  onClick={() => removeGalleryPhoto(idx)}
-                  style={{
-                    position:"absolute",top:"-6px",right:"-6px",width:"22px",height:"22px",
-                    borderRadius:"50%",background:"var(--red)",color:"white",border:"none",
-                    cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",
-                    fontSize:"12px",lineHeight:1,boxShadow:"var(--shadow-sm)"
-                  }}
-                  aria-label={`Eliminar imagen ${idx + 1}`}
-                >
-                  <X size={12} />
+      <section className={styles.formSection}>
+        <h3 className={styles.formSectionTitle}>Fotos</h3>
+        <div className={styles.photoRow}>
+          <div className={styles.photoCol}>
+            <Avatar src={draft.foto} name={draft.nombre} className={styles.photoPreview} shape="square" />
+            <div className={styles.photoActions}>
+              <input
+                id="product-photo"
+                type="file"
+                accept="image/*"
+                className={styles.fileInput}
+                onChange={handlePhoto}
+              />
+              <label htmlFor="product-photo" className={styles.upload}>Subir imagen principal</label>
+              {draft.foto && (
+                <button type="button" className={styles.ghostBtn} onClick={() => changeField("foto", "")}>
+                  Quitar imagen principal
                 </button>
-              </div>
-            ))}
+              )}
+              <p>JPG o PNG. Imagen principal del producto.</p>
+            </div>
+          </div>
+          <div className={styles.photoCol}>
+            <strong style={{ fontSize: "13px", color: "var(--text-muted)", marginRight: "12px", alignSelf: "flex-start" }}>Galería:</strong>
+            <div className={styles.photoActions} style={{ flex: 1, flexWrap: "wrap" }}>
+              <input
+                id="product-gallery"
+                type="file"
+                accept="image/*"
+                multiple
+                className={styles.fileInput}
+                onChange={handleGalleryPhotos}
+              />
+              <label htmlFor="product-gallery" className={styles.upload}>Agregar imágenes a galería</label>
+              <p>JPG o PNG. Múltiples imágenes para mostrar detalles del producto.</p>
+            </div>
           </div>
         </div>
-      )}
 
-      {editing && !draft.precio && (
-        <div className={styles.spanFull} role="alert" style={{ marginBottom: "8px", padding: "10px 12px", borderRadius: "8px", border: "1px solid var(--orange)", background: "var(--orange-light)", color: "var(--text-warning)", fontSize: "13px" }}>
-          Este producto está pendiente de revisión: falta el Valor 1 · Normal. Define los precios y guarda para publicarlo en la tienda.
-        </div>
-      )}
+        {draft.fotos && draft.fotos.length > 0 && (
+          <div className={styles.photoRow} style={{ alignItems: "flex-start", marginTop: "14px" }}>
+            <div className={styles.galleryPreview} style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
+              {draft.fotos.map((galleryImg, idx) => (
+                <div key={idx} style={{ position: "relative", display: "inline-flex" }}>
+                  <img
+                    src={galleryImg}
+                    alt={`Galería ${idx + 1}`}
+                    style={{ width: "80px", height: "80px", objectFit: "cover", borderRadius: "8px", border: "2px solid var(--border)" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeGalleryPhoto(idx)}
+                    style={{
+                      position: "absolute", top: "-6px", right: "-6px", width: "22px", height: "22px",
+                      borderRadius: "50%", background: "var(--red)", color: "white", border: "none",
+                      cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: "12px", lineHeight: 1, boxShadow: "var(--shadow-sm)",
+                    }}
+                    aria-label={`Eliminar imagen ${idx + 1}`}
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
 
-      <div className={styles.fieldGrid}>
-        <label className={`${styles.field} ${styles.spanFull}`}>
-          Nombre del producto
-          <input
-            type="text"
-            value={draft.nombre}
-            onChange={(event) => changeField("nombre", event.target.value)}
-            placeholder="Ej. Splitter óptico 1x8 PLC"
-            required
-          />
-        </label>
-        <label className={styles.field}>
-          Código / SKU
-          <input
-            type="text"
-            value={draft.sku}
-            onChange={(event) => changeField("sku", event.target.value)}
-            placeholder="Ej. SP-1X8"
-          />
-        </label>
-        <label className={`${styles.field} ${styles.spanFull}`}>
-          Código de barras (del fabricante)
-          <div className={styles.barcodeRow}>
+      <section className={styles.formSection}>
+        <h3 className={styles.formSectionTitle}>Ficha del producto</h3>
+        <div className={styles.fieldGrid}>
+          <label className={`${styles.field} ${styles.spanFull}`}>
+            Nombre del producto
             <input
               type="text"
-              inputMode="numeric"
+              value={draft.nombre}
+              onChange={(event) => changeField("nombre", event.target.value)}
+              placeholder="Ej. Splitter óptico 1x8 PLC"
+              required
+            />
+          </label>
+          <label className={styles.field}>
+            Código / SKU
+            <input
+              type="text"
+              value={draft.sku}
+              onChange={(event) => changeField("sku", event.target.value)}
+              placeholder="Ej. SP-1X8"
+            />
+          </label>
+          <label className={styles.field}>
+            Unidad
+            <select value={draft.unidad} onChange={(event) => changeField("unidad", event.target.value)}>
+              {PRODUCT_UNITS.map((item) => (
+                <option key={item} value={item}>{item}</option>
+              ))}
+            </select>
+            <small className={styles.fieldHint}>Solo etiqueta el stock; no convierte cantidades.</small>
+          </label>
+          <label className={`${styles.field} ${styles.spanFull}`}>
+            Código de barras (del fabricante)
+            <div className={styles.barcodeRow}>
+              <input
+                type="text"
+                inputMode="numeric"
+                autoComplete="off"
+                value={draft.codigoBarras}
+                onChange={(event) => changeField("codigoBarras", event.target.value)}
+                placeholder="Ej. 7501234567890"
+              />
+              <BarcodeScanner
+                onDetect={(code) => changeField("codigoBarras", String(code).trim())}
+              />
+            </div>
+            <small className={styles.fieldHint}>
+              Opcional: solo si la caja trae código EAN/UPC impreso. Puedes escanearlo con la cámara.
+            </small>
+          </label>
+          <label className={styles.field}>
+            Marca
+            <input
+              type="text"
+              list="producto-marcas"
               autoComplete="off"
-              value={draft.codigoBarras}
-              onChange={(event) => changeField("codigoBarras", event.target.value)}
-              placeholder="Ej. 7501234567890"
+              value={draft.marca}
+              onChange={(event) => changeField("marca", event.target.value)}
+              placeholder="Ej. Fiberhome"
             />
-            <BarcodeScanner
-              onDetect={(code) => changeField("codigoBarras", String(code).trim())}
-            />
+            <datalist id="producto-marcas">
+              {marcaOptions.map((value) => <option key={value} value={value} />)}
+            </datalist>
+            <small className={styles.fieldHint}>Escribe y elige una marca ya registrada.</small>
+          </label>
+          <label className={styles.field}>
+            Categoría
+            <select value={draft.categoria} onChange={(event) => changeField("categoria", event.target.value)}>
+              {modalCategoryNames.map((item) => (
+                <option key={item} value={item}>{item}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section className={styles.formSection}>
+        <h3 className={styles.formSectionTitle}>Precios y costo</h3>
+        {editing && !draft.precio && (
+          <div className={styles.spanFull} role="alert" style={{ marginBottom: "8px", padding: "10px 12px", borderRadius: "8px", border: "1px solid var(--orange)", background: "var(--orange-light)", color: "var(--text-warning)", fontSize: "13px" }}>
+            Este producto está pendiente de revisión: falta el Valor 1 · Normal. Define los precios y guarda para publicarlo en la tienda.
           </div>
-          <small className={styles.fieldHint}>
-            Opcional: solo si la caja trae código EAN/UPC impreso. Puedes escanearlo con la cámara.
-          </small>
-        </label>
-        <label className={styles.field}>
-          Marca
-          <input
-            type="text"
-            list="producto-marcas"
-            autoComplete="off"
-            value={draft.marca}
-            onChange={(event) => changeField("marca", event.target.value)}
-            placeholder="Ej. Fiberhome"
-          />
-          <datalist id="producto-marcas">
-            {marcaOptions.map((value) => <option key={value} value={value} />)}
-          </datalist>
-          <small className={styles.fieldHint}>Escribe y elige una marca ya registrada.</small>
-        </label>
-        <label className={styles.field}>
-          Categoría
-          <select value={draft.categoria} onChange={(event) => changeField("categoria", event.target.value)}>
-            {modalCategoryNames.map((item) => (
-              <option key={item} value={item}>{item}</option>
-            ))}
-          </select>
-        </label>
-        <label className={styles.field}>
-          Unidad
-          <select value={draft.unidad} onChange={(event) => changeField("unidad", event.target.value)}>
-            {PRODUCT_UNITS.map((item) => (
-              <option key={item} value={item}>{item}</option>
-            ))}
-          </select>
-          <small className={styles.fieldHint}>Solo etiqueta el stock; no convierte cantidades.</small>
-        </label>
-        {canWritePrices ? (
-          PRICE_LEVELS.map(level => <label className={styles.field} key={level.id}>
-            {level.label} (L)
-            <input type="number" min={level.id === "normal" ? "1" : "0.01"} max="9999999999.99" step="0.01" required={level.id === "normal"} value={draft[level.field]} onChange={event => changeField(level.field, event.target.value)} placeholder={level.id === "normal" ? "Precio original de venta" : "Opcional"} />
-            <small className={styles.fieldHint}>{level.id === "normal" ? "Precio normal de venta, no costo de compra. Mínimo L 1.00." : "Vacío = sin configurar. No puede superar el precio normal."}</small>
-          </label>)
-        ) : (
-          <p className={styles.spanFull} style={{ marginBottom: "8px", color: "var(--text-muted)", fontSize: "13px" }} role="note">
-            Los precios (Valor 1/2/3) los definen gerente o administrador. El producto se guarda sin precio y queda <strong>pendiente de revisión</strong> hasta definir el precio normal.
-          </p>
         )}
-        <label className={styles.field}>
-          Costo (L)
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            value={draft.costo}
-            onChange={(event) => changeField("costo", event.target.value)}
-            placeholder="0.00"
-          />
-          <small className={styles.fieldHint}>Uso interno. Nunca se muestra en el catálogo.</small>
-        </label>
-        <label className={styles.field}>
-          {`Stock (${unitLabel(draft.unidad, 2)})`}
-          <input
-            type="number"
-            min="0"
-            step="1"
-            value={draft.stock}
-            onChange={(event) => changeField("stock", event.target.value)}
-            placeholder="0"
-          />
-        </label>
-        <label className={styles.field}>
-          Stock mínimo
-          <input
-            type="number"
-            min="0"
-            step="1"
-            value={draft.stockMinimo}
-            onChange={(event) => changeField("stockMinimo", event.target.value)}
-            placeholder="0"
-          />
-          <small className={styles.fieldHint}>Aviso de reposición cuando el stock baja de este valor.</small>
-        </label>
-        <label className={styles.field}>
-          Ubicación en bodega
-          <input
-            type="text"
-            list="producto-ubicaciones"
-            autoComplete="off"
-            value={draft.ubicacion}
-            onChange={(event) => changeField("ubicacion", event.target.value)}
-            placeholder="Ej. Pasillo 3 · Estante B"
-          />
-          <datalist id="producto-ubicaciones">
-            {ubicacionOptions.map((value) => <option key={value} value={value} />)}
-          </datalist>
-          <small className={styles.fieldHint}>Autocompleta con ubicaciones y bodegas ya registradas.</small>
-        </label>
-        <label className={styles.field}>
-          Garantía
-          <input
-            type="text"
-            maxLength={60}
-            value={draft.garantia}
-            onChange={(event) => changeField("garantia", event.target.value)}
-            placeholder="Ej. 12 meses"
-          />
-          <small className={styles.fieldHint}>Se muestra al cliente junto a la marca. Vacío = sin garantía declarada.</small>
-        </label>
-        <label className={styles.field}>
-          Peso (kg)
-          <input
-            type="number"
-            min="0"
-            step="0.001"
-            value={draft.peso}
-            onChange={(event) => changeField("peso", event.target.value)}
-            placeholder="0.000"
-          />
-        </label>
-        <label className={styles.field}>
-          Estado
-          <select value={draft.estado} onChange={(event) => changeField("estado", event.target.value)}>
-            {PRODUCT_STATUSES.map((item) => (
-              <option key={item.id} value={item.id}>{item.label}</option>
-            ))}
-          </select>
-        </label>
-        <label className={`${styles.field} ${styles.spanFull}`}>
-          Descripción
-          <textarea
-            value={draft.descripcion}
-            onChange={(event) => changeField("descripcion", event.target.value)}
-            placeholder="Detalles técnicos, presentación o notas de venta."
-            rows={3}
-          />
-        </label>
-      </div>
+        <div className={styles.fieldGrid}>
+          {canWritePrices ? (
+            PRICE_LEVELS.map(level => <label className={styles.field} key={level.id}>
+              {level.label} (L)
+              <input type="number" min={level.id === "normal" ? "1" : "0.01"} max="9999999999.99" step="0.01" required={level.id === "normal"} value={draft[level.field]} onChange={event => changeField(level.field, event.target.value)} placeholder={level.id === "normal" ? "Precio original de venta" : "Opcional"} />
+              <small className={styles.fieldHint}>{level.id === "normal" ? "Precio normal de venta, no costo de compra. Mínimo L 1.00." : "Vacío = sin configurar. No puede superar el precio normal."}</small>
+            </label>)
+          ) : (
+            <p className={styles.spanFull} style={{ marginBottom: "8px", color: "var(--text-muted)", fontSize: "13px" }} role="note">
+              Los precios (Valor 1/2/3) los definen gerente o administrador. El producto se guarda sin precio y queda <strong>pendiente de revisión</strong> hasta definir el precio normal.
+            </p>
+          )}
+          <label className={styles.field}>
+            Costo (L)
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={draft.costo}
+              onChange={(event) => changeField("costo", event.target.value)}
+              placeholder="0.00"
+            />
+            <small className={styles.fieldHint}>Uso interno. Nunca se muestra en el catálogo.</small>
+          </label>
+        </div>
+      </section>
+
+      <section className={styles.formSection}>
+        <h3 className={styles.formSectionTitle}>Inventario y ubicación</h3>
+        <div className={styles.fieldGrid}>
+          <label className={styles.field}>
+            {`Stock (${unitLabel(draft.unidad, 2)})`}
+            <input
+              type="number"
+              min="0"
+              step="1"
+              value={draft.stock}
+              onChange={(event) => changeField("stock", event.target.value)}
+              placeholder="0"
+            />
+          </label>
+          <label className={styles.field}>
+            Stock mínimo
+            <input
+              type="number"
+              min="0"
+              step="1"
+              value={draft.stockMinimo}
+              onChange={(event) => changeField("stockMinimo", event.target.value)}
+              placeholder="0"
+            />
+            <small className={styles.fieldHint}>Aviso de reposición cuando el stock baja de este valor.</small>
+          </label>
+          <label className={styles.field}>
+            Ubicación en bodega
+            <input
+              type="text"
+              list="producto-ubicaciones"
+              autoComplete="off"
+              value={draft.ubicacion}
+              onChange={(event) => changeField("ubicacion", event.target.value)}
+              placeholder="Ej. Pasillo 3 · Estante B"
+            />
+            <datalist id="producto-ubicaciones">
+              {ubicacionOptions.map((value) => <option key={value} value={value} />)}
+            </datalist>
+            <small className={styles.fieldHint}>Autocompleta con ubicaciones y bodegas ya registradas.</small>
+          </label>
+          <label className={styles.field}>
+            Garantía
+            <input
+              type="text"
+              maxLength={60}
+              value={draft.garantia}
+              onChange={(event) => changeField("garantia", event.target.value)}
+              placeholder="Ej. 12 meses"
+            />
+            <small className={styles.fieldHint}>Se muestra al cliente junto a la marca. Vacío = sin garantía declarada.</small>
+          </label>
+          <label className={styles.field}>
+            Peso (kg)
+            <input
+              type="number"
+              min="0"
+              step="0.001"
+              value={draft.peso}
+              onChange={(event) => changeField("peso", event.target.value)}
+              placeholder="0.000"
+            />
+          </label>
+        </div>
+      </section>
+
+      <section className={styles.formSection}>
+        <h3 className={styles.formSectionTitle}>Publicación</h3>
+        <div className={styles.fieldGrid}>
+          <label className={styles.field}>
+            Estado
+            <select value={draft.estado} onChange={(event) => changeField("estado", event.target.value)}>
+              {PRODUCT_STATUSES.map((item) => (
+                <option key={item.id} value={item.id}>{item.label}</option>
+              ))}
+            </select>
+          </label>
+          <label className={`${styles.field} ${styles.spanFull}`}>
+            Descripción
+            <textarea
+              value={draft.descripcion}
+              onChange={(event) => changeField("descripcion", event.target.value)}
+              placeholder="Detalles técnicos, presentación o notas de venta."
+              rows={3}
+            />
+          </label>
+        </div>
+      </section>
 
       <footer className={styles.modalActions}>
         <button type="button" className={styles.ghostBtn} onClick={onCancel}>
