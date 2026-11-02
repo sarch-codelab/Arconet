@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 vi.mock("../app/toaster", () => ({ sileo: { show: vi.fn(), error: vi.fn() } }));
 import ClienteSelector from "../app/admin/cliente-selector";
-import ReferenciaSelector from "../app/admin/referencia-selector";
+import ReferenciaSelector, { CategoriaOptions } from "../app/admin/referencia-selector";
 import FacturacionPanel from "../app/admin/facturacion-panel";
 import PrecioSelector from "../app/admin/precio-selector";
 
@@ -44,6 +44,22 @@ describe("selectores reales compartidos por Cotizaciones, Ventas y Facturación"
     const html = render(ReferenciaSelector, { kind: "productos", value: product.id, fallback: product, onChange: () => {} });
     expect(html).toContain("QA-01"); expect(html).toContain("L 100.00");
     expect(html).not.toContain("COSTO_PRIVADO"); expect(html).not.toContain("STOCK_PRIVADO");
+  });
+  it("las categorías usan su nombre como texto y valor, nunca el objeto de la API", () => {
+    const categoria = {
+      id: "cat-ftth",
+      nombre: "Soluciones activas y Accesorios FTTH",
+      slug: "soluciones-activas-y-accesorios-ftth",
+      descripcion: "Equipos activos",
+      foto: "",
+      orden: 1,
+      estado: "activo",
+    };
+    const html = render(CategoriaOptions, { categorias: [categoria, "Categoría anterior", { id: "sin-nombre" }] });
+    expect(html).toContain('<option value="Soluciones activas y Accesorios FTTH">Soluciones activas y Accesorios FTTH</option>');
+    expect(html).toContain('<option value="Categoría anterior">Categoría anterior</option>');
+    expect(html).not.toContain("[object Object]");
+    expect(html).not.toContain("sin-nombre");
   });
   it("el catálogo vacío no deshabilita la construcción de la factura", () => {
     const html = render(FacturacionPanel, { activeTab: "nueva", session: { permisos: ["facturacion:read", "facturacion:write"] }, productos: [] });

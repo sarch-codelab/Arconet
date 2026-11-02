@@ -39,6 +39,20 @@ function detail(kind, item) {
   ].filter(Boolean).join(" · ");
 }
 
+// /api/categorias devuelve registros completos. Un <option> solo admite
+// contenido y valor primitivos: pintar el registro directamente provocaba el
+// React error #31 al abrir el selector de productos en Nueva venta.
+export function CategoriaOptions({ categorias }) {
+  return categorias.map((categoriaItem) => {
+    const nombre = typeof categoriaItem === "string" ? categoriaItem : categoriaItem?.nombre;
+    if (typeof nombre !== "string" || !nombre.trim()) return null;
+    const key = categoriaItem && typeof categoriaItem === "object"
+      ? categoriaItem.id || categoriaItem.slug || nombre
+      : nombre;
+    return <option key={key} value={nombre}>{nombre}</option>;
+  });
+}
+
 /** Combobox remoto. El texto escrito nunca equivale a seleccionar un ID. */
 export default function ReferenciaSelector({ kind, value = "", fallback, onChange, onResolved, label, disabled = false, onCreate }) {
   const id = useId();
@@ -181,9 +195,7 @@ export default function ReferenciaSelector({ kind, value = "", fallback, onChang
             onChange={event => setCategoria(event.target.value)}
           >
             <option value="">Categoría</option>
-            {categorias.map((categoriaItem) => (
-              <option key={categoriaItem} value={categoriaItem}>{categoriaItem}</option>
-            ))}
+            <CategoriaOptions categorias={categorias} />
           </select>
         )}
         {(value || text) && <button type="button" className={styles.clear} disabled={disabled} aria-label={kind === "clientes" ? "Limpiar cliente" : `Limpiar ${label || "producto"}`} onClick={() => {
