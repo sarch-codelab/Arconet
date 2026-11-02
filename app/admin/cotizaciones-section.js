@@ -141,6 +141,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
       const haystack = normalize([
         order.id,
         order.numero,
+        order.fiscal?.correlativo,
         order.cliente,
         order.notas,
         order.clienteObj?.nombre,
@@ -416,7 +417,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
                         <button
                           type="button"
                           onClick={() => openApiDocument(order.fiscal ? `/api/facturacion/documentos/${encodeURIComponent(order.id)}/pdf` : `/api/ordenes/${encodeURIComponent(order.id)}/documento`).catch(error => notifyError(error?.message || "No se pudo abrir el documento."))}
-                          aria-label={`Imprimir o guardar PDF de ${order.id}`}
+                          aria-label={`Imprimir o guardar PDF de ${order.numero || order.id}`}
                           title="Imprimir o guardar como PDF"
                         >
                           <Printer size={15} />
@@ -428,7 +429,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
                         {canWrite && <button
                           type="button"
                           disabled={saving} onClick={() => openEdit(order)}
-                          aria-label={`Editar ${order.id}`}
+                          aria-label={`Editar ${order.numero || order.id}`}
                           title="Editar"
                         >
                           <Pencil size={15} />
@@ -437,7 +438,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
                           type="button"
                           className={styles.danger}
                           disabled={saving} onClick={() => setConfirmOrder(order)}
-                          aria-label={`Eliminar ${order.id}`}
+                          aria-label={`Eliminar ${order.numero || order.id}`}
                           title="Eliminar"
                         >
                           <Trash2 size={15} />

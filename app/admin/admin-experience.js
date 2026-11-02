@@ -262,6 +262,7 @@ function AdminShell({ session, onLogout, initialSection }) {
             <ClientesSection
               clientes={clientes}
               setClientes={setClientes}
+              setOrders={setOrders}
               workers={workers}
               session={session}
             />

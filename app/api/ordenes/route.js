@@ -55,7 +55,7 @@ export async function GET(request) {
       take,
       skip,
       select: {
-        id: true, tipo: true, clienteId: true, fecha: true, fechaVencimiento: true, monto: true, descuento: true, updatedAt: true,
+        id: true, numero: true, tipo: true, clienteId: true, fecha: true, fechaVencimiento: true, monto: true, descuento: true, updatedAt: true,
         estado: true, notas: true,
         cliente: { select: { nombre: true } },
         items: { select: { id: true, productoId: true, nombre: true, cantidad: true, precio: true, nivelPrecio: true, precioBase: true } },
