@@ -137,7 +137,9 @@ describe("autorización de precios y rutas alternas", () => {
     );
     expect(response.status).toBe(201);
     expect(createdData.estado).toBe("pendiente");
-    expect(createdData).not.toHaveProperty("precio");
+    // La columna "precio" es NOT NULL sin default: aunque el bodega no
+    // define el Valor 1, el producto nace con precio 0 y pendiente.
+    expect(createdData.precio).toBe(0);
     expect(createdData).not.toHaveProperty("precioDescuento");
     expect(createdData).not.toHaveProperty("precioMayorista");
   });
