@@ -47,6 +47,12 @@ describe("página completa de nuevo producto", () => {
     expect(html).toContain("Descripción");
     // Página entera: nunca emergente.
     expect(html).not.toContain("<dialog");
+    // Secciones que organizan la forma.
+    expect(html).toContain("Fotos");
+    expect(html).toContain("Ficha del producto");
+    expect(html).toContain("Precios y costo");
+    expect(html).toContain("Inventario y ubicación");
+    expect(html).toContain("Publicación");
   });
 
   it("sin permiso para crear muestra aviso y no monta el formulario", () => {
