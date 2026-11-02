@@ -94,7 +94,12 @@ export default function NuevaProducto({ session }) {
                 products={products}
                 categorias={categorias}
                 formClassName=""
-                onSaved={refreshCatalog}
+                onSaved={() => {
+                  // Tras el alta, volver a la lista de productos del
+                  // inventario: el producto queda visible junto a los demás.
+                  refreshCatalog();
+                  router.push(INVENTORY_URL);
+                }}
                 onCancel={() => router.push(INVENTORY_URL)}
               />
             </div>

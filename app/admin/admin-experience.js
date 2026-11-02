@@ -186,6 +186,20 @@ function AdminShell({ session, onLogout, initialSection }) {
     }
   };
 
+  /** Navegar a una seccion con una vista del inventario (p. ej. "alertas" o
+   *  "productos"). Igual que goTo, pero setea el parametro "view". */
+  const goToView = (requested, view) => {
+    const id = normalizeAdminSection(requested);
+    if (!canOpen(id)) return;
+    setSection(id);
+    setInventoryView(resolveInventoryView(session?.permisos, view));
+    scrollToTop();
+    if (typeof window !== "undefined") {
+      const destination = `/panel-administrativo?section=${id}&view=${encodeURIComponent(view || "")}`;
+      window.history.pushState(window.history.state, "", destination);
+    }
+  };
+
   const goToWithTransition = (requested) => {
     const id = normalizeAdminSection(requested);
     if (!canOpen(id) || (id === section && !["productos", "compras"].includes(requested))) {
@@ -212,6 +226,7 @@ function AdminShell({ session, onLogout, initialSection }) {
       value={{
         section,
         goTo: goToWithTransition,
+        goToView,
         onLogout,
         session,
       }}
