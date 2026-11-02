@@ -86,6 +86,12 @@ describe("entrada a la página de nueva venta", () => {
     expect(page).toContain("LocalPreviewEntry");
   });
 
+  it("la ruta adjunta los permisos del rol a la sesión (la cookie no los trae)", () => {
+    expect(page).toContain("getPermisos");
+    expect(page).toContain("permisos");
+    // Sin esto, el cierre del cliente siempre ve [] y niega al administrador.
+  });
+
   it("el botón Nueva venta abre la página completa, no una emergente", () => {
     expect(section).toContain('window.location.href = "/admin/ventas/nueva"');
   });
