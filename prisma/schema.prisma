@@ -327,6 +327,7 @@ model Notificacion {
   message       String
   type          String            @default("solicitud")
   solicitudId   String?
+  productoId    String? // Producto relacionado (p. ej. aviso de precio pendiente)
   readAt        DateTime?
   createdAt     DateTime          @default(now())
   solicitud     SolicitudInterna? @relation(fields: [solicitudId], references: [id], onDelete: Cascade)

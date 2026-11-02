@@ -116,7 +116,6 @@ export const SECTION_NAV_CONFIG = {
     tabs: [
       // "Todas" va primero: es la pestana inicial al entrar a Ventas.
       { id: "todas", label: "Todas", icon: BarChart3, title: "Cotizaciones y ventas" },
-      { id: "cotizaciones", label: "Cotizaciones", icon: FileText, title: "Solo cotizaciones" },
       { id: "ventas", label: "Ventas", icon: TrendingUp, title: "Facturas fiscales e históricos comerciales" },
       { id: "precios", label: "Precios", icon: TrendingUp, title: "Tres precios de venta: normal, descuento y mayorista" },
     ],

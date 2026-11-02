@@ -167,7 +167,12 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
 
   const openCreate = useCallback((documentType = "cotizacion") => {
     if (documentType !== "cotizacion" || !canWrite || submitting.current || clientBusy) return;
-    handleTabChange("cotizaciones");
+    // La pestana "Cotizaciones" ya no existe: el filtro de tipo en la barra
+    // hace esa seleccion (todas las pestanas + tipo = cotizacion).
+    setInnerTab("todas");
+    onTabChange?.("todas");
+    setStatus("all");
+    setType("cotizacion");
     setDraft({
       id: newOrderId(),
       tipo: documentType,
@@ -184,7 +189,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
     setClientBusy(false);
     setClientSnapshot(null);
     setModalOpen(true);
-  }, [canWrite, clientBusy, handleTabChange]);
+  }, [canWrite, clientBusy, onTabChange]);
   useImperativeHandle(editorRef, () => ({ create: openCreate }), [openCreate]);
 
   function openEdit(order) {
@@ -311,22 +316,22 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
         {!hideList && <>
         <section className={styles.stats} aria-label="Resumen de cotizaciones y ventas">
           <article className={styles.statCard}>
-            <span className={styles.statIcon}><FileText size={18} /></span>
+            <span className={styles.statIcon} style={{ background: "var(--blue-light)", color: "var(--blue)" }}><FileText size={18} aria-hidden="true" /></span>
             <strong className={styles.statValue}>{stats.total}</strong>
             <span className={styles.statLabel}>Cotizaciones</span>
           </article>
           <article className={styles.statCard}>
-            <span className={styles.statIcon}><AlertTriangle size={18} /></span>
+            <span className={styles.statIcon} style={{ background: "var(--orange-light)", color: "var(--orange)" }}><AlertTriangle size={18} aria-hidden="true" /></span>
             <strong className={styles.statValue}>{stats.pendientes}</strong>
             <span className={styles.statLabel}>Pendientes</span>
           </article>
           <article className={styles.statCard}>
-            <span className={styles.statIcon}><Check size={18} /></span>
+            <span className={styles.statIcon} style={{ background: "var(--green-light)", color: "var(--green)" }}><Check size={18} aria-hidden="true" /></span>
             <strong className={styles.statValue}>{stats.ventas}</strong>
             <span className={styles.statLabel}>Ventas</span>
           </article>
           <article className={styles.statCard}>
-            <span className={styles.statIcon}><TrendingUp size={18} /></span>
+            <span className={styles.statIcon} style={{ background: "var(--blue-soft)", color: "var(--blue-deep)" }}><TrendingUp size={18} aria-hidden="true" /></span>
             <strong className={styles.statValue}>{formatPrice(stats.totalMonto)}</strong>
             <span className={styles.statLabel}>Valor total</span>
           </article>

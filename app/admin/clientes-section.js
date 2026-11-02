@@ -218,7 +218,7 @@ export default function ClientesSection({ clientes = [], setClientes, workers = 
                   <th>Cliente</th>
                   <th>RTN</th>
                   <th>Contacto</th>
-                  <th>Ciudad</th>
+                  <th>Ubicación</th>
                   <th>Fecha registro</th>
                   <th>Estado</th>
                   <th className={styles.actionsCol}>Acciones</th>
@@ -243,7 +243,7 @@ export default function ClientesSection({ clientes = [], setClientes, workers = 
                         <span>{cliente.telefono || "—"}</span>
                       </div>
                     </td>
-                    <td data-label="Ciudad">{cliente.ciudad}</td>
+                    <td data-label="Ubicación">{cliente.ciudad}</td>
                     <td data-label="Fecha registro">{formatDate(cliente.fechaRegistro)}</td>
                     <td data-label="Estado">
                       <span className={`${styles.pill} ${styles[`status_${cliente.estado}`]}`}>
@@ -382,13 +382,14 @@ export default function ClientesSection({ clientes = [], setClientes, workers = 
                   />
                 </label>
                 <label className={styles.field}>
-                  Ciudad
+                  Ubicación
                   <input
                     type="text"
                     value={draft.ciudad}
                     onChange={(event) => changeField("ciudad", event.target.value)}
-                    placeholder="Ej. San Pedro Sula"
+                    placeholder="Ej. Tegucigalpa · Col. MVP"
                   />
+                  <small className={styles.fieldHint}>Ciudad, colonia o la sucursal a la que atiende.</small>
                 </label>
                 <label className={styles.field}>
                   Fecha de registro

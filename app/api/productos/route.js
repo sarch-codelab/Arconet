@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
  * definir los precios (gerente/administrador) para que pongan el Valor 1.
  * Best-effort: nunca rompe el alta si falla.
  */
-async function notificarProductoPendiente({ nombre, sku, actorEmail }) {
+async function notificarProductoPendiente({ nombre, sku, actorEmail, productoId }) {
   try {
     const users = await prisma.usuario.findMany({ where: { activo: true }, select: { correo: true, rol: true } });
     const roles = new Set(["gerente", "administrador"]);
@@ -31,6 +31,7 @@ async function notificarProductoPendiente({ nombre, sku, actorEmail }) {
         title: "Producto pendiente de precio",
         message: `"${nombre}" (${sku || "sin SKU"}) quedó pendiente de revisión: falta el Valor 1 · Normal, obligatorio para publicarlo.`,
         type: "producto",
+        ...(productoId ? { productoId } : {}),
       })),
     });
   } catch (error) {
@@ -183,6 +184,7 @@ export async function POST(request) {
         nombre: producto.nombre,
         sku: producto.sku,
         actorEmail: guard.session?.correo ?? "",
+        productoId: producto.id,
       });
     }
     return Response.json(toProducto(producto), { status: 201 });

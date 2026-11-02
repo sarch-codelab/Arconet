@@ -181,12 +181,16 @@ export default function ReferenciaSelector({ kind, value = "", fallback, onChang
             tabIndex={-1}
             key={item.id}
             id={`${id}-option-${index}`}
-            className={styles.option}
+            className={`${styles.option} ${kind === "productos" && item.foto ? styles.optionConFoto : ""}`}
             aria-selected={active === index || (active < 0 && value === item.id)}
             onMouseDown={event => event.preventDefault()}
             onPointerMove={() => setHighlight({ key: searchKey, index })}
             onClick={() => choose(item)}
           >
+            {kind === "productos" && item.foto ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={item.foto} alt="" width={32} height={32} style={{ borderRadius: 6, objectFit: "cover", background: "var(--bg-card-subtle)" }} />
+            ) : null}
             <strong>{item.nombre}</strong>
             <span>{detail(kind, item)}</span>
           </button>)}
