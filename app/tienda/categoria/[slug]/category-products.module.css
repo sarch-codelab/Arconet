@@ -731,16 +731,70 @@
   transform: translate(2px, -2px);
 }
 
-/* Botón añadir a cotización */
-.familyQuoteButton {
+/* Fila de acción de la tarjeta: paso de unidades + botón añadir al carrito */
+.familyActions {
   position: relative;
   z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.familyQty {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  padding: 3px 4px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+
+.familyQty button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background 160ms ease;
+}
+
+.familyQty button:hover:not(:disabled) {
+  background: var(--blue);
+  color: #fff;
+}
+
+.familyQty button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.familyQty span {
+  min-width: 28px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+
+.familyCartButton {
+  position: relative;
+  z-index: 2;
+  flex: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 9px;
   min-height: 46px;
-  margin-top: 16px;
   padding: 0 18px;
   border: 0;
   border-radius: 999px;
@@ -752,27 +806,27 @@
   transition: background 180ms ease, transform 180ms ease, box-shadow 180ms ease;
 }
 
-.familyQuoteButton span {
+.familyCartButton span {
   display: grid;
   place-items: center;
 }
 
-.familyQuoteButton:hover:not(:disabled) {
+.familyCartButton:hover:not(:disabled) {
   background: var(--blue-deep);
   transform: translateY(-1px);
   box-shadow: 0 12px 24px -12px rgba(21, 68, 181, 0.6);
 }
 
-.familyQuoteButton:active {
+.familyCartButton:active {
   transform: translateY(0);
 }
 
-.familyQuoteButton:disabled {
+.familyCartButton:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.familyQuoteButton:focus-visible {
+.familyCartButton:focus-visible {
   outline: 2px solid var(--blue);
   outline-offset: 3px;
 }

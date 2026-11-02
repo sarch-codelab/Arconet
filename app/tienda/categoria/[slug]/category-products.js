@@ -13,8 +13,10 @@ import {
   ChevronRight,
   Gauge,
   Layers,
+  Minus,
   Network,
   PackageCheck,
+  Plus,
   Radio,
   Ruler,
   Server,
@@ -38,6 +40,21 @@ const PRODUCT_ICONS = {
   "Componentes pasivos": Layers,
   "Microcables y Microproductos": Cable,
 };
+
+// Las categorias pueden quedar escritas con distinta mayúscula, acentos o
+// espacios (y a veces guardan el slug y no el nombre): para coincidencias de
+// iconos y de listado se normaliza la comparación.
+const normalizarCategoria = (value) =>
+  String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("es")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const PRODUCT_ICONS_NORMALIZADO = Object.fromEntries(
+  Object.entries(PRODUCT_ICONS).map(([nombre, icono]) => [normalizarCategoria(nombre), icono])
+);
 import { findFamily, formatPrice } from "../../catalogo-data";
 import { useCatalogProducts } from "../../catalogo-products";
 import { useCart } from "../../../cart-context";
@@ -63,6 +80,117 @@ const SUPPORT_ITEMS = [
   { icon: ArrowRight, title: "Asesoría antes de comprar", text: "Revisamos tu proyecto y te recomendamos lo que sí sirve." },
   { icon: Truck, title: "Entrega en Honduras", text: "Coordinamos la entrega donde esté tu instalación." },
 ];
+
+// Tarjeta de producto del listado: el selector de cantidad y el botón de
+// compra van en un mismo bloque (igual que la ficha del producto), para que
+// el paso de unidades quede claro antes de añadir al carrito.
+function CategoryProductCard({ product, index, onAdd }) {
+  const stock = Number(product.stock) || 0;
+  const soldOut = stock <= 0;
+  const lowStock = stock > 0 && stock <= 5;
+  const stockState = soldOut ? "out" : lowStock ? "low" : "ok";
+  const Icon = PRODUCT_ICONS_NORMALIZADO[normalizarCategoria(product.categoria)] || SlidersHorizontal;
+  const code = String(index + 1).padStart(2, "0");
+  const [quantity, setQuantity] = useState(1);
+
+  const add = () => {
+    onAdd(product, quantity);
+    setQuantity(1);
+  };
+
+  return (
+    <li className={styles.familyCard}>
+      <div className={`${styles.familyVisual} ${product.foto ? styles.photoVisual : styles.graphicVisual}`}>
+        {product.foto ? (
+          <Image
+            src={product.foto}
+            alt={product.nombre}
+            fill
+            unoptimized={String(product.foto).startsWith("data:")}
+            sizes="(max-width: 700px) 92vw, (max-width: 1080px) 46vw, 30vw"
+            className={styles.familyImage}
+          />
+        ) : (
+          <div className={styles.familyGraphic} aria-hidden="true">
+            <div className={styles.graphicOrbit}><i /><i /><i /></div>
+            <Icon size={58} strokeWidth={1.1} />
+            <span>AR / {product.sku}</span>
+          </div>
+        )}
+        <span className={styles.familyIndex}>{code}</span>
+        {stockState !== "ok" ? (
+          <div className={styles.familyFlags}>
+            <span className={`${styles.familyFlag} ${soldOut ? styles.flag_soldout : styles.flag_low}`}>
+              {soldOut ? "Agotado" : "Últimas unidades"}
+            </span>
+          </div>
+        ) : null}
+      </div>
+
+      <div className={styles.familyCopy}>
+        <p className={styles.familyCategory}>{product.categoria}</p>
+        <h3>{product.nombre}</h3>
+        <p className={styles.familySummary}>
+          SKU {product.sku}
+          {product.marca ? ` · ${product.marca}` : ""} · {product.unidad}
+        </p>
+
+        <div className={styles.familyMeta}>
+          <div className={styles.metaCell}>
+            <span className={styles.metaLabel}>Precio</span>
+            <span className={styles.metaPrice}>
+              <strong>{formatPrice(product.precio)}</strong>
+            </span>
+          </div>
+          <div className={styles.metaCell}>
+            <span className={styles.metaLabel}>Existencias</span>
+            <span className={`${styles.metaStock} ${styles[`stock_${stockState}`] || ""}`}>
+              <i aria-hidden="true" />
+              {soldOut
+                ? "Agotado"
+                : `${stock.toLocaleString("es-HN")} pzs disponibles`}
+            </span>
+          </div>
+        </div>
+
+        <Link className={styles.familyLink} href={`/tienda/producto/${product.id}`}>
+          Ver detalle y cotizar <ArrowUpRight size={16} aria-hidden="true" />
+        </Link>
+
+        <div className={styles.familyActions}>
+          <div className={styles.familyQty} role="group" aria-label={`Cantidad de ${product.nombre}`}>
+            <button
+              type="button"
+              onClick={() => setQuantity((value) => Math.max(1, value - 1))}
+              aria-label="Quitar una unidad"
+              disabled={quantity <= 1}
+            >
+              <Minus size={14} aria-hidden="true" />
+            </button>
+            <span aria-live="polite" aria-label={`Cantidad: ${quantity}`}>{quantity}</span>
+            <button
+              type="button"
+              onClick={() => setQuantity((value) => Math.min(999, value + 1))}
+              aria-label="Agregar una unidad"
+            >
+              <Plus size={14} aria-hidden="true" />
+            </button>
+          </div>
+          <button
+            type="button"
+            className={styles.familyCartButton}
+            onClick={add}
+            disabled={soldOut}
+            aria-label={`Añadir ${product.nombre} al carrito`}
+          >
+            {soldOut ? "Agotado" : "Añadir al Carrito"}
+            <span><ShoppingCart size={15} aria-hidden="true" /></span>
+          </button>
+        </div>
+      </div>
+    </li>
+  );
+}
 
 export default function CategoryProducts({ slug, category = null, blocked = false }) {
   const staticFamily = findFamily(slug) || (category ? findFamily(category.slug) || findFamily(category.nombre) : null);
@@ -91,7 +219,7 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
   const [orden, setOrden] = useState("relevancia");
   const [vista, setVista] = useState("grande");
   const { addItem, open: openCart, count: cartCount } = useCart();
-  const { byCategory, loading: productsLoading } = useCatalogProducts();
+  const { loading: productsLoading } = useCatalogProducts();
 
   // La preferencia de vista es del usuario, no de la sesión: se recuerda entre
   // visitas para que quien prefiere la lista no tenga que cambiarla cada vez.
@@ -180,7 +308,7 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
     return () => observer.disconnect();
   }, []);
 
-  const handleAddToCart = (product) => {
+  const handleAddToCart = (product, quantity = 1) => {
     addItem(
       {
         slug: product.id,
@@ -191,14 +319,25 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
         image: product.foto,
         presentation: product.unidad,
       },
-      1
+      quantity
     );
   };
 
   const nombreCategoria = family?.category || "";
+  // Coincidencia tolerante: el valor guardado en el producto puede ser el
+  // nombre o el slug, con distinta mayúscula o acentos.
+  const targetCategoria = normalizarCategoria(nombreCategoria);
+  const targetSlug = normalizarCategoria(category?.slug || slug);
   const categoryProducts = useMemo(
-    () => byCategory[nombreCategoria] || [],
-    [byCategory, nombreCategoria]
+    () =>
+      targetCategoria || targetSlug
+        ? products.filter(
+            (product) =>
+              (targetCategoria && normalizarCategoria(product.categoria) === targetCategoria) ||
+              (targetSlug && normalizarCategoria(product.categoria) === targetSlug),
+          )
+        : [],
+    [products, targetCategoria, targetSlug],
   );
 
   // Solo las marcas que de verdad aparecen en esta línea; una lista con
@@ -434,86 +573,9 @@ export default function CategoryProducts({ slug, category = null, blocked = fals
           </div>
         ) : (
           <ul className={`${styles.productsGrid} ${styles[`vista_${vista}`] || ""}`}>
-            {filteredProducts.map((product, index) => {
-              const stock = Number(product.stock) || 0;
-              const soldOut = stock <= 0;
-              const lowStock = stock > 0 && stock <= 5;
-              const stockState = soldOut ? "out" : lowStock ? "low" : "ok";
-              const Icon = PRODUCT_ICONS[product.categoria] || SlidersHorizontal;
-              const code = String(index + 1).padStart(2, "0");
-              return (
-                <li key={product.id} className={styles.familyCard}>
-                  <div className={`${styles.familyVisual} ${product.foto ? styles.photoVisual : styles.graphicVisual}`}>
-                    {product.foto ? (
-                      <Image
-                        src={product.foto}
-                        alt={product.nombre}
-                        fill
-                        unoptimized={String(product.foto).startsWith("data:")}
-                        sizes="(max-width: 700px) 92vw, (max-width: 1080px) 46vw, 30vw"
-                        className={styles.familyImage}
-                      />
-                    ) : (
-                      <div className={styles.familyGraphic} aria-hidden="true">
-                        <div className={styles.graphicOrbit}><i /><i /><i /></div>
-                        <Icon size={58} strokeWidth={1.1} />
-                        <span>AR / {product.sku}</span>
-                      </div>
-                    )}
-                    <span className={styles.familyIndex}>{code}</span>
-                    {stockState !== "ok" ? (
-                      <div className={styles.familyFlags}>
-                        <span className={`${styles.familyFlag} ${soldOut ? styles.flag_soldout : styles.flag_low}`}>
-                          {soldOut ? "Agotado" : "Últimas unidades"}
-                        </span>
-                      </div>
-                    ) : null}
-                  </div>
-
-                  <div className={styles.familyCopy}>
-                    <p className={styles.familyCategory}>{product.categoria}</p>
-                    <h3>{product.nombre}</h3>
-                    <p className={styles.familySummary}>
-                      SKU {product.sku}
-                      {product.marca ? ` · ${product.marca}` : ""} · {product.unidad}
-                    </p>
-
-                    <div className={styles.familyMeta}>
-                      <div className={styles.metaCell}>
-                        <span className={styles.metaLabel}>Precio</span>
-                        <span className={styles.metaPrice}>
-                          <strong>{formatPrice(product.precio)}</strong>
-                        </span>
-                      </div>
-                      <div className={styles.metaCell}>
-                        <span className={styles.metaLabel}>Existencias</span>
-                        <span className={`${styles.metaStock} ${styles[`stock_${stockState}`] || ""}`}>
-                          <i aria-hidden="true" />
-                          {soldOut
-                            ? "Agotado"
-                            : `${stock.toLocaleString("es-HN")} pzs disponibles`}
-                        </span>
-                      </div>
-                    </div>
-
-                    <Link className={styles.familyLink} href={`/tienda/producto/${product.id}`}>
-                      Ver detalle y cotizar <ArrowUpRight size={16} />
-                    </Link>
-
-                    <button
-                      type="button"
-                      className={styles.familyQuoteButton}
-                      onClick={() => handleAddToCart(product)}
-                      disabled={soldOut}
-                      aria-label={`Añadir ${product.nombre} a la cotización`}
-                    >
-                      Añadir a cotización
-                      <span><ShoppingCart size={15} aria-hidden="true" /></span>
-                    </button>
-                  </div>
-                </li>
-              );
-            })}
+            {filteredProducts.map((product, index) => (
+              <CategoryProductCard key={product.id} product={product} index={index} onAdd={handleAddToCart} />
+            ))}
           </ul>
         )}
           </div>
