@@ -50,7 +50,7 @@ export default function NuevaVenta({ session }) {
             <p className={styles.loadError} role="alert">
               No tienes permisos para crear una venta fiscal.
             </p>
-            <Link href="/panel-administrativo/ventas" className={adminStyles.ghostBtn}>
+            <Link href="/panel-administrativo?section=ventas" className={adminStyles.ghostBtn}>
               <ArrowLeft size={15} /> Volver a Ventas
             </Link>
           </div>
@@ -65,7 +65,7 @@ export default function NuevaVenta({ session }) {
         <div className={adminStyles.content}>
           <header className={adminStyles.sectionSubBar} style={{ padding: "16px clamp(16px, 3vw, 32px)" }}>
             <div className={adminStyles.topbarTitle}>
-              <Link href="/panel-administrativo/ventas" className={adminStyles.ghostBtn} style={{ padding: "2px 0" }}>
+              <Link href="/panel-administrativo?section=ventas" className={adminStyles.ghostBtn} style={{ padding: "2px 0" }}>
                 <ArrowLeft size={15} /> Volver a Ventas
               </Link>
               <h1>Nueva venta · Factura fiscal</h1>
@@ -91,7 +91,7 @@ export default function NuevaVenta({ session }) {
             saleEditorOpen
             detailOnly={false}
             onSaleEditorClose={() => {
-              router.push("/panel-administrativo/ventas");
+              router.push("/panel-administrativo?section=ventas");
             }}
             onInventoryChanged={refreshInventory}
             onClientCreated={client => setClientes(current => [client, ...current.filter(item => item.id !== client.id)])}
