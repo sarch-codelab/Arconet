@@ -79,7 +79,7 @@ export default async function proxy(request) {
   }
 
   // Stricter limits for auth endpoints.
-  if (pathname.startsWith("/api/auth/")) {
+  if (pathname.startsWith("/api/auth/") && pathname !== "/api/auth/qr") {
     const auth = checkRateLimit(`auth:${ip}`, { max: 20, windowMs: 15 * 60_000 });
     if (auth.limited) {
       return new Response(

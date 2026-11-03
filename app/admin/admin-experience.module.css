@@ -129,6 +129,11 @@
   background-image: url("/admin-login-fondo-oscuro.webp");
 }
 
+/* Fondo exclusivo del acceso administrativo; clientes y tema claro no cambian. */
+:global(html[data-theme="dark"]) .loginPage.adminLoginPage {
+  background-image: url("/admin-login-agua-oscuro.webp");
+}
+
 .loginPage a {
   color: inherit;
   text-decoration: none;
