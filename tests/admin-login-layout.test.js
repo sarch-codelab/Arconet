@@ -111,12 +111,15 @@ describe("acceso administrativo centrado en una sola columna", () => {
     expect(darkPageRule).not.toContain("linear-gradient");
     expect(darkPageRule).not.toContain('url("/admin-login-fondo.webp")');
   });
-  it("reserva la fotografía de agua para el acceso administrativo oscuro", () => {
-    const rule = css.match(/:global\(html\[data-theme="dark"\]\) \.loginPage\.adminLoginPage\s*\{([^}]*)\}/)?.[1] || "";
-    expect(rule).toContain('background-image: url("/admin-login-agua-oscuro.webp")');
-    expect(statSync("public/admin-login-agua-oscuro.webp").size).toBeLessThan(128 * 1024);
-    expect(readFileSync("app/admin/login-view.js", "utf8")).toContain("styles.adminLoginPage");
-    expect(readFileSync("app/login/login-experience.js", "utf8")).not.toContain("styles.adminLoginPage");
+  it("reserva el agua horizontal para el panel oscuro y restaura el formulario", () => {
+    const rule = css.match(/:global\(html\[data-theme="dark"\]\) \.adminPage\s*\{([^}]*)\}/)?.[1] || "";
+    expect(rule).toContain('background-image: url("/admin-panel-agua-oscuro.webp")');
+    expect(rule).toContain("background-size: cover");
+    expect(css).toMatch(/:global\(html\[data-theme="dark"\]\) \.adminPage \.shell\s*\{[^}]*background: transparent/);
+    expect(statSync("public/admin-panel-agua-oscuro.webp").size).toBeLessThan(128 * 1024);
+    expect(css).not.toContain("admin-login-agua-oscuro.webp");
+    expect(css).not.toContain(".adminLoginPage");
+    expect(readFileSync("app/admin/login-view.js", "utf8")).toContain("<main className={styles.loginPage}>");
   });
 
 });

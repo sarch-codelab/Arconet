@@ -64,6 +64,10 @@
 
 :global(html[data-theme="dark"]) .adminPage {
   --bg-page: #0e1116;
+  background-image: url("/admin-panel-agua-oscuro.webp");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
   --bg-card: #151b23;
   --bg-card-subtle: #1b222c;
   --bg-card-hover: #202834;
@@ -127,11 +131,6 @@
 /* Sólo el tema oscuro cambia la imagen, sin velos ni alterar el encuadre. */
 :global(html[data-theme="dark"]) .loginPage {
   background-image: url("/admin-login-fondo-oscuro.webp");
-}
-
-/* Fondo exclusivo del acceso administrativo; clientes y tema claro no cambian. */
-:global(html[data-theme="dark"]) .loginPage.adminLoginPage {
-  background-image: url("/admin-login-agua-oscuro.webp");
 }
 
 .loginPage a {
@@ -499,6 +498,11 @@
   min-height: 100vh;
   min-height: 100svh;
   background: var(--bg-page);
+}
+
+/* Deja visible el fondo del panel oscuro sin alterar tarjetas ni navegación. */
+:global(html[data-theme="dark"]) .adminPage .shell {
+  background: transparent;
 }
 
 /* ---------------- Content & Topbar ---------------- */
