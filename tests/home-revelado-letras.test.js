@@ -37,7 +37,9 @@ describe("revelado tipográfico de títulos", () => {
     expect(casa).not.toContain("prefers-reduced-motion");
     expect(casa).toContain("new IntersectionObserver(");
     expect(css).toMatch(/\.palabraInterior\s*\{[^}]*transform:\s*translateY\(110%\)/);
-    expect(css).not.toContain("prefers-reduced-motion");
+    const reduced = css.match(/@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\n\}/)?.[0] ?? "";
+    expect(reduced).not.toMatch(/palabra|parrafo|revealUp/);
+    expect(reduced).toContain("cardFadeIn");
   });
 
   it("la clase de activación existe suelta para que CSS Modules la exporte", () => {

@@ -3075,6 +3075,70 @@
   animation: revealUp 780ms cubic-bezier(0.2, 0.72, 0.24, 1) both;
 }
 
+/* Tarjetas: el mismo observer, una coreografía distinta de la tipografía.
+   Solo se anima al entrar, sin ocultar contenido antes de hidratar.
+   backwards libera transform al terminar (no bloquea hover ni retiene capas).
+   El escalonado se repite cada tres piezas: nunca acumula esperas largas. */
+.revealVisible[data-card-reveal] {
+  --card-delay: 0ms;
+  --card-rise: 30px;
+  --card-tilt: 2deg;
+  --card-scale: 0.965;
+  transform-origin: 50% 100%;
+  animation: cardDepthIn 880ms cubic-bezier(0.16, 1, 0.3, 1) var(--card-delay) backwards;
+}
+
+.revealVisible[data-card-reveal]:nth-child(3n + 2) {
+  --card-delay: 85ms;
+}
+
+.revealVisible[data-card-reveal]:nth-child(3n) {
+  --card-delay: 170ms;
+}
+
+@keyframes cardDepthIn {
+  from {
+    opacity: 0;
+    transform: perspective(1100px) translateY(var(--card-rise)) rotateX(var(--card-tilt)) scale(var(--card-scale));
+  }
+  to {
+    opacity: 1;
+    transform: perspective(1100px) translateY(0) rotateX(0) scale(1);
+  }
+}
+
+@media (max-width: 760px) {
+  .revealVisible[data-card-reveal] {
+    --card-rise: 14px;
+    --card-tilt: 0.8deg;
+    --card-scale: 0.985;
+    animation-duration: 680ms;
+  }
+
+  .revealVisible[data-card-reveal]:nth-child(3n + 2) {
+    --card-delay: 35ms;
+  }
+
+  .revealVisible[data-card-reveal]:nth-child(3n) {
+    --card-delay: 70ms;
+  }
+}
+
+/* Conserva una animación real y un final visible incluso sin animationend.
+   Esta preferencia solo modifica las nuevas entradas, no los textos existentes. */
+@media (prefers-reduced-motion: reduce) {
+  .revealVisible[data-card-reveal] {
+    animation-name: cardFadeIn;
+    animation-duration: 180ms;
+    animation-delay: 0ms;
+  }
+}
+
+@keyframes cardFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 /* ==========================================================================
    REVELADO TIPOGRÁFICO
    Los títulos marcados con data-split se parten en palabras (lo hace el

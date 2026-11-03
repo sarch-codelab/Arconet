@@ -1222,7 +1222,7 @@ useEffect(() => {
             Arconet, S.A. es una empresa hondureña con sede en San Pedro Sula, Cortés. Distribuimos, importamos y brindamos soporte para equipos y accesorios de televisión por cable, fibra óptica y telecomunicaciones.
           </p>
         </div>
-        <div className={styles.companyDetails} data-reveal>
+        <div className={styles.companyDetails} data-reveal data-card-reveal>
           <div className={styles.productsHeading}><span>01 / NUESTRAS CATEGORÍAS</span><h3 data-split>Todo empieza con<br />el equipo adecuado.</h3></div>
           <ul className={styles.productList}>
             {categorias.map((categoria, index) => (
@@ -1240,7 +1240,7 @@ useEffect(() => {
 
       <section className={styles.statsBand} aria-label="Arconet en números">
         {STATS.map((stat) => (
-          <div key={stat.label} className={styles.statItem} data-reveal>
+          <div key={stat.label} className={styles.statItem} data-reveal data-card-reveal>
             <ContadorCifra valor={stat.value} />
             <span>{stat.label}</span>
           </div>
@@ -1272,7 +1272,7 @@ useEffect(() => {
             <a className={styles.storyActionGhost} href="#contacto">Hablar con un asesor <ArrowRight size={16} /></a>
           </div>
         </div>
-        <aside className={styles.storyFacts} data-reveal>
+        <aside className={styles.storyFacts} data-reveal data-card-reveal>
           <p className={styles.storyFactsTitle}>La empresa en datos</p>
           <ul className={styles.factList}>
             {STORY_FACTS.map((fact) => {
@@ -1294,13 +1294,13 @@ useEffect(() => {
           <h2 data-split>Un propósito claro.<br /><em>Una meta compartida.</em></h2>
         </div>
         <div className={styles.missionGrid}>
-          <article className={`${styles.missionCard} ${styles.missionCardMission}`} data-reveal>
+          <article className={`${styles.missionCard} ${styles.missionCardMission}`} data-reveal data-card-reveal>
             <span className={styles.missionIcon}><Target size={26} /></span>
             <p className={styles.missionKicker}>Misión</p>
             <h3>Conectar a Honduras con tecnología confiable.</h3>
             <p>{MISSION.mission}</p>
           </article>
-          <article className={`${styles.missionCard} ${styles.missionCardVision}`} data-reveal>
+          <article className={`${styles.missionCard} ${styles.missionCardVision}`} data-reveal data-card-reveal>
             <span className={styles.missionIcon}><Eye size={26} /></span>
             <p className={styles.missionKicker}>Visión</p>
             <h3>Ser el aliado de telecomunicaciones más confiable del país.</h3>
@@ -1316,7 +1316,7 @@ useEffect(() => {
             {VALUES.map((value, index) => {
               const Icon = value.icon;
               return (
-                <article className={styles.valueCard} key={value.title} data-reveal>
+                <article className={styles.valueCard} key={value.title} data-reveal data-card-reveal>
                   <span className={styles.valueIndex}>{`0${index + 1}`}</span>
                   <span className={styles.valueIcon}><Icon size={20} /></span>
                   <h3>{value.title}</h3>
@@ -1341,7 +1341,7 @@ useEffect(() => {
           {SECTORS.map((sector) => {
             const Icon = sector.icon;
             return (
-              <article className={styles.sectorCard} key={sector.title} data-reveal>
+              <article className={styles.sectorCard} key={sector.title} data-reveal data-card-reveal>
                 <span className={styles.sectorIcon}><Icon size={22} /></span>
                 <h3>{sector.title}</h3>
                 <p>{sector.text}</p>
@@ -1365,7 +1365,7 @@ useEffect(() => {
           {COMMITMENTS.map((item) => {
             const Icon = item.icon;
             return (
-              <article className={styles.commitCard} key={item.title} data-reveal>
+              <article className={styles.commitCard} key={item.title} data-reveal data-card-reveal>
                 <span className={styles.commitIcon}><Icon size={22} /></span>
                 <h3>{item.title}</h3>
                 <p>{item.text}</p>
