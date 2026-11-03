@@ -55,7 +55,10 @@ export default function LoginView() {
         <section className={styles.loginPanel} aria-label="Formulario de acceso">
           <div className={styles.loginPanelBody}>
             <header>
-              <p className={styles.sectionLabel}>Iniciar sesión</p>
+              <div className={styles.loginBrand}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/arconet.png" alt="Arconet" width={1200} height={200} />
+              </div>
               <h2>
                 Acceso
                 <br />

@@ -31,6 +31,16 @@ describe("acceso de clientes con el fondo y vidrio compartidos", () => {
     expect(html).toContain("de nuevo.");
   });
 
+  it("usa el mismo logo centrado en lugar de la etiqueta de sesión", () => {
+    const darkRule = css.match(/:global\(html\[data-theme="dark"\]\) \.loginBrand img\s*\{([^}]*)\}/)?.[1] || "";
+
+    expect(html).not.toContain("Iniciar sesión");
+    expect(html).toContain('src="/arconet.png"');
+    expect(html).toContain('alt="Arconet"');
+    expect(source).toContain("className={styles.loginBrand}");
+    expect(darkRule).toContain("filter: brightness(0) invert(1)");
+  });
+
   it("conserva los campos, la autenticación de clientes y todos sus enlaces", () => {
     for (const text of [
       "Correo electrónico", "Contraseña", "Recordarme",

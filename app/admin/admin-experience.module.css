@@ -160,6 +160,10 @@
   background: rgba(14, 17, 22, 0.68);
 }
 
+:global(html[data-theme="dark"]) .loginBrand img {
+  filter: brightness(0) invert(1);
+}
+
 :global(html[data-theme="dark"]) .loginPanelBody .sectionLabel,
 :global(html[data-theme="dark"]) .loginPanelBody h2 em {
   color: #7fa6ff;
@@ -217,6 +221,21 @@
 .loginPanelBody header {
   display: grid;
   gap: 12px;
+}
+
+.loginBrand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.loginBrand img {
+  display: block;
+  width: 220px;
+  max-width: 100%;
+  height: auto;
 }
 
 .sectionLabel {
