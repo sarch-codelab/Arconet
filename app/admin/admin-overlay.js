@@ -20,8 +20,8 @@ import { enableDragScroll, registerOpenDialog } from "./drag-scroll";
  *    al fondo.
  *  - El contenido se puede deslizar arrastrando con el mouse (`drag-scroll`),
  *    ademas de con la rueda y el trackpad.
- *  - El velo recibe el atributo que detiene el scroll suave (ver
- *    `useAdminSmoothScroll`), de modo que la rueda no mueve la pagina de fondo.
+ *  - El fondo se bloquea mediante `useBodyScrollLock`; el contenido del
+ *    diálogo conserva el scroll nativo sin intermediarios de JavaScript.
  */
 const subscribeNever = () => () => {};
 
@@ -100,10 +100,8 @@ export function DialogBackdrop({ onDismiss, className, label = "Cerrar", childre
       className={className || styles.overlay}
       role="presentation"
       data-drag-scroll=""
-      /* Lenis ignora la rueda dentro de un elemento con este atributo y deja
-         que el navegador desplace el dialogo. Es imprescindible: con el scroll
-         de la pagina detenido, Lenis cancela la rueda (preventDefault) y el
-         contenido de la emergente no se movia con el mouse. */
+      /* Marcador legado conservado por compatibilidad. La rueda ahora es
+         nativa; no hay una biblioteca que cancele eventos del diálogo. */
       data-lenis-prevent=""
       onPointerDown={onPointerDown}
     >

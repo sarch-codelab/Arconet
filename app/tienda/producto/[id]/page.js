@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { notFound } from "next/navigation";
 import { prisma } from '@/lib/prisma';
 import ProductPage from "./product-page";
@@ -5,7 +6,7 @@ import ProductPage from "./product-page";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-async function getProduct(id) {
+const getProduct = cache(async function getProduct(id) {
   try {
     const producto = await prisma.producto.findFirst({
       where: {
@@ -45,7 +46,7 @@ async function getProduct(id) {
     console.error("GET /tienda/producto/[id]", error);
     return null;
   }
-}
+});
 
 export async function generateMetadata({ params }) {
   const { id } = await params;

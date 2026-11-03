@@ -81,7 +81,8 @@ describe("el video de fondo de las bandas de contacto", () => {
     expect(video).toContain("muted");
     expect(video).toContain("loop");
     expect(video).toContain("playsInline");
-    expect(video).toContain("autoPlay");
+    expect(video).not.toMatch(/autoPlay=|\sautoPlay\s/);
+    expect(video).toContain("reproductor.play()");
     expect(video).toContain('aria-hidden="true"');
     expect(video).toContain("controls={false}");
     // La fuente es condicional: con ahorro de datos no se descarga el video.
@@ -99,6 +100,8 @@ describe("el video de fondo de las bandas de contacto", () => {
     expect(video).toContain("new IntersectionObserver");
     expect(video).toMatch(/else reproductor\.pause\(\)/);
     expect(video).toContain('document.addEventListener("visibilitychange", alVolver)');
+    expect(video).toContain('if (!visible || document.visibilityState === "hidden") return');
+    expect(video).toContain('if (document.visibilityState === "hidden") reproductor.pause()');
     // Con ahorro de datos se queda el póster y no se pide el archivo.
     expect(video).toContain("saveData");
     expect(video).toContain("prefers-reduced-data");

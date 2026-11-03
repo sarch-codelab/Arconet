@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import ContadorCifra from "./contador-cifra";
 import VideoFondoCTA from "./video-fondo-cta";
-import LocomotiveScroll from "locomotive-scroll";
+import { observeNativeScroll } from "@/lib/native-scroll";
 import {
   ArrowDown,
   ArrowRight,
@@ -251,7 +251,7 @@ useEffect(() => {
 
   const trackRef = useRef(null);
   const stageRef = useRef(null);
-  const locomotiveRef = useRef(null);
+  const scrollControllerRef = useRef(null);
   const navRef = useRef(null);
   const topbarRef = useRef(null);
   const menuToggleRef = useRef(null);
@@ -424,84 +424,50 @@ useEffect(() => {
   }, [menuOpen]);
 
   useEffect(() => {
-    let frame = 0;
     const hero = document.getElementById("inicio");
     const stage = stageRef.current;
     const topbar = topbarRef.current;
+    let heroRange = 1, stageRange = 1, stageTop = 0, viewportHeight = 1;
+    let mobile = false, ready = false, pastHero = false, slide = 0, sectionId = "";
+    let sections = [];
 
-    const updateScrollEffects = () => {
-      frame = 0;
+    // Todas las lecturas de geometría juntas, al montar o cambiar dimensiones.
+    // En cada scroll solo se calcula con números y después se escribe el estilo.
+    const measure = () => {
       const y = window.scrollY;
-
-      setScrolledPastHero(y > 360);
-
-      if (topbar) {
-        const scrollable = Math.max(
-          document.documentElement.scrollHeight - window.innerHeight,
-          1
-        );
-        topbar.style.setProperty("--scroll-progress", clamp(y / scrollable).toFixed(4));
-      }
-
-      if (hero) {
-        const range = Math.max(hero.offsetHeight * 0.9, 1);
-        hero.style.setProperty("--zoom-progress", clamp(y / range).toFixed(4));
-      }
-
+      viewportHeight = window.innerHeight;
+      mobile = window.matchMedia("(max-width: 760px)").matches;
+      heroRange = Math.max((hero?.offsetHeight || viewportHeight) * 0.9, 1);
       if (stage) {
-        const range = Math.max(stage.offsetHeight - window.innerHeight, 1);
-        const progress = clamp(-stage.getBoundingClientRect().top / range);
-        stage.style.setProperty("--slide-progress", progress.toFixed(4));
-        // En móvil el índice pertenece al carrusel horizontal: mezclarlo con
-        // la posición vertical de la página puede marcar 04 sin cambiar de panel.
-        if (!window.matchMedia("(max-width: 760px)").matches) {
-          setActiveSlide(Math.min(SOLUTIONS.length - 1, Math.floor(progress * SOLUTIONS.length)));
-        }
+        stageRange = Math.max(stage.offsetHeight - viewportHeight, 1);
+        stageTop = stage.getBoundingClientRect().top + y;
       }
-
-      const marker = NAVIGATION.slice().reverse().find((item) => {
-        const section = document.getElementById(item.id);
-        return section && section.getBoundingClientRect().top <= window.innerHeight * 0.44;
-      });
-      if (marker) setActiveSection((current) => current === marker.id ? current : marker.id);
+      sections = NAVIGATION.map(item => {
+        const element = document.getElementById(item.id);
+        return element ? { id: item.id, top: element.getBoundingClientRect().top + y } : null;
+      }).filter(Boolean).reverse();
     };
 
-    const onScroll = () => {
-      if (!frame) frame = window.requestAnimationFrame(updateScrollEffects);
+    const updateScrollEffects = ({ scroll: y, limit }) => {
+      const nextPastHero = y > 360;
+      const progress = clamp((y - stageTop) / stageRange);
+      const nextSlide = Math.min(SOLUTIONS.length - 1, Math.floor(progress * SOLUTIONS.length));
+      const marker = sections.find(item => item.top <= y + viewportHeight * 0.44);
+      if (topbar) topbar.style.setProperty("--scroll-progress", clamp(y / limit).toFixed(4));
+      if (hero) hero.style.setProperty("--zoom-progress", clamp(y / heroRange).toFixed(4));
+      if (stage && !mobile) stage.style.setProperty("--slide-progress", progress.toFixed(4));
+      // No despachar actualizaciones de React si no cambió un umbral visible.
+      if (pastHero !== nextPastHero) { pastHero = nextPastHero; setScrolledPastHero(nextPastHero); }
+      if (!mobile && slide !== nextSlide) { slide = nextSlide; setActiveSlide(nextSlide); }
+      if (marker && sectionId !== marker.id) { sectionId = marker.id; setActiveSection(marker.id); }
+      if (!ready) { ready = true; setScrollReady(true); }
     };
 
-    // La primera medición usa el mismo ciclo de animación que el scroll: así
-    // no provoca una segunda renderización sincrónica dentro del efecto.
-    frame = window.requestAnimationFrame(() => {
-      updateScrollEffects();
-      setScrollReady(true);
-    });
-
-    const locomotive = new LocomotiveScroll({
-      lenisOptions: {
-        anchors: true,
-        gestureOrientation: "vertical",
-        // 0.085 dejaba la inercia muy larga: cada golpe de rueda seguía
-        // deslizándose y al encadenar varios se sentía "trabado". Con 0.11
-        // el desplazamiento acompaña al mouse sin arrastrarse.
-        lerp: 0.11,
-        respectReducedMotion: true,
-        smoothTouch: false,
-        smoothWheel: true,
-      },
-      scrollCallback: onScroll,
-    });
-    locomotiveRef.current = locomotive;
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-
+    const scrollController = observeNativeScroll(updateScrollEffects, { onResize: measure });
+    scrollControllerRef.current = scrollController;
     return () => {
-      if (frame) window.cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      locomotiveRef.current = null;
-      locomotive.destroy();
+      scrollControllerRef.current = null;
+      scrollController.destroy();
     };
   }, []);
 
@@ -662,9 +628,9 @@ useEffect(() => {
   }, []);
 
   const goTo = (id) => {
-    const locomotive = locomotiveRef.current;
-    if (locomotive) {
-      locomotive.scrollTo(`#${id}`);
+    const scrollController = scrollControllerRef.current;
+    if (scrollController) {
+      scrollController.scrollTo(`#${id}`);
       return;
     }
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -684,9 +650,9 @@ useEffect(() => {
     const distance = stage.offsetHeight - window.innerHeight;
     const progress = index / (SOLUTIONS.length - 1);
     const top = stage.offsetTop + distance * progress;
-    const locomotive = locomotiveRef.current;
-    if (locomotive) {
-      locomotive.scrollTo(top);
+    const scrollController = scrollControllerRef.current;
+    if (scrollController) {
+      scrollController.scrollTo(top);
       return;
     }
     window.scrollTo({ top, behavior: "smooth" });
@@ -1008,7 +974,7 @@ useEffect(() => {
               alt="Instalaciones Arconet S.A. en San Pedro Sula"
               fill
               priority
-              quality={90}
+              quality={75}
               className={styles.heroBgImg}
               sizes="100vw"
             />

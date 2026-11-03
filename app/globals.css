@@ -1,5 +1,3 @@
-@import "locomotive-scroll/dist/locomotive-scroll.css";
-
 :root {
   color-scheme: light;
   --bg: #faf9f6;
@@ -41,13 +39,22 @@ body {
   height: 100%;
 }
 
-/* Red de seguridad contra el scroll horizontal "fantasma": Lenis
-   (LocomotiveScroll v5) hace scroll diagonal en ambos ejes, asi que cualquier
-   elemento que sobresalga 1px del viewport (tarjetas elevadas en hover,
-   animaciones reveal con translateY, sombras) habilita deslizar la pagina a
-   izquierda/derecha. overflow-x:clip corta ese area SIN crear scroll container
-   ni containing block para position:fixed (overflow-y sigue visible), por lo
-   que la barra superior fija, el panel lateral y los iconos no se rompen. */
+/* Los enlaces de sección se desplazan con el motor del navegador. Esto no
+   interpola ni intercepta rueda, trackpad o touch. Next usa el atributo
+   data-scroll-behavior del layout para restaurar rutas sin barridos largos. */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Solo cambia la navegación a anclas; las letras y tarjetas siguen animadas. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Contener efectos y tarjetas sin crear un contenedor de scroll adicional
+   ni alterar las coordenadas de elementos fixed/sticky. */
 html,
 body {
   overflow-x: clip;

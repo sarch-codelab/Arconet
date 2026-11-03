@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import LocomotiveScroll from "locomotive-scroll";
+import { observeNativeScroll } from "@/lib/native-scroll";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -96,30 +96,18 @@ export default function ProductPage({ product }) {
     const topbar = topbarRef.current;
     if (!page) return undefined;
 
-    const updateScroll = ({ scroll = window.scrollY, limit, progress } = {}) => {
-      const scrollable = Math.max(limit ?? document.documentElement.scrollHeight - window.innerHeight, 1);
-      const pageProgress = typeof progress === "number" ? progress : Math.min(1, Math.max(0, scroll / scrollable));
+    const updateScroll = ({ progress }) => {
+      const pageProgress = progress;
       page.style.setProperty("--page-progress", pageProgress.toFixed(4));
 
       if (topbar) {
-        topbar.style.setProperty("--scroll-progress", Math.min(1, Math.max(0, scroll / scrollable)).toFixed(4));
+        topbar.style.setProperty("--scroll-progress", progress.toFixed(4));
       }
     };
 
-    const locomotive = new LocomotiveScroll({
-      lenisOptions: {
-        anchors: true,
-        gestureOrientation: "vertical",
-        lerp: 0.085,
-        respectReducedMotion: true,
-        smoothTouch: false,
-        smoothWheel: true,
-      },
-      scrollCallback: updateScroll,
-    });
+    const scrollController = observeNativeScroll(updateScroll);
 
-    updateScroll({ scroll: window.scrollY });
-    return () => locomotive.destroy();
+    return () => scrollController.destroy();
   }, []);
 
 

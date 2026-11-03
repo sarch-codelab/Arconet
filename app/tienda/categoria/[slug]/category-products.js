@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import LocomotiveScroll from "locomotive-scroll";
+import { observeNativeScroll } from "@/lib/native-scroll";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -254,46 +254,15 @@ export default function CategoryProducts({
     const page = pageRef.current;
     if (!page) return undefined;
 
-    const updateScroll = ({ scroll = window.scrollY, limit, progress } = {}) => {
-      const scrollable = Math.max(limit ?? document.documentElement.scrollHeight - window.innerHeight, 1);
-      const pageProgress = typeof progress === "number" ? progress : Math.min(1, Math.max(0, scroll / scrollable));
+    const updateScroll = ({ progress }) => {
+      const pageProgress = progress;
       topbarRef.current?.style.setProperty("--scroll-progress", pageProgress.toFixed(4));
     };
 
-    /* EL SCROLL LATERAL (la pagina se deslizaba a izquierda/derecha):
-       Lenis (motor de LocomotiveScroll v5) puede desplazar la ventana en X
-       cuando un gesto de rueda/touch tiene componente horizontal y algun
-       elemento sobresale aunque sea 1px del viewport (tarjetas elevadas en
-       hover, animaciones reveal). El overflow-x:clip del CSS ayuda con el
-       area scrolleable NATIVA, pero no impide que Lenis mueva la ventana por
-       JavaScript. Solucion en dos capas: 1) se fuerza gestureOrientation
-       ="vertical" en las opciones internas de Lenis (asi ignora deltaX), y
-       2) red de seguridad: si aun asi la ventana se moviera en X se corrige
-       de inmediato. Nada de esto toca el DOM ni rompe los position:fixed
-       (barra superior, panel lateral) ni los sticky. */
-    const locomotive = new LocomotiveScroll({
-      lenisOptions: {
-        anchors: true,
-        gestureOrientation: "vertical",
-        lerp: 0.085,
-        respectReducedMotion: true,
-        smoothTouch: false,
-        smoothWheel: true,
-      },
-      scrollCallback: updateScroll,
-    });
+    const scrollController = observeNativeScroll(updateScroll);
 
-    /* Red de seguridad: si algo (Lenis, anclas, navegacion con historial,
-       etc.) moviera la pagina en X, se corrige de inmediato sin romper nada. */
-    const lockHorizontalScroll = () => {
-      if (window.scrollX !== 0) window.scrollTo(0, window.scrollY);
-    };
-    window.addEventListener("scroll", lockHorizontalScroll, { passive: true });
-
-    updateScroll({ scroll: window.scrollY });
     return () => {
-      window.removeEventListener("scroll", lockHorizontalScroll);
-      locomotive.destroy();
+      scrollController.destroy();
     };
   }, []);
 

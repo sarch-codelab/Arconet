@@ -9,7 +9,7 @@ describe("rendimiento de /tienda", () => {
     const js = readFileSync(JS, "utf8");
     const inicioMedida = js.indexOf("const measure =");
     const inicioUpdate = js.indexOf("const update =", inicioMedida);
-    const inicioResize = js.indexOf("const handleResize =", inicioUpdate);
+    const inicioResize = js.indexOf("const scrollController =", inicioUpdate);
     const measure = js.slice(inicioMedida, inicioUpdate);
     const update = js.slice(inicioUpdate, inicioResize);
 
@@ -20,7 +20,7 @@ describe("rendimiento de /tienda", () => {
     expect(measure).toContain("hero?.offsetHeight");
     expect(update).not.toContain("scrollHeight");
     expect(update).not.toContain("offsetHeight");
-    expect(js).toContain("new ResizeObserver(handleResize)");
+    expect(js).toContain("observeNativeScroll(update, { onResize: measure })");
   });
 
   it("solo renderiza al cruzar el umbral del dock", () => {
