@@ -1337,8 +1337,15 @@
   min-width: 0;
 }
 
+.brandArea .logo {
+  display: block;
+  flex: 0 0 auto;
+}
+
 .clientSidebar .logo img,
 .brandArea .logo img {
+  display: block;
+  height: auto;
   width: 138px;
   filter: none;
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { loadClientPortal } from "@/lib/client-portal-load";
+
 import { previewDocumentClick } from "@/lib/api-document";
 
 import { clearLocalPreviewSession, clientApiFetch as fetch } from "@/lib/api-fetch";
@@ -7,7 +9,7 @@ import { clearLocalPreviewSession, clientApiFetch as fetch } from "@/lib/api-fet
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   ArrowLeft,
   Bell,
@@ -42,35 +44,36 @@ export default function ClientExperience() {
   const [session, setSession] = useState(null);
   const [orders, setOrders] = useState([]);
   const [loadError, setLoadError] = useState("");
+  const [loadAttempt, setLoadAttempt] = useState(0);
 
   useEffect(() => {
     let active = true;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20_000);
     async function loadPortal() {
       try {
-        const sessionResponse = await fetch("/api/cliente-auth/session", { cache: "no-store" });
-        if (sessionResponse.status === 401) {
+        const data = await loadClientPortal(fetch, controller.signal);
+        if (!active) return;
+        if (data.unauthenticated) {
           router.replace("/login");
           return;
         }
-        const sessionData = await sessionResponse.json().catch(() => ({}));
-        if (!sessionResponse.ok) throw new Error(sessionData.error || "No se pudo verificar la cuenta.");
-
-        const ordersResponse = await fetch("/api/ordenes", { cache: "no-store" });
-        const ordersData = await ordersResponse.json().catch(() => ({}));
-        if (!ordersResponse.ok) throw new Error(ordersData.error || "No se pudieron cargar tus solicitudes.");
-        if (!active) return;
-        setSession(sessionData);
-        setOrders(Array.isArray(ordersData) ? ordersData : []);
+        setSession(data.session);
+        setOrders(data.orders);
         setLoadError("");
         setReady(true);
       } catch (error) {
         if (!active) return;
-        setLoadError(error.message || "No se pudieron cargar los datos de la cuenta.");
+        setLoadError(controller.signal.aborted
+          ? "La carga tardó demasiado. Comprueba tu conexión e intenta nuevamente."
+          : error.message || "No se pudieron cargar los datos de la cuenta.");
+      } finally {
+        clearTimeout(timeout);
       }
     }
     loadPortal();
-    return () => { active = false; };
-  }, [router]);
+    return () => { active = false; clearTimeout(timeout); controller.abort(); };
+  }, [router, loadAttempt]);
 
   const handleLogout = async () => {
     await fetch("/api/cliente-auth/logout", { method: "POST" }).catch(() => {});
@@ -81,7 +84,21 @@ export default function ClientExperience() {
   if (!ready) {
     return (
       <main className={styles.clientDashboard} aria-busy={!loadError}>
-        {loadError ? <p role="alert">{loadError}</p> : null}
+        <div className={styles.dashboardShell}>
+          <section className={styles.ticketForm} aria-label="Carga de la cuenta">
+            <Link href="/">Arconet · Inicio</Link>
+            <h1>Mi cuenta</h1>
+            {loadError ? (
+              <>
+                <p role="alert">{loadError}</p>
+                <button type="button" className={styles.submit} onClick={() => {
+                  setLoadError("");
+                  setLoadAttempt((attempt) => attempt + 1);
+                }}>Volver a intentar</button>
+              </>
+            ) : <p role="status">Cargando tu cuenta…</p>}
+          </section>
+        </div>
       </main>
     );
   }
@@ -111,21 +128,37 @@ function ClientDashboard({ session, orders, setOrders, onLogout }) {
     .filter((order) => ["aprobada", "en_proceso", "en_preparacion", "despachada", "entregada", "completada"].includes(order.estado))
     .reduce((sum, order) => sum + order.monto, 0);
 
+  const actionInFlight = useRef(false);
+  const [actionSaving, setActionSaving] = useState(false);
+
   async function handleOrderAction(id, accion) {
-    const response = await fetch(`/api/cliente-portal/ordenes/${id}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ accion }),
-    });
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      sileo.error({ title: payload.error || "No se pudo registrar la acción." });
-      return;
+    if (actionInFlight.current) return;
+    actionInFlight.current = true;
+    setActionSaving(true);
+    try {
+      const response = await fetch(`/api/cliente-portal/ordenes/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accion }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        sileo.error({ title: payload.error || "No se pudo registrar la acción." });
+        return;
+      }
+      if (payload.id !== id || !["aprobada", "rechazada", "cancelada"].includes(payload.estado)) {
+        throw new Error("No se pudo confirmar el resultado. Recarga la cuenta antes de repetir la acción.");
+      }
+      setOrders((current) => current.map((order) => (order.id === id ? { ...order, estado: payload.estado } : order)));
+      setSelectedOrder((current) => (current && current.id === id ? { ...current, estado: payload.estado } : current));
+      const labels = { aprobar: "Cotización aprobada", rechazar: "Cotización rechazada", cancelar: "Solicitud cancelada" };
+      sileo.success({ title: labels[accion] || "Acción registrada" });
+    } catch (error) {
+      sileo.error({ title: error.message || "No se pudo conectar. Comprueba el estado de la solicitud antes de reintentar." });
+    } finally {
+      actionInFlight.current = false;
+      setActionSaving(false);
     }
-    setOrders((current) => current.map((order) => (order.id === id ? { ...order, estado: payload.estado } : order)));
-    setSelectedOrder((current) => (current && current.id === id ? { ...current, estado: payload.estado } : current));
-    const labels = { aprobar: "Cotización aprobada", rechazar: "Cotización rechazada", cancelar: "Solicitud cancelada" };
-    sileo.success({ title: labels[accion] || "Acción registrada" });
   }
 
   const handleViewOrder = (order) => {
@@ -399,13 +432,13 @@ function ClientDashboard({ session, orders, setOrders, onLogout }) {
                   <div className={styles.orderActions}>
                     {selectedOrder.tipo === "cotizacion" && (selectedOrder.estado === "pendiente" || selectedOrder.estado === "en_proceso") && (
                       <>
-                        <button type="button" className={styles.submit} onClick={() => handleOrderAction(selectedOrder.id, "aprobar")}>
+                        <button type="button" className={styles.submit} disabled={actionSaving} onClick={() => handleOrderAction(selectedOrder.id, "aprobar")}>
                           <Check size={16} /> Aprobar cotización
                         </button>
-                        <button type="button" className={styles.dangerBtn} onClick={() => handleOrderAction(selectedOrder.id, "rechazar")}>
+                        <button type="button" className={styles.dangerBtn} disabled={actionSaving} onClick={() => handleOrderAction(selectedOrder.id, "rechazar")}>
                           <X size={16} /> Rechazar
                         </button>
-                        <button type="button" className={styles.ghostBtn} onClick={() => handleOrderAction(selectedOrder.id, "cancelar")}>
+                        <button type="button" className={styles.ghostBtn} disabled={actionSaving} onClick={() => handleOrderAction(selectedOrder.id, "cancelar")}>
                           Cancelar solicitud
                         </button>
                       </>
@@ -538,6 +571,8 @@ const TICKET_ESTADO_LABEL = {
 function SupportPage() {
   const { email: CONTACT_EMAIL, phone: CONTACT_PHONE, phoneHref: CONTACT_PHONE_HREF } = useContact();
   const [tickets, setTickets] = useState([]);
+  const [ticketsError, setTicketsError] = useState("");
+  const [ticketsAttempt, setTicketsAttempt] = useState(0);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ asunto: "", mensaje: "" });
   const [saving, setSaving] = useState(false);
@@ -545,12 +580,17 @@ function SupportPage() {
   useEffect(() => {
     let active = true;
     fetch("/api/cliente-portal/soporte", { cache: "no-store" })
-      .then((response) => response.json())
-      .then((data) => { if (active && Array.isArray(data)) setTickets(data); })
-      .catch(() => {})
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data?.error || "No se pudieron cargar los tickets.");
+        if (!Array.isArray(data)) throw new Error("La respuesta de soporte no es válida.");
+        return data;
+      })
+      .then((data) => { if (active) { setTickets(data); setTicketsError(""); } })
+      .catch((error) => { if (active) setTicketsError(error.message || "No se pudieron cargar los tickets."); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, []);
+  }, [ticketsAttempt]);
 
   async function submitTicket(event) {
     event.preventDefault();
@@ -577,6 +617,14 @@ function SupportPage() {
   return (
     <div className={styles.supportPage}>
       <h2>Soporte técnico</h2>
+      {ticketsError ? <div role="alert">
+        <p>{ticketsError}</p>
+        <button type="button" className={styles.ghostBtn} onClick={() => {
+          setLoading(true);
+          setTicketsError("");
+          setTicketsAttempt((attempt) => attempt + 1);
+        }}>Volver a cargar tickets</button>
+      </div> : null}
       <div className={styles.supportGrid}>
         <div className={styles.quickContact}>
           <h3>Contacto rápido</h3>
@@ -632,7 +680,7 @@ function SupportPage() {
       </div>
       <div className={styles.recentTickets}>
         <h3>Mis tickets</h3>
-        {loading ? <p>Cargando tickets...</p> : tickets.length === 0 ? (
+        {loading ? <p>Cargando tickets...</p> : ticketsError ? null : tickets.length === 0 ? (
           <p>Aún no tienes tickets. Los que abras aparecerán aquí con su seguimiento.</p>
         ) : (
           <div className={styles.orderList}>
