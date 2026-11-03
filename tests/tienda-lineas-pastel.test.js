@@ -148,3 +148,26 @@ describe("directorio profesional de líneas de producto", () => {
     expect(css).not.toMatch(/\.exampleCard \{ aspect-ratio:/);
   });
 });
+
+describe("carpetas en tema oscuro", () => {
+  const css = readFileSync(CSS, "utf8");
+  const dark = css.match(/:global\(html\[data-theme="dark"\]\) \.exampleCard \{[\s\S]*?\n\}/)?.[0] || "";
+  it("usa superficies propias sin pelear con las paletas inline de las imágenes", () => {
+    expect(dark).toContain("--folder-cover-start: var(--folder-dark-front");
+    expect(dark).toContain("--folder-cover-end: var(--folder-dark-bottom");
+    expect(dark).toContain("--folder-tab-surface: var(--folder-dark-tab");
+    expect(dark).not.toMatch(/--folder-(?:front|bottom|tab|back):/);
+  });
+  it("adapta texto, acción y brillo sin alterar el tema claro", () => {
+    expect(dark).toContain("--folder-copy-ink: #e6edf8");
+    expect(dark).toContain("--folder-action-ink: #f0f5ff");
+    expect(dark).toContain("--folder-shine: rgba(255, 255, 255, 0.05)");
+    const light = css.match(/\.exampleCard \{[\s\S]*?\n\}/)[0];
+    expect(light).toContain("--folder-copy-ink: #123d5e");
+    expect(light).toContain("--folder-cover-start: var(--folder-front)");
+  });
+  it("no oscurece ni recolorea las fotos al cambiar de tema", () => {
+    const image = css.match(/:global\(html\[data-theme="dark"\]\) \.exampleImage \{[\s\S]*?\n\}/)[0];
+    expect(image).not.toMatch(/filter:|mix-blend-mode:|opacity:/);
+  });
+});

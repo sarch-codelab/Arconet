@@ -1,13 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { folderPaletteFromRgb, initialFolderPalette, readFolderImagePalette } from "../lib/folder-palette";
 
-function luminance(hsl) {
+function luminance(hsl, whiteOverlay = 0) {
   const [h, s, l] = hsl.match(/[\d.]+/g).map(Number);
   const a = (s / 100) * Math.min(l / 100, 1 - l / 100);
   const channels = [0, 8, 4].map(n => {
     const k = (n + h / 30) % 12;
     const c = l / 100 - a * Math.max(-1, Math.min(k - 3, 9 - k, 1));
-    return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    const channel = c * (1 - whiteOverlay) + whiteOverlay;
+    return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
   });
   return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
 }
@@ -54,5 +55,23 @@ describe("paletas de las carpetas", () => {
     expect(readFolderImagePalette({ naturalWidth: 0 })).toBeNull();
     vi.stubGlobal("document", { createElement: () => { throw new Error("SecurityError"); } });
     expect(readFolderImagePalette({ naturalWidth: 1200 })).toBeNull();
+  });
+});
+
+describe("paletas oscuras de carpetas", () => {
+  it("mantiene contraste AA de texto blanco y claro en cualquier matiz", () => {
+    const values = [0, 64, 128, 192, 255];
+    for (const r of values) for (const g of values) for (const b of values) {
+      const palette = folderPaletteFromRgb([r, g, b]);
+      for (const key of ["--folder-dark-tab", "--folder-dark-front", "--folder-dark-bottom"]) {
+        const channels = [230, 237, 248].map(v => ((v / 255 + 0.055) / 1.055) ** 2.4);
+        const text = channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+        // Caso conservador: el brillo máximo del hover también bajo el texto.
+        for (const glow of [0, 0.05]) {
+          expect((text + 0.05) / (luminance(palette[key], glow) + 0.05)).toBeGreaterThan(4.5);
+        }
+      }
+      expect(palette["--folder-dark-front"].split(" ")[0]).toBe(palette["--folder-front"].split(" ")[0]);
+    }
   });
 });

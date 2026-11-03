@@ -445,7 +445,7 @@ export default function CategoryProducts({
               height={900}
               priority
               unoptimized={String(family.image).startsWith("data:")}
-              sizes="(max-width: 900px) 92vw, 50vw"
+              sizes="(max-width: 1023px) 90vw, (max-width: 1600px) 46vw, 720px"
               className={styles.heroImage}
             />
           ) : (
