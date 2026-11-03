@@ -3076,16 +3076,20 @@
 }
 
 /* Tarjetas: el mismo observer, una coreografía distinta de la tipografía.
-   Solo se anima al entrar, sin ocultar contenido antes de hidratar.
+   Solo se anima al entrar; el observer prepara las tarjetas tras hidratar.
    backwards libera transform al terminar (no bloquea hover ni retiene capas).
    El escalonado se repite cada tres piezas: nunca acumula esperas largas. */
+.cardPending:not(.revealVisible):not(:focus-within) {
+  opacity: 0;
+}
+
 .revealVisible[data-card-reveal] {
   --card-delay: 0ms;
   --card-rise: 30px;
   --card-tilt: 2deg;
   --card-scale: 0.965;
   transform-origin: 50% 100%;
-  animation: cardDepthIn 880ms cubic-bezier(0.16, 1, 0.3, 1) var(--card-delay) backwards;
+  animation: cardDepthIn 1100ms cubic-bezier(0.22, 0.61, 0.36, 1) var(--card-delay) backwards;
 }
 
 .revealVisible[data-card-reveal]:nth-child(3n + 2) {
@@ -3101,6 +3105,9 @@
     opacity: 0;
     transform: perspective(1100px) translateY(var(--card-rise)) rotateX(var(--card-tilt)) scale(var(--card-scale));
   }
+  45% {
+    opacity: 0.45;
+  }
   to {
     opacity: 1;
     transform: perspective(1100px) translateY(0) rotateX(0) scale(1);
@@ -3112,7 +3119,7 @@
     --card-rise: 14px;
     --card-tilt: 0.8deg;
     --card-scale: 0.985;
-    animation-duration: 680ms;
+    animation-duration: 850ms;
   }
 
   .revealVisible[data-card-reveal]:nth-child(3n + 2) {
@@ -3129,7 +3136,7 @@
 @media (prefers-reduced-motion: reduce) {
   .revealVisible[data-card-reveal] {
     animation-name: cardFadeIn;
-    animation-duration: 180ms;
+    animation-duration: 420ms;
     animation-delay: 0ms;
   }
 }

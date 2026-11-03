@@ -557,8 +557,18 @@ useEffect(() => {
       { threshold: 0.12, rootMargin: "0px 0px -6% 0px" }
     );
 
-    targets.forEach((target) => observer.observe(target));
-    return () => observer.disconnect();
+    // Preparar solo las tarjetas, una vez disponible el observer. El HTML
+    // sin JS sigue visible y los textos mantienen su comportamiento original.
+    targets.forEach((target) => {
+      if (target.hasAttribute("data-card-reveal")) {
+        target.classList.add(styles.cardPending);
+      }
+      observer.observe(target);
+    });
+    return () => {
+      observer.disconnect();
+      targets.forEach((target) => target.classList.remove(styles.cardPending));
+    };
   }, []);
 
   // Revelado tipografico: los titulos marcados con data-split se parten en

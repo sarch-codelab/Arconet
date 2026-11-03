@@ -7,11 +7,19 @@ const css = readFileSync("app/page.module.css", "utf8");
 
 describe("coreografía de tarjetas de portada", () => {
   it("reutiliza el reveal de entrada una sola vez sin tocar los carruseles", () => {
-    expect(home.match(/data-card-reveal/g)).toHaveLength(8);
+    expect(home.match(/data-reveal data-card-reveal/g)).toHaveLength(8);
     expect(marcas.match(/data-reveal data-card-reveal/g)).toHaveLength(2);
     expect(home).toContain("observer.unobserve(entry.target)");
     const solutions = home.slice(home.indexOf('id="soluciones"'), home.indexOf('id="empresa"'));
     expect(solutions).not.toContain("data-card-reveal");
+  });
+
+  it("prepara las tarjetas antes de observar y las libera al desmontar", () => {
+    expect(home).toContain('target.hasAttribute("data-card-reveal")');
+    expect(home).toContain("target.classList.add(styles.cardPending)");
+    expect(home).toContain("target.classList.remove(styles.cardPending)");
+    expect(css).toContain(".cardPending:not(.revealVisible):not(:focus-within)");
+    expect(css).toContain("opacity: 0.45");
   });
 
   it("solo anima transform y opacity, sin capas permanentes ni bloqueo del hover", () => {
@@ -34,6 +42,6 @@ describe("coreografía de tarjetas de portada", () => {
     expect(fade).toContain("opacity: 1");
     expect(fade).not.toContain("transform");
     expect(css).toContain("animation-name: cardFadeIn");
-    expect(css).toContain("animation-duration: 180ms");
+    expect(css).toContain("animation-duration: 420ms");
   });
 });
