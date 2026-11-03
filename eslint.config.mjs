@@ -17,7 +17,7 @@ const eslintConfig = [
   ...next,
   {
     // Impedir que vuelva un ReferenceError por un manejador sin importar.
-    files: ["app/admin/**/*.js"],
+    files: ["app/admin/**/*.js", "app/cliente/**/*.js"],
     rules: { "no-undef": "error" },
   },
   {

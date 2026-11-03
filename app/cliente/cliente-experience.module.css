@@ -1680,3 +1680,113 @@
   background: #351d20;
   color: #ffc4bf;
 }
+
+/* Portal: estados activos legibles, cabecera sin solapamientos y contenido largo. */
+.navItem.navActive,
+.navItem.navActive:hover,
+:global(html[data-theme="dark"]) .navItem.navActive,
+:global(html[data-theme="dark"]) .navItem.navActive:hover {
+  background: #fff;
+  color: #111827;
+}
+
+:global(html[data-theme="dark"]) .brandArea .logo img {
+  filter: brightness(0) invert(1);
+}
+
+.topbarTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.profileAvatar { flex: 0 0 64px; }
+.profileHeader > div { min-width: 0; flex: 1; overflow-wrap: anywhere; }
+.detailRow { gap: 16px; }
+.detailRow span { flex: 0 0 auto; }
+.detailRow strong { min-width: 0; text-align: right; overflow-wrap: anywhere; }
+.securityStatus { overflow-wrap: anywhere; }
+.securityStatus > * { min-width: 0; max-width: 100%; }
+
+.bellWrap { position: relative; }
+.bellBtn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+.bellBadge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 18px;
+  padding: 2px 4px;
+  border-radius: 999px;
+  background: var(--blue);
+  color: #fff;
+  font-size: 10px;
+}
+.bellPanel {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 10px);
+  right: 0;
+  width: min(360px, calc(100vw - 100px));
+  max-height: min(440px, 65dvh);
+  overflow-y: auto;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+  overflow-wrap: anywhere;
+}
+.bellHead { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.bellEmpty { margin-top: 14px; color: var(--muted); font-size: 13px; }
+.bellList { list-style: none; margin: 12px 0 0; padding: 0; }
+.bellList li { padding: 12px 8px; border-top: 1px solid var(--line); font-size: 13px; }
+.bellList li p { margin-top: 4px; color: var(--muted); }
+.bellUnread { background: var(--surface-2); border-radius: 8px; }
+.linkBtn { border: 0; background: transparent; color: var(--ink); text-decoration: underline; cursor: pointer; font-size: 12px; }
+.dangerBtn { padding: 10px 16px; border: 1px solid #b42318; border-radius: 10px; background: var(--surface); color: #b42318; cursor: pointer; }
+:global(html[data-theme="dark"]) .dangerBtn { border-color: #ffc4bf; color: #ffc4bf; }
+.navItem:focus-visible, .bellBtn:focus-visible, .accountButton:focus-visible,
+.linkBtn:focus-visible, .dangerBtn:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+
+@media (max-width: 620px) {
+  .profileHeader { flex-wrap: wrap; gap: 12px; }
+  .profileHeader > div { flex-basis: calc(100% - 80px); }
+  .topbarTitle .primaryBtn { min-height: 36px; font-size: 12px; padding: 8px 12px; }
+}
+@media (max-width: 380px) {
+  .brandArea .logoTag { display: none; }
+  .detailRow { align-items: flex-start; flex-direction: column; gap: 6px; }
+  .detailRow strong { text-align: left; }
+}
+
+/* El detalle no debe ensanchar su grid por textos o acciones sin salto.
+   overflow-x global ocultaba ese problema recortando importes y botones. */
+.orderDetailPage,
+.orderInfoCard,
+.orderItemsCard { min-width: 0; }
+.orderDetailHeader { flex-wrap: wrap; }
+.orderDetailHeader > div { min-width: 0; flex: 1 1 200px; overflow-wrap: anywhere; }
+.orderDetailHeader p { white-space: pre-line; }
+.orderActions { flex-wrap: wrap; justify-content: flex-start; }
+.orderActions > * { max-width: 100%; }
+.itemRow { flex-wrap: wrap; overflow-wrap: anywhere; }
+.itemMeta { flex-wrap: wrap; }
+@media (max-width: 620px) {
+  .orderActions { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .orderActions > * { width: 100%; justify-content: center; }
+  .orderDetailHeader { padding: 20px; }
+}
