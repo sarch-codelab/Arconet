@@ -51,7 +51,7 @@ export default function LoginView() {
   }
 
   return (
-    <main className={`${styles.loginPage} ${styles.adminLoginPage}`}>
+    <main className={styles.loginPage}>
       <div className={styles.loginCard}>
         <section className={styles.loginPanel} aria-label="Formulario de acceso">
           <div className={styles.loginPanelBody}>
