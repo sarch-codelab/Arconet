@@ -19,7 +19,11 @@ const JS = globSync("app/**/*.js", { cwd: process.cwd() }).map((f) => [f, readFi
 describe("las animaciones no se apagan con el ajuste del sistema", () => {
   it("solo las nuevas tarjetas adaptan movimiento sin desactivar animaciones", () => {
     const conBloque = CSS.filter(([, texto]) => texto.includes("prefers-reduced-motion")).map(([f]) => f);
-    expect(conBloque).toEqual(["app/page.module.css"]);
+    expect(conBloque.sort()).toEqual(["app/page.module.css", "app/tienda/catalogo-experience.module.css"]);
+    const tienda = CSS.find(([f]) => f === "app/tienda/catalogo-experience.module.css")[1];
+    const hoverReduced = tienda.match(/@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\n\}/)?.[0];
+    expect(hoverReduced).toContain(".exampleCard");
+    expect(hoverReduced).not.toMatch(/animation:|revealVisible|opacity/);
     const css = CSS.find(([f]) => f === "app/page.module.css")[1];
     const reduced = css.match(/@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\n\}/)?.[0];
     expect(reduced).toContain("animation-name: cardFadeIn");

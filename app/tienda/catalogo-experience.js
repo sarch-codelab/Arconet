@@ -18,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 import styles from "./catalogo-experience.module.css";
+import { initialFolderPalette, readFolderImagePalette } from "@/lib/folder-palette";
 import VideoFondoCTA from "../video-fondo-cta";
 
 import { FAMILIES, findFamily } from "./catalogo-data";
@@ -109,6 +110,7 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
   const [activeSection, setActiveSection] = useState("");
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
   const [branch, setBranch] = useState("");
+  const [folderPalettes, setFolderPalettes] = useState({});
   // La "puerta" de sucursal se muestra solo si el visitante ya eligio una antes
   // (primera visita entra directo al catalog: no bloquea la compra ni genera
   // scroll lateral por el overlay).
@@ -129,14 +131,16 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
       catalogCategories.map((category) => {
         const family = findFamily(category.slug) || findFamily(category.nombre);
         // Prioridad de la imagen de la tarjeta:
-        //   1. Lo que se subió desde el panel. Se guarda como data URL, así que
+        //   1. Lo que se subió desde el panel (data URL o archivo /media/), así que
         //      se distingue de las rutas del proyecto sin campos extra: si la
         //      categoría pasó por el panel, esa foto manda sobre la ilustración.
         //   2. La ilustración 3D de la línea.
         //   3. La foto de la categoría (rutas del seed).
         // Antes la ilustración iba primero, así que cambiar la foto en el panel
         // no tenía ningún efecto sobre la tarjeta.
-        const subida = typeof category.foto === "string" && category.foto.startsWith("data:");
+        const subida = typeof category.foto === "string" && (
+          category.foto.startsWith("data:") || category.foto.startsWith("/media/")
+        );
         const foto = subida ? category.foto : "";
 
         return {
@@ -519,40 +523,57 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
           arriba de la página en vez de en la lista de líneas. */}
       <section id="catalogo-items" className={styles.exampleSection} aria-label="Tienda">
         <div className={styles.exampleHeading} data-reveal>
-          <p className={styles.sectionEyebrow}><i /> Catálogo</p>
-          <h2>Líneas de producto</h2>
+          <div>
+            <p className={styles.sectionEyebrow}><i /> Catálogo</p>
+            <h2>Líneas de producto<span className={styles.headingDot}>.</span></h2>
+          </div>
+          <p className={styles.exampleIntro}>
+            Cada proyecto empieza con el equipo adecuado. Encuentra tu especialidad y explora las soluciones que tenemos para tu red.
+          </p>
+        </div>
+        <div className={styles.exampleDirectory}>
+          <span>Explora por especialidad</span>
+          <span className={styles.exampleCount}><i aria-hidden="true" />{examples.length} líneas disponibles</span>
         </div>
         <div className={styles.exampleGrid}>
-          {examples.map((example) => (
+          {examples.map((example, index) => (
             <Link
               className={styles.exampleCard}
               href={`/tienda/categoria/${example.slug}`}
-              key={example.title}
-              /* La tarjeta no usa data-reveal: esa animación escribe
-                 transform y choca con la elevación del :hover, que dejaba de
-                 responder tras revelarse. El CSS ya anima la entrada. */
-              /* Cargar once páginas dinámicas al recorrer la rejilla genera
-                 trabajo de red y render en segundo plano. Se carga al hacer clic. */
+              key={example.slug}
+              style={folderPalettes[example.slug] || initialFolderPalette(example.image)}
+              /* Evitar precargar todas las páginas dinámicas de la rejilla. */
               prefetch={false}
             >
-              <div className={styles.exampleCopy}>
+              <div className={styles.folderTab}>
+                <span className={styles.exampleIndex} aria-hidden="true">LÍNEA {String(index + 1).padStart(2, "0")}</span>
                 <h3>{example.title}</h3>
               </div>
               <div className={styles.exampleVisual}>
-                {/* Las ilustraciones son 3:2 y las fotos que se suban desde el
-                    panel pueden ser de cualquier proporción; el CSS las cubre
-                    con object-fit, así que basta un tamaño base razonable. */}
                 <Image
                   src={example.image}
                   alt={`${example.title} de Arconet`}
                   width={1200}
                   height={800}
                   unoptimized={String(example.image).startsWith("data:")}
-                  sizes="(max-width: 760px) 92vw, 30vw"
+                  sizes="(max-width: 620px) 92vw, (max-width: 1024px) 44vw, 28vw"
                   className={styles.exampleImage}
+                  onLoad={(event) => {
+                    const palette = readFolderImagePalette(event.currentTarget);
+                    if (palette) setFolderPalettes((current) => {
+                      const previous = current[example.slug] || initialFolderPalette(example.image);
+                      return JSON.stringify(previous) === JSON.stringify(palette) ? current : { ...current, [example.slug]: palette };
+                    });
+                  }}
                 />
               </div>
-              <span className={styles.exampleArrow} aria-hidden="true"><ArrowRight size={16} strokeWidth={1.8} /></span>
+              <div className={styles.exampleCopy}>
+                <p>{example.text}</p>
+                <div className={styles.exampleCardFooter}>
+                  <span>Explorar línea</span>
+                  <span className={styles.exampleArrow} aria-hidden="true"><ArrowUpRight size={18} strokeWidth={1.6} /></span>
+                </div>
+              </div>
             </Link>
           ))}
         </div>

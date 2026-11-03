@@ -1251,245 +1251,231 @@
    ========================================================================== */
 
 .exampleSection {
-  padding: 8px clamp(24px, 8vw, 120px) 66px;
+  --directory-surface: #fff;
+  --directory-visual: #f0f3f8;
+  --directory-accent: #1544b5;
+  padding: 24px clamp(24px, 8vw, 120px) 90px;
+  scroll-margin-top: 100px;
 }
 
 .exampleHeading {
-  margin-bottom: 34px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  align-items: end;
+  gap: 32px;
+  margin-bottom: 36px;
 }
 
-.exampleHeading .sectionEyebrow {
-  margin-bottom: 14px;
-}
-
+.exampleHeading .sectionEyebrow { margin-bottom: 18px; }
 .exampleHeading h2 {
+  max-width: 650px;
   color: var(--ink);
   font-family: var(--font-heading), system-ui, sans-serif;
-  font-size: clamp(30px, 3vw, 56px);
-  font-weight: 400;
-  line-height: 1.05;
+  font-size: clamp(36px, 4.4vw, 66px);
+  font-weight: 500;
+  line-height: 1.04;
+  letter-spacing: -0.045em;
 }
-
+.headingDot { color: var(--directory-accent); }
+.exampleIntro { max-width: 370px; justify-self: end; color: var(--muted); font-size: 14px; line-height: 1.8; }
+.exampleDirectory {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 28px;
+  padding: 18px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+.exampleDirectory > span:first-child { color: var(--ink); font-weight: 600; }
+.exampleCount { display: inline-flex; align-items: center; gap: 8px; }
+.exampleCount i { width: 5px; height: 5px; border-radius: 50%; background: var(--directory-accent); }
 .exampleGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(14px, 1.6vw, 24px);
+  gap: 36px 28px;
+  align-items: start;
 }
 
-/* Tarjeta al estilo de la referencia: placa pastel, título arriba a la
-   izquierda, el objeto dentro y una flecha circular en la esquina.
-   La imagen que sube el panel puede ser cuadrada, vertical o apaisada, así que
-   nunca se recorta: se dibuja completa con object-fit: contain sobre una placa
-   pastel que no duplica la descarga ni necesita filtros de desenfoque. */
+/* Carpetas en capas: pestaña con título, lomo posterior e ilustración
+   en una ficha que sobresale delante de la cubierta. Toda la carpeta es un enlace. */
 .exampleCard {
+  --folder-back: #1855a1;
+  --folder-tab: #2469ba;
+  --folder-front: #67ccfa;
+  --folder-bottom: #37b0eb;
+  --folder-lift: -4px;
+  --folder-image-lift: -14px;
+  --folder-image-turn: 3deg;
+  --folder-image-scale: 1.015;
+  --folder-cover-angle: -5deg;
+  --folder-arrow-turn: 45deg;
   position: relative;
-  min-width: 0;
-  display: block;
-  aspect-ratio: 1.42;
-  padding: clamp(14px, 1.3vw, 22px) clamp(16px, 1.5vw, 26px);
-  border-radius: 22px;
-  color: #17203a;
-  overflow: hidden;
   isolation: isolate;
-  box-shadow:
-    0 1px 1px rgba(18, 32, 74, 0.05),
-    0 4px 10px -6px rgba(18, 32, 74, 0.14),
-    0 14px 28px -18px rgba(18, 32, 74, 0.22);
-  transition: transform 420ms cubic-bezier(0.2, 0.7, 0.25, 1),
-    box-shadow 420ms cubic-bezier(0.2, 0.7, 0.25, 1);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  border-radius: 22px;
+  color: #082f50;
+  transition: transform 560ms cubic-bezier(0.16, 1, 0.3, 1);
 }
-
-/* Respaldo mientras carga la imagen: un pastel suave para que no aparezca un
-   hueco blanco. */
 .exampleCard::before {
   content: "";
   position: absolute;
-  inset: 0;
-  z-index: 0;
-  background: #e8ebfa;
+  z-index: -1;
+  inset: 46px 0 0;
+  border-radius: 0 24px 24px 24px;
+  background: var(--folder-back);
 }
-
-/* Degradado inferior: da profundidad y, de paso, asegura que el título y la
-   flecha se lean sobre cualquier imagen, por clara que sea. */
-.exampleCard::after {
-  content: "";
-  position: absolute;
-  inset: auto 0 0 0;
-  height: 42%;
-  z-index: 1;
-  background: linear-gradient(
-    to top,
-    rgba(255, 255, 255, 0.55) 0%,
-    rgba(255, 255, 255, 0.18) 45%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  pointer-events: none;
-  transition: opacity 420ms ease;
+.folderTab {
+  position: relative;
+  width: 94%;
+  min-height: 122px;
+  padding: 18px 46px 24px 22px;
+  background: var(--folder-tab);
+  border-radius: 20px 0 0 0;
+  clip-path: polygon(0 0, calc(100% - 32px) 0, 100% 32px, 100% 100%, 0 100%);
 }
-
-/* Profundidad al pasar el puntero. No hay zoom: la imagen no se agranda, solo
-   se eleva la tarjeta y se abre la sombra. */
-.exampleCard:hover {
-  transform: translateY(-6px);
-  box-shadow:
-    0 1px 1px rgba(18, 32, 74, 0.06),
-    0 10px 20px -10px rgba(18, 32, 74, 0.2),
-    0 30px 56px -26px rgba(18, 32, 74, 0.42);
+.folderTab h3 {
+  margin: 9px 0 0;
+  color: #fff;
+  font-family: var(--font-heading), system-ui, sans-serif;
+  font-size: clamp(17px, 1.4vw, 21px);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
 }
-
-/* Máscara redondeada: recorta la imagen y también el desenfoque de relleno. */
+.exampleIndex {
+  display: block;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 9px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.16em;
+}
 .exampleVisual {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  /* Flex y no grid: con grid la altura del área es indefinida y el
-     max-height: 100% de la imagen se ignora, así que desbordaba la placa. */
+  position: relative;
+  z-index: 3;
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Poco relleno: cada píxel que se quita aquí se lo gana la imagen. El hueco
-     de abajo deja respirar la flecha, que vive en la esquina. */
-  padding: clamp(6px, 0.7vw, 10px);
-  padding-bottom: clamp(20px, 2vw, 28px);
-  overflow: hidden;
-  border-radius: inherit;
+  height: clamp(170px, 15vw, 220px);
+  margin: -8px 28px -40px;
+  transform: rotate(-3deg);
+  pointer-events: none;
 }
-
-/* Placa pastel estática. Antes se repetía aquí la imagen original con un blur
-   de 46px: once descargas adicionales y once superficies filtradas por frame. */
-.exampleVisual::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 22% 18%, rgba(255, 255, 255, 0.92), transparent 48%),
-    linear-gradient(145deg, #f2f0fb 0%, #e5ebfa 52%, #dce7f6 100%);
-}
-
-/* Velo suave sobre el relleno. Es más fuerte arriba (donde vive el título) y
-   se abre abajo para que el color de la imagen no se lave. */
-.exampleVisual::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    170deg,
-    rgba(255, 255, 255, 0.5) 0%,
-    rgba(255, 255, 255, 0.28) 45%,
-    rgba(255, 255, 255, 0.14) 100%
-  );
-}
-
-/* La imagen completa, sin recortes. Se dibuja a su tamaño natural acotado por
-   la placa (no estirada a toda la caja), para poder difuminar sus propios
-   bordes: así su fondo se funde con el relleno en vez de verse un rectángulo
-   pegado. */
 .exampleImage {
-  position: relative;
-  z-index: 1;
   display: block;
-  width: auto;
-  height: auto;
+  width: 100%;
+  height: 100%;
   max-width: 100%;
   max-height: 100%;
   min-width: 0;
-  min-height: 0;
   object-fit: contain;
-  object-position: center;
-  /* Desvanecido radial: la imagen pierde sus cuatro bordes de forma elíptica,
-     así deja de verse como un recorte pegado y pasa a flotar sobre la placa.
-     Un degradado rectangular seguía marcando las esquinas. */
-  -webkit-mask-image: radial-gradient(
-    ellipse 70% 70% at 50% 50%,
-    #000 34%,
-    rgba(0, 0, 0, 0.92) 50%,
-    rgba(0, 0, 0, 0.6) 68%,
-    rgba(0, 0, 0, 0.22) 84%,
-    transparent 100%
-  );
-  mask-image: radial-gradient(
-    ellipse 70% 70% at 50% 50%,
-    #000 34%,
-    rgba(0, 0, 0, 0.92) 50%,
-    rgba(0, 0, 0, 0.6) 68%,
-    rgba(0, 0, 0, 0.22) 84%,
-    transparent 100%
-  );
-  transition: transform 520ms cubic-bezier(0.2, 0.7, 0.25, 1);
+  padding: 5px;
+  border-radius: 14px;
+  background: #f4f7fc;
+  box-shadow: 0 12px 20px -12px rgba(0, 25, 64, 0.45);
+  transform-origin: 50% 85%;
+  transition: transform 680ms cubic-bezier(0.16, 1, 0.3, 1);
 }
-
-.exampleCard:hover .exampleImage {
-  transform: translateY(-4px) scale(1.015);
-}
-
-/* Título arriba a la izquierda, sobre el pastel de la placa. */
 .exampleCopy {
   position: relative;
   z-index: 2;
   display: flex;
+  flex: 1;
+  flex-direction: column;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+  padding: 68px 24px 20px;
+  border-radius: 24px;
 }
-
-.exampleCopy h3 {
-  max-width: 84%;
-  /* Respaldo claro casi opaco: conserva la lectura sin backdrop-filter. */
-  padding: 6px 12px;
-  margin: -6px -12px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: 0 1px 2px rgba(18, 32, 74, 0.06);
-  color: #16203a;
-  font-family: var(--font-heading), system-ui, sans-serif;
-  font-size: clamp(15px, 1.25vw, 19px);
-  font-weight: 400;
-  line-height: 1.25;
-  letter-spacing: -0.01em;
-  transition: background 320ms ease;
-}
-
-.exampleCard:hover .exampleCopy h3 {
-  background: rgba(255, 255, 255, 0.94);
-}
-
-/* Flecha circular apoyada en la esquina inferior derecha. */
-.exampleArrow {
+.exampleCopy::before {
+  content: "";
   position: absolute;
-  right: clamp(14px, 1.2vw, 20px);
-  bottom: clamp(14px, 1.2vw, 20px);
-  z-index: 3;
-  display: inline-flex;
+  z-index: -1;
+  inset: -150px 0 0;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 24px;
+  background: linear-gradient(145deg, var(--folder-front), var(--folder-bottom));
+  box-shadow: 0 -8px 18px -16px rgba(0, 38, 85, 0.6), 0 16px 24px -24px rgba(0, 51, 112, 0.5);
+  transform-origin: 50% 100%;
+  transition: transform 680ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.exampleCopy::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -150px 0 0;
+  border-radius: 24px;
+  pointer-events: none;
+  background: linear-gradient(125deg, rgba(255, 255, 255, 0.45), transparent 65%);
+  opacity: 0;
+  transform-origin: 50% 100%;
+  transition: transform 680ms cubic-bezier(0.16, 1, 0.3, 1), opacity 400ms ease;
+}
+.exampleCopy > p { margin: 0 0 22px; color: #123d5e; font-size: 13px; line-height: 1.7; }
+.exampleCardFooter {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid rgba(8, 47, 80, 0.18);
+  color: #082f50;
+  font-size: 11px;
+  font-weight: 600;
+}
+.exampleArrow {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(8, 47, 80, 0.22);
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.92);
-  color: #16203a;
-  box-shadow:
-    0 1px 2px rgba(18, 32, 74, 0.1),
-    0 6px 14px -6px rgba(18, 32, 74, 0.4);
-  transition: transform 320ms cubic-bezier(0.2, 0.7, 0.25, 1),
-    background 320ms ease, box-shadow 320ms ease;
+  color: #082f50;
+  transition: transform 280ms ease, background 280ms ease, color 280ms ease;
 }
-
-.exampleCard:hover .exampleArrow {
-  transform: translate(2px, -2px);
-  background: #fff;
-  box-shadow:
-    0 1px 2px rgba(18, 32, 74, 0.12),
-    0 10px 20px -8px rgba(18, 32, 74, 0.5);
+.exampleCard:focus-visible { outline: 2px solid var(--directory-accent); outline-offset: 6px; }
+@media (hover: hover) and (pointer: fine) {
+  .exampleCard:hover { transform: translateY(var(--folder-lift)); }
+  .exampleCard:hover .exampleImage { transform: translate3d(0, var(--folder-image-lift), 0) rotate(var(--folder-image-turn)) scale(var(--folder-image-scale)); }
+  .exampleCard:hover .exampleCopy::before,
+  .exampleCard:hover .exampleCopy::after { transform: perspective(1400px) rotateX(var(--folder-cover-angle)); }
+  .exampleCard:hover .exampleCopy::after { opacity: 1; }
+  .exampleCard:hover .exampleArrow { background: #082f50; color: #fff; transform: rotate(var(--folder-arrow-turn)); }
 }
-
-/* En tema oscuro la placa mantiene su pastel claro, como las placas de logo
-   de la home: sobre el fondo oscuro se lee como una vitrina de producto. */
-:global(html[data-theme="dark"]) .exampleCopy h3 {
-  color: #16203a;
+:global(html[data-theme="dark"]) .exampleSection {
+  --directory-surface: #151b23;
+  --directory-visual: #e9edf4;
+  --directory-accent: #a9c3ff;
 }
-
-:global(html[data-theme="dark"]) .exampleArrow {
-  color: #16203a;
+@media (max-width: 1024px) {
+  .exampleGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+  .exampleHeading { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .exampleIntro { max-width: 480px; justify-self: start; }
+  .exampleVisual { height: clamp(170px, 22vw, 220px); }
+}
+/* Respuesta visible también con movimiento reducido: misma coreografía,
+   recorridos pequeños y sin zoom. No se anulan transiciones ni transforms. */
+@media (prefers-reduced-motion: reduce) {
+  .exampleCard {
+    --folder-lift: -2px;
+    --folder-image-lift: -6px;
+    --folder-image-turn: 1deg;
+    --folder-image-scale: 1;
+    --folder-cover-angle: -2deg;
+    --folder-arrow-turn: 20deg;
+  }
 }
 
 /* ==========================================================================
@@ -2355,10 +2341,8 @@
   font-size: 13.5px; }
 
   .exampleSection { padding: 4px 22px 46px; }
-  .exampleGrid { grid-template-columns: 1fr; gap: 16px; }
-  /* En móvil la placa se aplana un poco: a ancho completo, 1.55 la deja
-     demasiado alta para que quepan dos tarjetas en pantalla. */
-  .exampleCard { aspect-ratio: 1.45; }
+  .exampleHeading { margin-bottom: 26px; }
+  .exampleCopy { padding: 64px 22px 18px; }
 
   .catalogSection { padding: 26px 18px 74px; }
   .catalogHeading { flex-direction: column; align-items: flex-start; gap: 12px; }
@@ -2865,4 +2849,10 @@
 
 :global(html[data-theme="dark"]) .emptyState {
   border-color: var(--line);
+}
+
+@media (max-width: 620px) {
+  .exampleGrid { grid-template-columns: 1fr; gap: 20px; }
+  .exampleVisual { height: clamp(180px, 52vw, 260px); }
+  .exampleSection { padding-bottom: 60px; }
 }
