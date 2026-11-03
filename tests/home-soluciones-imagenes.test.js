@@ -34,6 +34,25 @@ describe("fotografías de Soluciones en movimiento", () => {
     expect(css).toMatch(/\.solutionPanel\.photoPanel::after\s*\{[^}]*linear-gradient/);
   });
 
+  it("extiende los fondos bajo la cabecera y el pie sin franjas azules", () => {
+    const sticky = css.match(/\.scrollReady \.solutionsSticky\s*\{([^}]*)\}/)?.[1] || "";
+    const track = css.match(/\.scrollReady \.solutionTrack\s*\{([^}]*)\}/)?.[1] || "";
+    const panel = css.match(/\.scrollReady \.solutionPanel\s*\{([^}]*)\}/)?.[1] || "";
+    const heading = css.match(/\.scrollReady \.solutionsHeading\s*\{([^}]*)\}/)?.[1] || "";
+    const footer = css.match(/\.scrollReady \.stageFooter\s*\{([^}]*)\}/)?.[1] || "";
+
+    expect(sticky).toContain("top: 0");
+    expect(sticky).toContain("height: 100svh");
+    expect(track).toContain("position: absolute");
+    expect(track).toContain("inset: 0");
+    expect(track).toContain("height: 100%");
+    expect(panel).toContain("height: 100%");
+    expect(heading).toContain("position: absolute");
+    expect(footer).toContain("position: absolute");
+    expect(css).toMatch(/\.solutionsHeading, \.scrollReady \.solutionsHeading\s*\{[^}]*position: absolute/);
+    expect(css).toMatch(/\.solutionTrack, \.scrollReady \.solutionTrack\s*\{[^}]*position: relative/);
+  });
+
   it("modera los titulares para evitar saltos agresivos en computadoras", () => {
     const titulo = css.match(/\.solutionCopy h3\s*\{([^}]*)\}/)?.[1] || "";
     expect(titulo).toContain("font-size: clamp(40px, 4.2vw, 76px)");
