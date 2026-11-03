@@ -10,6 +10,7 @@ vi.mock("../lib/local-preview", () => ({ isLocalPreview: () => false }));
 
 import LoginView from "../app/admin/login-view";
 
+const source = readFileSync("app/admin/login-view.js", "utf8");
 const css = readFileSync("app/admin/admin-experience.module.css", "utf8");
 const html = renderToStaticMarkup(createElement(LoginView));
 
@@ -22,6 +23,22 @@ describe("acceso administrativo centrado en una sola columna", () => {
     expect(html).not.toContain("logoTab");
     expect(css).not.toContain(".loginVisual");
     expect(css).not.toContain(".logoTab");
+  });
+
+  it("sustituye la etiqueta por el logo centrado y adaptable al tema", () => {
+    const brandRule = css.match(/\.loginBrand\s*\{([^}]*)\}/)?.[1] || "";
+    const imageRule = css.match(/(?:^|\n)\.loginBrand img\s*\{([^}]*)\}/)?.[1] || "";
+    const darkRule = css.match(/:global\(html\[data-theme="dark"\]\) \.loginBrand img\s*\{([^}]*)\}/)?.[1] || "";
+
+    expect(html).not.toContain("Iniciar sesión");
+    expect(html).toContain('src="/arconet.png"');
+    expect(html).toContain('alt="Arconet"');
+    expect(source).toContain("className={styles.loginBrand}");
+    expect(brandRule).toContain("justify-content: center");
+    expect(brandRule).toContain("width: 100%");
+    expect(imageRule).toContain("max-width: 100%");
+    expect(imageRule).toContain("height: auto");
+    expect(darkRule).toContain("filter: brightness(0) invert(1)");
   });
 
   it("mantiene los campos y acciones del lado derecho", () => {
