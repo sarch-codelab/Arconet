@@ -2430,6 +2430,7 @@
   justify-content: space-between;
   gap: 24px;
   padding: 0 clamp(26px, 6vw, 96px);
+  text-shadow: 0 2px 18px #0009;
 }
 
 .stageEyebrow {
@@ -2683,6 +2684,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px clamp(26px, 6vw, 96px) 0;
+  text-shadow: 0 2px 14px #0009;
 }
 
 .stageHint {
@@ -2729,20 +2731,26 @@
 
 .scrollReady .solutionsSticky {
   position: sticky;
-  top: 78px;
-  height: calc(100svh - 78px);
+  top: 0;
+  height: 100svh;
   min-height: 650px;
   overflow: hidden;
-  padding-top: 48px;
-  padding-bottom: 22px;
+  padding: 0;
 }
 
 .scrollReady .solutionsHeading {
+  position: absolute;
+  top: 126px;
+  right: 0;
+  left: 0;
   min-height: 115px;
 }
 
 .scrollReady .solutionTrack {
+  position: absolute;
+  inset: 0;
   width: 400vw;
+  height: 100%;
   overflow: visible;
   scrollbar-width: none;
   transform: translate3d(calc(var(--slide-progress) * -75%), 0, 0);
@@ -2760,9 +2768,11 @@
   flex: 0 0 25%;
   width: 25%;
   min-height: 0;
-  height: calc(100svh - 285px);
-  padding-top: 8px;
-  padding-bottom: 22px;
+  height: 100%;
+  /* La cabecera y el pie flotan sobre la imagen/video. Estos espacios
+     conservan la posición del contenido sin crear franjas de color. */
+  padding-top: 249px;
+  padding-bottom: 66px;
   scroll-snap-align: unset;
 }
 
@@ -2772,6 +2782,10 @@
 }
 
 .scrollReady .stageFooter {
+  position: absolute;
+  right: 0;
+  bottom: 22px;
+  left: 0;
   padding-top: 1px;
 }
 
@@ -3260,9 +3274,9 @@
   font-size: 9px; }
   .capabilityBar > div svg { width: 17px; }
   .solutionsStage { scroll-margin-top: 66px; }
-  .solutionsSticky, .scrollReady .solutionsSticky { position: relative; top: auto; height: auto; min-height: 0; overflow: visible; padding: 48px 0 20px; }
+  .solutionsSticky, .scrollReady .solutionsSticky { position: relative; top: auto; height: auto; min-height: 0; overflow: visible; padding: 0; }
   .scrollReady.solutionsStage { height: auto; }
-  .solutionsHeading { min-height: auto; align-items: end; padding: 0 20px 24px; }
+  .solutionsHeading, .scrollReady .solutionsHeading { position: absolute; top: 48px; right: 0; left: 0; min-height: auto; align-items: end; padding: 0 20px 24px; }
   .stageEyebrow {
   font-size: 8px; }
   .solutionsHeading h2 { max-width: 240px; margin-top: 9px;
@@ -3270,8 +3284,8 @@
   .slideProgress { gap: 6px; padding-top: 0;
   font-size: 8px; }
   .slideProgress > i { width: 30px; }
-  .solutionTrack, .scrollReady .solutionTrack { width: 100%; overflow-x: auto; transform: none; scroll-snap-type: x mandatory; }
-  .solutionPanel, .scrollReady .solutionPanel { flex: 0 0 87vw; width: 87vw; min-height: 0; height: auto; max-height: none; grid-template-columns: 1fr; gap: 24px; padding: 10px 20px 26px; scroll-snap-align: center; }
+  .solutionTrack, .scrollReady .solutionTrack { position: relative; inset: auto; width: 100%; height: auto; overflow-x: auto; transform: none; scroll-snap-type: x mandatory; }
+  .solutionPanel, .scrollReady .solutionPanel { flex: 0 0 87vw; width: 87vw; min-height: 790px; height: auto; max-height: none; grid-template-columns: 1fr; gap: 24px; padding: 192px 20px 65px; scroll-snap-align: center; }
   .solutionCopy { max-width: 100%; }
   .solutionCopy h3 { margin-top: 15px;
   font-size: clamp(39px, 10vw, 77px); }
@@ -3279,12 +3293,12 @@
   font-size: 12px; }
   .solutionLink { margin-top: 15px; }
   .solutionVisual, .scrollReady .solutionVisual { height: min(68vw, 310px); min-height: 230px; }
-  .solutionPanel.photoPanel { min-height: 520px; padding-top: 20px; padding-bottom: 30px; }
+  .solutionPanel.photoPanel { min-height: 790px; padding-top: 202px; padding-bottom: 70px; }
   .solutionPanel.photoPanel::after { background: linear-gradient(180deg, #051027d9 0%, #0510278c 58%, #051027b8 100%); }
   .solutionPanel.photoPanel .solutionCopy { width: 100%; max-width: 100%; padding: 30px 0 58px; }
   .solutionPanel.photoPanel .solutionCopy > p, .solutionPanel.photoPanel .solutionLink { max-width: 100%; }
   .solutionPanel.photoPanel .visualIndex { right: 20px; bottom: 18px; }
-  .stageFooter, .scrollReady .stageFooter { padding: 8px 20px 0; }
+  .stageFooter, .scrollReady .stageFooter { position: absolute; right: 0; bottom: 20px; left: 0; padding: 8px 20px 0; }
   .companySection { grid-template-columns: 1fr; gap: 42px; padding: 84px 22px 91px; }
   .companyIntro h2 { margin-top: 18px;
   font-size: clamp(39px, 10vw, 81px); }
