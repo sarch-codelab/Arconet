@@ -72,3 +72,6 @@ ops/backups/*.jsonl.gz
 
 # Fotografías del panel (viven en el servidor, fuera de git)
 /.media/
+
+# TypeScript build cache
+*.tsbuildinfo

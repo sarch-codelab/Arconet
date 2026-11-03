@@ -1,0 +1,30 @@
+.widget {
+  position: fixed;
+  right: 9px;
+  bottom: 118px;
+  width: 68px;
+  height: 68px;
+  z-index: 899;
+  border-radius: 50%;
+  pointer-events: none;
+  overflow: hidden;
+  contain: layout paint;
+}
+.fallback {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: conic-gradient(from 40deg, #3d5aff, #9d00ff, #ff5f1f, #3d5aff);
+  mask-image: radial-gradient(circle, transparent 24%, #000 42%, #000 51%, transparent 68%);
+  animation: orbit 12s linear infinite;
+}
+@keyframes orbit { to { transform: rotate(360deg); } }
+@media (max-width: 520px) {
+  .widget { width: 54px; height: 54px; right: 9px; bottom: max(108px, calc(env(safe-area-inset-bottom) + 96px)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fallback { animation-duration: 40s; }
+}
+
+@media print { .widget { display: none; } }

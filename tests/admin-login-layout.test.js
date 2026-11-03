@@ -111,12 +111,12 @@ describe("acceso administrativo centrado en una sola columna", () => {
     expect(darkPageRule).not.toContain("linear-gradient");
     expect(darkPageRule).not.toContain('url("/admin-login-fondo.webp")');
   });
-  it("reserva el agua horizontal para el panel oscuro y restaura el formulario", () => {
+  it("reserva el fondo horizontal para el panel oscuro y restaura el formulario", () => {
     const rule = css.match(/:global\(html\[data-theme="dark"\]\) \.adminPage::before\s*\{([^}]*)\}/)?.[1] || "";
-    expect(rule).toContain('background-image: url("/admin-panel-agua-oscuro.webp")');
+    expect(rule).toContain('background-image: url("/admin-panel-luces-oscuro.webp")');
     expect(rule).toContain("background-size: cover");
     expect(css).toMatch(/:global\(html\[data-theme="dark"\]\) \.adminPage \.shell\s*\{[^}]*background: transparent/);
-    expect(statSync("public/admin-panel-agua-oscuro.webp").size).toBeLessThan(256 * 1024);
+    expect(statSync("public/admin-panel-luces-oscuro.webp").size).toBeLessThan(256 * 1024);
     expect(rule).toContain("position: fixed");
     expect(rule).toContain("inset: 0");
     expect(rule).toContain("pointer-events: none");
