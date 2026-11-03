@@ -6,11 +6,13 @@ import { DialogBackdrop } from "./admin-overlay";
 import { AlertTriangle } from "lucide-react";
 import styles from "./admin-experience.module.css";
 import { sileo } from "../toaster";
+import PersonPhoto from "../components/person-photo";
 import { productInitials } from "./products-store";
 
 export function Avatar({ src, name, className, shape }) {
   const circle = shape !== "square";
   const base = `${circle ? styles.avatar : styles.thumb} ${className || ""}`;
+  if (circle) return <span className={base}><PersonPhoto src={src} /></span>;
   if (src) {
     return (
       <span className={base}>

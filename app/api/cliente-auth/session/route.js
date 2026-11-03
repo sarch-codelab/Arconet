@@ -25,6 +25,7 @@ export async function GET() {
             ciudad: true,
             direccion: true,
             estado: true,
+            foto: true,
           },
         },
       },
@@ -45,6 +46,7 @@ export async function GET() {
       ciudad: account.cliente.ciudad || "",
       direccion: account.cliente.direccion || "",
       verificado: Boolean(account.verificadoAt),
+      foto: account.cliente.foto ? "/api/cliente-portal/foto" : "",
     });
   } catch (error) {
     console.error("GET /api/cliente-auth/session", error?.message);

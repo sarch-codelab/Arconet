@@ -1,5 +1,6 @@
 "use client";
 
+import PersonPhoto from "../components/person-photo";
 import { salesDocuments, salesSummary, fiscalTypeLabel } from "@/lib/sales-documents";
 import { priceAt } from "@/lib/precios";
 import { localCalendarDate } from "@/lib/calendar-date";
@@ -25,7 +26,7 @@ import {
   orderTypeLabel,
   formatOrderDate,
 } from "./orders-store";
-import { initialsCliente } from "./clientes-store";
+
 import { formatPrice } from "./products-store";
 import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
 import { DialogBackdrop } from "./admin-overlay";
@@ -398,7 +399,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
                     <td data-label="Documento" className={styles.cellMain}><code>{order.numero || order.id}</code>{order.fiscal && (!order.fiscal.cai || !order.fiscal.correlativo) && <small className={salesStyles.pendingFiscal}>Pendiente de CAI · sin validez fiscal</small>}</td>
                     <td data-label="Cliente">
                       <div className={styles.person}>
-                        <span className={styles.avatar}>{initialsCliente(order.cliente)}</span>
+                        <span className={styles.avatar}><PersonPhoto /></span>
                         <span className={styles.personMeta}>
                           <strong>{order.cliente}</strong>
                         </span>
