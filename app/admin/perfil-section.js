@@ -2,14 +2,14 @@
 
 import { apiFetch as fetch } from "@/lib/api-fetch";
 
-import Image from "next/image";
+import PersonPhoto from "../components/person-photo";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Activity, Calendar, Camera, Lock, LogIn, Pencil, Phone, RotateCw, Save, ShieldCheck, User, Users, X } from "lucide-react";
 import styles from "./admin-experience.module.css";
 import { useToast } from "./admin-ui";
 import { DialogBackdrop } from "./admin-overlay";
 import { compressImage } from "./image-utils";
-import { branchLabel, formatDate, initials, statusLabel } from "./workers-store";
+import { branchLabel, formatDate, statusLabel } from "./workers-store";
 import { Topbar, SectionTabs } from "./topbar";
 import { AppearanceSettings } from "./admin-preferences";
 import { SECTION_NAV_CONFIG } from "./admin-nav";
@@ -103,7 +103,7 @@ export default function MiPerfilSection({ session, workers = [], sucursales = []
     event.preventDefault();
     setSaving(true);
     try {
-      const response = await fetch("/api/perfil", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nombre: formData.nombre, telefono: formData.telefono, ...(photoPreview ? { foto: photoPreview } : {}) }) });
+      const response = await fetch("/api/perfil", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nombre: formData.nombre, telefono: formData.telefono, ...(photoPreview !== null ? { foto: photoPreview } : {}) }) });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || "No se pudo guardar el perfil.");
       setEditMode(false);
@@ -232,13 +232,7 @@ export default function MiPerfilSection({ session, workers = [], sucursales = []
             <form className={styles.profileForm} onSubmit={handleSave}>
               <div className={styles.profileCard}>
                 <div className={styles.profileAvatarLarge}>
-                  {photoPreview ? (
-                    <Image src={photoPreview} alt={formData.nombre || "Usuario"} width={120} height={120} unoptimized />
-                  ) : myWorker?.foto ? (
-                    <Image src={myWorker.foto} alt={session?.nombre || "Usuario"} width={120} height={120} unoptimized />
-                  ) : (
-                    <span className={styles.avatarFallback}>{initials(formData.nombre || session?.nombre)}</span>
-                  )}
+                  <PersonPhoto src={photoPreview ?? profile?.foto ?? myWorker?.foto} alt={formData.nombre || "Usuario"} width={120} height={120} />
                   {editMode && (
                     <label className={styles.avatarUpload}>
                       <Camera size={18} />
@@ -247,6 +241,8 @@ export default function MiPerfilSection({ session, workers = [], sucursales = []
                   )}
                 </div>
                 <div className={styles.profileInfo}>
+                  {editMode && (photoPreview ?? profile?.foto ?? myWorker?.foto) && <button type="button" className={styles.ghostBtn} onClick={() => setPhotoPreview("")}>Quitar foto</button>}
+
                   {editMode ? (
                     <div className={styles.editGrid}>
                       <label className={styles.editField}>

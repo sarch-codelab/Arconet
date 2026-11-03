@@ -7,6 +7,7 @@ import { previewDocumentClick } from "@/lib/api-document";
 import { clearLocalPreviewSession, clientApiFetch as fetch } from "@/lib/api-fetch";
 
 import Image from "next/image";
+import PersonPhoto from "../components/person-photo";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
@@ -247,7 +248,7 @@ function ClientDashboard({ session, orders, setOrders, onSessionUpdate, onLogout
               <div className={styles.topbarActions}>
                 <NotificationsBell />
                 <button type="button" className={styles.accountButton} onClick={onLogout} aria-label="Cerrar sesión" title={`Cerrar sesión de ${session.nombre}`}>
-                  <span className={styles.userAvatar}>{session.nombre[0]}</span>
+                  <span className={styles.userAvatar}><PersonPhoto src={session.foto} /></span>
                   <LogOut size={15} />
                 </button>
               </div>
@@ -808,7 +809,7 @@ function ProfilePage({ session, onSessionUpdate }) {
       <h2>Mi perfil</h2>
       <div className={styles.profileCard}>
         <div className={styles.profileHeader}>
-          <span className={styles.profileAvatar}>{session.nombre[0]}</span>
+          <span className={styles.profileAvatar}><PersonPhoto src={session.foto} width={64} height={64} /></span>
           <div>
             <strong>{session.nombre}</strong>
             <p>{session.correo}</p>

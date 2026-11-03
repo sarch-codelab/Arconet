@@ -2,6 +2,7 @@
 
 import { apiFetch as fetch } from "@/lib/api-fetch";
 
+import PersonPhoto from "../components/person-photo";
 import Link from "next/link";
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Bell, ExternalLink, HelpCircle, LogOut, Search, User, MessageSquare, AlertTriangle, CheckCircle, Package, X } from "lucide-react";
@@ -72,8 +73,7 @@ export function Topbar({
   const [notifications, setNotifications] = useState([]);
   const [notificationsAllOpen, setNotificationsAllOpen] = useState(false);
   const [productApproval, setProductApproval] = useState(null);
-  const [photo, setPhoto] = useState("");
-  const [photoFailed, setPhotoFailed] = useState(false);
+  const [photo, setPhoto] = useState(null);
   const mobileSearchInputRef = useRef(null);
   const accountRef = useRef(null);
   const accountButtonRef = useRef(null);
@@ -143,7 +143,6 @@ export function Topbar({
         const data = await response.json();
         if (!active) return;
         setPhoto(data?.trabajador?.foto || data?.foto || "");
-        setPhotoFailed(false);
       } catch {}
     };
     loadPhoto();
@@ -155,7 +154,7 @@ export function Topbar({
     };
   }, [currentSession?.correo]);
 
-  const avatarSrc = !photoFailed ? photo || myWorker?.foto || "" : "";
+  const avatarSrc = photo ?? myWorker?.foto ?? "";
 
   // En el teléfono las hojas son modales: se bloquea el scroll de la página
   // de fondo para que no se mueva detrás del dedo.
@@ -556,18 +555,7 @@ export function Topbar({
               aria-expanded={accountOpen}
               aria-controls="panel-account-menu"
             >
-              {avatarSrc ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={avatarSrc}
-                  alt=""
-                  width={40}
-                  height={40}
-                  onError={() => setPhotoFailed(true)}
-                />
-              ) : (
-                <span className={styles.avatarFallback}>{currentSession?.nombre ? currentSession.nombre.charAt(0).toUpperCase() : "A"}</span>
-              )}
+              <PersonPhoto src={avatarSrc} />
             </button>
 
             {accountOpen && (
@@ -579,18 +567,7 @@ export function Topbar({
               >
                 <div className={styles.accountHead}>
                   <span className={styles.accountAvatar}>
-                    {avatarSrc ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={avatarSrc}
-                        alt=""
-                        width={44}
-                        height={44}
-                        onError={() => setPhotoFailed(true)}
-                      />
-                    ) : (
-                      <span className={styles.avatarFallback}>{currentSession?.nombre ? currentSession.nombre.charAt(0).toUpperCase() : "A"}</span>
-                    )}
+                    <PersonPhoto src={avatarSrc} width={44} height={44} />
                   </span>
                   <span className={styles.accountIdentity}>
                     <strong>{currentSession?.nombre || "Administrador"}</strong>
