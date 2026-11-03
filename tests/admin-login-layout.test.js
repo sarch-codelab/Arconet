@@ -51,6 +51,17 @@ describe("acceso administrativo centrado en una sola columna", () => {
     expect(css).not.toMatch(/\.loginPage\s*\{\s*padding:\s*0/);
   });
 
+  it("mantiene el título y los controles dentro de la columna del acceso", () => {
+    const headingRule = css.match(/\.loginPanelBody h2\s*\{([^}]*)\}/)?.[1] || "";
+    const loginFormRule = css.match(/\.loginPanelBody \.form\s*\{([^}]*)\}/)?.[1] || "";
+    const sharedFormRule = css.match(/(?:^|\n)\.form\s*\{([^}]*)\}/)?.[1] || "";
+
+    expect(headingRule).toContain("font-size: clamp(34px, 4vw, 48px)");
+    expect(loginFormRule).toContain("padding-inline: 0");
+    expect(sharedFormRule).toContain("padding: 20px 26px 24px");
+    expect(css).toContain("font-size: clamp(30px, 9vw, 34px)");
+  });
+
   it("muestra el fondo sin velos y aplica glassmorphism sólo a la tarjeta", () => {
     const pageRule = [...css.matchAll(/\.loginPage\s*\{([^}]*)\}/g)]
       .map(match => match[1])
