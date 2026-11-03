@@ -40,13 +40,14 @@ describe("fotografías de Soluciones en movimiento", () => {
     expect(titulo).toContain("line-height: 1.03");
   });
 
-  it("pone el video optimizado de fondo en 04 y orienta las cintas hacia el logo", () => {
-    expect(home).toContain('<VideoFondoCTA className={styles.brandVideoBackground} />');
+  it("pone en 04 el video solicitado, rotado hacia la derecha y optimizado", () => {
+    expect(home).toContain('src="/soluciones/arconet-flechas-derecha.mp4"');
+    expect(home).toContain('poster="/soluciones/arconet-flechas-derecha.jpg"');
     const video = css.match(/\.solutionPanel\.brandPanel \.brandVideoBackground > video\s*\{([^}]*)\}/)?.[1] || "";
-    expect(video).toContain("transform: scaleX(-1)");
-    expect(video).toContain("object-position: 40% 50%");
+    expect(video).toContain("object-position: center");
     expect(css).toMatch(/\.solutionPanel\.brandPanel\s*\{[^}]*isolation: isolate/);
-    expect(statSync("public/lines-fondo.mp4").size).toBeLessThan(600 * 1024);
+    expect(statSync("public/soluciones/arconet-flechas-derecha.mp4").size).toBeLessThan(600 * 1024);
+    expect(existsSync("public/soluciones/arconet-flechas-derecha.jpg")).toBe(true);
     expect(solutions).toContain('image: "/arconet.png"');
   });
 

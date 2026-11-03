@@ -43,7 +43,7 @@ function suscribirAhorroDeDatos(listener) {
 
 const leerAhorroDelServidor = () => true;
 
-export default function VideoFondoCTA({ className = "" }) {
+export default function VideoFondoCTA({ className = "", src = VIDEO, poster = POSTER }) {
   const contenedor = useRef(null);
   const video = useRef(null);
   // Con ahorro de datos no se pide el archivo: se queda el póster. La
@@ -96,8 +96,8 @@ export default function VideoFondoCTA({ className = "" }) {
       <video
         ref={video}
         className={styles.video}
-        src={ahorro ? undefined : VIDEO}
-        poster={POSTER}
+        src={ahorro ? undefined : src}
+        poster={poster}
         autoPlay={!ahorro}
         muted
         loop

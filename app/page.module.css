@@ -2830,7 +2830,7 @@
 }
 
 /* En 04 el video ocupa todo el panel, pero el logo conserva su tarjeta para
-   mantener el contraste. Las cintas se reflejan: avanzan hacia la derecha. */
+   mantener el contraste. La versión rotada apunta y avanza hacia la derecha. */
 .solutionPanel.brandPanel {
   overflow: hidden;
   isolation: isolate;
@@ -2842,8 +2842,7 @@
 }
 
 .solutionPanel.brandPanel .brandVideoBackground > video {
-  object-position: 40% 50%;
-  transform: scaleX(-1);
+  object-position: center;
 }
 
 .solutionPanel.brandPanel .solutionVisual {
