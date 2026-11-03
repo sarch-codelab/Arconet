@@ -67,7 +67,7 @@ export default function HomeMarcas() {
 
       <ul className={styles.grid} aria-label="Fabricantes que distribuimos">
         {MARCAS.map((marca) => (
-          <li key={marca.nombre} className={styles.card}>
+          <li key={marca.nombre} className={styles.card} data-reveal data-card-reveal>
             <div className={styles.logoCaja}>
               <Logotipo marca={marca} />
             </div>
@@ -87,7 +87,7 @@ export default function HomeMarcas() {
 
       <ul className={styles.respaldos}>
         {RESPALDOS.map(({ icon: Icon, titulo, texto }) => (
-          <li key={titulo}>
+          <li key={titulo} data-reveal data-card-reveal>
             <span className={styles.respaldoIcono}>
               <Icon size={18} aria-hidden="true" />
             </span>

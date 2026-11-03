@@ -17,9 +17,13 @@ const CSS = globSync("app/**/*.css", { cwd: process.cwd() }).map((f) => [f, read
 const JS = globSync("app/**/*.js", { cwd: process.cwd() }).map((f) => [f, readFileSync(f, "utf8")]);
 
 describe("las animaciones no se apagan con el ajuste del sistema", () => {
-  it("ningún CSS las desactiva por prefers-reduced-motion", () => {
+  it("solo las nuevas tarjetas adaptan movimiento sin desactivar animaciones", () => {
     const conBloque = CSS.filter(([, texto]) => texto.includes("prefers-reduced-motion")).map(([f]) => f);
-    expect(conBloque).toEqual([]);
+    expect(conBloque).toEqual(["app/page.module.css"]);
+    const css = CSS.find(([f]) => f === "app/page.module.css")[1];
+    const reduced = css.match(/@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\n\}/)?.[0];
+    expect(reduced).toContain("animation-name: cardFadeIn");
+    expect(reduced).not.toMatch(/animation:\s*none|0\.01ms/);
   });
 
   it("los revelados no se saltan la animación", () => {
