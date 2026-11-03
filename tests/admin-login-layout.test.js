@@ -72,4 +72,15 @@ describe("acceso administrativo centrado en una sola columna", () => {
     expect(cardRule).toContain("-webkit-backdrop-filter: blur(24px) saturate(120%)");
     expect(panelRule).toContain("background: transparent");
   });
+
+  it("usa la imagen azul oscura únicamente cuando el tema oscuro está activo", () => {
+    const darkPageRule = css.match(/:global\(html\[data-theme="dark"\]\) \.loginPage\s*\{([^}]*)\}/)?.[1] || "";
+    const image = "public/admin-login-fondo-oscuro.webp";
+
+    expect(existsSync(image)).toBe(true);
+    expect(statSync(image).size).toBeLessThan(256 * 1024);
+    expect(darkPageRule).toContain('background-image: url("/admin-login-fondo-oscuro.webp")');
+    expect(darkPageRule).not.toContain("linear-gradient");
+    expect(darkPageRule).not.toContain('url("/admin-login-fondo.webp")');
+  });
 });

@@ -59,4 +59,12 @@ describe("acceso de clientes con el fondo y vidrio compartidos", () => {
     expect(html).toContain('href="/privacidad"');
     expect(html).toContain('href="/ayuda"');
   });
+
+  it("recibe el fondo oscuro mediante la clase y la hoja compartidas", () => {
+    const darkPageRule = css.match(/:global\(html\[data-theme="dark"\]\) \.loginPage\s*\{([^}]*)\}/)?.[1] || "";
+
+    expect(source).toContain("<main className={styles.loginPage}>");
+    expect(source).toContain('import styles from "../admin/admin-experience.module.css"');
+    expect(darkPageRule).toContain('background-image: url("/admin-login-fondo-oscuro.webp")');
+  });
 });
