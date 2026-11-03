@@ -111,4 +111,12 @@ describe("acceso administrativo centrado en una sola columna", () => {
     expect(darkPageRule).not.toContain("linear-gradient");
     expect(darkPageRule).not.toContain('url("/admin-login-fondo.webp")');
   });
+  it("reserva la fotografía de agua para el acceso administrativo oscuro", () => {
+    const rule = css.match(/:global\(html\[data-theme="dark"\]\) \.loginPage\.adminLoginPage\s*\{([^}]*)\}/)?.[1] || "";
+    expect(rule).toContain('background-image: url("/admin-login-agua-oscuro.webp")');
+    expect(statSync("public/admin-login-agua-oscuro.webp").size).toBeLessThan(128 * 1024);
+    expect(readFileSync("app/admin/login-view.js", "utf8")).toContain("styles.adminLoginPage");
+    expect(readFileSync("app/login/login-experience.js", "utf8")).not.toContain("styles.adminLoginPage");
+  });
+
 });

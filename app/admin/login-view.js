@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import QrLogin from "./qr-login";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Eye, EyeOff } from "lucide-react";
@@ -50,7 +51,7 @@ export default function LoginView() {
   }
 
   return (
-    <main className={styles.loginPage}>
+    <main className={`${styles.loginPage} ${styles.adminLoginPage}`}>
       <div className={styles.loginCard}>
         <section className={styles.loginPanel} aria-label="Formulario de acceso">
           <div className={styles.loginPanelBody}>
@@ -137,6 +138,8 @@ export default function LoginView() {
                 Entrar al panel <span><ArrowRight size={15} /></span>
               </button>
             </form>
+
+            <QrLogin />
 
             <p className={styles.loginFooter}>
               <Link href="/"><ArrowLeft size={14} /> Volver al inicio</Link>

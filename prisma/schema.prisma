@@ -677,3 +677,20 @@ model RecepcionCompra {
 
   @@index([ordenCompraId, createdAt])
 }
+
+// Desafío efímero: nunca se almacena el secreto del QR ni el del navegador.
+model AccesoQr {
+  id              String   @id
+  tokenHash       String
+  browserHash     String
+  codigo          String
+  dispositivo     String
+  estado          String   @default("pending")
+  usuarioId       String?
+  sourceSessionId String?
+  twoFactorVerified Boolean @default(false)
+  createdAt       DateTime @default(now())
+  expiresAt       DateTime
+
+  @@index([expiresAt])
+}

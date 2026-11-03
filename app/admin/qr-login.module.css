@@ -1,0 +1,21 @@
+.root { margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--line); }
+.trigger, .secondary { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 46px; padding: 10px 16px; border: 1px solid var(--line); border-radius: 24px; background: var(--surface); color: var(--ink); font: inherit; font-size: 14px; cursor: pointer; }
+.trigger:hover, .secondary:hover { border-color: var(--accent-ink); }
+.trigger:focus-visible, .secondary:focus-visible, .approve:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 4px; }
+.trigger:disabled, .approve:disabled, .secondary:disabled { opacity: .6; cursor: not-allowed; }
+.panel { margin-top: 18px; display: grid; gap: 14px; justify-items: center; text-align: center; min-width: 0; }
+.help { color: var(--muted); font-size: 13px; line-height: 1.65; margin: 0; overflow-wrap: anywhere; }
+.frame { width: min(100%, 280px); background: #fff; border-radius: 16px; padding: 8px; }
+.frame img { display: block; width: 100%; height: auto; }
+.code { font-size: 26px; font-weight: 750; letter-spacing: .15em; color: var(--ink); font-variant-numeric: tabular-nums; }
+.status { margin: 0; color: var(--ink); font-size: 14px; line-height: 1.6; }
+.error { color: var(--ink); background: var(--surface-2); padding: 12px; border-radius: 12px; font-size: 14px; line-height: 1.6; }
+.phone { min-height: 100svh; display: grid; place-items: center; padding: 24px 16px; background: var(--paper); }
+.card { width: min(100%, 480px); display: grid; gap: 20px; padding: clamp(20px, 5vw, 36px); border: 1px solid var(--line); border-radius: 24px; background: var(--surface); min-width: 0; }
+.card h1 { font: inherit; font-size: clamp(24px, 6vw, 32px); font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
+.card a { color: var(--accent-ink); }
+.confirm { display: flex; align-items: flex-start; gap: 12px; font-size: 14px; line-height: 1.6; }
+.confirm input { width: 20px; height: 20px; flex: 0 0 20px; margin-top: 3px; accent-color: var(--accent-ink); }
+.field { display: grid; gap: 8px; font-size: 14px; }
+.field input { min-width: 0; width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); color: var(--ink); font: inherit; }
+.approve { width: 100%; min-height: 48px; border: 0; border-radius: 24px; padding: 12px 18px; background: #1544b5; color: #fff; font: inherit; font-weight: 650; cursor: pointer; }
