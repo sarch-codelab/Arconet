@@ -1140,7 +1140,13 @@ useEffect(() => {
                   className={`${styles.solutionPanel} ${solution.visual === "photoVisual" ? styles.photoPanel : styles.brandPanel}`}
                   key={solution.number}
                 >
-                  {solution.visual === "brandVisual" && <VideoFondoCTA className={styles.brandVideoBackground} />}
+                  {solution.visual === "brandVisual" && (
+                    <VideoFondoCTA
+                      className={styles.brandVideoBackground}
+                      src="/soluciones/arconet-flechas-derecha.mp4"
+                      poster="/soluciones/arconet-flechas-derecha.jpg"
+                    />
+                  )}
                   <div className={styles.solutionCopy}>
                     <div className={styles.solutionMeta}><span>{solution.number}</span><i /><span>{solution.category}</span></div>
                     <h3>{solution.title.split("\n").map((line) => <span key={line}>{line}</span>)}</h3>

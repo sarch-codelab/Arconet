@@ -85,7 +85,9 @@ describe("el video de fondo de las bandas de contacto", () => {
     expect(video).toContain('aria-hidden="true"');
     expect(video).toContain("controls={false}");
     // La fuente es condicional: con ahorro de datos no se descarga el video.
-    expect(video).toContain("ahorro ? undefined : VIDEO");
+    expect(video).toContain("src = VIDEO");
+    expect(video).toContain("poster = POSTER");
+    expect(video).toContain("ahorro ? undefined : src");
     // Si el navegador rechaza el autoplay, se ignora en vez de romper.
     expect(video).toMatch(/intento\.catch\(\(\) => \{\}\)/);
   });
