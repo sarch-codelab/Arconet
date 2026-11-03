@@ -56,6 +56,7 @@ export async function PATCH(request) {
     return Response.json({
       nombre: cliente.contacto || cliente.nombre,
       empresa: cliente.nombre,
+      contacto: cliente.contacto || "",
       correo: cliente.correo,
       telefono: cliente.telefono || "",
       rtn: cliente.rtn || "",

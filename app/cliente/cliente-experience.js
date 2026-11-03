@@ -103,12 +103,13 @@ export default function ClientExperience() {
     );
   }
 
-  return <ClientDashboard session={session} orders={orders} setOrders={setOrders} onLogout={handleLogout} />;
+  return <ClientDashboard session={session} orders={orders} setOrders={setOrders} onSessionUpdate={setSession} onLogout={handleLogout} />;
 }
 
-function ClientDashboard({ session, orders, setOrders, onLogout }) {
+function ClientDashboard({ session, orders, setOrders, onSessionUpdate, onLogout }) {
   const { email: CONTACT_EMAIL } = useContact();
   const [activeTab, setActiveTab] = useState("dashboard");
+  const navigationTab = activeTab === "orden-detalle" ? "cotizaciones" : activeTab;
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [requestModalOpen, setRequestModalOpen] = useState(false);
   const [requestSaving, setRequestSaving] = useState(false);
@@ -216,9 +217,10 @@ function ClientDashboard({ session, orders, setOrders, onLogout }) {
                   <button
                     key={id}
                     type="button"
-                    className={`${styles.navItem} ${activeTab === id ? styles.navActive : ""}`}
+                    className={`${styles.navItem} ${navigationTab === id ? styles.navActive : ""}`}
                     onClick={() => setActiveTab(id)}
-                    aria-current={activeTab === id ? "page" : undefined}
+                    aria-current={navigationTab === id ? "page" : undefined}
+                    aria-label={label}
                     title={label}
                   >
                     <Icon size={15} />
@@ -236,13 +238,13 @@ function ClientDashboard({ session, orders, setOrders, onLogout }) {
                   {activeTab === "perfil" && "Mi perfil"}
                   {activeTab === "orden-detalle" && "Detalle de cotización"}
                 </h1>
-              </div>
-              <div className={styles.topbarActions}>
                 {activeTab === "cotizaciones" && (
                   <button type="button" className={styles.primaryBtn} onClick={handleCreateRequest}>
                     <Plus size={16} /> Nueva solicitud
                   </button>
                 )}
+              </div>
+              <div className={styles.topbarActions}>
                 <NotificationsBell />
                 <button type="button" className={styles.accountButton} onClick={onLogout} aria-label="Cerrar sesión" title={`Cerrar sesión de ${session.nombre}`}>
                   <span className={styles.userAvatar}>{session.nombre[0]}</span>
@@ -377,7 +379,7 @@ function ClientDashboard({ session, orders, setOrders, onLogout }) {
               )}
 
               {activeTab === "perfil" && (
-                <ProfilePage session={session} onSessionUpdate={setSession} />
+                <ProfilePage session={session} onSessionUpdate={onSessionUpdate} />
               )}
 
               {activeTab === "orden-detalle" && selectedOrder && (

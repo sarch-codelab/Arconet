@@ -38,6 +38,7 @@ export async function GET() {
       clienteId: account.cliente.id,
       nombre: account.cliente.contacto || account.cliente.nombre,
       empresa: account.cliente.nombre,
+      contacto: account.cliente.contacto || "",
       correo: account.cliente.correo,
       telefono: account.cliente.telefono || "",
       rtn: account.cliente.rtn || "",
