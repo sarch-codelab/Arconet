@@ -25,7 +25,7 @@ describe("fotografías de Soluciones en movimiento", () => {
   });
 
   it("usa cada fotografía como fondo completo de su panel desplazable", () => {
-    expect(home).toContain('solution.visual === "photoVisual" ? styles.photoPanel : ""');
+    expect(home).toContain('solution.visual === "photoVisual" ? styles.photoPanel : styles.brandPanel');
     expect(home).toContain('sizes="(max-width: 760px) 87vw, 100vw"');
     const fondo = css.match(/\.solutionPanel\.photoPanel \.solutionVisual\s*\{([^}]*)\}/)?.[1] || "";
     expect(fondo).toContain("position: absolute");
@@ -38,6 +38,16 @@ describe("fotografías de Soluciones en movimiento", () => {
     const titulo = css.match(/\.solutionCopy h3\s*\{([^}]*)\}/)?.[1] || "";
     expect(titulo).toContain("font-size: clamp(40px, 4.2vw, 76px)");
     expect(titulo).toContain("line-height: 1.03");
+  });
+
+  it("pone el video optimizado de fondo en 04 y orienta las cintas hacia el logo", () => {
+    expect(home).toContain('<VideoFondoCTA className={styles.brandVideoBackground} />');
+    const video = css.match(/\.solutionPanel\.brandPanel \.brandVideoBackground > video\s*\{([^}]*)\}/)?.[1] || "";
+    expect(video).toContain("transform: scaleX(-1)");
+    expect(video).toContain("object-position: 40% 50%");
+    expect(css).toMatch(/\.solutionPanel\.brandPanel\s*\{[^}]*isolation: isolate/);
+    expect(statSync("public/lines-fondo.mp4").size).toBeLessThan(600 * 1024);
+    expect(solutions).toContain('image: "/arconet.png"');
   });
 
   it("retira la presentación blanca de producto sin tocar los assets usados por el catálogo", () => {
