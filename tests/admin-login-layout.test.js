@@ -111,23 +111,11 @@ describe("acceso administrativo centrado en una sola columna", () => {
     expect(darkPageRule).not.toContain("linear-gradient");
     expect(darkPageRule).not.toContain('url("/admin-login-fondo.webp")');
   });
-  it("reserva el fondo horizontal para el panel oscuro y restaura el formulario", () => {
-    const rule = css.match(/:global\(html\[data-theme="dark"\]\) \.adminPage::before\s*\{([^}]*)\}/)?.[1] || "";
-    expect(rule).toContain('background-image: url("/admin-panel-luces-oscuro.webp")');
-    expect(rule).toContain("background-size: cover");
-    expect(css).toMatch(/:global\(html\[data-theme="dark"\]\) \.adminPage \.shell\s*\{[^}]*background: transparent/);
-    expect(statSync("public/admin-panel-luces-oscuro.webp").size).toBeLessThan(256 * 1024);
-    expect(rule).toContain("position: fixed");
-    expect(rule).toContain("inset: 0");
-    expect(rule).toContain("pointer-events: none");
-    expect(rule).not.toContain("filter:");
-    expect(rule).not.toContain("linear-gradient");
-    const topbar = css.match(/:global\(html\[data-theme="dark"\]\) \.adminPage \.topbarContainer\s*\{([^}]*)\}/)?.[1] || "";
-    expect(topbar).toContain("background: rgba(14, 17, 22, 0.24)");
-    expect(topbar).toContain("backdrop-filter: none");
-    expect(css).not.toContain("admin-login-agua-oscuro.webp");
-    expect(css).not.toContain(".adminLoginPage");
+  it("mantiene el panel sin imagen y conserva los fondos del formulario", () => {
+    expect(css).not.toContain("admin-panel-luces-oscuro.webp");
+    expect(css).not.toContain(".adminPage::before");
+    expect(css).toMatch(/\.shell\s*\{[^}]*background: var\(--bg-page\)/);
+    expect(css).toMatch(/\.topbarContainer\s*\{[^}]*background: var\(--bg-page\)/);
     expect(readFileSync("app/admin/login-view.js", "utf8")).toContain("<main className={styles.loginPage}>");
   });
-
 });

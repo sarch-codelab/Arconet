@@ -2,7 +2,6 @@
 
 import dynamic from "next/dynamic";
 import { Component, useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
 import styles from "./ai-orb.module.css";
 
 function Fallback() {
@@ -36,10 +35,9 @@ function OrbSurface() {
   return ready && !lost ? <OrbBoundary><GradientOrb config={{ background: "transparent" }} onContextLost={() => setLost(true)} /></OrbBoundary> : <Fallback />;
 }
 
-export default function AiOrb() {
-  const pathname = usePathname() || "";
-  if (pathname.startsWith("/admin") || pathname.startsWith("/panel-administrativo")) return null;
-  return <div className={styles.widget} role="img" aria-label="Orbe de IA, demostración visual" title="Orbe de IA · demostración visual">
-    <OrbSurface />
-  </div>;
+// Decorativo: se reutiliza dentro de la píldora IA y su sección, nunca flotante.
+export default function AiOrb({ size = 64 }) {
+  return <span className={styles.widget} style={{ width: size, height: size }} aria-hidden="true">
+    {size < 40 ? <Fallback /> : <OrbSurface />}
+  </span>;
 }

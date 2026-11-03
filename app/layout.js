@@ -1,7 +1,6 @@
 import "./globals.css";
 import localFont from "next/font/local";
 import ThemeToggle from "./theme-toggle";
-import AiOrb from "./ai-orb";
 import { CartProvider } from "./cart-context";
 import CartDrawer from "./cart-drawer";
 import PageTransition from "./page-transition";
@@ -113,7 +112,6 @@ export default function RootLayout({ children }) {
           <CartProvider>
             <ThemeInit />
             {children}
-            <AiOrb />
             <ThemeToggle />
             <CartDrawer />
             <PageTransition />

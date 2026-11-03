@@ -1,11 +1,9 @@
 .widget {
-  position: fixed;
-  right: 9px;
-  bottom: 118px;
-  width: 68px;
-  height: 68px;
-  z-index: 899;
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
   border-radius: 50%;
+  background: transparent;
   pointer-events: none;
   overflow: hidden;
   contain: layout paint;
@@ -20,9 +18,6 @@
   animation: orbit 12s linear infinite;
 }
 @keyframes orbit { to { transform: rotate(360deg); } }
-@media (max-width: 520px) {
-  .widget { width: 54px; height: 54px; right: 9px; bottom: max(108px, calc(env(safe-area-inset-bottom) + 96px)); }
-}
 @media (prefers-reduced-motion: reduce) {
   .fallback { animation-duration: 40s; }
 }

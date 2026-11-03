@@ -20,6 +20,7 @@ import { fetchSucursales } from "./sucursales-store";
 import { fetchOrders } from "./orders-store";
 import { fetchClientes } from "./clientes-store";
 
+const IaSection = lazy(() => import("./ia-section"));
 const RolesSection = lazy(() => import("./roles-section"));
 const WorkersSection = lazy(() => import("./workers-section"));
 const SucursalesSection = lazy(() => import("./sucursales-section"));
@@ -304,6 +305,10 @@ function AdminShell({ session, onLogout, initialSection }) {
           ) : section === "solicitudes" ? (
             <Suspense fallback={<div className={styles.body}>Cargando órdenes internas…</div>}>
               <SolicitudesPanel session={session} />
+            </Suspense>
+          ) : section === "ia" ? (
+            <Suspense fallback={<div className={styles.body}>Cargando IA…</div>}>
+              <IaSection session={session} />
             </Suspense>
           ) : section === "resumen" ? (
             <ResumenSection session={session} />
