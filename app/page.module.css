@@ -2509,7 +2509,7 @@
 .solutionCopy {
   position: relative;
   z-index: 2;
-  max-width: 440px;
+  max-width: 560px;
 }
 
 .solutionMeta {
@@ -2538,10 +2538,10 @@
   margin-top: 25px;
   color: #fff;
   font-family: var(--font-heading), system-ui, sans-serif;
-  font-size: clamp(43px, 5.3vw, 104px);
+  font-size: clamp(40px, 4.2vw, 76px);
   font-weight: 400;
-  letter-spacing: 0;
-  line-height: 0.98;
+  letter-spacing: -0.02em;
+  line-height: 1.03;
 }
 
 .solutionCopy > p {
@@ -2761,7 +2761,6 @@
   width: 25%;
   min-height: 0;
   height: calc(100svh - 285px);
-  max-height: 590px;
   padding-top: 8px;
   padding-bottom: 22px;
   scroll-snap-align: unset;
@@ -2774,6 +2773,60 @@
 
 .scrollReady .stageFooter {
   padding-top: 1px;
+}
+
+/* Las soluciones fotográficas ocupan todo el panel: la imagen acompaña el
+   desplazamiento de la pista y el contenido queda sobre un degradado legible. */
+.solutionPanel.photoPanel {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  isolation: isolate;
+  background: #07152f;
+}
+
+.solutionPanel.photoPanel::after {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: linear-gradient(90deg, #051027eb 0%, #051027c7 34%, #05102752 68%, #05102724 100%), linear-gradient(0deg, #05102757, transparent 45%);
+  content: "";
+  pointer-events: none;
+}
+
+.solutionPanel.photoPanel .solutionVisual {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.solutionPanel.photoPanel .solutionVisual::before {
+  border: 0;
+}
+
+.solutionPanel.photoPanel .solutionCopy {
+  z-index: 2;
+  width: min(620px, 60vw);
+  max-width: 620px;
+  padding: 24px 0;
+}
+
+.solutionPanel.photoPanel .solutionCopy > p {
+  max-width: 440px;
+  color: #ffffffde;
+}
+
+.solutionPanel.photoPanel .solutionLink {
+  max-width: 440px;
+}
+
+.solutionPanel.photoPanel .visualIndex {
+  right: clamp(20px, 3vw, 52px);
+  bottom: 22px;
+  text-shadow: 0 1px 12px #0009;
 }
 
 .companySection {
@@ -3204,6 +3257,11 @@
   font-size: 12px; }
   .solutionLink { margin-top: 15px; }
   .solutionVisual, .scrollReady .solutionVisual { height: min(68vw, 310px); min-height: 230px; }
+  .solutionPanel.photoPanel { min-height: 520px; padding-top: 20px; padding-bottom: 30px; }
+  .solutionPanel.photoPanel::after { background: linear-gradient(180deg, #051027d9 0%, #0510278c 58%, #051027b8 100%); }
+  .solutionPanel.photoPanel .solutionCopy { width: 100%; max-width: 100%; padding: 30px 0 58px; }
+  .solutionPanel.photoPanel .solutionCopy > p, .solutionPanel.photoPanel .solutionLink { max-width: 100%; }
+  .solutionPanel.photoPanel .visualIndex { right: 20px; bottom: 18px; }
   .stageFooter, .scrollReady .stageFooter { padding: 8px 20px 0; }
   .companySection { grid-template-columns: 1fr; gap: 42px; padding: 84px 22px 91px; }
   .companyIntro h2 { margin-top: 18px;
