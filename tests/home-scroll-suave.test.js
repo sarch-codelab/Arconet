@@ -20,6 +20,13 @@ describe("scroll: desplazamiento suave sin tirones", () => {
     expect(casa).toContain("respectReducedMotion: true");
   });
 
+  it("el scroll vertical de la página no sobrescribe el índice del carrusel móvil", () => {
+    const inicio = casa.indexOf("if (stage) {");
+    const bloque = casa.slice(inicio, casa.indexOf("const marker", inicio));
+    expect(bloque).toContain('if (!window.matchMedia("(max-width: 760px)").matches)');
+    expect(casa).toContain("const onTrackScroll = () =>");
+  });
+
   it("la pista de 400vw no se promueve a capa propia de la GPU", () => {
     const bloque = css.slice(css.indexOf(".scrollReady .solutionTrack"));
     const regla = bloque.slice(0, bloque.indexOf("}"));

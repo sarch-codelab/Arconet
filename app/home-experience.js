@@ -50,9 +50,9 @@ const SOLUTIONS = [
     title: "Más alcance.\nMenos límites.",
     description:
       "Componentes y accesorios para llevar conectividad confiable hasta donde tu proyecto la necesita.",
-    image: "/splitters-opticos.png",
-    imageAlt: "Splitter óptico de fibra azul",
-    visual: "productVisual",
+    image: "/soluciones/componentes-pasivos.webp",
+    imageAlt: "Conectores de fibra óptica instalados en un panel de red",
+    visual: "photoVisual",
     icon: Cable,
   },
   {
@@ -61,9 +61,9 @@ const SOLUTIONS = [
     title: "Una señal clara\nlo cambia todo.",
     description:
       "Equipos para redes de televisión por cable y sistemas satelitales, seleccionados para cada instalación.",
-    image: "/gabinete-rack-de-piso.png",
-    imageAlt: "Gabinete rack para infraestructura de telecomunicaciones",
-    visual: "rackVisual",
+    image: "/soluciones/instalacion-ftth.webp",
+    imageAlt: "Técnico instalando fibra óptica junto a un gabinete de distribución",
+    visual: "photoVisual",
     icon: Satellite,
   },
   {
@@ -72,8 +72,8 @@ const SOLUTIONS = [
     title: "El corazón de\nuna red sólida.",
     description:
       "Tecnología y accesorios para construir, ampliar y mantener la infraestructura de tu operación.",
-    image: "/catalogo/infraestructura.jpg",
-    imageAlt: "Cableado y equipos dentro de un centro de datos",
+    image: "/soluciones/gabinetes-racks.webp",
+    imageAlt: "Pasillo de gabinetes y racks en un centro de datos profesional",
     visual: "photoVisual",
     icon: Network,
   },
@@ -439,7 +439,11 @@ useEffect(() => {
         const range = Math.max(stage.offsetHeight - window.innerHeight, 1);
         const progress = clamp(-stage.getBoundingClientRect().top / range);
         stage.style.setProperty("--slide-progress", progress.toFixed(4));
-        setActiveSlide(Math.min(SOLUTIONS.length - 1, Math.floor(progress * SOLUTIONS.length)));
+        // En móvil el índice pertenece al carrusel horizontal: mezclarlo con
+        // la posición vertical de la página puede marcar 04 sin cambiar de panel.
+        if (!window.matchMedia("(max-width: 760px)").matches) {
+          setActiveSlide(Math.min(SOLUTIONS.length - 1, Math.floor(progress * SOLUTIONS.length)));
+        }
       }
 
       const marker = NAVIGATION.slice().reverse().find((item) => {
