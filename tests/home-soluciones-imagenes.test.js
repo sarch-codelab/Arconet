@@ -20,6 +20,7 @@ describe("fotografías de Soluciones en movimiento", () => {
       expect(statSync(`public${image}`).size).toBeLessThan(512 * 1024);
     }
     expect(solutions.match(/visual: "photoVisual"/g)).toHaveLength(3);
+    expect(solutions).toContain('imageAlt: "Técnico instalando una tarjeta de red en un equipo de telecomunicaciones"');
     expect(solutions).toContain('image: "/arconet.png"');
     expect(solutions).toContain('visual: "brandVisual"');
   });
