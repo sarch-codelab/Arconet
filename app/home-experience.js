@@ -47,6 +47,9 @@ const SOLUTIONS = [
   {
     number: "01",
     category: "Componentes pasivos",
+    stageEyebrow: "Arconet · tecnología que impulsa",
+    stageTitle: "Conexiones que",
+    stageAccent: "mueven Honduras.",
     title: "Más alcance.\nMenos límites.",
     description:
       "Componentes y accesorios para llevar conectividad confiable hasta donde tu proyecto la necesita.",
@@ -58,6 +61,9 @@ const SOLUTIONS = [
   {
     number: "02",
     category: "Soluciones activas y Accesorios FTTH",
+    stageEyebrow: "Arconet · conectividad que acerca",
+    stageTitle: "Redes que llegan",
+    stageAccent: "a cada hogar.",
     title: "Una señal clara\nlo cambia todo.",
     description:
       "Equipos para redes de televisión por cable y sistemas satelitales, seleccionados para cada instalación.",
@@ -69,6 +75,9 @@ const SOLUTIONS = [
   {
     number: "03",
     category: "Gabinetes y Racks",
+    stageEyebrow: "Arconet · infraestructura confiable",
+    stageTitle: "Orden que impulsa",
+    stageAccent: "redes más sólidas.",
     title: "El corazón de\nuna red sólida.",
     description:
       "Tecnología y accesorios para construir, ampliar y mantener la infraestructura de tu operación.",
@@ -80,6 +89,9 @@ const SOLUTIONS = [
   {
     number: "04",
     category: "Acompañamiento técnico",
+    stageEyebrow: "Arconet · respaldo que acompaña",
+    stageTitle: "Experiencia que",
+    stageAccent: "conecta contigo.",
     title: "El respaldo va\nmás allá del equipo.",
     description:
       "Asesoría para elegir la solución adecuada y hacer que cada inversión trabaje mejor para tu proyecto.",
@@ -1126,7 +1138,14 @@ useEffect(() => {
       >
         <div className={styles.solutionsSticky}>
           <div className={styles.solutionsHeading}>
-            <div><p className={styles.stageEyebrow}>Arconet · tecnología que impulsa</p><h2 data-split>Conexiones que <span>mueven Honduras.</span></h2></div>
+            <div>
+              {SOLUTIONS.map((solution, index) => (
+                <div key={solution.number} hidden={activeSlide !== index}>
+                  <p className={styles.stageEyebrow}>{solution.stageEyebrow}</p>
+                  <h2 data-split>{solution.stageTitle} <span>{solution.stageAccent}</span></h2>
+                </div>
+              ))}
+            </div>
             <div className={styles.slideProgress} aria-live="polite">
               <span>0{activeSlide + 1}</span><i><b style={{ transform: `scaleX(${(activeSlide + 1) / SOLUTIONS.length})` }} /></i><span>0{SOLUTIONS.length}</span>
             </div>
