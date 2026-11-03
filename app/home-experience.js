@@ -68,7 +68,8 @@ const SOLUTIONS = [
     description:
       "Equipos para redes de televisión por cable y sistemas satelitales, seleccionados para cada instalación.",
     image: "/soluciones/instalacion-ftth.webp",
-    imageAlt: "Técnico instalando fibra óptica junto a un gabinete de distribución",
+    // Fotografía real de Panumas Nikhomkhai / Pexels (19226354), uso gratuito.
+    imageAlt: "Técnico instalando una tarjeta de red en un equipo de telecomunicaciones",
     visual: "photoVisual",
     icon: Satellite,
   },
