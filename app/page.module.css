@@ -3417,20 +3417,52 @@
    ========================================================================== */
 
 .statsBand {
+  --stats-filter: none;
+  --stats-veil: rgba(250, 249, 246, 0.1);
+  position: relative;
+  isolation: isolate;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 1px;
+  overflow: hidden;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
-  background: var(--line);
+  background: var(--paper);
+}
+
+/* La fotografía es decorativa y el PNG es opaco: un filtro y una segunda capa
+   ajustan su luminosidad según el tema sin ocultar las cifras. */
+.statsBand::before,
+.statsBand::after {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+}
+
+.statsBand::before {
+  background-image: url("/arconet-en-numeros.png");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  filter: var(--stats-filter);
+  transition: filter 350ms ease;
+}
+
+.statsBand::after {
+  background-color: var(--stats-veil);
+  transition: background-color 350ms ease;
 }
 
 .statItem {
+  position: relative;
+  z-index: 1;
   display: grid;
   align-content: center;
   gap: 10px;
   padding: 46px clamp(24px, 3vw, 48px);
-  background: var(--paper);
+  background: transparent;
 }
 
 .statItem strong {
@@ -3448,6 +3480,15 @@
   font-size: 11px;
   font-weight: 600;
   line-height: 1.6;
+}
+
+:global(html[data-theme="light"]) .statsBand {
+  --stats-veil: rgba(250, 249, 246, 0.1);
+}
+
+:global(html[data-theme="dark"]) .statsBand {
+  --stats-filter: invert(1) hue-rotate(180deg) brightness(1.35);
+  --stats-veil: rgba(14, 17, 22, 0.12);
 }
 
 .storySection {
