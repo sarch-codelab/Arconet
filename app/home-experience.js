@@ -1126,7 +1126,7 @@ useEffect(() => {
       >
         <div className={styles.solutionsSticky}>
           <div className={styles.solutionsHeading}>
-            <div><p className={styles.stageEyebrow}>Lo que hace posible una conexión</p><h2 data-split>Soluciones <span>en movimiento.</span></h2></div>
+            <div><p className={styles.stageEyebrow}>Arconet · tecnología que impulsa</p><h2 data-split>Conexiones que <span>mueven Honduras.</span></h2></div>
             <div className={styles.slideProgress} aria-live="polite">
               <span>0{activeSlide + 1}</span><i><b style={{ transform: `scaleX(${(activeSlide + 1) / SOLUTIONS.length})` }} /></i><span>0{SOLUTIONS.length}</span>
             </div>
@@ -1137,9 +1137,10 @@ useEffect(() => {
               const Icon = solution.icon;
               return (
                 <article
-                  className={`${styles.solutionPanel} ${solution.visual === "photoVisual" ? styles.photoPanel : ""}`}
+                  className={`${styles.solutionPanel} ${solution.visual === "photoVisual" ? styles.photoPanel : styles.brandPanel}`}
                   key={solution.number}
                 >
+                  {solution.visual === "brandVisual" && <VideoFondoCTA className={styles.brandVideoBackground} />}
                   <div className={styles.solutionCopy}>
                     <div className={styles.solutionMeta}><span>{solution.number}</span><i /><span>{solution.category}</span></div>
                     <h3>{solution.title.split("\n").map((line) => <span key={line}>{line}</span>)}</h3>

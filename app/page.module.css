@@ -2829,6 +2829,29 @@
   text-shadow: 0 1px 12px #0009;
 }
 
+/* En 04 el video ocupa todo el panel, pero el logo conserva su tarjeta para
+   mantener el contraste. Las cintas se reflejan: avanzan hacia la derecha. */
+.solutionPanel.brandPanel {
+  overflow: hidden;
+  isolation: isolate;
+  background: #07152f;
+}
+
+.solutionPanel.brandPanel .brandVideoBackground {
+  z-index: 0;
+}
+
+.solutionPanel.brandPanel .brandVideoBackground > video {
+  object-position: 40% 50%;
+  transform: scaleX(-1);
+}
+
+.solutionPanel.brandPanel .solutionVisual {
+  z-index: 2;
+  background-color: #102f83e0;
+  backdrop-filter: blur(2px);
+}
+
 .companySection {
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
