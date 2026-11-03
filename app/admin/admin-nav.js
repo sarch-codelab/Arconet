@@ -1,5 +1,6 @@
 "use client";
 
+import AiOrb from "../ai-orb";
 import { createContext } from "react";
 import {
   Activity,
@@ -58,6 +59,7 @@ export const NAV = [
   { id: "solicitudes", label: "Órdenes internas", icon: ClipboardList },
   { id: "monitoreo", label: "Monitoreo", icon: Activity },
   { id: "resumen", label: "Resumen", icon: LayoutDashboard },
+  { id: "ia", label: "IA", icon: AiOrb },
   { id: "mi-perfil", label: "Mi perfil", icon: User },
   { id: "ajustes", label: "Ajustes", icon: Settings },
 ];
@@ -71,6 +73,7 @@ export const SECTION_NAV_CONFIG = {
   // Clave generica de respaldo: si una seccion no tiene config propia, las
   // paginas usan `?.tabs` y no revientan al renderizar.
   __fallback: { brandName: "Panel", tabs: [] },
+  ia: { brandName: "IA", tabs: [] },
   trabajadores: {
     brandName: "Personal",
     tabs: [

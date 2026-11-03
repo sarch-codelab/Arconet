@@ -13,15 +13,12 @@ const shader = readFileSync("components/ui/gradient-orb.tsx", "utf8");
 const css = readFileSync("app/ai-orb.module.css", "utf8");
 
 describe("orbe visual de IA", () => {
-  it.each(["/", "/tienda", "/contacto"])("aparece en la página pública %s sin simular un chat", path => {
-    const html = render(path);
-    expect(html).toContain('aria-label="Orbe de IA, demostración visual"');
+  it("es reutilizable y decorativo en la sección y píldora IA", () => {
+    const html = render("/admin");
+    expect(html).toContain('aria-hidden="true"');
     expect(html).toContain('data-orb-renderer="css"');
     expect(html).not.toContain("<button");
-    expect(html).not.toContain("<canvas");
-  });
-  it.each(["/admin", "/admin/acceso-qr", "/panel-administrativo", "/panel-administrativo/ventas"])("no invade administración %s", path => {
-    expect(render(path)).toBe("");
+    expect(readFileSync("app/admin/admin-nav.js", "utf8")).toContain('{ id: "ia", label: "IA", icon: AiOrb }');
   });
   it("carga WebGL aparte y ofrece respaldo sin GPU y ante pérdida de contexto", () => {
     expect(wrapper).toContain('import("@/components/ui/gradient-orb")');
@@ -31,12 +28,11 @@ describe("orbe visual de IA", () => {
     expect(wrapper).toContain("getDerivedStateFromError");
     expect(wrapper).toContain("onContextLost={() => setLost(true)}");
   });
-  it("se coloca encima del tema sin capturar clics ni desplazar contenido", () => {
-    expect(css).toContain("position: fixed");
-    expect(css).toContain("bottom: 118px");
+  it("no monta orbe ni panel flotante en páginas públicas", () => {
+    expect(css).not.toContain("position: fixed");
     expect(css).toContain("pointer-events: none");
-    expect(css).toContain("max-width: 520px");
-    expect(readFileSync("app/layout.js", "utf8")).toContain("<AiOrb />");
+    expect(readFileSync("app/layout.js", "utf8")).not.toContain("AiOrb");
+    expect(wrapper).not.toContain("ChatLauncher");
   });
   it("limita resolución/fps, pausa en segundo plano y conserva movimiento reducido", () => {
     expect(shader).toContain('frameloop="demand"');

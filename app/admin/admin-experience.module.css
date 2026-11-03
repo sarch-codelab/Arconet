@@ -95,19 +95,6 @@
   --shadow-elevated: 0 12px 36px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
-/* Una sola imagen al tamaño del viewport, no al alto de todas las secciones. */
-:global(html[data-theme="dark"]) .adminPage::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-image: url("/admin-panel-luces-oscuro.webp");
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-}
-
 .adminPage a {
   color: inherit;
   text-decoration: none;
@@ -511,11 +498,6 @@
   background: var(--bg-page);
 }
 
-/* Deja visible el fondo del panel oscuro sin alterar tarjetas ni navegación. */
-:global(html[data-theme="dark"]) .adminPage .shell {
-  background: transparent;
-}
-
 /* ---------------- Content & Topbar ---------------- */
 
 .content {
@@ -540,13 +522,6 @@
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--border);
-}
-
-/* El agua continúa detrás de la cabecera, con un leve respaldo para el texto. */
-:global(html[data-theme="dark"]) .adminPage .topbarContainer {
-  background: rgba(14, 17, 22, 0.24);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
 }
 
 .globalTopBar {

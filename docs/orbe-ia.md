@@ -7,13 +7,11 @@
 - El componente reutilizable se encuentra en `components/ui/gradient-orb.tsx`, compatible con el alias `@/components/ui/gradient-orb` de la propuesta. Crear esta carpeta conserva la convención esperada por componentes shadcn externos, sin mover los componentes existentes de `app/components` ni `app/admin`.
 - `components/ui/gradient-orb-demo.tsx` es el ejemplo de pantalla completa; no añade una ruta pública.
 - Dependencias: `three`, `@react-three/fiber`; tipos y compilador en dependencias de desarrollo. No requiere proveedor global adicional: `Canvas` crea el contexto de React Three Fiber para la escena.
-- No requiere fotos, Unsplash, iconos nuevos, servicios de IA, claves ni acceso al micrófono. Es una demostración visual, no un chat.
+- El shader no requiere fotos ni acceso al micrófono. El chat usa NVIDIA desde el servidor; véase `docs/ia-nvidia.md`.
 
 ## Ubicación y comportamiento
 
-`app/ai-orb.js` coloca un orbe de 68 px encima del botón flotante del tema, con fondo transparente. En móvil ocupa 54 px. El cambio de tema flotante continúa oculto en móviles según el diseño existente; el orbe permanece visible sin interceptar toques. No aparece en `/admin` ni `/panel-administrativo`, igual que el control flotante del tema.
-
-El orbe es no interactivo (`role=img`, descripción accesible y `pointer-events:none`). No modifica navegación, fotos, textos, animaciones existentes ni temas. Las superficies de carrito y menús mantienen sus capas superiores.
+`app/ai-orb.js` expone un orbe decorativo reutilizable. Aparece dentro de la píldora «IA» y en el encabezado de su sección administrativa (64 px). La versión pequeña de la píldora usa el respaldo CSS para no crear un contexto WebGL adicional. Ya no se monta en el layout público, no hay orbe flotante ni chat en el inicio. El botón de tema y las animaciones de portada no cambian.
 
 ## Adaptaciones del código recibido
 
