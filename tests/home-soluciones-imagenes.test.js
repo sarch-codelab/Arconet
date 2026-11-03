@@ -24,6 +24,22 @@ describe("fotografías de Soluciones en movimiento", () => {
     expect(solutions).toContain('visual: "brandVisual"');
   });
 
+  it("usa cada fotografía como fondo completo de su panel desplazable", () => {
+    expect(home).toContain('solution.visual === "photoVisual" ? styles.photoPanel : ""');
+    expect(home).toContain('sizes="(max-width: 760px) 87vw, 100vw"');
+    const fondo = css.match(/\.solutionPanel\.photoPanel \.solutionVisual\s*\{([^}]*)\}/)?.[1] || "";
+    expect(fondo).toContain("position: absolute");
+    expect(fondo).toContain("inset: 0");
+    expect(fondo).toContain("height: 100%");
+    expect(css).toMatch(/\.solutionPanel\.photoPanel::after\s*\{[^}]*linear-gradient/);
+  });
+
+  it("modera los titulares para evitar saltos agresivos en computadoras", () => {
+    const titulo = css.match(/\.solutionCopy h3\s*\{([^}]*)\}/)?.[1] || "";
+    expect(titulo).toContain("font-size: clamp(40px, 4.2vw, 76px)");
+    expect(titulo).toContain("line-height: 1.03");
+  });
+
   it("retira la presentación blanca de producto sin tocar los assets usados por el catálogo", () => {
     expect(solutions).not.toContain('image: "/splitters-opticos.png"');
     expect(solutions).not.toContain('image: "/gabinete-rack-de-piso.png"');

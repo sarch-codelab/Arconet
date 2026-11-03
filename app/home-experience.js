@@ -1136,7 +1136,10 @@ useEffect(() => {
             {SOLUTIONS.map((solution) => {
               const Icon = solution.icon;
               return (
-                <article className={styles.solutionPanel} key={solution.number}>
+                <article
+                  className={`${styles.solutionPanel} ${solution.visual === "photoVisual" ? styles.photoPanel : ""}`}
+                  key={solution.number}
+                >
                   <div className={styles.solutionCopy}>
                     <div className={styles.solutionMeta}><span>{solution.number}</span><i /><span>{solution.category}</span></div>
                     <h3>{solution.title.split("\n").map((line) => <span key={line}>{line}</span>)}</h3>
@@ -1155,7 +1158,7 @@ useEffect(() => {
                         src={solution.image}
                         alt={solution.imageAlt}
                         fill
-                        sizes="(max-width: 760px) 82vw, 45vw"
+                        sizes="(max-width: 760px) 87vw, 100vw"
                         className={styles.solutionImage}
                       />
                     )}
