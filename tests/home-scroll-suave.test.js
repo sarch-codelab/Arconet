@@ -9,21 +9,23 @@ const casa = leer("app", "home-experience.js");
 const css = leer("app", "page.module.css");
 
 describe("scroll: desplazamiento suave sin tirones", () => {
-  it("la inercia no es tan larga que se sienta trabada", () => {
-    const lerp = casa.match(/lerp:\s*([\d.]+)/);
-    expect(lerp).not.toBeNull();
-    // 0.085 dejaba un arrastre largo entre golpes de rueda.
-    expect(Number(lerp[1])).toBeGreaterThanOrEqual(0.1);
+  it("la rueda es nativa, sin interpolación ni cancelación de eventos", () => {
+    expect(casa).toContain("observeNativeScroll(updateScrollEffects");
+    expect(casa).not.toContain("LocomotiveScroll");
+    expect(casa).not.toContain("smoothWheel");
   });
 
-  it("se respeta la preferencia de menos movimiento", () => {
-    expect(casa).toContain("respectReducedMotion: true");
+  it("solo los desplazamientos explícitos consultan movimiento reducido", () => {
+    const helper = leer("lib", "native-scroll.js");
+    expect(helper).toContain("prefers-reduced-motion");
+    expect(helper).toContain('immediate || reduced ? "instant" : "smooth"');
   });
 
-  it("el scroll vertical de la página no sobrescribe el índice del carrusel móvil", () => {
-    const inicio = casa.indexOf("if (stage) {");
-    const bloque = casa.slice(inicio, casa.indexOf("const marker", inicio));
-    expect(bloque).toContain('if (!window.matchMedia("(max-width: 760px)").matches)');
+  it("el scroll vertical no sobrescribe el carrusel móvil ni mide layout por frame", () => {
+    const inicio = casa.indexOf("const updateScrollEffects =");
+    const bloque = casa.slice(inicio, casa.indexOf("const scrollController =", inicio));
+    expect(bloque).toContain("!mobile && slide !== nextSlide");
+    expect(bloque).not.toMatch(/getBoundingClientRect|offsetHeight|scrollHeight|matchMedia/);
     expect(casa).toContain("const onTrackScroll = () =>");
   });
 

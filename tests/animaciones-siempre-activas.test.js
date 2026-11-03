@@ -17,9 +17,13 @@ const CSS = globSync("app/**/*.css", { cwd: process.cwd() }).map((f) => [f, read
 const JS = globSync("app/**/*.js", { cwd: process.cwd() }).map((f) => [f, readFileSync(f, "utf8")]);
 
 describe("las animaciones no se apagan con el ajuste del sistema", () => {
-  it("solo las nuevas tarjetas adaptan movimiento sin desactivar animaciones", () => {
+  it("solo tarjetas y navegación adaptan movimiento, sin apagar animaciones", () => {
     const conBloque = CSS.filter(([, texto]) => texto.includes("prefers-reduced-motion")).map(([f]) => f);
-    expect(conBloque.sort()).toEqual(["app/page.module.css", "app/tienda/catalogo-experience.module.css"]);
+    expect(conBloque.sort()).toEqual(["app/globals.css", "app/page.module.css", "app/tienda/catalogo-experience.module.css"]);
+    const global = CSS.find(([f]) => f === "app/globals.css")[1];
+    const navigation = global.match(/@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\n\}/)?.[0];
+    expect(navigation).toContain("scroll-behavior: auto");
+    expect(navigation).not.toMatch(/animation|transition|opacity|transform/);
     const tienda = CSS.find(([f]) => f === "app/tienda/catalogo-experience.module.css")[1];
     const hoverReduced = tienda.match(/@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\n\}/)?.[0];
     expect(hoverReduced).toContain(".exampleCard");

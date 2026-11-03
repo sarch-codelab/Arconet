@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { resolveSectionHref } from "@/lib/section-navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import styles from "./page-transition.module.css";
@@ -166,6 +167,14 @@ export default function PageTransition() {
       if (event.defaultPrevented || event.button !== 0) return;
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const anchor = event.target && event.target.closest ? event.target.closest("a[href]") : null;
+      const section = resolveSectionHref(anchor, window.location.href);
+      if (section && document.getElementById(section.id)) {
+        // Next conserva su árbol/historial también en anclas nativas. Sin la
+        // cortina de cambio de página: el navegador hace el scroll suave.
+        event.preventDefault();
+        routerRef.current.push(section.href);
+        return;
+      }
       const href = resolveInternalHref(anchor);
       if (!href) return;
       event.preventDefault();

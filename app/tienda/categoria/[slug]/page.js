@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { prisma } from '@/lib/prisma';
 import { findFamily } from "../../catalogo-data";
 import CategoryProducts from "./category-products";
@@ -5,7 +6,7 @@ import CategoryProducts from "./category-products";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-async function getCategoria(slug) {
+const getCategoria = cache(async function getCategoria(slug) {
   try {
     const categoria = await prisma.categoria.findUnique({ where: { slug } });
     if (!categoria) return null;
@@ -23,7 +24,7 @@ async function getCategoria(slug) {
     console.error("GET /tienda/categoria/[slug]", error);
     return null;
   }
-}
+});
 
 export async function generateMetadata({ params }) {
   const { slug } = await params;

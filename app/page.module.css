@@ -3178,7 +3178,7 @@
   transition: transform 720ms cubic-bezier(0.16, 1, 0.3, 1),
     opacity 520ms ease;
   transition-delay: var(--retraso, 0ms);
-  will-change: transform;
+  /* Sin capa GPU permanente por palabra; la transición conserva el efecto. */
 }
 
 /* Se declara también sola para que CSS Modules la exporte y el componente

@@ -101,6 +101,7 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="es"
+      data-scroll-behavior="smooth"
       suppressHydrationWarning
       className={`${inter.variable} ${orbitron.variable} ${exo2.variable}`}
     >

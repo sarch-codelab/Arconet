@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import LocomotiveScroll from "locomotive-scroll";
+import { observeNativeScroll } from "@/lib/native-scroll";
 import {
   ArrowDown,
   ArrowRight,
@@ -243,34 +243,10 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
       }
     };
 
-    const handleResize = () => {
-      measure();
-      update({ scroll: window.scrollY });
-    };
-
-    measure();
-    const locomotive = new LocomotiveScroll({
-      lenisOptions: {
-        anchors: true,
-        gestureOrientation: "vertical",
-        lerp: 0.085,
-        respectReducedMotion: true,
-        smoothTouch: false,
-        smoothWheel: true,
-      },
-      scrollCallback: update,
-    });
-
-    const resizeObserver = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(handleResize);
-    resizeObserver?.observe(document.documentElement);
-    if (hero) resizeObserver?.observe(hero);
-    window.addEventListener("resize", handleResize);
-    update({ scroll: window.scrollY });
+    const scrollController = observeNativeScroll(update, { onResize: measure });
 
     return () => {
-      resizeObserver?.disconnect();
-      window.removeEventListener("resize", handleResize);
-      locomotive.destroy();
+      scrollController.destroy();
     };
   }, [gateOpen]);
 
@@ -425,8 +401,6 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
               priority
               sizes="100vw"
               className={styles.heroImage}
-              data-scroll
-              data-scroll-speed="0.04"
             />
             <div className={styles.heroOverlay} />
           </div>

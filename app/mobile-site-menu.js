@@ -58,11 +58,15 @@ export default function MobileSiteMenu({ floating = false }) {
   useEffect(() => {
     if (!open) return undefined;
     const closeOnEscape = (event) => { if (event.key === "Escape") setOpen(false); };
-    const handleViewportChange = () => syncPanelPosition();
+    let frame = 0;
+    const handleViewportChange = () => {
+      if (!frame) frame = window.requestAnimationFrame(() => { frame = 0; syncPanelPosition(); });
+    };
     document.addEventListener("keydown", closeOnEscape);
     window.addEventListener("resize", handleViewportChange);
-    window.addEventListener("scroll", handleViewportChange, true);
+    window.addEventListener("scroll", handleViewportChange, { capture: true, passive: true });
     return () => {
+      if (frame) window.cancelAnimationFrame(frame);
       document.removeEventListener("keydown", closeOnEscape);
       window.removeEventListener("resize", handleViewportChange);
       window.removeEventListener("scroll", handleViewportChange, true);

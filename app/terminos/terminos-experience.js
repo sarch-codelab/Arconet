@@ -1,5 +1,6 @@
 "use client";
 
+import { observeNativeScroll } from "@/lib/native-scroll";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -103,49 +104,16 @@ export default function TerminosExperience() {
   const [activeSection, setActiveSection] = useState(SECTIONS[0].id);
 
   useEffect(() => {
-    let lenis;
-    let cancelled = false;
     const page = pageRef.current;
     const hero = heroRef.current;
-
-    const updateProgress = ({ scroll = window.scrollY, limit, progress } = {}) => {
-      const maxScroll = Math.max(limit ?? document.documentElement.scrollHeight - window.innerHeight, 1);
-      const ratio = typeof progress === "number" ? progress : clamp(scroll / maxScroll);
-      page?.style.setProperty("--read-progress", ratio.toFixed(4));
-      if (hero) {
-        const heroRange = Math.max(hero.offsetHeight * 0.85, 1);
-        hero.style.setProperty("--hero-progress", clamp(scroll / heroRange).toFixed(4));
-      }
+    let heroRange = 1;
+    const measure = () => { heroRange = Math.max((hero?.offsetHeight || window.innerHeight) * 0.85, 1); };
+    const updateProgress = ({ scroll, progress }) => {
+      page?.style.setProperty("--read-progress", progress.toFixed(4));
+      hero?.style.setProperty("--hero-progress", clamp(scroll / heroRange).toFixed(4));
     };
-
-    const initLenis = async () => {
-      try {
-        const { default: Lenis } = await import("lenis");
-        if (cancelled) return;
-
-        lenis = new Lenis({
-          anchors: true,
-          autoRaf: true,
-          lerp: 0.085,
-          respectReducedMotion: true,
-          smoothWheel: true,
-          syncTouch: false,
-        });
-        lenis.on("scroll", updateProgress);
-        updateProgress({ scroll: lenis.scroll, limit: lenis.limit, progress: lenis.progress });
-      } catch {
-        const updateNativeProgress = () => updateProgress({ scroll: window.scrollY });
-        window.addEventListener("scroll", updateNativeProgress, { passive: true });
-        updateNativeProgress();
-        lenis = { destroy: () => window.removeEventListener("scroll", updateNativeProgress) };
-      }
-    };
-
-    initLenis();
-    return () => {
-      cancelled = true;
-      lenis?.destroy();
-    };
+    const scrollController = observeNativeScroll(updateProgress, { onResize: measure });
+    return () => scrollController.destroy();
   }, []);
 
   useEffect(() => {

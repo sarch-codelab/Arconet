@@ -121,7 +121,7 @@ describe("emergentes del panel: deslice con el mouse", () => {
     expect(() => enableDragScroll(null)()).not.toThrow();
   });
 
-  it("la rueda dentro de una emergente no queda cancelada por Lenis", () => {
+  it("la rueda de las emergentes queda en manos del navegador", () => {
     // Causa del reporte "no me detecta el mouse": Lenis escucha `wheel` en la
     // ventana y llama preventDefault. Con la pagina bloqueada por el modal, la
     // rueda dentro del dialogo se cancelaba y el contenido no se movia.
@@ -131,8 +131,8 @@ describe("emergentes del panel: deslice con el mouse", () => {
     expect(overlay).toContain('data-lenis-prevent=""');
     // La funcion `prevent` es la red de seguridad para dialogos nativos.
     const smooth = read("app/admin/use-smooth-scroll.js");
-    expect(smooth).toContain("prevent:");
-    expect(smooth).toContain('closest("[data-admin-overlay], dialog[open]")');
+    expect(smooth).toContain("observeNativeScroll");
+    expect(smooth).not.toContain('import("lenis")');
 
     for (const path of ["app/admin/sales-dialog.js", "app/admin/barcode-scan.js"]) {
       expect(read(path), `${path} debe impedir que Lenis cancele la rueda`).toContain(
@@ -141,11 +141,11 @@ describe("emergentes del panel: deslice con el mouse", () => {
     }
   });
 
-  it("detiene el scroll suave de la pagina mientras hay una emergente", () => {
+  it("conserva el bloqueo nativo del fondo y refresca al cerrar emergentes", () => {
     const source = read("app/admin/use-smooth-scroll.js");
     expect(source).toContain("subscribeToOpenDialogs");
-    expect(source).toContain("lenis.stop()");
-    expect(source).toContain("lenis.start()");
+    expect(source).toContain("scrollController.refresh()");
+    expect(read("app/admin/use-body-scroll-lock.js")).toContain('document.body.style.overflow = "hidden"');
   });
 
   it("la hoja del escaner tambien se desliza y bloquea el fondo", () => {

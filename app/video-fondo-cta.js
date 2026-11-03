@@ -56,21 +56,30 @@ export default function VideoFondoCTA({ className = "", src = VIDEO, poster = PO
     const reproductor = video.current;
     if (!nodo || !reproductor) return undefined;
 
+    let visible = false;
     const reproducir = () => {
+      if (!visible || document.visibilityState === "hidden") return;
       const intento = reproductor.play();
       if (intento && typeof intento.catch === "function") intento.catch(() => {});
     };
 
     // Sin IntersectionObserver se reproduce sin más.
     if (typeof IntersectionObserver === "undefined") {
+      visible = true;
       reproducir();
-      return undefined;
+      const alVolver = () => {
+        if (document.visibilityState === "hidden") reproductor.pause();
+        else reproducir();
+      };
+      document.addEventListener("visibilitychange", alVolver);
+      return () => { document.removeEventListener("visibilitychange", alVolver); reproductor.pause(); };
     }
 
     const observador = new IntersectionObserver(
       (entradas) => {
         entradas.forEach((entrada) => {
-          if (entrada.isIntersecting) reproducir();
+          visible = entrada.isIntersecting;
+          if (visible) reproducir();
           else reproductor.pause();
         });
       },
@@ -81,15 +90,17 @@ export default function VideoFondoCTA({ className = "", src = VIDEO, poster = PO
 
     // Al volver a la pestaña se reanuda si la banda sigue a la vista.
     const alVolver = () => {
-      if (document.visibilityState === "visible" && reproductor.paused) reproducir();
+      if (document.visibilityState === "hidden") reproductor.pause();
+      else if (visible && reproductor.paused) reproducir();
     };
     document.addEventListener("visibilitychange", alVolver);
 
     return () => {
       observador.disconnect();
       document.removeEventListener("visibilitychange", alVolver);
+      reproductor.pause();
     };
-  }, [ahorro]);
+  }, [ahorro, src]);
 
   return (
     <div ref={contenedor} className={`${styles.fondo} ${className}`.trim()} aria-hidden="true">
@@ -98,7 +109,6 @@ export default function VideoFondoCTA({ className = "", src = VIDEO, poster = PO
         className={styles.video}
         src={ahorro ? undefined : src}
         poster={poster}
-        autoPlay={!ahorro}
         muted
         loop
         playsInline

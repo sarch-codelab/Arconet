@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import LocomotiveScroll from "locomotive-scroll";
+import { observeNativeScroll } from "@/lib/native-scroll";
 import {
   ArrowDown,
   ArrowRight,
@@ -55,28 +55,17 @@ export default function ContactExperience() {
     const hero = document.getElementById("contacto-inicio");
     if (!page || !hero) return undefined;
 
-    const updateScroll = ({ scroll = window.scrollY, limit, progress } = {}) => {
-      const scrollable = Math.max(limit ?? document.documentElement.scrollHeight - window.innerHeight, 1);
-      const pageProgress = typeof progress === "number" ? progress : clamp(scroll / scrollable);
+    let heroRange = 1;
+    const measure = () => { heroRange = Math.max(hero.offsetHeight * 0.8, 1); };
+    const updateScroll = ({ scroll, progress }) => {
+      const pageProgress = progress;
       page.style.setProperty("--page-progress", pageProgress.toFixed(4));
-      const heroRange = Math.max(hero.offsetHeight * 0.8, 1);
       hero.style.setProperty("--hero-progress", clamp(scroll / heroRange).toFixed(4));
     };
 
-    const locomotive = new LocomotiveScroll({
-      lenisOptions: {
-        anchors: true,
-        gestureOrientation: "vertical",
-        lerp: 0.085,
-        respectReducedMotion: true,
-        smoothTouch: false,
-        smoothWheel: true,
-      },
-      scrollCallback: updateScroll,
-    });
+    const scrollController = observeNativeScroll(updateScroll, { onResize: measure });
 
-    updateScroll({ scroll: window.scrollY });
-    return () => locomotive.destroy();
+    return () => scrollController.destroy();
   }, []);
 
   useEffect(() => {
