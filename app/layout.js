@@ -3,7 +3,7 @@ import "./not-found-experience.module.css";
 import "./globals.css";
 import localFont from "next/font/local";
 import SiteBorderGlow from "./site-border-glow";
-import SiteTargetCursor from "./site-target-cursor";
+import SiteFlickeringGrid from "./site-flickering-grid";
 import ThemeToggle from "./theme-toggle";
 import { CartProvider } from "./cart-context";
 import CartDrawer from "./cart-drawer";
@@ -115,7 +115,7 @@ export default function RootLayout({ children }) {
         <ContactProvider contact={{ email: CONTACT_EMAIL, phone: CONTACT_PHONE, phoneHref: CONTACT_PHONE_HREF }}>
           <CartProvider>
             <ThemeInit />
-            <SiteTargetCursor />
+            <SiteFlickeringGrid />
             <SiteBorderGlow />
             {children}
             <ThemeToggle />

@@ -28,3 +28,7 @@ https://github.com/DavidHDev/react-bits/tree/main/src/content/Animations/TargetC
 Lint, suite completa y build. Chromium claro/oscuro, movimiento normal/reducido: ajuste a enlace, etiqueta, pulsación, teclado, edición, blur, restauración al cambiar de página y ausencia de overflow cerca del borde. Contexto móvil/táctil: no aparece ni oculta el cursor nativo. Capturas en `.local/visual/cursor-*`, fuera de Git. Sin prueba en teléfono físico ni despliegue a producción.
 
 Ampliación global validada en home, tienda, login, administración, privacidad y 404, ambos temas y preferencias de movimiento; navegación SPA y regreso sin duplicar cursores ni estilos. Contexto táctil verificado en home, tienda, login y administración.
+
+## Estado actual: desactivado
+
+Por petición posterior del usuario, el layout raíz dejó de montar `SiteTargetCursor`. Se utiliza el cursor nativo en todas las páginas y controles. El componente y sus pruebas de comportamiento se conservan como código reutilizable, pero no se cargan desde el layout ni se aplica ocultación global del cursor.
