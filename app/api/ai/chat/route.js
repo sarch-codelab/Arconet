@@ -11,8 +11,21 @@ export async function POST(request) {
   const guard = await requireSession();
   if (guard.response) return guard.response;
   const origin = request.headers.get("origin");
-  const expected = process.env.APP_ORIGIN || new URL(request.url).origin;
-  if (origin !== expected || request.headers.get("sec-fetch-site") === "cross-site") return reply({ error: "Origen no permitido." }, 403);
+  // Comparar orígenes, no la variable literal: una barra final o :443 son
+  // configuraciones equivalentes. No confiar en Host/X-Forwarded-Host enviados.
+  let expected;
+  try {
+    const configured = process.env.APP_ORIGIN?.trim();
+    if (!configured && process.env.NODE_ENV === "production") throw new Error("Missing origin");
+    const url = new URL(configured || request.url);
+    if (!["https:", "http:"].includes(url.protocol) || url.username || url.password) throw new Error("Invalid origin");
+    expected = url.origin;
+  } catch {
+    return reply({ code: "ai_origin_configuration", error: "El origen del asistente no está configurado correctamente. Revisa APP_ORIGIN en el servidor." }, 503);
+  }
+  if (!origin || origin !== expected || request.headers.get("sec-fetch-site") === "cross-site") {
+    return reply({ code: "ai_origin_forbidden", error: "Origen no permitido para el asistente. Abre el dominio oficial; si ya estás en él, revisa APP_ORIGIN en el servidor." }, 403);
+  }
   if (!request.headers.get("content-type")?.startsWith("application/json")) return reply({ error: "Se requiere JSON." }, 415);
   const rate = checkRateLimit(`ai:ip:${getClientIp(request)}`, { max: 10, windowMs: 60_000 });
   if (rate.limited) return reply({ error: "Demasiados mensajes. Espera un minuto." }, 429, { "Retry-After": String(rate.retryAfter) });

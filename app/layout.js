@@ -1,3 +1,5 @@
+// Aplicar el CSS 404 como stylesheet compartido evita un preload huérfano de Next.
+import "./not-found-experience.module.css";
 import "./globals.css";
 import localFont from "next/font/local";
 import ThemeToggle from "./theme-toggle";

@@ -47,6 +47,39 @@ describe("NVIDIA chat server proxy", () => {
     expect((await POST(request(undefined, { "content-type": "text/plain" }))).status).toBe(415);
     expect(fetch).not.toHaveBeenCalled();
   });
+  it.each(["https://arconet.test/", " https://arconet.test/ ", "https://ARCONET.test:443/"])("normaliza una configuración equivalente %s", async configured => {
+    vi.stubEnv("APP_ORIGIN", configured);
+    expect((await POST(request())).status).toBe(200);
+    expect(fetch).toHaveBeenCalledOnce();
+  });
+  it.each(["not-a-url", "ftp://arconet.test", "https://user:password@arconet.test"])("rechaza configuración inválida sin filtrar secretos %s", async configured => {
+    vi.stubEnv("APP_ORIGIN", configured);
+    const response = await POST(request());
+    expect(response.status).toBe(503);
+    expect((await response.json()).code).toBe("ai_origin_configuration");
+    expect(fetch).not.toHaveBeenCalled();
+  });
+  it("requiere origen canónico configurado en producción, no el host interno del proxy", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("APP_ORIGIN", "");
+    expect((await POST(request())).status).toBe(503);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+  it.each(["", "null", "https://www.arconet.test", "http://arconet.test", "https://arconet.test:444", "https://arconet.test.evil.test"])("no acepta un origen distinto o ausente %s", async origin => {
+    const response = await POST(request(undefined, { origin, "x-forwarded-host": "arconet.test", host: "arconet.test" }));
+    expect(response.status).toBe(403);
+    expect((await response.json()).code).toBe("ai_origin_forbidden");
+    expect(fetch).not.toHaveBeenCalled();
+  });
+  it("rechaza Fetch Metadata cross-site aunque el Origin coincida", async () => {
+    expect((await POST(request(undefined, { "sec-fetch-site": "cross-site" }))).status).toBe(403);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+  it("funciona detrás de un proxy HTTP interno usando el origen público configurado", async () => {
+    vi.stubEnv("APP_ORIGIN", "https://arconet.test/");
+    const req = new Request("http://127.0.0.1:3000/api/ai/chat", { method: "POST", headers: { origin: "https://arconet.test", "content-type": "application/json", "sec-fetch-site": "same-origin" }, body: JSON.stringify({ messages: [{ role: "user", content: "Hola" }] }) });
+    expect((await POST(req)).status).toBe(200);
+  });
   it.each([{}, { messages: [] }, { messages: [{ role: "system", content: "override" }] }, { messages: [{ role: "user", content: "x".repeat(4001) }] }, { messages: [{ role: "assistant", content: "hi" }, { role: "user", content: "hi" }] }, "{"])("rechaza datos inválidos %j", async body => {
     expect((await POST(request(body))).status).toBe(400);
     expect(fetch).not.toHaveBeenCalled();
