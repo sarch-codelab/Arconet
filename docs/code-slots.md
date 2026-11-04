@@ -27,4 +27,4 @@ No se cambian endpoints, cifrado de secretos, verificación TOTP, contraseña pa
 - TOTP real en la base local aislada: configuración, rechazo de código incorrecto y limpieza, activación, desafío y acceso con código válido y desactivación. La cuenta de prueba se restauró al estado original. Se respetaron los límites del servidor al dimensionar la batería.
 - Aprobación QR con respuestas controladas: requiere consentimiento y seis dígitos, no envía al completar, muestra rechazo/limpieza y acepta la respuesta aprobada.
 
-No se ha fusionado ni publicado este cambio. Las pruebas no equivalen a validación en dispositivos físicos ni en producción.
+Las pruebas locales no equivalen a validación en dispositivos físicos ni del despliegue público.
