@@ -119,6 +119,13 @@ if ($info.LastTaskResult -eq 0) {
     exit 0
 }
 
+# El deploy puede coincidir con el watchdog u otro despliegue (lock ocupado).
+# Es transitorio: no marcar el commit como fallido para siempre.
+if ($info.LastTaskResult -eq 2) {
+    W "Deploy ocupado; se reintentara en la siguiente pasada" 'WARN'
+    exit 0
+}
+
 W "Deploy FALLO para $(Short $target): LastTaskResult=$($info.LastTaskResult). Ver C:\arconet\deploy.log" 'ERROR'
 Set-Content -Path $StateFile -Value $target -Encoding ascii
 exit 1

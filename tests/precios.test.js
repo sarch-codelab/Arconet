@@ -348,11 +348,13 @@ describe("publicación con esquema actualizado", () => {
       new URL("../deploy.ps1", import.meta.url),
       "utf8",
     );
-    const migrationStep = deploy.slice(
-      deploy.indexOf("Applying database migrations..."),
-      deploy.indexOf("# 6. Build"),
-    );
-    expect(migrationStep).toContain('Fail "prisma migrate deploy failed');
-    expect(migrationStep).not.toContain("(se continua)");
+    const migration = deploy.indexOf("Invoke-Npm -NpmArgs @('run', 'db:migrate')");
+    expect(migration).toBeGreaterThan(deploy.indexOf('Invoke-Boot $BootStop', deploy.indexOf("Invoke-Npm -NpmArgs @('run', 'build')")));
+    expect(migration).toBeLessThan(deploy.indexOf('git reset --hard $Target'));
+    // Invoke-Npm lanza al fallar; el catch restaura runtime y codigo, no continua.
+    expect(deploy).toContain('if ($LASTEXITCODE -ne 0) { throw');
+    expect(deploy).toContain('foreach ($name in $Saved)');
+    expect(deploy).toContain('git reset --hard $OldHead');
+    expect(deploy).toContain('Invoke-Boot $BootStart');
   });
 });

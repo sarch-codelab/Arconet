@@ -55,3 +55,25 @@ jobs:
           # el valor solo evita que falle algo que instancie Prisma.
           DATABASE_URL: 'postgresql://ci:ci@localhost:5432/ci?schema=public'
         run: npm run build
+
+  windows-deploy-syntax:
+    name: Windows PowerShell deployment syntax
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Validar scripts con Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          $files = @('deploy.ps1', 'ops/start-arconet.ps1', 'ops/watchdog.ps1', 'ops/poller.ps1')
+          foreach ($file in $files) {
+            $tokens = $null
+            $parseErrors = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile(
+              (Join-Path $PWD $file), [ref]$tokens, [ref]$parseErrors)
+            if ($parseErrors.Count -gt 0) {
+              $parseErrors | ForEach-Object { Write-Error $_ }
+              throw "Invalid PowerShell: $file"
+            }
+            Write-Host "Syntax OK: $file"
+          }

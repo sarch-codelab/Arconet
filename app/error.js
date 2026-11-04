@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { isChunkLoadError, retryViewError } from "@/lib/chunk-load-error";
 import { useEffect } from "react";
 
 /**
@@ -28,13 +29,14 @@ export default function ErrorBoundary({ error, reset }) {
     >
       <h1 style={{ fontSize: "1.4rem", margin: 0 }}>Algo salió mal</h1>
       <p style={{ maxWidth: "32rem", margin: 0, opacity: 0.8 }}>
-        No pudimos cargar esta parte del sitio. Puede ser un problema temporal
-        de conexión o del servidor.
+        {isChunkLoadError(error)
+          ? "No se pudieron descargar los archivos de la página. Espera unos segundos y recarga. Se perderán los cambios que no hayas guardado."
+          : "No pudimos cargar esta parte del sitio. Puede ser un problema temporal de conexión o del servidor."}
       </p>
       <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
         <button
           type="button"
-          onClick={reset}
+          onClick={() => retryViewError(error, reset)}
           style={{
             padding: "10px 18px",
             borderRadius: "8px",
@@ -44,7 +46,7 @@ export default function ErrorBoundary({ error, reset }) {
             cursor: "pointer",
           }}
         >
-          Reintentar
+          {isChunkLoadError(error) ? "Recargar página" : "Reintentar"}
         </button>
         <Link
           href="/"

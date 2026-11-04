@@ -26,6 +26,18 @@ function Write-Log {
         -Encoding UTF8
 }
 
+# No competir con una promocion intencional. La existencia del archivo NO basta:
+# un deploy terminado/abortado libera el handle y el watchdog vuelve a actuar.
+$deployGuard = $null
+try {
+    $deployGuard = [System.IO.File]::Open((Join-Path $LogDir 'deploy.lock'), 'OpenOrCreate', 'ReadWrite', 'None')
+} catch {
+    Write-Log 'Deploy activo: se omite el reinicio del watchdog'
+    exit 0
+}
+# Mantener la guardia hasta terminar tambien impide que un deploy comience
+# mientras este watchdog esta reiniciando la app.
+
 $healthy = $false
 try {
     $r = Invoke-WebRequest -Uri "http://127.0.0.1:$Port/" -UseBasicParsing -TimeoutSec 10
