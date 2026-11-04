@@ -57,6 +57,8 @@
 .search span { font-size: 22px; line-height: 1; }
 .search input { padding-left: 0; border: 0; box-shadow: none !important; background: transparent; }
 .filterScroll { display: flex; gap: 7px; overflow-x: auto; padding: 1px 0 6px; }
+.filterScroll[data-pill-overflow="true"] { cursor: grab; }
+.filterScroll[data-pill-dragging="true"] { cursor: grabbing; user-select: none; }
 .filterScroll button { min-height: 44px; flex: 0 0 auto; padding: 0 12px; border: 1px solid var(--border); border-radius: 999px; background: var(--bg-card); color: var(--text-muted); font: inherit; font-size: 11px; cursor: pointer; }
 .filterScroll .filterActive { border-color: var(--blue, #2563eb); background: var(--blue, #2563eb); color: #fff; }
 .workspace { min-height: 480px; display: grid; grid-template-columns: minmax(280px, .78fr) minmax(0, 1.45fr); align-items: start; gap: 16px; }
