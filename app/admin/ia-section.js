@@ -29,7 +29,7 @@ export default function IaSection({ session }) {
   }
 
   useEffect(() => {
-    if (transcript.current) transcript.current.scrollTop = transcript.current.scrollHeight;
+    if (transcript.current) transcript.current.scrollTop = messages.length ? transcript.current.scrollHeight : 0;
   }, [messages]);
 
   async function send(event) {
@@ -67,22 +67,23 @@ export default function IaSection({ session }) {
   }
 
   return <>
-    <Topbar title="IA" subtitle="Tu asistente de inteligencia artificial con NVIDIA." session={session} />
+    <Topbar title="IA" subtitle="Monica IA, tu asistente de inteligencia artificial con NVIDIA." session={session} />
     <section className={styles.panel} aria-labelledby="ai-chat-title">
       <header className={styles.header}>
-        <AiOrb size={64} />
-        <div><p className={styles.eyebrow}>ARCONET · NVIDIA</p><h2 id="ai-chat-title">Asistente de Arconet</h2></div>
+        <div><p className={styles.eyebrow}>ARCONET · NVIDIA</p><h2 id="ai-chat-title">Monica IA</h2></div>
         <button type="button" className={styles.close} aria-label="Nueva conversación" onClick={reset}><RotateCcw size={18} /></button>
       </header>
       <p id="ai-chat-description" className={styles.preview}><span /> Asistente con NVIDIA · Las respuestas pueden contener errores</p>
       <div ref={transcript} className={styles.messages} role="log" aria-label="Mensajes del chat" aria-live="polite" aria-relevant="additions">
         {!messages.length && <div className={styles.welcome}>
+          <div className={styles.welcomeOrb}><AiOrb size={160} /></div>
+          <p className={styles.orbName}>Monica IA</p>
           <p className={styles.kicker}>TU ESPACIO PARA CONECTAR</p>
           <h3>¿Qué tienes<br />en mente?</h3>
           <p>Un punto de partida para explorar Arconet.</p>
           <div className={styles.suggestions}>{suggestions.map(text => <button type="button" key={text} onClick={() => { setDraft(text); input.current?.focus(); }}>{text}<span aria-hidden="true">↗</span></button>)}</div>
         </div>}
-        {messages.map((message, index) => <div key={index} className={styles.message}><span>{message.role === "user" ? "Tú" : "Arconet IA"}</span><p>{message.content}</p></div>)}
+        {messages.map((message, index) => <div key={index} className={styles.message}><span>{message.role === "user" ? "Tú" : "Monica IA"}</span><p>{message.content}</p></div>)}
         {busy && <p role="status">Consultando a NVIDIA…</p>}
       </div>
       <footer className={styles.footer}>

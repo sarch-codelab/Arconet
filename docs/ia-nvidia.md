@@ -34,3 +34,7 @@ APP_ORIGIN="https://arconethn.com"
 Reiniciar/recrear el servicio tras cambiar el entorno. Debe ser el dominio HTTPS público, no `localhost`, la IP del servidor ni el HTTP interno del proxy. `www.arconethn.com` es otro origen: redirigirlo al dominio canónico, no ampliar permisos con comodines. La comparación ahora normaliza barras finales, espacios exteriores, mayúsculas del host y puertos predeterminados. No acepta orígenes ajenos ni confía en `Host`/`X-Forwarded-Host`. En producción la configuración ausente o inválida devuelve 503 `ai_origin_configuration`, con un mensaje accionable y sin exponer credenciales.
 
 Comprobación: Network → petición → Request Headers (`Origin`, `Sec-Fetch-Site`) y Response (`code`, `error`). No compartir cookies, claves ni cabeceras Authorization. Si la respuesta es HTML o no contiene esos códigos, revisar reglas del proxy/Cloudflare y su identificador de petición, sin desactivar el WAF completo ni el control de origen.
+
+## Nombre y bienvenida
+
+La asistente se presenta como **Monica IA** en el encabezado, las respuestas y el prompt del servidor. El orbe principal está centrado sobre «¿Qué tienes en mente?» y su subtítulo en la bienvenida; el orbe pequeño de la píldora administrativa se conserva. La bienvenida vuelve al inicio al crear una conversación nueva. No cambia el modelo, la autenticación ni la configuración de origen o credenciales.

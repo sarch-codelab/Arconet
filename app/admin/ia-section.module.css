@@ -8,11 +8,14 @@
 .close, .composer button { display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid #8885; border-radius: 10px; background: transparent; color: inherit; cursor: pointer; }
 .preview { padding: 0 20px; font-size: 11px; line-height: 1.5; }
 .messages { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 16px 20px; }
-.welcome { padding: 18px 0; }
+.welcome { padding: 18px 0; text-align: center; }
+.welcomeOrb { display: flex; justify-content: center; margin-bottom: 0; }
+.welcome > .orbName { font-family: var(--font-display), system-ui, sans-serif; font-size: clamp(22px, 3vw, 28px); font-weight: 600; line-height: 1.3; letter-spacing: .08em; margin: -10px 0 22px; color: #4936ad; }
+:global(html[data-theme="dark"]) .welcome > .orbName { color: #c8b8ff; }
 .chatIcon { margin-bottom: 20px; }
 .welcome h3 { font-size: 36px; line-height: 1.1; margin: 16px 0; }
 .welcome > p { font-size: 13px; line-height: 1.6; }
-.suggestions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 24px; }
+.suggestions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 24px auto 0; max-width: 640px; }
 .suggestions button { display: flex; gap: 8px; text-align: left; font: inherit; font-size: 12px; line-height: 1.5; padding: 12px; border: 1px solid #8885; border-radius: 12px; color: inherit; background: transparent; cursor: pointer; }
 .footer { padding: 12px 16px; }
 .composer { display: flex; align-items: flex-end; gap: 10px; padding: 12px; border: 1px solid #8887; border-radius: 14px; }
