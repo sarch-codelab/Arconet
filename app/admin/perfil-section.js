@@ -1,4 +1,5 @@
 "use client";
+import CodeSlots from "@/components/ui/code-slots/code-slots";
 import { EditDialog } from "./edit-dialog";
 
 import { apiFetch as fetch } from "@/lib/api-fetch";
@@ -22,6 +23,7 @@ export default function MiPerfilSection({ session, workers = [], sucursales = []
   const [activity, setActivity] = useState([]);
   const [profileError, setProfileError] = useState("");
   const [twoFactorFlow, setTwoFactorFlow] = useState(null);
+  const [codeStatus, setCodeStatus] = useState("idle");
   const [sessions, setSessions] = useState([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [sessionsError, setSessionsError] = useState("");
@@ -155,6 +157,7 @@ export default function MiPerfilSection({ session, workers = [], sucursales = []
   };
 
   const startTwoFactorSetup = async () => {
+    setCodeStatus("idle");
     setSaving(true);
     try {
       const response = await fetch("/api/perfil/2fa", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "setup" }) });
@@ -167,16 +170,17 @@ export default function MiPerfilSection({ session, workers = [], sucursales = []
 
   const submitTwoFactor = async (event) => {
     event.preventDefault();
-    if (!twoFactorFlow || saving) return;
+    if (!twoFactorFlow || saving || codeStatus !== "idle") return;
     setSaving(true);
     try {
       const response = await fetch("/api/perfil/2fa", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: twoFactorFlow.mode === "setup" ? "enable" : "disable", codigo: twoFactorFlow.codigo, ...(twoFactorFlow.mode === "disable" ? { password: twoFactorFlow.password } : {}) }) });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || "No se pudo actualizar la autenticación.");
-      setTwoFactorFlow(null);
+      setCodeStatus("success");
       await refreshProfile();
+      setTwoFactorFlow(null);
       show(data.enabled ? "Autenticación en dos pasos activada." : "Autenticación en dos pasos desactivada.");
-    } catch (error) { show(error.message, "error"); }
+    } catch (error) { setCodeStatus("error"); show(error.message, "error"); }
     finally { setSaving(false); }
   };
 
@@ -414,7 +418,7 @@ export default function MiPerfilSection({ session, workers = [], sucursales = []
               <div className={styles.securityCard}>
                 <h4><ShieldCheck size={16} /> Autenticación de dos factores (2FA)</h4>
                 <p>{profile?.twoFactorEnabled ? "Tu cuenta solicita un código de autenticación además de la contraseña al iniciar sesión." : "Protege tu cuenta con un código temporal de una aplicación de autenticación."}</p>
-                <button type="button" className={profile?.twoFactorEnabled ? styles.dangerBtn : styles.ghostBtn} disabled={saving} onClick={profile?.twoFactorEnabled ? () => setTwoFactorFlow({ mode: "disable", secret: "", uri: "", codigo: "", password: "" }) : startTwoFactorSetup}>
+                <button type="button" className={profile?.twoFactorEnabled ? styles.dangerBtn : styles.ghostBtn} disabled={saving} onClick={profile?.twoFactorEnabled ? () => { setCodeStatus("idle"); setTwoFactorFlow({ mode: "disable", secret: "", uri: "", codigo: "", password: "" }); } : startTwoFactorSetup}>
                   <ShieldCheck size={14} /> {profile?.twoFactorEnabled ? "Desactivar verificación en dos pasos" : "Configurar verificación en dos pasos"}
                 </button>
               </div>
@@ -461,8 +465,8 @@ export default function MiPerfilSection({ session, workers = [], sucursales = []
               <h3><ShieldCheck size={20} /> {twoFactorFlow.mode === "setup" ? "Configurar verificación en dos pasos" : "Desactivar verificación en dos pasos"}</h3>
               {twoFactorFlow.mode === "setup" ? <div className={styles.twofaSetup}><p>Agrega esta clave manualmente en tu aplicación de autenticación. La clave se guarda cifrada.</p><code className={styles.totpSecret}>{twoFactorFlow.secret}</code><a className={styles.clearBtn} href={twoFactorFlow.uri}>Abrir en una aplicación compatible</a><p className={styles.twofaNote}>Ingresa el código actual para confirmar la configuración.</p></div> : <div className={styles.modalField}><label>Contraseña actual</label><input type="password" autoComplete="current-password" value={twoFactorFlow.password} onChange={(event) => setTwoFactorFlow((current) => ({ ...current, password: event.target.value }))} required /></div>}
               <form onSubmit={submitTwoFactor}>
-                <div className={styles.modalField}><label>Código de autenticación</label><input type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} value={twoFactorFlow.codigo} onChange={(event) => setTwoFactorFlow((current) => ({ ...current, codigo: event.target.value.replace(/\D/g, "").slice(0, 6) }))} required /></div>
-                <footer className={styles.modalActions}><button type="button" className={styles.ghostBtn} onClick={() => setTwoFactorFlow(null)}>Cancelar</button><button type="submit" className={styles.submit} disabled={saving}>{saving ? "Verificando…" : twoFactorFlow.mode === "setup" ? "Activar" : "Desactivar"}</button></footer>
+                <div className={styles.modalField}><label>Código de autenticación</label><CodeSlots value={twoFactorFlow.codigo} status={codeStatus} disabled={saving} onChange={code => { setCodeStatus("idle"); setTwoFactorFlow(current => current ? { ...current, codigo: code } : null); }} /></div>
+                <footer className={styles.modalActions}><button type="button" className={styles.ghostBtn} onClick={() => setTwoFactorFlow(null)}>Cancelar</button><button type="submit" className={styles.submit} disabled={saving || codeStatus !== "idle"}>{saving ? "Verificando…" : twoFactorFlow.mode === "setup" ? "Activar" : "Desactivar"}</button></footer>
               </form>
             </div>
           </DialogBackdrop>

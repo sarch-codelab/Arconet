@@ -1,4 +1,5 @@
 "use client";
+import CodeSlots from "@/components/ui/code-slots/code-slots";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { qrRequest } from "../qr-login";
@@ -9,6 +10,7 @@ export default function ApproveView() {
   const [error, setError] = useState("");
   const [checked, setChecked] = useState(false);
   const [codigo, setCodigo] = useState("");
+  const [codeStatus, setCodeStatus] = useState("idle");
   const [signedOut, setSignedOut] = useState(false);
   useEffect(() => {
     const controller = new AbortController();
@@ -26,12 +28,14 @@ export default function ApproveView() {
     return () => controller.abort();
   }, []);
   async function decide(approve) {
+    if (status === "sending" || (approve && codeStatus !== "idle")) return;
     setError(""); setStatus("sending");
     try {
       await qrRequest({ action: approve ? "approve" : "reject", id: info.id, token: info.token, codigo });
+      if (approve) setCodeStatus("success");
       setStatus(approve ? "approved" : "rejected");
       window.history.replaceState(window.history.state, "", window.location.pathname);
-    } catch (e) { setError(e.message); setStatus(e.status === 410 || e.status === 401 ? "error" : "ready"); }
+    } catch (e) { if (approve && info.twoFactorRequired) setCodeStatus("error"); setError(e.message); setStatus(e.status === 410 || e.status === 401 ? "error" : "ready"); }
   }
   return <main className={styles.phone}><section className={styles.card} aria-label="Aprobar acceso a otra computadora">
     <h1>Acceso rápido a Arconet</h1>
@@ -43,8 +47,8 @@ export default function ApproveView() {
       <strong className={styles.code}>{info.codigo}</strong>
       <p className={styles.help}>Válido hasta {new Date(info.expiresAt).toLocaleTimeString()}. Si el teléfono no es tuyo, no continúes.</p>
       <label className={styles.confirm}><input type="checkbox" checked={checked} onChange={e => setChecked(e.target.checked)} />El código coincide y quiero abrir mi cuenta en esa computadora.</label>
-      {info.twoFactorRequired && <label className={styles.field}>Código de tu aplicación de autenticación<input autoComplete="one-time-code" inputMode="numeric" maxLength={6} value={codigo} onChange={e => setCodigo(e.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="000000" /></label>}
-      <button className={styles.approve} type="button" disabled={!checked || status === "sending" || (info.twoFactorRequired && codigo.length !== 6)} onClick={() => decide(true)}>Aprobar acceso a la computadora</button>
+      {info.twoFactorRequired && <label className={styles.field}>Código de tu aplicación de autenticación<CodeSlots value={codigo} status={codeStatus} disabled={status === "sending"} onChange={code => { setCodigo(code); setCodeStatus("idle"); }} /></label>}
+      <button className={styles.approve} type="button" disabled={!checked || status === "sending" || codeStatus !== "idle" || (info.twoFactorRequired && codigo.length !== 6)} onClick={() => decide(true)}>Aprobar acceso a la computadora</button>
       <button className={styles.secondary} type="button" disabled={status === "sending"} onClick={() => decide(false)}>Rechazar acceso</button>
     </> : null}
     {error && <p className={styles.error} role="alert">{error}</p>}

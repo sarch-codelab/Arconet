@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useSyncExternalStore } from "react";
+import { animateThemeChange, cancelThemeTransition } from "@/lib/theme-transition";
 import { resolvePanelTheme } from "@/lib/panel-theme";
 import { Clock, Moon, Sun } from "lucide-react";
 
@@ -34,8 +35,10 @@ function applyTheme(theme) {
 // pierde en cuanto el otro componente vuelve a aplicar el suyo.
 function readStoredMode() {
   if (typeof window === "undefined") return "auto";
-  const stored = window.localStorage.getItem(THEME_KEY);
-  return MODES.includes(stored) ? stored : "auto";
+  try {
+    const stored = window.localStorage.getItem(THEME_KEY);
+    return MODES.includes(stored) ? stored : "auto";
+  } catch { return "auto"; }
 }
 
 let currentMode = readStoredMode();
@@ -63,8 +66,10 @@ export function setThemeMode(next) {
   if (!MODES.includes(next) || next === currentMode) return;
   currentMode = next;
   applyTheme(resolveTheme(next));
-  if (next === "auto") window.localStorage.removeItem(THEME_KEY);
-  else window.localStorage.setItem(THEME_KEY, next);
+  try {
+    if (next === "auto") window.localStorage.removeItem(THEME_KEY);
+    else window.localStorage.setItem(THEME_KEY, next);
+  } catch { /* Restricted storage still allows an in-memory theme choice. */ }
   syncAutoTimer();
   listeners.forEach((listener) => listener());
 }
@@ -75,8 +80,9 @@ export function setAdminTheme(mode) {
   applyTheme(resolveTheme(currentMode));
 }
 
-export function cycleThemeMode() {
-  setThemeMode(MODES[(MODES.indexOf(currentMode) + 1) % MODES.length]);
+export function cycleThemeMode(event) {
+  const next = MODES[(MODES.indexOf(currentMode) + 1) % MODES.length];
+  return animateThemeChange(event?.currentTarget, () => setThemeMode(next));
 }
 
 function subscribeTheme(listener) {
@@ -114,6 +120,7 @@ export function useThemeMode() {
 }
 
 export default function ThemeToggle() {
+  useEffect(() => cancelThemeTransition, []);
   const { mode, theme, label, Icon, cycle } = useThemeMode();
   // En el panel el botón flotante quedaba encima de tablas y formularios:
   // robaba clics y cambiaba el tema sin querer. Ahí el tema se controla desde

@@ -15,7 +15,8 @@ export default defineConfig({
       // fallaban al parsear el JSX.
       const normalize = (value) => value.replace(/\\/g, "/");
       const appDirectory = normalize(fileURLToPath(new URL("./app/", import.meta.url)));
-      if (normalize(filename).startsWith(appDirectory) && filename.endsWith(".js")) {
+      const componentDirectory = normalize(fileURLToPath(new URL("./components/", import.meta.url)));
+      if ((normalize(filename).startsWith(appDirectory) || normalize(filename).startsWith(componentDirectory)) && filename.endsWith(".js")) {
         return transformWithEsbuild(source, filename, { loader: "jsx", jsx: "automatic" });
       }
     },

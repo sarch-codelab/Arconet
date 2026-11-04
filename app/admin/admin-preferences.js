@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { apiFetch } from "@/lib/api-fetch";
 import { PANEL_THEMES } from "@/lib/panel-theme";
+import { animateThemeChange } from "@/lib/theme-transition";
 import { setAdminTheme } from "../theme-toggle";
 import styles from "./admin-experience.module.css";
 import appearance from "./admin-preferences.module.css";
@@ -49,15 +50,15 @@ export function AdminPreferences({ children, account }) {
       setAdminTheme(null);
     };
   }, [account]);
-  async function update(theme) {
+  async function update(theme, origin) {
     if (!PANEL_THEMES.includes(theme) || inFlight.current) return;
     const previous = mode;
     inFlight.current = true;
     setSaving(true);
-    setMode(theme);
-    setAdminTheme(theme);
     setError("");
     try {
+      const changed = await animateThemeChange(origin, () => { setMode(theme); setAdminTheme(theme); });
+      if (!changed) return;
       const response = await apiFetch("/api/perfil/preferencias", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -112,7 +113,7 @@ export function AppearanceSettings() {
                 name="panel-theme"
                 value={mode}
                 checked={theme.mode === mode}
-                onChange={() => theme.update(mode)}
+                onChange={event => theme.update(mode, event.currentTarget)}
               />
               <span>{label}</span>
             </label>

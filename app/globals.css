@@ -173,3 +173,17 @@ textarea {
 body {
   --sileo-width: min(350px, calc(100vw - 28px));
 }
+/* Theme reveal only: do not override navigation or other view transitions. */
+html[data-arconet-theme-vt="active"]::view-transition-old(root),
+html[data-arconet-theme-vt="active"]::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+html[data-arconet-theme-vt="active"]::view-transition-group(root) {
+  animation-duration: var(--theme-vt-duration, 400ms);
+}
+html[data-arconet-theme-vt="active"]::view-transition-old(root) { z-index: 0; }
+html[data-arconet-theme-vt="active"]::view-transition-new(root) {
+  z-index: 1;
+  clip-path: var(--theme-vt-from);
+}
