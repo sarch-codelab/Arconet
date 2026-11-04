@@ -53,6 +53,11 @@ function Assert-Healthy {
         ($health.Content | ConvertFrom-Json).status -ne 'ok') { throw 'Health check HTML/BD fallo' }
     $manifest = Invoke-WebRequest 'http://127.0.0.1:3000/manifest.webmanifest' -UseBasicParsing -TimeoutSec 15
     if ($manifest.StatusCode -ne 200) { throw 'Manifest no disponible' }
+    # El build promovido debe usar Webpack. El runtime de Turbopack puede
+    # fallar en el navegador con «module factory is not available»; el build
+    # oficial usa 'next build --webpack' (ver docs/module-factory-recovery.md).
+    if ($home.Content -match '(?i)turbopack') { throw 'El build promovido usa Turbopack; se exige next build --webpack' }
+    if (-not [regex]::IsMatch($home.Content, '/_next/static/chunks/webpack-[^"<> ]+\.js')) { throw 'El HTML promovido no carga un runtime Webpack' }
     $chunk = [regex]::Match($home.Content, '/_next/static/[^"<> ]+\.js(?:\?[^"<> ]*)?').Value
     if (-not $chunk) { throw 'HTML sin chunk verificable' }
     $asset = Invoke-WebRequest ("http://127.0.0.1:3000" + [System.Net.WebUtility]::HtmlDecode($chunk)) -UseBasicParsing -TimeoutSec 15

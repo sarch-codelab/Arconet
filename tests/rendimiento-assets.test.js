@@ -63,17 +63,35 @@ describe("las fuentes no se precargan donde no se utilizan", () => {
 });
 
 describe("el beacon de Cloudflare no se inyecta en páginas privadas", () => {
-  it("marca sólo el HTML administrativo como privado y no transformable", async () => {
+  const RUTAS_PRIVADAS = [
+    "/admin/:path*",
+    "/panel-administrativo/:path*",
+    "/login",
+    "/recuperar",
+    "/verificar",
+    "/registro",
+    "/cliente/:path*",
+  ];
+  it("marca el HTML privado como no cacheable y no transformable", async () => {
     const { default: config } = await import("../next.config.mjs");
     const rules = await config.headers();
-    const privateRules = rules.filter(({ source }) => ["/admin/:path*", "/panel-administrativo/:path*"].includes(source));
-    expect(privateRules.map(({ source }) => source)).toEqual(["/admin/:path*", "/panel-administrativo/:path*"]);
+    const privateRules = rules.filter(({ source }) => RUTAS_PRIVADAS.includes(source));
+    expect(privateRules.map(({ source }) => source)).toEqual(RUTAS_PRIVADAS);
     for (const { headers } of privateRules) {
       expect(headers.find(({ key }) => key === "Cache-Control")?.value).toBe("private, no-store, no-transform");
     }
     // No convertir el sitio público en no-store ni desactivar sus optimizaciones.
     const general = rules.find(({ source }) => source === "/(.*)");
     expect(general.headers.some(({ key }) => key === "Cache-Control")).toBe(false);
+  });
+  it("no marca como privadas las páginas públicas que sí usan analítica", async () => {
+    const { default: config } = await import("../next.config.mjs");
+    const rules = await config.headers();
+    const fuentes = rules.map(({ source }) => source);
+    for (const publica of ["/tienda", "/contacto", "/terminos", "/garantias", "/ayuda", "/cookies", "/privacidad", "/aviso-legal"]) {
+      expect(fuentes).not.toContain(publica);
+      expect(fuentes).not.toContain(`${publica}/:path*`);
+    }
   });
 });
 
