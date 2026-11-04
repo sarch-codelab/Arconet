@@ -56,6 +56,19 @@ jobs:
           DATABASE_URL: 'postgresql://ci:ci@localhost:5432/ci?schema=public'
         run: npm run build
 
+      - name: Verificar bundler de producción
+        # El runtime de Turbopack puede fallar en el navegador con «module
+        # factory is not available». El build oficial es Webpack; si alguien
+        # cambia el script o compila sin --webpack, el despliegue se detiene
+        # aquí en lugar de llegar a los usuarios.
+        run: |
+          test -f .next/BUILD_ID
+          test -n "$(ls .next/static/chunks/webpack-*.js 2>/dev/null || true)"
+          if [ -n "$(find .next/static -iname '*turbopack*' -print -quit)" ]; then
+            echo "El build contiene archivos de Turbopack; se exige 'next build --webpack'." >&2
+            exit 1
+          fi
+
   windows-deploy-syntax:
     name: Windows PowerShell deployment syntax
     runs-on: windows-latest
