@@ -1,4 +1,6 @@
 "use client";
+import { AnimatePresence } from "motion/react";
+import { EditDialog } from "./edit-dialog";
 import { useEffect, useRef, useState } from "react";
 import { purchaseRequest } from "./compras-ui";
 import admin from "./admin-experience.module.css";
@@ -198,9 +200,10 @@ export default function ProvidersPanel({ session }) {
           </button>
         ) : null}
       </div>
-      {editing ? (
+      <AnimatePresence>{editing ? (
+        <EditDialog key={editing.id || "new"} editing={Boolean(editing.id)} inline label="Editar proveedor"
+          onDismiss={() => { if (!busy) setEditing(null); }}>
         <ProviderForm
-          key={editing.id || "new"}
           initial={editing}
           onBusy={setBusy}
           onCancel={() => setEditing(null)}
@@ -209,7 +212,8 @@ export default function ProvidersPanel({ session }) {
             setRefresh((n) => n + 1);
           }}
         />
-      ) : null}
+        </EditDialog>
+      ) : null}</AnimatePresence>
       {error ? (
         <p role="alert">
           {error}{" "}

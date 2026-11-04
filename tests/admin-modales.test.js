@@ -158,9 +158,8 @@ describe("emergentes del panel: deslice con el mouse", () => {
 });
 
 describe("emergentes del panel: montaje en el cuerpo del documento", () => {
-  it("todas las emergentes de las secciones usan el velo compartido", () => {
+  it("las emergentes clásicas conservan el velo compartido (categorías usa React Aria Sheet)", () => {
     const sections = [
-      "app/admin/categorias-section.js",
       "app/admin/clientes-section.js",
       "app/admin/sucursales-section.js",
       "app/admin/workers-section.js",
@@ -176,7 +175,7 @@ describe("emergentes del panel: montaje en el cuerpo del documento", () => {
     ];
     for (const path of sections) {
       const source = read(path);
-      expect(source, `${path} debe usar DialogBackdrop`).toContain("DialogBackdrop");
+      expect(source, `${path} debe usar un contenedor accesible compartido`).toMatch(/DialogBackdrop|EditDialog/);
       // El velo se pasa como prop de DialogBackdrop; no puede repetirse como
       // el contenedor manual anterior (`<div className={styles.overlay}>`).
       expect(source, `${path} no debe repetir el velo manual`).not.toMatch(
@@ -187,7 +186,6 @@ describe("emergentes del panel: montaje en el cuerpo del documento", () => {
 
   it("cada dialogo declara su propio contenedor de arrastre", () => {
     const dialogs = [
-      "app/admin/categorias-section.js",
       "app/admin/clientes-section.js",
       "app/admin/sucursales-section.js",
       "app/admin/workers-section.js",

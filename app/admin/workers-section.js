@@ -17,8 +17,7 @@ import {
   updateWorker,
 } from "./workers-store";
 import { SUPER_ROLE } from '@/lib/permisos';
-import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
-import { DialogBackdrop } from "./admin-overlay";
+import { EditDialog } from "./edit-dialog";
 import { Topbar, SectionMarker } from "./topbar";
 import filters from "./list-filters.module.css";
 
@@ -72,8 +71,6 @@ export default function WorkersSection({ workers = [], setWorkers, roles = [], s
     }
   }
 
-  useEscapeKey(modalOpen, () => closeModal());
-  useBodyScrollLock(modalOpen);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -129,7 +126,6 @@ export default function WorkersSection({ workers = [], setWorkers, roles = [], s
 
   function closeModal() {
     setModalOpen(false);
-    setEditingId(null);
   }
 
   function changeField(field, value) {
@@ -375,8 +371,7 @@ export default function WorkersSection({ workers = [], setWorkers, roles = [], s
         </section>
       </div>
 
-      {modalOpen && (
-        <DialogBackdrop onDismiss={closeModal}>
+      <EditDialog open={modalOpen} editing={Boolean(editingId)} onDismiss={closeModal}>
           <div className={styles.modal} data-drag-scroll="" data-lenis-prevent="" role="dialog" aria-modal="true" aria-label={editingId ? "Editar trabajador" : "Nuevo trabajador"}>
             <header className={styles.modalHead}>
               <div>
@@ -526,8 +521,7 @@ export default function WorkersSection({ workers = [], setWorkers, roles = [], s
               </footer>
             </form>
           </div>
-        </DialogBackdrop>
-      )}
+        </EditDialog>
 
       {confirmWorker && (
         <ConfirmDialog

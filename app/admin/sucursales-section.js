@@ -5,8 +5,7 @@ import { Building2, Check, Pencil, Plus, Search, Trash2, X } from "lucide-react"
 import styles from "./admin-experience.module.css";
 import filters from "./list-filters.module.css";
 import { useToast, notifyError, ConfirmDialog } from "./admin-ui";
-import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
-import { DialogBackdrop } from "./admin-overlay";
+import { EditDialog } from "./edit-dialog";
 import { Topbar, SectionMarker } from "./topbar";
 import {
   createSucursal,
@@ -37,8 +36,6 @@ export default function SucursalesSection({ sucursales = [], setSucursales, work
   const [confirmSucursal, setConfirmSucursal] = useState(null);
   const { show } = useToast();
 
-  useEscapeKey(modalOpen, () => closeModal());
-  useBodyScrollLock(modalOpen);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -82,7 +79,6 @@ export default function SucursalesSection({ sucursales = [], setSucursales, work
 
   function closeModal() {
     setModalOpen(false);
-    setEditingId(null);
   }
 
   function changeField(field, value) {
@@ -247,8 +243,7 @@ export default function SucursalesSection({ sucursales = [], setSucursales, work
         </section>
       </div>
 
-      {modalOpen && (
-        <DialogBackdrop onDismiss={closeModal}>
+      <EditDialog open={modalOpen} editing={Boolean(editingId)} onDismiss={closeModal}>
           <div className={styles.modal} data-drag-scroll="" data-lenis-prevent="" role="dialog" aria-modal="true" aria-label={editingId ? "Editar sucursal" : "Nueva sucursal"}>
             <header className={styles.modalHead}>
               <div>
@@ -353,8 +348,7 @@ export default function SucursalesSection({ sucursales = [], setSucursales, work
               </footer>
             </form>
           </div>
-        </DialogBackdrop>
-      )}
+        </EditDialog>
 
       {confirmSucursal && (
         <ConfirmDialog

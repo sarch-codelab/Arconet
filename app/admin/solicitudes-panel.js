@@ -1,4 +1,5 @@
 "use client";
+import { EditDialog } from "./edit-dialog";
 
 import { apiFetch as fetch } from "@/lib/api-fetch";
 
@@ -205,6 +206,7 @@ export default function SolicitudesPanel({ session }) {
           <header className={styles.heading}><div><span className={styles.eyebrow}><Settings2 size={14} /> Administración</span><h2>Áreas responsables</h2><p>Configura las áreas disponibles y los roles que reciben sus órdenes.</p></div></header>
           {areaError && <div className={styles.error} role="alert"><AlertCircle size={17} />{areaError}<button type="button" onClick={loadAreas}>Reintentar</button></div>}
           <section className={styles.areaLayout}>
+            <EditDialog inline editing={Boolean(editingArea)} label="Editar área" onDismiss={() => { if (!saving) cancelEditArea(); }}>
             <form className={styles.createForm} onSubmit={saveArea}>
               <div className={styles.formHeader}><div><strong>{editingArea ? "Editar área" : "Agregar área"}</strong><p>El nombre y los roles quedan disponibles inmediatamente.</p></div>{editingArea && <button type="button" className={styles.closeButton} onClick={cancelEditArea} aria-label="Cancelar edición"><X size={17} /></button>}</div>
               <div className={styles.areaFormFields}>
@@ -213,6 +215,7 @@ export default function SolicitudesPanel({ session }) {
               </div>
               <div className={styles.formActions}>{editingArea && <button type="button" className={adminStyles.ghostBtn} onClick={cancelEditArea}>Cancelar</button>}<button type="submit" className={adminStyles.primaryBtn} disabled={saving || !areaDraft.roles.length}><Check size={15} /> {saving ? "Guardando…" : editingArea ? "Guardar cambios" : "Crear área"}</button></div>
             </form>
+            </EditDialog>
             <section className={styles.areaList} aria-label="Áreas configuradas">
               {areas.length ? areas.map((area) => <article className={styles.areaCard} key={area.id}>
                 <div className={styles.areaCardHead}><div><h3>{area.nombre}</h3><code>{area.slug}</code></div><span className={`${styles.areaState} ${area.activa ? styles.areaStateActive : ""}`}>{area.activa ? "Activa" : "Inactiva"}</span></div>

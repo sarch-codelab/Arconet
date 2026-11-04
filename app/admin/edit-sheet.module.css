@@ -1,0 +1,60 @@
+/* Dedicated React Aria Sheet: do not change shared dialogs in other sections. */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: rgb(5 12 24 / 48%);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  /* Form tokens must remain available after React Aria portals to body. */
+  --bg-card: var(--surface, #fff);
+  --bg-card-subtle: var(--surface-2, #f8f9fb);
+  --text-main: var(--ink, #111827);
+  --text-muted: var(--muted, #626a76);
+  --text-light: var(--muted, #6a7480);
+  --border: var(--line, #e5e7eb);
+  --border-subtle: var(--line, #f1f3f6);
+  --orange: #f97316;
+  --blue: #2563eb;
+}
+.panel {
+  position: fixed;
+  inset: 0 0 0 auto;
+  width: min(600px, 100%);
+  height: 100vh;
+  height: 100dvh;
+  min-width: 0;
+  color: var(--text-main);
+  background: var(--bg-card);
+  border-left: 1px solid var(--border);
+  box-shadow: -16px 0 60px rgb(0 0 0 / 18%);
+  overflow: hidden;
+}
+.dialog { display: flex; flex-direction: column; height: 100%; min-height: 0; outline: none; }
+.dialog > header { flex: none; padding-top: max(20px, env(safe-area-inset-top)); }
+.form {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  align-content: start;
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
+}
+.form > footer { margin-top: 8px; flex-wrap: wrap; }
+.dialog button:focus-visible, .form input:focus-visible, .form select:focus-visible, .form textarea:focus-visible {
+  outline: 2px solid var(--blue); outline-offset: 3px;
+}
+@media (max-width: 600px) {
+  .dialog > header { padding-inline: 18px; }
+  .form { padding-inline: 18px; }
+}
+/* Override legacy centered-modal geometry only inside an editing Sheet. */
+.dialog > .content {
+  width: 100% !important; max-width: none !important; height: 100%; max-height: none !important;
+  margin: 0 !important; border: 0 !important; border-radius: 0 !important;
+  box-shadow: none !important; animation: none !important; transform: none !important;
+  overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain;
+}
+.content > header { position: sticky; top: 0; z-index: 2; background: var(--bg-card); }
+.wide { width: min(960px, 100%); }
+.dialog { overflow-y: auto; }

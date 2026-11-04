@@ -1,4 +1,5 @@
 "use client";
+import { AnimatePresence } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { purchaseRequest, purchaseMoney } from "./compras-ui";
 import {
@@ -728,7 +729,7 @@ export default function ComprasPanel({ view, session, onViewChange }) {
           <p className={admin.empty}>Sin documentos para este filtro.</p>
         ) : null}
       </div>
-      {editing ? (
+      <AnimatePresence>{editing ? (
         <PurchaseEditor
           key={editing.id || tipo}
           initial={editing}
@@ -739,7 +740,7 @@ export default function ComprasPanel({ view, session, onViewChange }) {
             setRefresh((n) => n + 1);
           }}
         />
-      ) : null}
+      ) : null}</AnimatePresence>
       {detail ? (
         <PurchaseDetail
           order={detail}

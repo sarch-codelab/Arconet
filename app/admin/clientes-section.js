@@ -15,8 +15,7 @@ import {
   CLIENT_STATUSES,
 } from "./clientes-store";
 import { formatDate } from "./workers-store";
-import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
-import { DialogBackdrop } from "./admin-overlay";
+import { EditDialog } from "./edit-dialog";
 import { Topbar, SectionMarker } from "./topbar";
 
 export default function ClientesSection({ clientes = [], setClientes, setOrders, workers = [], session }) {
@@ -42,8 +41,6 @@ export default function ClientesSection({ clientes = [], setClientes, setOrders,
   const [confirmCliente, setConfirmCliente] = useState(null);
   const { show } = useToast();
 
-  useEscapeKey(modalOpen, () => closeModal());
-  useBodyScrollLock(modalOpen);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -97,7 +94,6 @@ export default function ClientesSection({ clientes = [], setClientes, setOrders,
 
   function closeModal() {
     setModalOpen(false);
-    setEditingId(null);
   }
 
   function changeField(field, value) {
@@ -291,8 +287,7 @@ export default function ClientesSection({ clientes = [], setClientes, setOrders,
         </section>
       </div>
 
-      {modalOpen && (
-        <DialogBackdrop onDismiss={closeModal}>
+      <EditDialog open={modalOpen} editing={Boolean(editingId)} onDismiss={closeModal}>
           <div className={styles.modal} data-drag-scroll="" data-lenis-prevent="" role="dialog" aria-modal="true" aria-label={editingId ? "Editar cliente" : "Nuevo cliente"}>
             <header className={styles.modalHead}>
               <div>
@@ -421,8 +416,7 @@ export default function ClientesSection({ clientes = [], setClientes, setOrders,
               </footer>
             </form>
           </div>
-        </DialogBackdrop>
-      )}
+        </EditDialog>
 
       {confirmCliente && (
         <ConfirmDialog

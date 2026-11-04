@@ -5,8 +5,7 @@ import { useMemo, useState } from "react";
 import { AlertTriangle, Check, Layers, Package, Pencil, Plus, RotateCw, Search, Trash2, X } from "lucide-react";
 import styles from "./admin-experience.module.css";
 import { Avatar, useToast, notifyError, ConfirmDialog } from "./admin-ui";
-import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
-import { DialogBackdrop } from "./admin-overlay";
+import { EditDialog } from "./edit-dialog";
 import { Topbar } from "./topbar";
 import {
   PRODUCT_CATEGORIES,
@@ -57,8 +56,6 @@ export default function ProductsSection({ products = [], setProducts, categorias
     }
   }
 
-  useEscapeKey(modalOpen, () => closeModal());
-  useBodyScrollLock(modalOpen);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -112,7 +109,6 @@ export default function ProductsSection({ products = [], setProducts, categorias
 
   function closeModal() {
     setModalOpen(false);
-    setEditingId(null);
   }
 
   return (
@@ -304,8 +300,7 @@ export default function ProductsSection({ products = [], setProducts, categorias
         </section>
       </div>
 
-      {modalOpen && (
-        <DialogBackdrop onDismiss={closeModal}>
+      <EditDialog open={modalOpen} editing={Boolean(editingId)} wide onDismiss={closeModal}>
           <div className={styles.modal} data-drag-scroll="" data-lenis-prevent="" role="dialog" aria-modal="true" aria-label={editingId ? "Editar producto" : "Nuevo producto"}>
             <header className={styles.modalHead}>
               <div>
@@ -332,8 +327,7 @@ export default function ProductsSection({ products = [], setProducts, categorias
               onCancel={closeModal}
             />
           </div>
-        </DialogBackdrop>
-      )}
+        </EditDialog>
 
       {confirmProduct && (
         <ConfirmDialog
