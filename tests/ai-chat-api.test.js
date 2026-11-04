@@ -20,6 +20,13 @@ describe("NVIDIA chat server proxy", () => {
     expect((await POST(request())).status).toBe(401);
     expect(fetch).not.toHaveBeenCalled();
   });
+  it.each(["administrador", "gerente", "tecnico", "ventas", "bodega", "lectura", "precios", "personalizado-sin-permisos"])("ofrece el mismo chat completo al rol %s", async rol => {
+    vi.mocked(requireSession).mockResolvedValue({ session: { sub: `usuario-${rol}`, rol }, response: null });
+    const response = await POST(request());
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ message: "Hola desde el proveedor" });
+    expect(fetch).toHaveBeenCalledOnce();
+  });
   it("envía credenciales solamente al proveedor con límites y prompt de servidor", async () => {
     const response = await POST(request());
     expect(response.status).toBe(200);

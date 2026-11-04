@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useSyncExternalStore } from "react";
 
@@ -13,10 +14,11 @@ const subscribe = callback => {
 const snapshot = () => window.matchMedia(query).matches;
 const serverSnapshot = () => false;
 
-export default function HomeTargetCursor({ container }) {
+export default function SiteTargetCursor() {
+  const pathname = usePathname();
   const enabled = useSyncExternalStore(subscribe, snapshot, serverSnapshot);
   if (!enabled) return null;
-  return <TargetCursor container={container}
+  return <TargetCursor key={pathname}
     targetSelector={'a[href], button:not(:disabled), [role="button"]:not([aria-disabled="true"])'}
     spinDuration={3} hoverDuration={0.24} size={30} cornerSize={9}
     thickness={2} dotSize={3} padding={5} hideDefaultCursor parallaxOn />;

@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import ContadorCifra from "./contador-cifra";
-import HomeTargetCursor from "./home-target-cursor";
 import HomeWarpQuote from "./home-warp-quote";
 import VideoFondoCTA from "./video-fondo-cta";
 import { observeNativeScroll } from "@/lib/native-scroll";
@@ -223,7 +222,6 @@ const COMMITMENTS = [
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 
 export default function HomeExperience({ categorias = [] }) {
-  const cursorScopeRef = useRef(null);
   const [activeSection, setActiveSection] = useState("inicio");
   const [activeSlide, setActiveSlide] = useState(0);
   const [scrollReady, setScrollReady] = useState(false);
@@ -670,8 +668,7 @@ useEffect(() => {
   };
 
   return (
-    <main className={styles.experience} ref={cursorScopeRef}>
-      <HomeTargetCursor container={cursorScopeRef} />
+    <main className={styles.experience}>
       {/* Panel de Soluciones del menú 1: mismo contenido que el menú de
           escritorio. Vive fuera del hero, en <main>, porque el hero recorta
           con overflow: hidden y un panel interno quedaría cortado. */}

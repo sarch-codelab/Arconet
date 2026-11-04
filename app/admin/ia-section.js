@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowUp, RotateCcw } from "lucide-react";
 import { Topbar } from "./topbar";
 import AiOrb from "../ai-orb";
+import ThoughtLine from "@/components/ui/thought-line/thought-line";
 import styles from "./ia-section.module.css";
 
 const suggestions = ["Explorar soluciones de fibra", "Consultar el catálogo", "Conocer los servicios", "Contactar con Arconet"];
@@ -13,6 +14,7 @@ export default function IaSection({ session }) {
   const transcript = useRef(null);
   const pending = useRef(null);
   const [busy, setBusy] = useState(false);
+  const [thought, setThought] = useState(null);
   const [error, setError] = useState("");
   const [draft, setDraft] = useState("");
   const [messages, setMessages] = useState([]);
@@ -23,6 +25,7 @@ export default function IaSection({ session }) {
     pending.current = null;
     setBusy(false);
     setMessages([]);
+    setThought(null);
     setDraft("");
     setError("");
     input.current?.focus();
@@ -30,7 +33,7 @@ export default function IaSection({ session }) {
 
   useEffect(() => {
     if (transcript.current) transcript.current.scrollTop = messages.length ? transcript.current.scrollHeight : 0;
-  }, [messages]);
+  }, [messages, busy]);
 
   async function send(event) {
     event.preventDefault();
@@ -44,6 +47,7 @@ export default function IaSection({ session }) {
     const controller = new AbortController();
     pending.current = controller;
     setBusy(true);
+    setThought({ id: crypto.randomUUID(), index: history.length, failed: false });
     setError("");
     setMessages(history);
     setDraft("");
@@ -58,6 +62,7 @@ export default function IaSection({ session }) {
       setMessages([...history, { role: "assistant", content: data.message }]);
     } catch (failure) {
       if (controller.signal.aborted) return;
+      setThought(current => current ? { ...current, failed: true } : null);
       setMessages(history.slice(0, -1));
       setDraft(text);
       setError(failure.message || "No se pudo enviar el mensaje.");
@@ -66,9 +71,13 @@ export default function IaSection({ session }) {
     }
   }
 
+  const thoughtLine = thought && <ThoughtLine key={thought.id} working={busy} label="Pensando…"
+    doneLabel={thought.failed ? "Solicitud finalizada sin respuesta" : "Respuesta preparada en"}
+    fontSize={14} collapsible={false} className={styles.thought} />;
+
   return <>
     <Topbar title="IA" subtitle="Monica IA, tu asistente de inteligencia artificial con NVIDIA." session={session} />
-    <section className={styles.panel} aria-labelledby="ai-chat-title">
+    <section className={styles.panel} data-border-glow="" aria-labelledby="ai-chat-title">
       <header className={styles.header}>
         <div><p className={styles.eyebrow}>ARCONET · NVIDIA</p><h2 id="ai-chat-title">Monica IA</h2></div>
         <button type="button" className={styles.close} aria-label="Nueva conversación" onClick={reset}><RotateCcw size={18} /></button>
@@ -81,8 +90,9 @@ export default function IaSection({ session }) {
           <p className={styles.kicker}>TU ESPACIO PARA CONECTAR</p>
           <div className={styles.suggestions}>{suggestions.map(text => <button type="button" key={text} onClick={() => { setDraft(text); input.current?.focus(); }}>{text}<span aria-hidden="true">↗</span></button>)}</div>
         </div>}
-        {messages.map((message, index) => <div key={index} className={styles.message}><span>{message.role === "user" ? "Tú" : "Monica IA"}</span><p>{message.content}</p></div>)}
-        {busy && <p role="status">Consultando a NVIDIA…</p>}
+        {messages.slice(0, thought?.index ?? messages.length).map((message, index) => <div key={index} className={styles.message}><span>{message.role === "user" ? "Tú" : "Monica IA"}</span><p>{message.content}</p></div>)}
+        {thoughtLine}
+        {thought && messages.slice(thought.index).map((message, index) => <div key={index} className={styles.message}><span>{message.role === "user" ? "Tú" : "Monica IA"}</span><p>{message.content}</p></div>)}
       </div>
       <footer className={styles.footer}>
         {error && <p role="alert" className={styles.notice}>{error}</p>}
