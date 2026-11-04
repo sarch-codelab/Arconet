@@ -144,13 +144,15 @@ export default function LoginView() {
               </button>
             </form>
 
-            <QrLogin />
-
             <p className={styles.loginFooter}>
               <Link href="/"><ArrowLeft size={14} /> Volver al inicio</Link>
             </p>
           </div>
         </section>
+
+        {/* El acceso con QR vive en el borde derecho de la tarjeta: un carril
+            con el icono centrado que despliega el panel hacia ese lado. */}
+        <QrLogin />
       </div>
     </main>
   );

@@ -19,7 +19,20 @@ export default function QrLogin() {
   const [error, setError] = useState("");
   const [seconds, setSeconds] = useState(120);
   const creating = useRef(null);
+  const closeButton = useRef(null);
+  const collapse = useRef(null);
+  const abierto = status !== "closed";
   useEffect(() => () => creating.current?.abort(), []);
+  // El foco entra en el panel al abrirlo y `Esc` lo pliega como un diálogo.
+  // La función de cierre se lee de una referencia para no volver a enfocar en
+  // cada render.
+  useEffect(() => {
+    if (!abierto) return;
+    closeButton.current?.focus({ preventScroll: true });
+    function onKey(event) { if (event.key === "Escape") collapse.current?.(); }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [abierto]);
   useEffect(() => {
     if (!challenge || status !== "waiting") return;
     const controller = new AbortController();
@@ -67,21 +80,51 @@ export default function QrLogin() {
     if (challenge) qrRequest({ action: "cancel", id: challenge.id }).catch(() => {});
     setChallenge(null); setStatus("closed"); setError("");
   }
-  return <section className={styles.root} aria-label="Acceso rápido con QR">
-    {status === "closed" ? <button type="button" className={styles.trigger} onClick={generate}><QrCode size={20} /> Acceso rápido con QR</button> : <>
-      <div className={styles.panel}>
-        <p className={styles.status} role="status">{status === "creating" ? "Generando QR seguro…" : status === "expired" ? "Este QR caducó." : status === "rejected" ? "El acceso fue rechazado." : status === "approved" ? "Acceso aprobado. Abriendo el panel…" : status === "waiting" ? "Escanea y aprueba desde tu teléfono" : "No se pudo completar el acceso."}</p>
-        {challenge && status === "waiting" && <>
-          <div className={styles.frame}><Image unoptimized src={challenge.image} alt="QR para aprobar el acceso a esta computadora" width={336} height={336} /></div>
-          <p className={styles.help}>Compara este código con el que aparece en tu teléfono:</p>
-          <strong className={styles.code}>{challenge.codigo}</strong>
-          <p className={styles.help}>Caduca en {seconds} s. Escanear no inicia sesión: debes aprobar en el teléfono.</p>
-        </>}
-        {error && <p className={styles.error} role="alert">{error}</p>}
-        <p className={styles.help}>Abre el QR en el mismo navegador del teléfono donde ya tienes una sesión administrativa. Nunca apruebes accesos que no hayas solicitado.</p>
-        {["expired", "rejected", "error"].includes(status) && <button className={styles.trigger} type="button" onClick={generate}>Generar otro QR</button>}
-        <button type="button" className={styles.secondary} onClick={close}><X size={16} /> Usar correo y contraseña</button>
+  return (
+    <section className={styles.root} data-qr-open={abierto ? "true" : "false"}>
+      {/* Carril derecho: solo el icono, centrado dentro de la tarjeta. Al
+          pulsarlo, el panel se extiende hacia la derecha. */}
+      <div className={styles.rail}>
+        <button
+          type="button"
+          className={styles.toggle}
+          onClick={abierto ? close : generate}
+          aria-expanded={abierto}
+          aria-controls="qr-login-panel"
+          aria-label={abierto ? "Cerrar acceso con QR" : "Acceso rápido con QR"}
+          title={abierto ? "Cerrar acceso con QR" : "Acceso rápido con QR"}
+        >
+          <QrCode size={20} aria-hidden="true" />
+        </button>
       </div>
-    </>}
-  </section>;
+      <div
+        className={styles.panel}
+        id="qr-login-panel"
+        role="region"
+        aria-label="Acceso rápido con QR"
+        aria-hidden={abierto ? undefined : "true"}
+      >
+        {abierto && (
+          <div className={styles.panelInner}>
+            <div className={styles.panelHead}>
+              <p className={styles.eyebrow}>Acceso rápido</p>
+              <button ref={closeButton} type="button" className={styles.close} onClick={close} aria-label="Cerrar acceso con QR">
+                <X size={16} aria-hidden="true" />
+              </button>
+            </div>
+            <p className={styles.status} role="status">{status === "creating" ? "Generando QR seguro…" : status === "expired" ? "Este QR caducó." : status === "rejected" ? "El acceso fue rechazado." : status === "approved" ? "Acceso aprobado. Abriendo el panel…" : status === "waiting" ? "Escanea y aprueba desde tu teléfono" : "No se pudo completar el acceso."}</p>
+            {challenge && status === "waiting" && <>
+              <div className={styles.frame}><Image unoptimized src={challenge.image} alt="QR para aprobar el acceso a esta computadora" width={336} height={336} /></div>
+              <p className={styles.help}>Compara este código con el que aparece en tu teléfono:</p>
+              <strong className={styles.code}>{challenge.codigo}</strong>
+              <p className={styles.help}>Caduca en {seconds} s. Escanear no inicia sesión: debes aprobar en el teléfono.</p>
+            </>}
+            {error && <p className={styles.error} role="alert">{error}</p>}
+            <p className={styles.help}>Abre el QR en el mismo navegador del teléfono donde ya tienes una sesión administrativa. Nunca apruebes accesos que no hayas solicitado.</p>
+            {["expired", "rejected", "error"].includes(status) && <button className={styles.trigger} type="button" onClick={generate}>Generar otro QR</button>}
+          </div>
+        )}
+      </div>
+    </section>
+  );
 }
