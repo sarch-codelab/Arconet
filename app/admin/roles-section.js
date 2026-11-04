@@ -10,8 +10,7 @@ import {
   SUPER_ROLE,
 } from '@/lib/permisos';
 import { ROLE_STATUSES, rolSlug, createRol, deleteRol, updateRol } from "./roles-store";
-import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
-import { DialogBackdrop } from "./admin-overlay";
+import { EditDialog } from "./edit-dialog";
 import { Topbar, SectionMarker } from "./topbar";
 import filters from "./list-filters.module.css";
 import { NAV } from "./admin-nav";
@@ -36,8 +35,6 @@ export default function RolesSection({ roles = [], setRoles, workers = [], sessi
   const canDelete = myPermisos.includes("roles:delete");
   const isSuperUser = session?.rol === SUPER_ROLE;
 
-  useEscapeKey(modalOpen, () => closeModal());
-  useBodyScrollLock(modalOpen);
 
   const stats = useMemo(() => ({
     total: roles.length,
@@ -83,7 +80,6 @@ export default function RolesSection({ roles = [], setRoles, workers = [], sessi
 
   function closeModal() {
     setModalOpen(false);
-    setEditingId(null);
   }
 
   function changeField(field, value) {
@@ -345,8 +341,7 @@ export default function RolesSection({ roles = [], setRoles, workers = [], sessi
         </section>
       </div>
 
-      {modalOpen && (
-        <DialogBackdrop onDismiss={closeModal}>
+      <EditDialog open={modalOpen} editing={Boolean(editingId)} wide onDismiss={closeModal}>
           <div
             className={`${styles.modal} ${styles.modalWide}`}
             data-drag-scroll=""
@@ -514,8 +509,7 @@ export default function RolesSection({ roles = [], setRoles, workers = [], sessi
               </footer>
             </form>
           </div>
-        </DialogBackdrop>
-      )}
+        </EditDialog>
 
       {confirmRole && (
         <ConfirmDialog

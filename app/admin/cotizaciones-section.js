@@ -28,8 +28,7 @@ import {
 } from "./orders-store";
 
 import { formatPrice } from "./products-store";
-import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
-import { DialogBackdrop } from "./admin-overlay";
+import { EditDialog } from "./edit-dialog";
 import { Topbar, SectionTabs } from "./topbar";
 import { SECTION_NAV_CONFIG } from "./admin-nav";
 
@@ -89,8 +88,6 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
     return () => window.removeEventListener("arconet:ventas-search", onGlobalSearch);
   }, []);
 
-  useEscapeKey(modalOpen, () => closeModal());
-  useBodyScrollLock(modalOpen);
 
   // Normaliza texto para buscar sin distinguir mayusculas ni tildes
   // ("Jose" encuentra "José", "OPTICA" encuentra "óptica").
@@ -206,7 +203,6 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
   function closeModal(force = false) {
     if ((submitting.current || clientBusy) && force !== true) return;
     setModalOpen(false);
-    setEditingId(null);
     setClientCreating(false);
   }
 
@@ -468,8 +464,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
         </>}
       </div>
 
-      {modalOpen && (
-        <DialogBackdrop className={`${styles.overlay} ${styles.centeredOverlay}`} onDismiss={closeModal}>
+      <EditDialog open={modalOpen} editing={Boolean(editingId)} wide className={`${styles.overlay} ${styles.centeredOverlay}`} onDismiss={closeModal}>
           <div className={styles.modal} data-drag-scroll="" data-lenis-prevent="" role="dialog" aria-modal="true" aria-label={editingId ? "Editar documento" : draft.tipo === "venta" ? "Nueva venta comercial" : "Nueva cotización"}>
             <header className={styles.modalHead}>
               <div>
@@ -584,8 +579,7 @@ export default function CotizacionesSection({ orders = [], setOrders, clientes =
               </footer>
             </form>
           </div>
-        </DialogBackdrop>
-      )}
+        </EditDialog>
 
       {confirmOrder && (
         <ConfirmDialog

@@ -10,8 +10,7 @@ import {
   businessPurchaseDate,
 } from "@/lib/compras-form";
 import { MAX_DOCUMENT_AMOUNT } from "@/lib/ventas-form";
-import { useBodyScrollLock, useEscapeKey } from "./use-body-scroll-lock";
-import { DialogBackdrop } from "./admin-overlay";
+import { EditDialog } from "./edit-dialog";
 import admin from "./admin-experience.module.css";
 import styles from "./compras-panel.module.css";
 const today = businessPurchaseDate;
@@ -43,10 +42,6 @@ export default function PurchaseEditor({ initial, tipo, onSaved, onClose }) {
   const lock = useRef(false),
     sequence = useRef(0);
   const blocked = busy || providerBusy;
-  useBodyScrollLock(true);
-  useEscapeKey(true, () => {
-    if (!blocked && !creating) onClose();
-  });
   const totals = purchaseTotals(draft.items),
     valid =
       draft.proveedorId &&
@@ -130,7 +125,7 @@ export default function PurchaseEditor({ initial, tipo, onSaved, onClose }) {
     }
   }
   return (
-    <DialogBackdrop
+    <EditDialog editing={Boolean(initial?.id)} wide
       className={styles.backdrop}
       onDismiss={() => {
         if (!blocked && !creating) onClose();
@@ -495,6 +490,6 @@ export default function PurchaseEditor({ initial, tipo, onSaved, onClose }) {
           </footer>
         </form>
       </section>
-    </DialogBackdrop>
+    </EditDialog>
   );
 }

@@ -7,8 +7,7 @@ import { Avatar, useToast, notifyError, ConfirmDialog } from "./admin-ui";
 import { compressImage } from "./image-utils";
 import { CATEGORY_STATUSES, categorySlug, createCategoria, deleteCategoria, updateCategoria } from "./categories-store";
 import { formatPrice } from "./products-store";
-import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
-import { DialogBackdrop } from "./admin-overlay";
+import { EditDialog } from "./edit-dialog";
 import { Topbar, SectionMarker } from "./topbar";
 import filters from "./list-filters.module.css";
 
@@ -33,9 +32,6 @@ export default function CategoriasSection({ categorias = [], setCategorias, prod
   const [draft, setDraft] = useState(EMPTY_CATEGORY);
   const [confirmCategory, setConfirmCategory] = useState(null);
   const { show } = useToast();
-
-  useEscapeKey(modalOpen, () => closeModal());
-  useBodyScrollLock(modalOpen);
 
   const counts = useMemo(() => {
     const map = {};
@@ -84,7 +80,6 @@ export default function CategoriasSection({ categorias = [], setCategorias, prod
 
   function closeModal() {
     setModalOpen(false);
-    setEditingId(null);
   }
 
   function changeField(field, value) {
@@ -312,9 +307,8 @@ export default function CategoriasSection({ categorias = [], setCategorias, prod
         </section>
       </div>
 
-      {modalOpen && (
-        <DialogBackdrop onDismiss={closeModal}>
-          <div className={styles.modal} data-drag-scroll="" data-lenis-prevent="" role="dialog" aria-modal="true" aria-label={editingId ? "Editar categoría" : "Nueva categoría"}>
+      <EditDialog open={modalOpen} editing={Boolean(editingId)} onDismiss={closeModal}>
+          <div className={styles.modal} data-drag-scroll="" role="dialog" aria-modal="true" aria-label={editingId ? "Editar categoría" : "Nueva categoría"}>
             <header className={styles.modalHead}>
               <div>
                 <p className={styles.eyebrow}>{editingId ? "Editar" : "Nueva"}</p>
@@ -412,8 +406,7 @@ export default function CategoriasSection({ categorias = [], setCategorias, prod
               </footer>
             </form>
           </div>
-        </DialogBackdrop>
-      )}
+      </EditDialog>
 
       {confirmCategory && (
         <ConfirmDialog

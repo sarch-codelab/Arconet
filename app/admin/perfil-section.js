@@ -1,4 +1,5 @@
 "use client";
+import { EditDialog } from "./edit-dialog";
 
 import { apiFetch as fetch } from "@/lib/api-fetch";
 
@@ -219,6 +220,7 @@ export default function MiPerfilSection({ session, workers = [], sucursales = []
         {["all", "appearance"].includes(activeTab) ? <AppearanceSettings /> : null}
 
         {activeTab === "all" && (
+          <EditDialog inline editing={editMode} label="Editar perfil" onDismiss={() => { if (!saving) handleCancel(); }}>
           <section className={styles.card} aria-label="Perfil de usuario">
             <header className={styles.cardHeader}>
               <h3><User size={18} /> Perfil</h3>
@@ -382,6 +384,7 @@ export default function MiPerfilSection({ session, workers = [], sucursales = []
               )}
             </form>
           </section>
+          </EditDialog>
         )}
 
         {activeTab === "activity" && (

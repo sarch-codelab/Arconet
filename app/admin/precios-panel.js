@@ -6,8 +6,7 @@ import { PRICE_LEVELS, parsePrices, validatePriceSet } from "@/lib/precios";
 import { formatPrice } from "./products-store";
 import { useToast } from "./admin-ui";
 import { SectionTabs } from "./topbar";
-import { useEscapeKey, useBodyScrollLock } from "./use-body-scroll-lock";
-import { DialogBackdrop } from "./admin-overlay";
+import { EditDialog } from "./edit-dialog";
 import adminStyles from "./admin-experience.module.css";
 import styles from "./precios-panel.module.css";
 const amount = (value) =>
@@ -54,8 +53,6 @@ export default function PreciosPanel({ hideNavigation = false,
   function close() {
     if (!busy.current) setSelected(null);
   }
-  useEscapeKey(Boolean(selected), close);
-  useBodyScrollLock(Boolean(selected));
   useEffect(() => {
     const onSearch = (event) => setQuery(String(event.detail || ""));
     window.addEventListener("arconet:ventas-search", onSearch);
@@ -258,9 +255,8 @@ export default function PreciosPanel({ hideNavigation = false,
           </article>
         ))}
       </div>
-      {selected && (
-        <DialogBackdrop className={`${adminStyles.overlay} ${adminStyles.centeredOverlay}`} onDismiss={close}>
-          <div
+      <EditDialog open={Boolean(selected)} editing={canWrite} className={`${adminStyles.overlay} ${adminStyles.centeredOverlay}`} onDismiss={close}>
+          {selected && <div
             className={adminStyles.modal}
             data-drag-scroll=""
             data-lenis-prevent=""
@@ -379,9 +375,8 @@ export default function PreciosPanel({ hideNavigation = false,
                 </ol>
               </section>
             </form>
-          </div>
-        </DialogBackdrop>
-      )}
+          </div>}
+      </EditDialog>
     </div>
   );
 }
