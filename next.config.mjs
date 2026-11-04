@@ -77,13 +77,25 @@ const nextConfig = {
     // beacon.min.js. En las páginas privadas no queremos esa dependencia:
     // no-transform impide la inyección (y el ERR_BLOCKED_BY_CLIENT cuando un
     // bloqueador la detiene), sin cambiar la caché del sitio público/assets.
+    //
+    // Además del panel, estas pantallas tampoco son públicas: acceso,
+    // recuperación, verificación, registro y portal del cliente. Ninguna debe
+    // cargar analítica de terceros ni quedar cacheada en el borde.
     const privateHtmlHeaders = [
       { key: "Cache-Control", value: "private, no-store, no-transform" },
     ];
+    const privateHtmlRoutes = [
+      "/admin/:path*",
+      "/panel-administrativo/:path*",
+      "/login",
+      "/recuperar",
+      "/verificar",
+      "/registro",
+      "/cliente/:path*",
+    ];
     return [
       { source: "/(.*)", headers },
-      { source: "/admin/:path*", headers: privateHtmlHeaders },
-      { source: "/panel-administrativo/:path*", headers: privateHtmlHeaders },
+      ...privateHtmlRoutes.map((source) => ({ source, headers: privateHtmlHeaders })),
     ];
   },
 };
