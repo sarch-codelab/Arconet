@@ -6,7 +6,8 @@ export default function ThemeInit() {
   useEffect(() => {
     // Theme initialization - runs once on client mount
     const k = "arconet-theme";
-    const s = localStorage.getItem(k);
+    let s;
+    try { s = localStorage.getItem(k); } catch { /* Use automatic mode when storage is blocked. */ }
     const h = new Date().getHours();
     const t = (s === "light" || s === "dark") ? s : ((h >= 18 || h < 6) ? "dark" : "light");
     document.documentElement.setAttribute("data-theme", t);

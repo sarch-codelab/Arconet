@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import CodeSlots from "@/components/ui/code-slots/code-slots";
 import QrLogin from "./qr-login";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -20,14 +21,17 @@ export default function LoginView() {
   const [twoFactorRequired, setTwoFactorRequired] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [codeStatus, setCodeStatus] = useState("idle");
 
   async function submit(event) {
     event.preventDefault();
+    if (submitting || codeStatus === "error" || codeStatus === "success") return;
     setSubmitting(true);
     let user;
     try {
       user = await authenticate(email, password, verificationCode);
     } catch (error) {
+      if (twoFactorRequired) setCodeStatus("error");
       notifyError(error.message || "No se pudo iniciar sesión.");
       setSubmitting(false);
       return;
@@ -42,6 +46,7 @@ export default function LoginView() {
       setSubmitting(false);
       return;
     }
+    if (twoFactorRequired) setCodeStatus("success");
     const params =
       typeof window !== "undefined"
         ? new URLSearchParams(window.location.search)
@@ -86,7 +91,7 @@ export default function LoginView() {
                   required
                   placeholder={localPreview ? "admin" : "usuario@arconethn.com"}
                   value={email}
-                  onChange={(event) => { setEmail(event.target.value); setTwoFactorRequired(false); setVerificationCode(""); }}
+                  onChange={(event) => { setEmail(event.target.value); setTwoFactorRequired(false); setVerificationCode(""); setCodeStatus("idle"); }}
                 />
               </label>
 
@@ -100,7 +105,7 @@ export default function LoginView() {
                     required
                     placeholder="Tu contraseña"
                     value={password}
-                    onChange={(event) => { setPassword(event.target.value); setTwoFactorRequired(false); setVerificationCode(""); }}
+                    onChange={(event) => { setPassword(event.target.value); setTwoFactorRequired(false); setVerificationCode(""); setCodeStatus("idle"); }}
                   />
                   <button
                     type="button"
@@ -115,7 +120,7 @@ export default function LoginView() {
 
               {twoFactorRequired && <label className={styles.field}>
                 Código de autenticación
-                <input type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required value={verificationCode} onChange={(event) => setVerificationCode(event.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="000000" aria-describedby="two-factor-help" />
+                <CodeSlots value={verificationCode} status={codeStatus} disabled={submitting} describedBy="two-factor-help" onChange={code => { setVerificationCode(code); setCodeStatus("idle"); }} />
                 <small id="two-factor-help">Ingresa el código actual de tu aplicación de autenticación.</small>
               </label>}
 
@@ -134,7 +139,7 @@ export default function LoginView() {
                 <a href="/recuperar">¿Olvidaste tu contraseña?</a>
               </div>
 
-              <button type="submit" className={styles.submit} disabled={submitting}>
+              <button type="submit" className={styles.submit} disabled={submitting || codeStatus === "error"}>
                 Entrar al panel <span><ArrowRight size={15} /></span>
               </button>
             </form>
