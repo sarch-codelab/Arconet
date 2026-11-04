@@ -1,0 +1,6 @@
+.warp-text { position: relative; display: block; width: 100%; overflow: hidden; isolation: isolate; }
+.warp-text canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+/* Texto real presente desde SSR; su altura reserva el espacio incluso con GPU. */
+.warp-text__fallback { display: block; text-align: center; }
+.warp-text[data-warp-ready="true"] .warp-text__fallback { visibility: hidden; }
+.warp-text[data-warp-failed="true"] canvas { visibility: hidden; }

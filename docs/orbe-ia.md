@@ -11,7 +11,7 @@
 
 ## Ubicación y comportamiento
 
-`app/ai-orb.js` expone un orbe decorativo reutilizable. Aparece dentro de la píldora «IA» y en la bienvenida de su sección administrativa (160 px), centrado sobre la firma «Monica IA» en Orbitron y el texto «¿Qué tienes en mente?». La versión pequeña de la píldora usa el respaldo CSS para no crear un contexto WebGL adicional. Ya no se monta en el layout público, no hay orbe flotante ni chat en el inicio. El botón de tema y las animaciones de portada no cambian.
+`app/ai-orb.js` expone un orbe decorativo reutilizable. Aparece dentro de la píldora «IA» y en la bienvenida de su sección administrativa (160 px), centrado sobre la firma «Monica IA» en Orbitron. La versión pequeña de la píldora usa el respaldo CSS para no crear un contexto WebGL adicional. Ya no se monta en el layout público, no hay orbe flotante ni chat en el inicio. El botón de tema y las animaciones de portada no cambian.
 
 ## Adaptaciones del código recibido
 
