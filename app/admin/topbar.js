@@ -9,19 +9,28 @@ import { Bell, ExternalLink, HelpCircle, LogOut, Search, User, MessageSquare, Al
 import { sileo } from "../toaster";
 import { AdminContext, NAV } from "./admin-nav";
 import { DialogBackdrop } from "./admin-overlay";
+import { usePillScroll } from "./pill-scroll";
 import { destinoDeNotificacion, seccionDeNotificacion } from "@/lib/notificaciones-ui";
 import { canAccessSection } from '@/lib/permisos';
 import styles from "./admin-experience.module.css";
 
 /**
- * Desplaza la barra de pildoras hasta la pildora activa.
+ * Desplaza la barra de pildoras hasta la pildora activa y habilita el gesto
+ * horizontal de la fila.
  *
  * En celular y tableta no caben todas las secciones, asi que la barra hace
  * scroll horizontal; sin este ajuste la pestana activa podia quedar fuera de
- * la vista y el usuario no sabia donde estaba.
+ * la vista y el usuario no sabia donde estaba. Con mouse, ademas, la rueda y
+ * el arrastre mueven la fila (ver `pill-scroll.js`): antes las pildoras de la
+ * derecha solo se alcanzaban con el dedo o con Shift + rueda.
  */
 function useActivePillIntoView(activeKey) {
   const navRef = useRef(null);
+  const attachPillScroll = usePillScroll();
+  const setNavRef = useCallback((node) => {
+    navRef.current = node;
+    attachPillScroll(node);
+  }, [attachPillScroll]);
 
   useEffect(() => {
     const active = navRef.current?.querySelector('[aria-current]');
@@ -29,7 +38,7 @@ function useActivePillIntoView(activeKey) {
     active.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
   }, [activeKey]);
 
-  return navRef;
+  return setNavRef;
 }
 
 /**

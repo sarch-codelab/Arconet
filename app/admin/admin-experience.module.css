@@ -576,7 +576,6 @@
   overflow-y: hidden;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  scroll-snap-type: x proximity;
   background: var(--pill-track);
   padding: 4px;
   border-radius: 9999px;
@@ -585,6 +584,17 @@
 
 .centerPillNav::-webkit-scrollbar {
   display: none;
+}
+
+/* Cuando la fila desborda, el mouse puede arrastrarla (ver pill-scroll.js).
+   El cursor lo anuncia; al arrastrar, el texto no debe quedar seleccionado. */
+.centerPillNav[data-pill-overflow="true"] {
+  cursor: grab;
+}
+
+.centerPillNav[data-pill-dragging="true"] {
+  cursor: grabbing;
+  user-select: none;
 }
 
 .pillItem {
@@ -681,6 +691,25 @@
 
 .sectionTabs::-webkit-scrollbar {
   display: none;
+}
+
+/* Los puntos de anclaje ayudan al dedo, pero con mouse frenaban el arrastre y
+   devolvían la fila a la primera píldora al soltar la rueda. Por eso se
+   limitan a punteros gruesos; con mouse mueve la fila `pill-scroll.js`. */
+@media (pointer: coarse) {
+  .centerPillNav,
+  .sectionTabs {
+    scroll-snap-type: x proximity;
+  }
+}
+
+.sectionTabs[data-pill-overflow="true"] {
+  cursor: grab;
+}
+
+.sectionTabs[data-pill-dragging="true"] {
+  cursor: grabbing;
+  user-select: none;
 }
 
 /* Right Top Bar (Search + Notification + Profile) */

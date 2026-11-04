@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertCircle, ArrowRight, Check, ClipboardList, MessageSquare, Plus, Send, Settings2, X } from "lucide-react";
 import { sileo } from "../toaster";
 import { SectionTabs, Topbar } from "./topbar";
+import { usePillScroll } from "./pill-scroll";
 import adminStyles from "./admin-experience.module.css";
 import styles from "./solicitudes-panel.module.css";
 
@@ -40,6 +41,7 @@ export default function SolicitudesPanel({ session }) {
   const [areaDraft, setAreaDraft] = useState(EMPTY_AREA);
   const [editingArea, setEditingArea] = useState(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const filtersRef = usePillScroll();
   const canWrite = session?.permisos?.includes("solicitudes:write");
   const canReadRoles = session?.permisos?.includes("roles:read");
   const canManageAreas = canWrite && ["administrador", "gerente"].includes(session?.rol);
@@ -245,7 +247,7 @@ export default function SolicitudesPanel({ session }) {
           {loadError && <div className={styles.error} role="alert"><AlertCircle size={17} />{loadError}<button type="button" onClick={() => load()}>Reintentar</button></div>}
           <div className={styles.filters}>
             <label className={styles.search}><span aria-hidden="true">⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar órdenes…" aria-label="Buscar órdenes internas" /></label>
-            <div className={styles.filterScroll} aria-label="Filtrar por estado">{FILTERS.map((id) => <button key={id} type="button" className={filter === id ? styles.filterActive : ""} onClick={() => setFilter(id)}>{id === "todas" ? "Todas" : STATUS_LABELS[id]}</button>)}</div>
+            <div className={styles.filterScroll} aria-label="Filtrar por estado" ref={filtersRef}>{FILTERS.map((id) => <button key={id} type="button" className={filter === id ? styles.filterActive : ""} onClick={() => setFilter(id)}>{id === "todas" ? "Todas" : STATUS_LABELS[id]}</button>)}</div>
           </div>
           <div className={styles.workspace}>
             <section className={styles.list} aria-label="Órdenes">
