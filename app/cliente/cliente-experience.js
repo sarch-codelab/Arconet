@@ -1,5 +1,6 @@
 "use client";
 
+import { attachPillScroll, revealActivePill } from "@/lib/pill-scroll";
 import { loadClientPortal } from "@/lib/client-portal-load";
 
 import { previewDocumentClick } from "@/lib/api-document";
@@ -111,6 +112,16 @@ function ClientDashboard({ session, orders, setOrders, onSessionUpdate, onLogout
   const { email: CONTACT_EMAIL } = useContact();
   const [activeTab, setActiveTab] = useState("dashboard");
   const navigationTab = activeTab === "orden-detalle" ? "cotizaciones" : activeTab;
+  const navRef = useRef(null);
+  const previousTab = useRef(activeTab);
+  useEffect(() => attachPillScroll(navRef.current), []);
+  useEffect(() => {
+    revealActivePill(navRef.current);
+    if (previousTab.current !== activeTab) {
+      previousTab.current = activeTab;
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+  }, [activeTab]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [requestModalOpen, setRequestModalOpen] = useState(false);
   const [requestSaving, setRequestSaving] = useState(false);
@@ -206,7 +217,7 @@ function ClientDashboard({ session, orders, setOrders, onSessionUpdate, onLogout
                 </Link>
                 <span className={styles.logoTag}>Portal de clientes</span>
               </div>
-              <nav className={styles.nav} aria-label="Secciones del portal">
+              <nav ref={navRef} className={styles.nav} aria-label="Secciones del portal">
                 {[
                   ["dashboard", "Dashboard", Building2],
                   ["cotizaciones", "Cotizaciones", FileText],
@@ -225,7 +236,7 @@ function ClientDashboard({ session, orders, setOrders, onSessionUpdate, onLogout
                     title={label}
                   >
                     <Icon size={15} />
-                    {activeTab === id ? <span>{label}</span> : null}
+                    {navigationTab === id ? <span>{label}</span> : null}
                   </button>
                 ))}
               </nav>
