@@ -1,0 +1,49 @@
+/* Capas decorativas: no sustituyen fondos, sombras, transformaciones ni contenido. */
+.border-glow-effect {
+  --bg-edge-proximity: inherit;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 5;
+  --bg-color-sensitivity: min(calc(var(--bg-edge-sensitivity, 30) + 20), 99);
+}
+.border-glow-effect, .border-glow-effect * { pointer-events: none; box-sizing: border-box; }
+.border-glow-effect > span {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 180ms ease-out;
+}
+.border-glow-effect__mesh, .border-glow-effect__fill {
+  background: var(--bg-gradient-one), var(--bg-gradient-two), var(--bg-gradient-three), var(--bg-gradient-four), var(--bg-gradient-five), var(--bg-gradient-six), var(--bg-gradient-seven), var(--bg-gradient-base);
+}
+.border-glow-effect .border-glow-effect__mesh {
+  padding: 2px;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  opacity: clamp(0, calc((var(--bg-edge-proximity, 0) - var(--bg-color-sensitivity)) / max(1, 100 - var(--bg-color-sensitivity))), 1);
+}
+.border-glow-effect .border-glow-effect__fill {
+  -webkit-mask-image: radial-gradient(ellipse at center, transparent 40%, black 100%);
+  mask-image: radial-gradient(ellipse at center, transparent 40%, black 100%);
+  opacity: clamp(0, calc(var(--bg-fill-opacity, 0) * (var(--bg-edge-proximity, 0) - var(--bg-color-sensitivity)) / max(1, 100 - var(--bg-color-sensitivity))), 0.5);
+}
+.border-glow-effect .border-glow-effect__light {
+  inset: calc(-1 * var(--bg-glow-radius, 24px));
+  -webkit-mask-image: conic-gradient(from var(--bg-cursor-angle, 45deg), black calc(var(--bg-cone-spread, 25) * 0.1%), transparent calc(var(--bg-cone-spread, 25) * 0.4%), transparent calc(100% - var(--bg-cone-spread, 25) * 0.4%), black calc(100% - var(--bg-cone-spread, 25) * 0.1%));
+  mask-image: conic-gradient(from var(--bg-cursor-angle, 45deg), black calc(var(--bg-cone-spread, 25) * 0.1%), transparent calc(var(--bg-cone-spread, 25) * 0.4%), transparent calc(100% - var(--bg-cone-spread, 25) * 0.4%), black calc(100% - var(--bg-cone-spread, 25) * 0.1%));
+  opacity: clamp(0, calc((var(--bg-edge-proximity, 0) - var(--bg-edge-sensitivity, 30)) / max(1, 100 - var(--bg-edge-sensitivity, 30))), 1);
+}
+.border-glow-effect__light::before {
+  content: "";
+  position: absolute;
+  inset: var(--bg-glow-radius, 24px);
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px var(--bg-glow-100), inset 0 0 3px var(--bg-glow-60), inset 0 0 6px var(--bg-glow-50), inset 0 0 15px var(--bg-glow-30), inset 0 0 25px 2px var(--bg-glow-20), 0 0 3px var(--bg-glow-60), 0 0 8px var(--bg-glow-40), 0 0 18px var(--bg-glow-20);
+}
+@media (prefers-reduced-motion: reduce) { .border-glow-effect > span { transition-duration: 80ms; } }
+@media (forced-colors: active), print { .border-glow-effect { display: none; } }

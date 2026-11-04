@@ -28,7 +28,7 @@ const subscribePointer = listener => {
 };
 const fineSnapshot = () => window.matchMedia(fineQuery).matches;
 const serverSnapshot = () => false;
-const nativeSelector = 'input, textarea, select, [contenteditable]:not([contenteditable="false"]), [data-native-cursor]';
+const nativeSelector = 'dialog[open], iframe, input, textarea, select, [contenteditable]:not([contenteditable="false"]), [data-native-cursor]';
 
 const TargetCursor = ({
   targetSelector = '.cursor-target',

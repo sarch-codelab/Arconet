@@ -40,3 +40,19 @@ Comprobación: Network → petición → Request Headers (`Origin`, `Sec-Fetch-S
 La asistente se presenta como **Monica IA** en el encabezado, las respuestas y el prompt del servidor. El orbe principal está centrado sobre la firma «Monica IA» en la bienvenida (se retiraron «¿Qué tienes en mente?» y su subtítulo); el orbe pequeño de la píldora administrativa se conserva. La bienvenida vuelve al inicio al crear una conversación nueva. No cambia el modelo, la autenticación ni la configuración de origen o credenciales.
 
 La barra de mensaje conserva un único indicador de foco a nivel del contenedor. Se elimina el contorno nativo interior del textarea sin quitar el foco visible del contenedor ni el del botón de envío. El pie no se comprime al reducir el espacio disponible.
+
+## Acceso de todos los roles del panel
+
+Monica IA es una sección común (`ia` en `ALWAYS_VISIBLE_SECTIONS`), igual que Mi perfil. Todos los roles administrativos, incluidos roles nuevos o sin permisos de módulos, pueden abrir la píldora y `?section=ia`. El endpoint sólo exige una sesión administrativa válida: no exige `ia:read` ni un rol concreto. Todos usan el mismo chat, modelo y opciones; no hay una versión recortada por rol.
+
+No se necesitan migraciones ni editar cada rol existente. Esto no concede permisos en Ventas, Inventario, Personal o Ajustes, ni permite al modelo leer datos privados o ejecutar acciones. No se abre el chat a visitantes anónimos ni a sesiones del portal de clientes. Siguen vigentes origen, sesión y límites de uso.
+
+Regresiones: matriz de acceso por permisos (administrador, gerente, ventas, técnico, bodega, lectura, precios y personalizado sin permisos), URL directa y endpoint con proveedor simulado. Navegador con cuentas reales de prueba de administrador, ventas, técnico y bodega: píldora, envío/reinicio y textarea nativo. La petición real al endpoint sin clave local pasa la sesión y llega al 503 de configuración; no se probó NVIDIA en vivo.
+
+## Indicador al enviar mensajes
+
+El chat usa `components/ui/thought-line/thought-line.js`, adaptado de React Bits ThoughtLine (MIT + Commons Clause). Dependencias: `motion`, `@hugeicons/react` y `@hugeicons/core-free-icons`. Mientras la petición real está pendiente muestra «Pensando…», destello/respiración y cronómetro. Al llegar la respuesta conserva el tiempo y cambia a «Respuesta preparada en». No muestra supuestos razonamientos, consultas a notas ni fases que el endpoint no comunica.
+
+El mismo componente permanece montado al llegar la respuesta para conservar el reloj; cada envío nuevo inicia uno nuevo. Un fallo detiene el efecto con «Solicitud finalizada sin respuesta», conserva el error y permite reintentar. «Nueva conversación» aborta la petición y elimina el indicador, sin respuestas tardías. No se modifica la autenticación, los permisos, las credenciales ni el contrato del proveedor.
+
+Validación local adicional: navegador Chromium en claro/oscuro y movimiento normal/reducido, anchuras 390/1440 px, respuestas controladas, reloj activo y congelado, error, reintento y cancelación sin desbordamiento ni errores de página. El brillo se atenúa con movimiento reducido. Se anuncian cambios de estado accesibles sin anunciar cada décima del reloj. Estas pruebas no son una verificación de conectividad real con NVIDIA.
