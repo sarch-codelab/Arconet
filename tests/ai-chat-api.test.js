@@ -30,6 +30,7 @@ describe("NVIDIA chat server proxy", () => {
     expect(options.headers.Authorization).toBe("Bearer test-only-placeholder");
     expect(JSON.parse(options.body)).toMatchObject({ model: "test-model", stream: false, max_tokens: 700, messages: [{ role: "system" }, { role: "user", content: "Hola" }] });
     expect(options.signal).toBeInstanceOf(AbortSignal);
+    expect(JSON.parse(options.body).messages[0].content).toContain("Te llamas Monica IA");
   });
   it("usa el modelo vigente cuando NVIDIA_MODEL no está definido", async () => {
     vi.stubEnv("NVIDIA_MODEL", "");
