@@ -101,10 +101,12 @@ describe("protección de origen y presentación del acceso QR", () => {
     expect(describeQrDevice("iPhone Safari/605")).toBe("Safari · iPhone / iPad");
     expect(describeQrDevice("<script>malicioso</script>")).toBe("Navegador · otro dispositivo");
   });
-  it("coloca QR debajo del formulario y preserva el acceso con contraseña", () => {
+  it("coloca el QR en el borde derecho de la tarjeta y preserva el acceso con contraseña", () => {
     const s = readFileSync("app/admin/login-view.js", "utf8");
-    expect(s.indexOf("<QrLogin />")).toBeGreaterThan(s.indexOf("</form>"));
-    expect(s.indexOf("<QrLogin />")).toBeLessThan(s.indexOf("styles.loginFooter"));
+    // El acceso con QR ya no se apila bajo el botón: vive fuera del cuerpo del
+    // formulario, como carril derecho de la tarjeta.
+    expect(s.indexOf("<QrLogin />")).toBeGreaterThan(s.indexOf("</section>"));
+    expect(s.indexOf("<QrLogin />")).toBeLessThan(s.indexOf("</main>"));
     expect(s).toContain("authenticate(email, password, verificationCode)");
   });
   it("genera el QR localmente, no devuelve secretos ni sesiones de producción en JSON", () => {

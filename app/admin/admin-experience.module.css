@@ -144,6 +144,8 @@
 .loginCard {
   position: relative;
   flex: 0 0 auto;
+  display: flex;
+  align-items: stretch;
   width: min(100%, 560px);
   min-height: 0;
   margin: auto 0;
@@ -155,6 +157,29 @@
   box-shadow: none;
   -webkit-backdrop-filter: blur(24px) saturate(120%);
   backdrop-filter: blur(24px) saturate(120%);
+  /* El acceso con QR extiende la tarjeta hacia la derecha; la columna del
+     formulario conserva su ancho para que nada se desplace. */
+  transition: width 320ms cubic-bezier(0.22, 0.7, 0.24, 1);
+}
+
+.loginCard:has([data-qr-open="true"]) {
+  width: min(100%, 880px);
+}
+
+@media (max-width: 900px) {
+  /* En el teléfono la tarjeta no puede crecer a la derecha: el carril del QR
+     se queda como segunda columna y el panel se abre debajo del formulario. */
+  .loginCard {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 48px;
+    align-content: start;
+    transition: none;
+  }
+
+  .loginCard:has([data-qr-open="true"]) {
+    width: min(100%, 560px);
+  }
+
 }
 
 :global(html[data-theme="dark"]) .loginCard {
@@ -201,6 +226,11 @@
 .loginPanel {
   position: relative;
   z-index: 2;
+  /* Ancho fijo: al abrir el QR la tarjeta crece y el formulario conserva sus
+     medidas, así que no hay recomposición de campos. */
+  flex: 0 0 auto;
+  width: min(100%, 500px);
+  min-width: 0;
   display: flex;
   flex-direction: column;
   background: transparent;
@@ -2985,6 +3015,16 @@
   .loginPanelBody {
     width: 100%;
     padding: clamp(24px, 5vh, 40px) clamp(20px, 6vw, 40px);
+  }
+
+  /* El carril del QR ocupa el borde derecho de la tarjeta: se recorta el
+     margen lateral para que el formulario conserve el ancho del texto. */
+  .loginPage {
+    padding-inline: 16px;
+  }
+
+  .loginPanel {
+    width: 100%;
   }
 
   /* Los paneles de notificaciones y cuenta en móvil se convierten en
