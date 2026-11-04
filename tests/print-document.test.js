@@ -223,3 +223,28 @@ describe("pie fiscal de la cotización (carrito y portal)", () => {
     expect(huellaCotizacion(order)).toBe(a);
   });
 });
+
+describe('facturas sin datos internos de almacen', () => {
+  it.each(Object.keys(PRINT_PAPERS))('quita bodega en factura fiscal y comercial, conservando columnas y totales en %s', paper => {
+    for (const html of [renderFiscalDocument({ documento, settings, paper }), renderOrderDocument({ order: { ...order, tipo: 'venta' }, settings, paper })]) {
+      expect(html).not.toContain('Bod.');
+      expect(html).not.toContain('<strong>Almacén</strong>');
+      expect(html).not.toContain('Ver movimientos registrados');
+      const table = html.match(/<table class="items form-grid"[\s\S]*?<\/table>/)[0];
+      expect((table.match(/<col style=/g) || []).length).toBe(8);
+      expect((table.match(/<th(?:\s|>)/g) || []).length).toBe(8);
+      const row = table.match(/<tbody><tr>([\s\S]*?)<\/tr>/)[1];
+      expect((row.match(/<td(?:\s|>)/g) || []).length).toBe(8);
+      for (const text of ['CAM-001', 'Cámara de seguridad', 'Precio unit.', 'Desc.', 'Cantidad']) expect(table).toContain(text);
+      expect(html).toContain('L 190.00');
+    }
+  });
+  it('conserva las columnas operativas de cotizaciones y compras', () => {
+    const purchase = { ...order, numero: 'OC-QA', proveedor: order.cliente, total: 190, items: [{ ...order.items[0], costoUnitario: 100 }] };
+    for (const html of [renderOrderDocument({ order, settings }), renderPurchaseDocument({ order: purchase, settings })]) {
+      expect(html).toContain('Bod.');
+      const table = html.match(/<table class="items form-grid"[\s\S]*?<\/table>/)[0];
+      expect((table.match(/<col style=/g) || []).length).toBe(9);
+    }
+  });
+});

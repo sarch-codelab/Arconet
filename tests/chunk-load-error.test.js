@@ -10,12 +10,13 @@ describe('Recuperacion de chunks', () => {
     { name: 'ChunkLoadError', message: 'Missing chunk' },
     new Error('Failed to load chunk /_next/static/chunks/320-rjw1nc4qd.js from module 727158'),
     new Error('Loading chunk 42 failed.'),
+    new Error('Module 71645 was instantiated because it was required from module 56420, but the module factory is not available.'),
     new Error('Loading CSS chunk 42 failed.'),
     new Error('Failed to fetch dynamically imported module: https://arconethn.com/a.js'),
     new Error('error loading dynamically imported module'),
     new Error('Importing a module script failed.'),
   ])('reconoce un import fallido: %s', error => expect(isChunkLoadError(error)).toBe(true));
-  it.each([null, {}, new Error('HTTP 502'), new Error('Validation failed'), new Error('Cannot read properties of undefined')])('no confunde errores de API/render con chunks: %s', error => expect(isChunkLoadError(error)).toBe(false));
+  it.each([null, {}, new Error('HTTP 502'), new Error('Validation failed'), new Error('module factory business rule failed'), new Error('Cannot read properties of undefined')])('no confunde errores de API/render con chunks: %s', error => expect(isChunkLoadError(error)).toBe(false));
   it('solo recarga por una accion explicita y no reintenta el lazy rechazado', () => {
     const reload = vi.fn(), reset = vi.fn();
     vi.stubGlobal('window', { location: { reload } });
@@ -38,6 +39,16 @@ describe('Recuperacion de chunks', () => {
     expect(html).not.toContain('>Reintentar<');
     boundary.state = { error: new Error('Dato inesperado') };
     expect(renderToStaticMarkup(boundary.render())).toContain('>Reintentar<');
+  });
+  it('recupera la fabrica ausente con recarga explicita, no con remonte', () => {
+    const reload = vi.fn();
+    vi.stubGlobal('window', { location: { reload } });
+    const boundary = new SectionErrorBoundary({ label: 'Ventas' });
+    boundary.state = { error: new Error('Module 71645 was instantiated because it was required from module 56420, but the module factory is not available.') };
+    expect(renderToStaticMarkup(boundary.render())).toContain('Recargar página');
+    expect(reload).not.toHaveBeenCalled();
+    boundary.reset();
+    expect(reload).toHaveBeenCalledOnce();
   });
   it('no cambia las secciones sanas', () => {
     const html = renderToStaticMarkup(createElement(SectionErrorBoundary, { label: 'Ventas' }, createElement('p', null, 'Contenido')));
