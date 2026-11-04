@@ -5,12 +5,12 @@ const cursor = read("components/ui/target-cursor/target-cursor.js");
 const css = read("components/ui/target-cursor/target-cursor.css");
 const wrapper = read("app/site-target-cursor.js");
 describe("TargetCursor global con mouse", () => {
-  it("se monta una sola vez en el layout para páginas públicas, privadas y login", () => {
+  it("el cursor personalizado ya no se monta, por solicitud del usuario", () => {
     const home = read("app/home-experience.js");
     expect(home).not.toContain("HomeTargetCursor");
     expect(home).not.toContain("cursorScopeRef");
     const layout = read("app/layout.js");
-    expect(layout.match(/<SiteTargetCursor \/>/g)).toHaveLength(1);
+    expect(layout).not.toContain("<SiteTargetCursor");
     expect(wrapper).not.toContain("container={");
     expect(wrapper).toContain('key={pathname}');
     expect(wrapper).toContain('ssr: false');

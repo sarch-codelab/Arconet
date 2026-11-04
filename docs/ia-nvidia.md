@@ -56,3 +56,15 @@ El chat usa `components/ui/thought-line/thought-line.js`, adaptado de React Bits
 El mismo componente permanece montado al llegar la respuesta para conservar el reloj; cada envío nuevo inicia uno nuevo. Un fallo detiene el efecto con «Solicitud finalizada sin respuesta», conserva el error y permite reintentar. «Nueva conversación» aborta la petición y elimina el indicador, sin respuestas tardías. No se modifica la autenticación, los permisos, las credenciales ni el contrato del proveedor.
 
 Validación local adicional: navegador Chromium en claro/oscuro y movimiento normal/reducido, anchuras 390/1440 px, respuestas controladas, reloj activo y congelado, error, reintento y cancelación sin desbordamiento ni errores de página. El brillo se atenúa con movimiento reducido. Se anuncian cambios de estado accesibles sin anunciar cada décima del reloj. Estas pruebas no son una verificación de conectividad real con NVIDIA.
+
+## Campo PromptBar
+
+El campo de escritura adopta el estilo de React Bits PromptBar mediante una adaptación enfocada en las capacidades reales del chat (`components/ui/prompt-bar`, licencia MIT + Commons Clause conservada). Incluye superficie redondeada, texto expansible hasta cinco líneas, identidad de Monica IA y botón que transforma la flecha en un cuadrado para detener la petición. Se usan las dependencias Motion y Hugeicons ya instaladas, sin añadir nuevas.
+
+Conserva borrador controlado, sugerencias, máximo de 2000 caracteres, Enter para enviar, Shift+Enter para una nueva línea y protección de composición IME. El botón de detener aborta la petición, detiene ThoughtLine, conserva el historial anterior y restaura el mensaje para reintentarlo; una respuesta tardía no se incorpora. Nueva conversación sigue borrando y cancelando todo. No hay menús ficticios de modelos/esfuerzo, adjuntos, búsqueda web ni micrófono sin soporte del endpoint.
+
+Los colores se ajustan a ambos temas, con foco de teclado visible, controles táctiles y movimiento reducido. ThoughtLine recibe una tinta explícita por tema para que su shimmer no herede texto transparente. Validación local en Chromium con temas claro/oscuro y movimiento normal/reducido: crecimiento y scroll del campo, envío, Enter/Shift+Enter, transformación del botón, cancelación, restauración, error y reinicio; anchuras de 390/1440 px sin desbordamiento. Respuestas del proveedor simuladas para estas pruebas; no verifica NVIDIA en vivo.
+
+### Ajuste visual posterior
+
+El contenedor de Monica IA usa `data-border-glow="off"`: no recibe BorderGlow ni lo heredan sus descendientes. Se mantiene el borde estático y el foco accesible del campo PromptBar. El cursor personalizado ya no se monta globalmente; vuelve el cursor nativo del navegador. Flickering Grid aparece en el fondo del panel, detrás del cuadro opaco de Monica, sin cubrir mensajes ni controles.

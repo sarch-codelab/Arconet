@@ -231,7 +231,7 @@ function AdminShell({ session, onLogout, initialSection }) {
       }}
     >
       <main className={styles.adminPage}>
-        <div className={styles.shell}>
+        <div className={styles.shell} data-flickering-grid="on">
         <Suspense fallback={<div className={styles.body}>Cargando…</div>}>
         <SectionErrorBoundary label={NAV.find((item) => item.id === section)?.label || "Sección"}>
         <div className={styles.content}>

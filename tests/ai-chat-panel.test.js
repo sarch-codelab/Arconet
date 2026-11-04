@@ -41,10 +41,11 @@ describe("píldora IA administrativa", () => {
   it("retira el título y subtítulo descartados y conserva un único foco accesible en el composer", () => {
     expect(source).not.toContain("¿Qué tienes");
     expect(source).not.toContain("Un punto de partida para explorar Arconet.");
-    expect(css).toMatch(/\.composer textarea:focus\s*\{[^}]*outline: none/);
-    expect(css).toContain(".composer:focus-within");
+    const promptCss = readFileSync("components/ui/prompt-bar/prompt-bar.css", "utf8");
+    expect(promptCss).toContain(".prompt-bar__field:focus-within");
+    expect(promptCss).toContain(".prompt-bar__send:focus-visible");
     expect(css).toContain(".panel button:focus-visible");
-    expect(source).toContain('htmlFor="ai-chat-message"');
+    expect(readFileSync("components/ui/prompt-bar/prompt-bar.js", "utf8")).toContain('htmlFor="ai-chat-message"');
     expect(css).toMatch(/\.footer\s*\{[^}]*flex-shrink: 0/);
   });
   it("mantiene la conexión privada, aviso y reinicio con cancelación", () => {

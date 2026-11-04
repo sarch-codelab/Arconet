@@ -1,0 +1,5 @@
+.flickering-grid {
+  position: absolute; inset: 0 auto auto 0; width: 100%;
+  z-index: -1; pointer-events: none; display: block;
+}
+@media print, (forced-colors: active) { .flickering-grid { display: none; } }

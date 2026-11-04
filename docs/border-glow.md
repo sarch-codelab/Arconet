@@ -32,3 +32,7 @@ El foco de un control dentro de una tarjeta también ilumina el borde, sin susti
 - El catálogo local de la categoría consultada no contenía referencias; no se presenta esa comprobación como una prueba visual de productos reales.
 
 Son validaciones locales con navegador automatizado, no de dispositivos físicos ni del despliegue público. No se ha fusionado ni publicado este cambio.
+
+## Exclusión de Monica IA
+
+Por petición posterior, el cuadro completo de Monica IA tiene `data-border-glow="off"`. El efecto continúa en las demás tarjetas; el chat conserva únicamente sus bordes estáticos y los indicadores de foco accesibles.
