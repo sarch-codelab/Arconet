@@ -35,15 +35,24 @@ describe("orbe visual de IA", () => {
     expect(wrapper).not.toContain("ChatLauncher");
   });
   it("limita resolución/fps, pausa en segundo plano y conserva movimiento reducido", () => {
-    expect(shader).toContain('frameloop="demand"');
-    expect(shader).toContain("dpr={[1, 1.5]}");
+    expect(shader).toContain("new THREE.Timer()");
+    expect(shader).not.toMatch(/from ["']@react-three\/fiber["']/);
+    expect(shader).not.toContain("new THREE.Clock");
+    expect(shader).toContain("Math.min(window.devicePixelRatio || 1, 1.5)");
     expect(shader).toContain('powerPreference: "low-power"');
     expect(shader).toContain("reduced ? 80 : 33");
-    expect(shader).toContain("if (document.hidden) return");
+    expect(shader).toContain("if (document.hidden || stopped) return");
+    expect(shader).toContain("timer.dispose()");
+    expect(shader).toContain("material.dispose()");
+    expect(shader).toContain("renderer.dispose()");
     expect(shader).toContain('document.removeEventListener("visibilitychange", visibility)');
     expect(shader).toContain("geometry.dispose()");
     expect(css).toContain("animation-duration: 40s");
     expect(css).not.toContain("animation: none");
+  });
+  it("carga los estilos 404 desde el layout como stylesheet, no como preload sin consumidor", () => {
+    expect(readFileSync("app/layout.js", "utf8")).toContain('import "./not-found-experience.module.css"');
+    expect(readFileSync("app/not-found-experience.js", "utf8")).toContain('import styles from "./not-found-experience.module.css"');
   });
   it("conserva el shader del componente con mezcla de alfa correcta y sin imágenes externas", () => {
     expect(shader).toContain("snoise3");

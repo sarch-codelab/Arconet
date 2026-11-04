@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
 export type GradientOrbConfig = {
@@ -124,79 +123,86 @@ const fragmentShader = /* glsl */ `
   }
 `;
 
-const motionQuery = "(prefers-reduced-motion: reduce)";
-function subscribeMotion(listener: () => void) {
-  const media = window.matchMedia(motionQuery);
-  media.addEventListener("change", listener);
-  return () => media.removeEventListener("change", listener);
-}
-const getMotion = () => window.matchMedia(motionQuery).matches;
-
-function GradientScene({ config, onContextLost }: { config: Required<GradientOrbConfig>; onContextLost?: () => void }) {
-  const materialRef = useRef<THREE.ShaderMaterial>(null);
-  const time = useRef(0);
-  const rotation = useRef(0);
-  const { invalidate, gl } = useThree();
-  useEffect(() => {
-    const lost = () => onContextLost?.();
-    gl.domElement.addEventListener("webglcontextlost", lost, { once: true });
-    return () => gl.domElement.removeEventListener("webglcontextlost", lost);
-  }, [gl, onContextLost]);
-  const reduced = useSyncExternalStore(subscribeMotion, getMotion, () => false);
-  const geometry = useMemo(() => {
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute("position", new THREE.Float32BufferAttribute([-1,-1,0, 3,-1,0, -1,3,0], 3));
-    geo.setAttribute("uv", new THREE.Float32BufferAttribute([0,0, 2,0, 0,2], 2));
-    return geo;
-  }, []);
-  useEffect(() => () => geometry.dispose(), [geometry]);
-  const uniforms = useMemo(() => ({
-    iTime: { value: 0 }, iResolution: { value: new THREE.Vector3(1, 1, 1) },
-    hue: { value: 0 }, rot: { value: 0 }, noiseScale: { value: 0.65 }, innerRadius: { value: 0.1 },
-  }), []);
-
-  useEffect(() => {
-    let timer: ReturnType<typeof setTimeout>;
-    const tick = () => {
-      if (document.hidden) return;
-      invalidate();
-      timer = setTimeout(tick, reduced ? 80 : 33);
-    };
-    const visibility = () => { clearTimeout(timer); tick(); };
-    tick();
-    document.addEventListener("visibilitychange", visibility);
-    return () => { clearTimeout(timer); document.removeEventListener("visibilitychange", visibility); };
-  }, [invalidate, reduced]);
-
-  useFrame((state, delta) => {
-    if (!materialRef.current || document.hidden) return;
-    const dt = Math.min(delta, 0.1) * (reduced ? 0.3 : 1);
-    time.current += dt;
-    rotation.current += dt * config.rotationSpeed;
-    const u = materialRef.current.uniforms;
-    u.iTime.value = time.current;
-    u.rot.value = rotation.current;
-    u.hue.value = config.hue;
-    u.noiseScale.value = config.noiseScale;
-    u.innerRadius.value = config.innerRadius;
-    u.iResolution.value.set(state.size.width, state.size.height, 1);
-  });
-  return <mesh geometry={geometry} frustumCulled={false}>
-    <shaderMaterial ref={materialRef} vertexShader={vertexShader} fragmentShader={fragmentShader}
-      uniforms={uniforms} transparent premultipliedAlpha depthWrite={false} depthTest={false} toneMapped={false} />
-  </mesh>;
-}
-
+// Un renderizador pequeño evita el THREE.Clock interno de React Three Fiber.
+// No se parchean dependencias ni se filtran advertencias de la consola.
 export function GradientOrb({ config: overrides, className = "", onContextLost }: {
   config?: GradientOrbConfig; className?: string; onContextLost?: () => void;
 }) {
-  const config = { ...defaults, ...overrides };
-  const transparent = config.background === "transparent";
-  return <div className={className} style={{ width: "100%", height: "100%", background: config.background }} data-orb-renderer="webgl">
-    <Canvas frameloop="demand" dpr={[1, 1.5]} gl={{ antialias: false, alpha: transparent, powerPreference: "low-power" }}>
-      {!transparent && <color attach="background" args={[config.background]} />}
-      <GradientScene config={config} onContextLost={onContextLost} />
-    </Canvas>
+  const canvas = useRef<HTMLCanvasElement>(null);
+  const lostCallback = useRef(onContextLost);
+  useEffect(() => { lostCallback.current = onContextLost; }, [onContextLost]);
+  const { background, hue, rotationSpeed, noiseScale, innerRadius } = { ...defaults, ...overrides };
+
+  useEffect(() => {
+    const element = canvas.current;
+    if (!element) return;
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ canvas: element, antialias: false, alpha: background === "transparent", powerPreference: "low-power" });
+    } catch { lostCallback.current?.(); return; }
+    const scene = new THREE.Scene();
+    const camera = new THREE.Camera();
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute([-1,-1,0, 3,-1,0, -1,3,0], 3));
+    geometry.setAttribute("uv", new THREE.Float32BufferAttribute([0,0, 2,0, 0,2], 2));
+    const uniforms = {
+      iTime: { value: 0 }, iResolution: { value: new THREE.Vector3(1, 1, 1) },
+      hue: { value: hue }, rot: { value: 0 }, noiseScale: { value: noiseScale }, innerRadius: { value: innerRadius },
+    };
+    const material = new THREE.ShaderMaterial({ vertexShader, fragmentShader, uniforms,
+      transparent: true, premultipliedAlpha: true, depthWrite: false, depthTest: false, toneMapped: false });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.frustumCulled = false;
+    scene.add(mesh);
+    renderer.setClearColor(background === "transparent" ? 0 : background, background === "transparent" ? 0 : 1);
+    const timer = new THREE.Timer();
+    timer.connect(document);
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let task: ReturnType<typeof setTimeout>;
+    let stopped = false;
+    const resize = () => {
+      const { width, height } = element.getBoundingClientRect();
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+      renderer.setSize(Math.max(1, width), Math.max(1, height), false);
+      uniforms.iResolution.value.set(Math.max(1, width), Math.max(1, height), 1);
+    };
+    const observer = new ResizeObserver(resize);
+    observer.observe(element);
+    resize();
+    const tick = () => {
+      if (document.hidden || stopped) return;
+      timer.update();
+      const reduced = motion.matches;
+      const dt = Math.min(timer.getDelta(), 0.1) * (reduced ? 0.3 : 1);
+      uniforms.iTime.value += dt;
+      uniforms.rot.value += dt * rotationSpeed;
+      renderer.render(scene, camera);
+      task = setTimeout(tick, reduced ? 80 : 33);
+    };
+    const visibility = () => { clearTimeout(task); timer.reset(); tick(); };
+    const lost = () => { stopped = true; clearTimeout(task); lostCallback.current?.(); };
+    element.addEventListener("webglcontextlost", lost, { once: true });
+    document.addEventListener("visibilitychange", visibility);
+    motion.addEventListener("change", visibility);
+    tick();
+    return () => {
+      stopped = true;
+      clearTimeout(task);
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", visibility);
+      motion.removeEventListener("change", visibility);
+      element.removeEventListener("webglcontextlost", lost);
+      timer.dispose();
+      geometry.dispose();
+      material.dispose();
+      renderer.dispose();
+      // Strict Mode puede reutilizar el mismo canvas después de limpiar el efecto.
+      queueMicrotask(() => { if (!element.isConnected) renderer.forceContextLoss(); });
+    };
+  }, [background, hue, rotationSpeed, noiseScale, innerRadius]);
+
+  return <div className={className} style={{ width: "100%", height: "100%", background }} data-orb-renderer="webgl">
+    <canvas ref={canvas} aria-hidden="true" style={{ display: "block", width: "100%", height: "100%" }} />
   </div>;
 }
 export default GradientOrb;

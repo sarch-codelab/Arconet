@@ -20,3 +20,17 @@ La conversación se mantiene en memoria del navegador y se borra al salir de la 
 ## Verificación
 
 Tests del endpoint con proveedor simulado: validación, origen, límites, clave ausente, errores y salida segura. En el servidor de producción se verificó una respuesta real de NVIDIA con `nvidia/nemotron-3.5-bolt-e4b` (2,4–2,7 s, español correcto y sin inventar precios). La clave vive solo en `.env`, fuera de Git. Para verificar en despliegue, enviar un mensaje no sensible desde el chat del panel; revisar límites antes de abrirlo a tráfico público. Si se comparte una clave en un chat, rotarla: la copia compartida debe considerarse comprometida.
+
+## Diagnóstico de `POST /api/ai/chat` con 403
+
+El endpoint devuelve 403 `ai_origin_forbidden` antes de contactar a NVIDIA si el `Origin` del navegador no coincide con el origen público configurado, falta `Origin` o `Sec-Fetch-Site` indica `cross-site`. La sesión ausente da 401; los errores de NVIDIA dan 502. Un 403 por sí solo no confirma la causa: inspeccionar Response en Network para distinguir el JSON de Arconet de una página HTML de bloqueo del proxy/WAF.
+
+Para `https://arconethn.com`, configurar en el proceso que ejecuta Next:
+
+```dotenv
+APP_ORIGIN="https://arconethn.com"
+```
+
+Reiniciar/recrear el servicio tras cambiar el entorno. Debe ser el dominio HTTPS público, no `localhost`, la IP del servidor ni el HTTP interno del proxy. `www.arconethn.com` es otro origen: redirigirlo al dominio canónico, no ampliar permisos con comodines. La comparación ahora normaliza barras finales, espacios exteriores, mayúsculas del host y puertos predeterminados. No acepta orígenes ajenos ni confía en `Host`/`X-Forwarded-Host`. En producción la configuración ausente o inválida devuelve 503 `ai_origin_configuration`, con un mensaje accionable y sin exponer credenciales.
+
+Comprobación: Network → petición → Request Headers (`Origin`, `Sec-Fetch-Site`) y Response (`code`, `error`). No compartir cookies, claves ni cabeceras Authorization. Si la respuesta es HTML o no contiene esos códigos, revisar reglas del proxy/Cloudflare y su identificador de petición, sin desactivar el WAF completo ni el control de origen.
