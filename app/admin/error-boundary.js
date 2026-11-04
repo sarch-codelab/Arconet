@@ -1,6 +1,7 @@
 "use client";
 
 import { Component } from "react";
+import { isChunkLoadError, retryViewError } from "@/lib/chunk-load-error";
 import styles from "./admin-experience.module.css";
 
 /**
@@ -31,7 +32,9 @@ export class SectionErrorBoundary extends Component {
   reset() {
     // La clave fuerza un remontaje del hijo al reintentar, para que vuelvan a
     // ejecutarse los efectos de carga de la seccion.
-    this.setState({ error: null, attempt: (this.state.attempt || 0) + 1 });
+    retryViewError(this.state.error, () => {
+      this.setState({ error: null, attempt: (this.state.attempt || 0) + 1 });
+    });
   }
 
   render() {
@@ -52,14 +55,16 @@ export class SectionErrorBoundary extends Component {
               </span>
             </div>
             <p className={styles.monitorHint} style={{ marginTop: 12 }}>
-              {String(error?.message || error)}
+              {isChunkLoadError(error)
+                ? "No se pudieron descargar los archivos de esta sección. Puede haber una actualización o una interrupción del servidor. Espera unos segundos y recarga. Se perderán los cambios que no hayas guardado."
+                : String(error?.message || error)}
             </p>
             <button
               type="button"
               className={styles.ghostBtn}
               onClick={this.reset}
             >
-              Reintentar
+              {isChunkLoadError(error) ? "Recargar página" : "Reintentar"}
             </button>
           </div>
         </section>

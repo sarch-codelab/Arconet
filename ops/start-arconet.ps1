@@ -133,6 +133,13 @@ if (-not (Test-Path $BuildDir)) {
 }
 
 # --- 3) Arrancar ------------------------------------------------------------
+# El ID debe sobrevivir a reinicios programados, no solo al proceso de deploy.
+$idFile = Join-Path $BuildDir 'DEPLOYMENT_ID'
+if (Test-Path $idFile) {
+    $env:NEXT_DEPLOYMENT_ID = (Get-Content $idFile -Raw).Trim()
+} else {
+    Remove-Item Env:NEXT_DEPLOYMENT_ID -ErrorAction SilentlyContinue
+}
 $env:NODE_ENV = 'production'
 $env:PORT = "$Port"
 $env:NEXT_TELEMETRY_DISABLED = '1'

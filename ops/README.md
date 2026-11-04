@@ -32,8 +32,14 @@ GitHub Actions no puede alcanzarlo. Por eso el deploy es *pull*, no *push*:
 1. Se empuja a `main` en GitHub (desde donde sea).
 2. `ArconetDeployPoll` revisa `origin/main` cada 5 minutos.
 3. Si hay commits nuevos y el arbol esta limpio, lanza `ArconetDeploy`, que
-   ejecuta `deploy.ps1`: parar app -> `git reset --hard` -> `npm ci` ->
-   `npm run build` -> arrancar -> comprobar HTTP 200.
+   ejecuta `deploy.ps1`: snapshot en candidato aislado -> instalar/compilar
+   mientras la app sigue activa -> retener assets -> parar -> migrar -> promover
+   codigo y runtime -> arrancar -> comprobar HTML, API/BD, manifest y chunk.
+   El watchdog no compite con la promocion y el runtime anterior se conserva.
+
+Ver [diagnostico y limites de 502/ChunkLoadError](../docs/502-chunk-recovery.md),
+incluida la validacion necesaria en staging Windows antes de publicar cambios
+al despliegue. Sigue existiendo una ventana corta de cambio del unico upstream.
 
 El workflow `.github/workflows/ci.yml` solo compila (`npm ci` + `build`) para
 avisar temprano si el codigo no construye.
