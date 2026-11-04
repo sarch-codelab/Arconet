@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import ContadorCifra from "./contador-cifra";
+import HomeTargetCursor from "./home-target-cursor";
+import HomeWarpQuote from "./home-warp-quote";
 import VideoFondoCTA from "./video-fondo-cta";
 import { observeNativeScroll } from "@/lib/native-scroll";
 import {
@@ -221,6 +223,7 @@ const COMMITMENTS = [
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 
 export default function HomeExperience({ categorias = [] }) {
+  const cursorScopeRef = useRef(null);
   const [activeSection, setActiveSection] = useState("inicio");
   const [activeSlide, setActiveSlide] = useState(0);
   const [scrollReady, setScrollReady] = useState(false);
@@ -667,7 +670,8 @@ useEffect(() => {
   };
 
   return (
-    <main className={styles.experience}>
+    <main className={styles.experience} ref={cursorScopeRef}>
+      <HomeTargetCursor container={cursorScopeRef} />
       {/* Panel de Soluciones del menú 1: mismo contenido que el menú de
           escritorio. Vive fuera del hero, en <main>, porque el hero recorta
           con overflow: hidden y un panel interno quedaría cortado. */}
@@ -1354,7 +1358,7 @@ useEffect(() => {
       <section className={styles.quoteBand}>
         <blockquote className={styles.quoteInner} data-reveal>
           <Sparkles className={styles.quoteSpark} size={22} aria-hidden="true" />
-          <p>No vendemos solo equipo: ayudamos a que cada conexión funcione.</p>
+          <p><HomeWarpQuote /></p>
           <cite>Equipo Arconet · San Pedro Sula, Honduras</cite>
         </blockquote>
       </section>
@@ -1368,7 +1372,7 @@ useEffect(() => {
             <p className={styles.contactEyebrow}>Tu próximo proyecto empieza aquí</p>
             <h2 data-split>Hagamos que<br /><em>todo conecte.</em></h2>
             <p>Cuéntanos qué necesita tu red. Nuestro equipo puede ayudarte a encontrar el equipo y la solución correctos.</p>
-            <Link href="/tienda" className={styles.contactAction}>Ver productos y soluciones <ArrowUpRight size={17} /></Link>
+            <Link href="/tienda" className={styles.contactAction} data-cursor-label="Explorar catálogo">Ver productos y soluciones <ArrowUpRight size={17} /></Link>
           </div>
         </div>
         <span className={styles.contactLocation}>San Pedro Sula — Honduras</span>

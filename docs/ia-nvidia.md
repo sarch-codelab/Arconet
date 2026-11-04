@@ -37,4 +37,6 @@ Comprobación: Network → petición → Request Headers (`Origin`, `Sec-Fetch-S
 
 ## Nombre y bienvenida
 
-La asistente se presenta como **Monica IA** en el encabezado, las respuestas y el prompt del servidor. El orbe principal está centrado sobre «¿Qué tienes en mente?» y su subtítulo en la bienvenida; el orbe pequeño de la píldora administrativa se conserva. La bienvenida vuelve al inicio al crear una conversación nueva. No cambia el modelo, la autenticación ni la configuración de origen o credenciales.
+La asistente se presenta como **Monica IA** en el encabezado, las respuestas y el prompt del servidor. El orbe principal está centrado sobre la firma «Monica IA» en la bienvenida (se retiraron «¿Qué tienes en mente?» y su subtítulo); el orbe pequeño de la píldora administrativa se conserva. La bienvenida vuelve al inicio al crear una conversación nueva. No cambia el modelo, la autenticación ni la configuración de origen o credenciales.
+
+La barra de mensaje conserva un único indicador de foco a nivel del contenedor. Se elimina el contorno nativo interior del textarea sin quitar el foco visible del contenedor ni el del botón de envío. El pie no se comprime al reducir el espacio disponible.

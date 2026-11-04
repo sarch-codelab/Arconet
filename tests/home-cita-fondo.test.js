@@ -53,7 +53,8 @@ describe("cita de la home con imagen de fondo", () => {
 
   it("la cita sigue siendo el mismo texto", () => {
     const home = leer("app/home-experience.js");
-    expect(home).toContain("No vendemos solo equipo: ayudamos a que cada conexión funcione.");
+    expect(home).toContain("<HomeWarpQuote />");
+    expect(leer("app/home-warp-quote.js")).toContain("No vendemos solo equipo: ayudamos a que cada conexión funcione.");
     expect(home).toContain("Equipo Arconet · San Pedro Sula, Honduras");
   });
 });

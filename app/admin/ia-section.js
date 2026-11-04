@@ -79,8 +79,6 @@ export default function IaSection({ session }) {
           <div className={styles.welcomeOrb}><AiOrb size={160} /></div>
           <p className={styles.orbName}>Monica IA</p>
           <p className={styles.kicker}>TU ESPACIO PARA CONECTAR</p>
-          <h3>¿Qué tienes<br />en mente?</h3>
-          <p>Un punto de partida para explorar Arconet.</p>
           <div className={styles.suggestions}>{suggestions.map(text => <button type="button" key={text} onClick={() => { setDraft(text); input.current?.focus(); }}>{text}<span aria-hidden="true">↗</span></button>)}</div>
         </div>}
         {messages.map((message, index) => <div key={index} className={styles.message}><span>{message.role === "user" ? "Tú" : "Monica IA"}</span><p>{message.content}</p></div>)}
