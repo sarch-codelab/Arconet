@@ -5,8 +5,8 @@ La píldora «IA» del panel administrativo muestra el orbe y una conversación 
 ## Configuración privada
 
 1. Revocar cualquier clave compartida en conversaciones. Crear una clave nueva en NVIDIA API Catalog.
-2. Configurar `NVIDIA_API_KEY` en los secretos del servidor de despliegue (o `.env.local` local, ignorado por Git). Nunca usar `NEXT_PUBLIC_` ni añadirla al repositorio.
-3. `NVIDIA_MODEL` selecciona un modelo disponible para esa cuenta. Predeterminado: `meta/llama-3.1-8b-instruct`. Su disponibilidad/cuota debe confirmarse en NVIDIA.
+2. Configurar `NVIDIA_API_KEY` en `C:\arconet\app\.env` (ignorado por Git y sin permiso de lectura para usuarios normales) o en los secretos del servidor. Nunca usar `NEXT_PUBLIC_` ni añadirla al repositorio.
+3. `NVIDIA_MODEL` selecciona un modelo disponible para esa cuenta. Predeterminado: `nvidia/nemotron-3.5-bolt-e4b`. El anterior (`meta/llama-3.1-8b-instruct`) está retirado desde 2026-08-26 y devuelve 410. La cuenta debe tener el modelo habilitado; si no, NVIDIA responde 404.
 4. Configurar `APP_ORIGIN` al origen HTTPS exacto del sitio, sin barra final, y reiniciar el servidor. Sin clave, el endpoint devuelve 503, no respuestas simuladas.
 
 `POST /api/ai/chat` exige una sesión administrativa válida y llama únicamente a `https://integrate.api.nvidia.com/v1/chat/completions` desde Node. El navegador usa una URL relativa; no recibe la clave. El prompt orienta al modelo a Arconet sin inventar precios, inventario o acceso a cuentas. No hay RAG, acceso administrativo, herramientas ni acciones sobre datos internos. Las respuestas se renderizan como texto, no HTML.
@@ -19,4 +19,4 @@ La conversación se mantiene en memoria del navegador y se borra al salir de la 
 
 ## Verificación
 
-Tests del endpoint con proveedor simulado: validación, origen, límites, clave ausente, errores y salida segura. La red de este entorno no permite NVIDIA: no se verificaron una respuesta real, la validez de la clave ni la disponibilidad del modelo. La clave expuesta en la conversación no fue guardada ni utilizada. Para verificar en despliegue, usar una clave nueva y enviar un mensaje no sensible desde el chat; revisar límites antes de abrirlo a tráfico público.
+Tests del endpoint con proveedor simulado: validación, origen, límites, clave ausente, errores y salida segura. En el servidor de producción se verificó una respuesta real de NVIDIA con `nvidia/nemotron-3.5-bolt-e4b` (2,4–2,7 s, español correcto y sin inventar precios). La clave vive solo en `.env`, fuera de Git. Para verificar en despliegue, enviar un mensaje no sensible desde el chat del panel; revisar límites antes de abrirlo a tráfico público. Si se comparte una clave en un chat, rotarla: la copia compartida debe considerarse comprometida.

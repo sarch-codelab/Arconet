@@ -13,7 +13,9 @@ import { describe, expect, it } from "vitest";
 
 const raiz = process.cwd();
 const leer = (f) => readFileSync(f, "utf8");
-const APP = globSync("app/**/*.js", { cwd: raiz }).map((f) => [f, leer(f)]);
+// globSync devuelve "\" en Windows; las rutas de este archivo usan "/".
+const normalizar = (f) => f.replace(/\\/g, "/");
+const APP = globSync("app/**/*.js", { cwd: raiz }).map((f) => [normalizar(f), leer(f)]);
 
 // Páginas y experiencias que deben cerrar con el footer.
 const CON_FOOTER = [

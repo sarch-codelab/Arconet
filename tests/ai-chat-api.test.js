@@ -31,6 +31,12 @@ describe("NVIDIA chat server proxy", () => {
     expect(JSON.parse(options.body)).toMatchObject({ model: "test-model", stream: false, max_tokens: 700, messages: [{ role: "system" }, { role: "user", content: "Hola" }] });
     expect(options.signal).toBeInstanceOf(AbortSignal);
   });
+  it("usa el modelo vigente cuando NVIDIA_MODEL no está definido", async () => {
+    vi.stubEnv("NVIDIA_MODEL", "");
+    const response = await POST(request());
+    expect(response.status).toBe(200);
+    expect(JSON.parse(fetch.mock.calls[0][1].body).model).toBe("nvidia/nemotron-3.5-bolt-e4b");
+  });
   it("no llama al proveedor sin clave", async () => {
     vi.stubEnv("NVIDIA_API_KEY", "");
     expect((await POST(request())).status).toBe(503);

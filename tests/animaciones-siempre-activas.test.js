@@ -13,8 +13,11 @@ import { describe, expect, it } from "vitest";
 // llegar a animarse. Se midió en el navegador con reducedMotion: "reduce":
 // de 33 elementos con revelado, había 2 animaciones y el hero salía sin texto.
 
-const CSS = globSync("app/**/*.css", { cwd: process.cwd() }).map((f) => [f, readFileSync(f, "utf8")]);
-const JS = globSync("app/**/*.js", { cwd: process.cwd() }).map((f) => [f, readFileSync(f, "utf8")]);
+// globSync devuelve "\" en Windows y "/" en Linux; las rutas esperadas de
+// este archivo usan "/". Normalizar evita que los tests fallen solo por eso.
+const normalizar = (f) => f.replace(/\\/g, "/");
+const CSS = globSync("app/**/*.css", { cwd: process.cwd() }).map((f) => [normalizar(f), readFileSync(f, "utf8")]);
+const JS = globSync("app/**/*.js", { cwd: process.cwd() }).map((f) => [normalizar(f), readFileSync(f, "utf8")]);
 
 describe("las animaciones no se apagan con el ajuste del sistema", () => {
   it("tarjetas, navegación y orbe adaptan movimiento, sin apagar animaciones", () => {

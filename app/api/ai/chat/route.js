@@ -46,7 +46,9 @@ export async function POST(request) {
     const response = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
       method: "POST", cache: "no-store",
       headers: { Authorization: `Bearer ${process.env.NVIDIA_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: process.env.NVIDIA_MODEL || "meta/llama-3.1-8b-instruct", messages: [{ role: "system", content: system }, ...messages], max_tokens: 700, temperature: 0.4, stream: false }),
+      // El modelo anterior (meta/llama-3.1-8b-instruct) está retirado desde
+      // 2026-08-26 y devuelve 410. Este es el vigente probado en producción.
+      body: JSON.stringify({ model: process.env.NVIDIA_MODEL || "nvidia/nemotron-3.5-bolt-e4b", messages: [{ role: "system", content: system }, ...messages], max_tokens: 700, temperature: 0.4, stream: false }),
       signal: AbortSignal.any([request.signal, AbortSignal.timeout(30_000)]),
     });
     if (!response.ok) return reply({ error: "NVIDIA no está disponible en este momento. Inténtalo más tarde." }, 502);

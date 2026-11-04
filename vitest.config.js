@@ -10,8 +10,12 @@ export default defineConfig({
     enforce: "pre",
     transform(source, id) {
       const filename = id.split("?")[0];
-      const appDirectory = fileURLToPath(new URL("./app/", import.meta.url));
-      if (filename.startsWith(appDirectory) && filename.endsWith(".js")) {
+      // Vite entrega rutas con "/" también en Windows; fileURLToPath devuelve
+      // "\". Sin normalizar, los tests de componentes no encontraban app/ y
+      // fallaban al parsear el JSX.
+      const normalize = (value) => value.replace(/\\/g, "/");
+      const appDirectory = normalize(fileURLToPath(new URL("./app/", import.meta.url)));
+      if (normalize(filename).startsWith(appDirectory) && filename.endsWith(".js")) {
         return transformWithEsbuild(source, filename, { loader: "jsx", jsx: "automatic" });
       }
     },
