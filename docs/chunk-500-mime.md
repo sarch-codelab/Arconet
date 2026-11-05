@@ -46,9 +46,10 @@ chunk malo **no llegue a promoverse**.
    hash en el nombre y `ops/retain-static-assets.mjs` conserva los de los
    builds anteriores siete días: son inmutables, no necesitan re-descargarse y
    las pestañas abiertas siguen encontrando sus módulos. Next detecta el cambio
-   de versión por `BUILD_ID` y recarga cuando hace falta. Las URLs antiguas con
-   `?dpl=` siguen funcionando porque Next ignora el query y los archivos se
-   retienen.
+   de versión por `BUILD_ID` y recarga cuando hace falta. Next ignora el query
+   de las URLs antiguas con `?dpl=`, así que apuntan al mismo archivo; si ese
+   archivo ya falta en el runtime activo, la corrección no lo recrea y la
+   pestaña vieja necesita una recarga manual.
 2. **`ops/verify-static-assets.mjs`** recorre el HTML prerenderizado, comprueba
    en disco que cada `/_next/static/*.js|css` referenciado existe y no está
    vacío, y exige el chunk `app/admin/page-*.js` (que al renderizarse bajo
@@ -85,11 +86,36 @@ automáticas que pudieran tirar un formulario del panel sin guardar.
 - Pruebas con fixtures que simulan un chunk ausente, uno vacío y la ausencia
   del chunk de `/admin`: la verificación falla en los tres casos.
 
-## Límites
+## Límites y verificación en producción
 
 No se ejecutó la promoción/rollback en Windows ni se inspeccionó la caché de
-Cloudflare: si el `500` estaba cacheado para la URL con `?dpl=`, las páginas
-nuevas ya no la piden, pero una pestaña vieja que conserve el HTML anterior
-podría necesitar una recarga manual. La fusión del PR no equivale a confirmar
-que el servidor haya activado el nuevo build; hay que revisar `deploy.log` y el
-`Assert-Healthy` del siguiente despliegue.
+Cloudflare, por lo que el `500` concreto no se atribuye a un componente de
+infraestructura. Se comprobó desde fuera, minutos después de fusionar el PR
+#104: `https://arconethn.com/api/health` respondía `status: ok` con
+`uptimeSeconds` de unas tres horas (el proceso Node **no** se había reiniciado)
+y `/contacto` seguía emitiendo `?dpl=5eb1531...`. La URL exacta del chunk que
+falló devolvía una página «Internal Server Error» tanto con `?dpl=` como sin
+él, o sea que el archivo de ese build no estaba disponible. Eso confirma que
+el despliegue en el servidor todavía estaba pendiente: este servidor es
+*pull* por `ArconetDeployPoll` (cada 5 min) y no se puede activar desde
+GitHub Actions porque está detrás de ZeroTier.
+
+Para activarlo y confirmarlo en el servidor Windows:
+
+```powershell
+schtasks /run /tn "ArconetDeploy"
+Get-Content C:\arconet\deploy.log -Tail 40 -Wait
+```
+
+El `deploy.log` debe mostrar `Static assets OK` y
+`Health check completo: N chunks JavaScript 200 en /, /admin, /contacto y /tienda`.
+Después, `https://arconethn.com/contacto` ya no debe contener `?dpl=` y
+`/api/health` debe tener un `uptimeSeconds` pequeño. Si el poller no arranca,
+revisar `C:\arconet\logs\arconet-poller.log`, el estado en
+`arconet-poller.state` y que el árbol de `C:\arconet\app` esté limpio.
+
+Aunque la causa última hubiera sido un chunk ausente y no el sufijo de caché,
+las dos barreras nuevas cubren ese caso: `verify-static-assets.mjs` exige el
+chunk de `/admin` en el build antes de promoverlo y `Assert-Healthy` pide por
+HTTP todos los chunks que las páginas nuevas referencian. Un `500 text/plain`
+ya no puede llegar a promoverse.
