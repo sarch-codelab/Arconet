@@ -116,6 +116,6 @@ describe("acceso administrativo centrado en una sola columna", () => {
     expect(css).not.toContain(".adminPage::before");
     expect(css).toMatch(/\.shell\s*\{[^}]*background: var\(--bg-page\)/);
     expect(css).toMatch(/\.topbarContainer\s*\{[^}]*background: var\(--bg-page\)/);
-    expect(readFileSync("app/admin/login-view.js", "utf8")).toContain("<main className={styles.loginPage}>");
+    expect(readFileSync("app/admin/login-view.js", "utf8")).toContain("<main className={`${styles.loginPage} ${styles.adminLoginPage}`}>");
   });
 });
