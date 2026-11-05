@@ -2,18 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { observeNativeScroll } from "@/lib/native-scroll";
 import {
   ArrowDown,
   ArrowRight,
   ArrowUpRight,
-  Cable,
-  Layers,
+  Clock,
   MapPin,
-  Network,
-  Radio,
-  Wrench,
 } from "lucide-react";
 import styles from "./contact-experience.module.css";
 import Footer from "../footer";
@@ -29,13 +25,34 @@ const NAVIGATION = [
   { href: "#formulario", label: "Contacto" },
 ];
 
-const AREAS = [
-  { icon: Cable, title: "Componentes pasivos", text: "Splitters, patch cords y pigtails." },
-  { icon: Radio, title: "Soluciones activas y Accesorios FTTH", text: "Equipos para redes de TV por cable y FTTH." },
-  { icon: Network, title: "Gabinetes y Racks", text: "Racks, gabinetes y accesorios para tu red." },
-  { icon: Wrench, title: "Herramientas y kits", text: "Kits e instrumentos para instalar y medir." },
-  { icon: Layers, title: "Microcables y Microproductos", text: "Microcables y soluciones compactas para FTTH." },
+// Las áreas de interés siguen disponibles en el formulario, aunque la sección
+// 01 ya no las enumere: ese bloque ahora es el mapa de ubicación.
+const INTERESTS = [
+  "Componentes pasivos",
+  "Soluciones activas y Accesorios FTTH",
+  "Gabinetes y Racks",
+  "Herramientas y kits",
+  "Microcables y Microproductos",
 ];
+
+// Punto aproximado de "4 Calle 11 Avenida, Barrio Guamilito": cruce de 4 Calle
+// NO con 11 Avenida NO, junto al Instituto María Auxiliadora (15.50899,
+// -88.03128). La dirección del footer no lleva número de local, así que el
+// marcador se sitúa en la intersección y se advierte que es aproximado.
+const LOCATION = {
+  address: "4 Calle 11 Avenida, Barrio Guamilito",
+  city: "San Pedro Sula, Cortés · Honduras",
+  hours: "Lun–Vie 8:00–17:00 · Sáb 8:00–12:00",
+  latitude: 15.5089,
+  longitude: -88.0313,
+};
+
+// OpenStreetMap no necesita clave de API. El bbox encuadra el barrio y el
+// marcador queda en el centro; el enlace abre la ficha completa con el pin.
+const MAP_BBOX = "-88.0358,15.5054,-88.0268,15.5124";
+const MAP_EMBED = `https://www.openstreetmap.org/export/embed.html?bbox=${MAP_BBOX}&layer=mapnik&marker=${LOCATION.latitude},${LOCATION.longitude}`;
+const MAP_LINK = `https://www.openstreetmap.org/?mlat=${LOCATION.latitude}&mlon=${LOCATION.longitude}#map=17/${LOCATION.latitude}/${LOCATION.longitude}`;
+const DIRECTIONS_LINK = `https://www.google.com/maps/dir/?api=1&destination=${LOCATION.latitude},${LOCATION.longitude}`;
 
 const STEPS = [
   { number: "01", title: "Cuéntanos qué necesitas", text: "Describe brevemente tu red, instalación o proyecto." },
@@ -48,7 +65,6 @@ const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 export default function ContactExperience() {
   const { email: CONTACT_EMAIL } = useContact();
   const pageRef = useRef(null);
-  const [activeArea, setActiveArea] = useState(0);
 
   useEffect(() => {
     const page = pageRef.current;
@@ -84,23 +100,6 @@ export default function ContactExperience() {
       { threshold: 0.15, rootMargin: "0px 0px -5% 0px" }
     );
     targets.forEach((target) => observer.observe(target));
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const target = document.querySelector("[data-areas]");
-    if (!target || typeof IntersectionObserver === "undefined") return undefined;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveArea(Math.min(AREAS.length - 1, Math.floor(entry.intersectionRatio * AREAS.length)));
-          }
-        });
-      },
-      { threshold: [0.1, 0.35, 0.6, 0.85] }
-    );
-    observer.observe(target);
     return () => observer.disconnect();
   }, []);
 
@@ -209,33 +208,47 @@ export default function ContactExperience() {
 
           <div className={styles.heroFooter}>
             <span>FIBRA ÓPTICA · CATV · TELECOMUNICACIONES</span>
-            <a href="#areas">Desliza para descubrir <ArrowDown size={14} /></a>
+            <a href="#ubicacion">Descubre dónde estamos <ArrowDown size={14} /></a>
           </div>
         </section>
       </div>
 
-      <section id="areas" className={styles.areasSection} data-areas>
-        <div className={styles.areasHeading} data-reveal>
-          <p className={styles.sectionLabel}>01 / EMPECEMOS POR AQUÍ</p>
-          <h2>¿Qué quieres<br /><em>poner en marcha?</em></h2>
-          <p className={styles.areasIntro}>Cada instalación es distinta. Estas son algunas de las áreas en las que podemos orientarte.</p>
+      <section id="ubicacion" className={styles.locationSection} aria-labelledby="ubicacion-titulo">
+        <div className={styles.locationHeading} data-reveal>
+          <p className={styles.sectionLabel}>01 / DÓNDE ESTAMOS</p>
+          <h2 id="ubicacion-titulo">Visítanos en<br /><em>San Pedro Sula.</em></h2>
+          <p className={styles.locationIntro}>Nuestro punto de atención está en Barrio Guamilito, a unas cuadras del centro. Pasa a conversar sobre tu proyecto o pide indicaciones para llegar.</p>
+          <div className={styles.locationDetails}>
+            <div className={styles.locationDetail}>
+              <MapPin size={18} strokeWidth={1.5} aria-hidden="true" />
+              <span><strong>{LOCATION.address}</strong><small>{LOCATION.city}</small></span>
+            </div>
+            <div className={styles.locationDetail}>
+              <Clock size={18} strokeWidth={1.5} aria-hidden="true" />
+              <span><strong>{LOCATION.hours}</strong><small>Atención a proyectos en todo Honduras</small></span>
+            </div>
+          </div>
+          <div className={styles.locationActions}>
+            <a className={styles.locationPrimary} href={MAP_LINK} target="_blank" rel="noopener noreferrer">Abrir mapa completo <ArrowUpRight size={16} /></a>
+            <a className={styles.locationSecondary} href={DIRECTIONS_LINK} target="_blank" rel="noopener noreferrer">Cómo llegar <ArrowRight size={16} /></a>
+          </div>
         </div>
-        <div className={styles.areaList}>
-          {AREAS.map(({ icon: Icon, title, text }, index) => (
-            <a
-              href="#formulario"
-              className={`${styles.areaRow} ${activeArea === index ? styles.areaActive : ""}`}
-              key={title}
-              data-reveal
-            >
-              <span className={styles.areaIndex}>0{index + 1}</span>
-              <span className={styles.areaIcon}><Icon size={19} strokeWidth={1.5} /></span>
-              <span className={styles.areaCopy}><strong>{title}</strong><small>{text}</small></span>
-              <ArrowUpRight className={styles.areaArrow} size={18} />
-            </a>
-          ))}
-          <div className={styles.areaProgress} aria-hidden="true"><span style={{ transform: `scaleY(${(activeArea + 1) / AREAS.length})` }} /></div>
-        </div>
+
+        <figure className={styles.mapFrame} data-reveal>
+          <div className={styles.mapTopLine}><span>ARCONET · BARRIO GUAMILITO</span><span>15.5089° N · 88.0313° O</span></div>
+          <iframe
+            className={styles.mapEmbed}
+            src={MAP_EMBED}
+            title="Mapa de ubicación de Arconet en Barrio Guamilito, San Pedro Sula"
+            loading="lazy"
+            referrerPolicy="no-referrer"
+            aria-label="Mapa de OpenStreetMap centrado en 4 Calle y 11 Avenida, Barrio Guamilito"
+          />
+          <figcaption className={styles.mapCaption}>
+            <span className={styles.mapPin} aria-hidden="true"><MapPin size={14} /></span>
+            Mapa de OpenStreetMap · Marcador aproximado sobre 4 Calle y 11 Avenida NO
+          </figcaption>
+        </figure>
       </section>
 
       <section className={styles.contactStory}>
@@ -284,7 +297,7 @@ export default function ContactExperience() {
             <label>Teléfono <span>Opcional</span><input type="tel" name="phone" autoComplete="tel" placeholder="+504" /></label>
             <label className={styles.formFull}>Área de interés
               <select name="area" defaultValue="Componentes pasivos">
-                {AREAS.map((area) => <option key={area.title}>{area.title}</option>)}
+                {INTERESTS.map((interest) => <option key={interest}>{interest}</option>)}
                 <option>Otro proyecto</option>
               </select>
             </label>

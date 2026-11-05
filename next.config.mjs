@@ -17,8 +17,9 @@ const securityHeaders = [
       // de barras (stream de cámara) se pinte dentro de la página; sin él,
       // CSP bloqueaba el <video> y el lector nunca mostraba imagen.
       // frame-src permite el visor de documentos autenticados en la misma
-      // pestaña. Se conserva frame-ancestors none en producción.
-      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; media-src 'self' blob:; frame-src 'self' blob:; connect-src 'self' https://static.cloudflareinsights.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+      // pestaña y el mapa de OpenStreetMap embebido en /contacto (sin clave
+      // de API). Se conserva frame-ancestors none en producción.
+      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; media-src 'self' blob:; frame-src 'self' blob: https://www.openstreetmap.org; connect-src 'self' https://static.cloudflareinsights.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
   },
 ];
 
