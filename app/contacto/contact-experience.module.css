@@ -76,7 +76,10 @@
 }
 
 .heroOverlay {
-  background: linear-gradient(180deg, #07101bbf 0%, #0b17357a 45%, #091326d9 100%), linear-gradient(90deg, #08101e66, transparent 72%);
+  /* La columna de lectura queda a la izquierda; el degradado se apaga antes
+     de llegar a las personas, que ocupan el centro y la derecha de la foto. */
+  background: linear-gradient(180deg, #07101bbf 0%, #0b17357a 45%, #091326d9 100%),
+    linear-gradient(90deg, rgba(5, 14, 28, 0.72) 0%, rgba(5, 14, 28, 0.58) 46%, rgba(5, 14, 28, 0) 76%);
 }
 
 .heroHeader {
@@ -267,10 +270,14 @@
 .heroCopy {
   position: relative;
   z-index: 1;
-  width: min(1240px, calc(100% - 48px));
-  margin: auto;
-  padding: 54px 0 72px;
-  text-align: center;
+  width: min(880px, 52%);
+  min-width: 0;
+  margin-top: auto;
+  margin-bottom: auto;
+  margin-left: clamp(24px, 6vw, 116px);
+  margin-right: auto;
+  padding: 52px 0 70px;
+  text-align: left;
   animation: copyEnter 850ms cubic-bezier(0.2, 0.72, 0.24, 1) both;
 }
 
@@ -287,7 +294,17 @@
 }
 
 .eyebrow {
-  justify-content: center;
+  justify-content: flex-start;
+}
+
+/* Misma familia, pesos y ritmo tipográfico que el hero del home de /tienda. */
+.heroCopy .eyebrow {
+  flex-wrap: wrap;
+  color: #e0eaff;
+  font-size: clamp(10px, 0.8vw, 13px);
+  letter-spacing: 0.13em;
+  line-height: 1.6;
+  text-shadow: 0 1px 6px #050e1c;
 }
 
 .eyebrow i,
@@ -299,25 +316,33 @@
 }
 
 .heroCopy h1 {
-  margin-top: 20px;
+  margin-top: 18px;
   color: #fff;
-  font-family: var(--font-heading), system-ui, sans-serif;
-  font-size: 74px;
-  font-weight: 400;
-  line-height: 0.99;
+  font-family: var(--font-display), system-ui, sans-serif;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+  font-size: clamp(32px, 3.6vw, 64px);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  text-shadow: 0 3px 24px rgba(0, 0, 0, 0.55);
 }
 
 .heroCopy h1 em {
-  color: #a5bdff;
+  color: #c7ddff;
   font-style: normal;
 }
 
 .heroCopy > p:not(.eyebrow) {
-  max-width: 550px;
-  margin: 21px auto 26px;
-  color: #ffffffd9;
-  font-size: 14px;
-  line-height: 1.75;
+  max-width: min(46ch, 100%);
+  margin: 21px 0 26px;
+  color: #f3f6fc;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+  font-size: clamp(15px, 1.2vw, 19px);
+  line-height: 1.72;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.45);
 }
 
 .heroAction {
@@ -813,11 +838,18 @@
   .heroHeader .headerAction { gap: 7px; padding: 4px 5px 4px 12px;
   font-size: 11px; }
   .heroHeader .headerAction span { width: 24px; height: 24px; }
-  .heroCopy { width: calc(100% - 32px); padding: 44px 0 55px; }
+  /* En móvil el bloque baja: la parte superior de la foto (los rostros)
+     queda despejada y el texto sigue alineado a la izquierda. */
+  .heroCopy { width: calc(100% - 40px); margin-top: auto; margin-bottom: 0; margin-inline: 20px; padding: 32px 0 24px; }
   .heroCopy h1 { margin-top: 17px;
-  font-size: 46px; }
-  .heroCopy > p:not(.eyebrow) { margin: 17px auto 21px;
-  font-size: 12px; }
+  font-size: clamp(28px, 6.6vw, 44px); }
+  .heroCopy > p:not(.eyebrow) { max-width: 44ch; margin: 18px 0 24px;
+  font-size: 15px; }
+  .heroOverlay {
+    background: linear-gradient(180deg, #07101bbf 0%, #0b17357a 45%, #091326d9 100%),
+      linear-gradient(90deg, rgba(5, 14, 28, 0.74) 0%, rgba(5, 14, 28, 0.5) 58%, rgba(5, 14, 28, 0) 92%);
+  }
+  .heroImage { object-position: 64% 42%; }
   .heroFooter { align-items: flex-end; gap: 12px; padding: 0 16px 18px;
   font-size: 6px; }
   .heroFooter a { gap: 5px; }
@@ -860,8 +892,6 @@
 }
 
 @media (max-width: 390px) {
-  .heroCopy h1 {
-  font-size: 40px; }
   .heroFooter { letter-spacing: 0.04em; }
   .areaCopy small { max-width: 250px; }
   .formGrid { grid-template-columns: 1fr; }
