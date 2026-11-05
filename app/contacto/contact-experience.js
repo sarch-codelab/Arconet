@@ -166,7 +166,7 @@ export default function ContactExperience() {
         <section id="contacto-inicio" className={styles.heroCard}>
           <div className={styles.heroBackground}>
             <Image
-              src="/catalogo/infraestructura.jpg"
+              src="/contacto-asesoria-fibra.webp"
               alt=""
               fill
               priority
