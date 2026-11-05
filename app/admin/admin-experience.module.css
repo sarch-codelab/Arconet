@@ -4544,6 +4544,13 @@
   .adminLoginPage .loginPanelBody h2 { font-size: 28px; }
 }
 
+/* Registro tiene más campos: sin cambiar el diseño de la tarjeta, se le
+   permite crecer con un viewport alto y compactar un poco los espacios. El
+   límite sigue siendo la altura disponible, nunca el documento. */
+.clientRegisterPage .loginCard { height: min(100%, 960px); }
+.clientRegisterPage .loginPanelBody { gap: 12px; }
+.clientRegisterPage .form { gap: 10px; }
+
 /* QR owns the inner scroll while open; avoid nested scrollers and carry-over
    from a short password form, which could otherwise hide the QR heading. */
 .adminLoginPage .loginPanelBody[data-qr-open] { overflow-y: hidden; }

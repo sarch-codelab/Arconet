@@ -7,7 +7,9 @@ import { describe, expect, it } from "vitest";
 // planas con todo el texto gris, las páginas legales repetían otra versión y
 // el registro, la recuperación y el portal de cliente terminaban en seco.
 // Ahora `app/footer.js` es el único footer del sitio y las páginas lo importan
-// en vez de copiarlo.
+// en vez de copiarlo. Las pantallas de acceso (login, recuperación y registro)
+// son la excepción: una tarjeta centrada a la altura del viewport, sin pie
+// público que obligue a desplazar la página.
 //
 // Este archivo evita que vuelvan las copias.
 
@@ -21,8 +23,6 @@ const APP = globSync("app/**/*.js", { cwd: raiz }).map((f) => [normalizar(f), le
 const CON_FOOTER = [
   // Home
   "app/home-experience.js",
-  // Registro; login y recuperación conservan una sola pantalla de acceso.
-  "app/registro/registro-experience.js",
   // Portal de cliente
   "app/cliente/cliente-experience.js",
   // Tienda y fichas
@@ -103,13 +103,26 @@ describe("el footer no se rompe en las pantallas que lo reciben", () => {
     // pantalla. Un <Footer /> dentro de ese main entraba como tercera columna
     // y salía deformado (1055 px de alto en una franja de 400).
     for (const ruta of [
-      "app/registro/registro-experience.js",
       "app/cliente/cliente-experience.js",
     ]) {
       const [, texto] = APP.find(([f]) => f === ruta);
       const cierre = texto.lastIndexOf("</main>");
       const footer = texto.lastIndexOf("<Footer />");
       expect(footer, ruta).toBeGreaterThan(cierre);
+    }
+  });
+
+  it("las pantallas de acceso no montan el footer público", () => {
+    // El footer comercial obligaría a crecer el documento por debajo de la
+    // tarjeta y rompería el ajuste de viewport compartido con /admin.
+    for (const ruta of [
+      "app/login/login-experience.js",
+      "app/recuperar/recuperar-experience.js",
+      "app/registro/registro-experience.js",
+    ]) {
+      const [, texto] = APP.find(([f]) => f === ruta);
+      expect(texto, ruta).not.toContain("<Footer />");
+      expect(texto, ruta).not.toContain("import Footer");
     }
   });
 

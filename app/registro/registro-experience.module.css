@@ -1,6 +1,7 @@
+/* El alto y el scroll interno los define la clase compartida de acceso;
+   aquí sólo se evita que un contenido ancho fuerce desbordamiento lateral. */
 .registrationBody {
-  flex: 1 1 auto;
-  min-height: 100%;
+  min-width: 0;
 }
 
 .accountHint {
@@ -116,20 +117,4 @@
   .consentRow {
     flex-direction: column;
   }
-}
-
-.registrationBody :global(.checkbox) {
-  position: relative;
-}
-
-.registrationBody :global(.checkbox) input {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 1;
-  width: 16px;
-  height: 16px;
-  margin: 0;
-  opacity: 0;
-  cursor: pointer;
 }

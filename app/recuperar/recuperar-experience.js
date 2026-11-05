@@ -93,7 +93,7 @@ export default function RecuperarExperience() {
 
   return (
     <>
-      <main className={styles.loginPage}>
+      <main className={`${styles.loginPage} ${styles.clientLoginPage}`}>
         <MobileSiteMenu floating />
         <div className={styles.loginCard}>
           <section className={styles.loginPanel} aria-label="Recuperar contraseña">
