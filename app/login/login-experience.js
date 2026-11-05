@@ -50,7 +50,7 @@ export default function LoginExperience() {
 
   return (
     <>
-      <main className={styles.loginPage}>
+      <main className={`${styles.loginPage} ${styles.clientLoginPage}`}>
         <MobileSiteMenu floating />
         <div className={styles.loginCard}>
           <section className={styles.loginPanel} aria-label="Formulario de acceso">
