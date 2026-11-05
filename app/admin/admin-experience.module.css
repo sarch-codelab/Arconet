@@ -4480,3 +4480,55 @@
   visibility: hidden;
   pointer-events: none;
 }
+
+/* Only /admin: fit the login to the viewport instead of growing the document.
+   Short windows/zoom retain an accessible inner scroll, never clipped controls. */
+.adminLoginPage {
+  box-sizing: border-box;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  align-items: center;
+  padding: clamp(12px, 2vh, 24px) clamp(16px, 5vw, 64px);
+  overflow: hidden;
+}
+.adminLoginPage .loginCard {
+  display: flex;
+  flex-direction: column;
+  height: min(100%, 680px);
+  max-height: 100%;
+  min-height: 0;
+  margin: 0;
+}
+.adminLoginPage .loginPanel {
+  flex: 1;
+  min-height: 0;
+}
+.adminLoginPage .loginPanelBody {
+  flex: 1;
+  width: min(460px, 100%);
+  min-height: 0;
+  padding: clamp(16px, 2.5vh, 28px) clamp(20px, 4vw, 36px);
+  gap: 14px;
+  justify-content: safe center;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+}
+.adminLoginPage .loginPanelBody > * { flex-shrink: 0; }
+.adminLoginPage .loginPanelBody header { gap: 8px; }
+.adminLoginPage .loginBrand img { width: 170px; }
+.adminLoginPage .loginPanelBody h2 { font-size: clamp(30px, 4.5vh, 40px); }
+.adminLoginPage .loginIntro { font-size: 12px; line-height: 1.5; }
+.adminLoginPage .form { gap: 12px; }
+.adminLoginPage .formRow { gap: 8px; }
+.adminLoginPage .loginFooter { font-size: 12px; }
+@media (max-height: 600px) {
+  .adminLoginPage .loginPanelBody { justify-content: flex-start; gap: 10px; }
+  .adminLoginPage .loginBrand img { width: 140px; }
+  .adminLoginPage .loginPanelBody h2 { font-size: 28px; }
+}
+
+/* QR owns the inner scroll while open; avoid nested scrollers and carry-over
+   from a short password form, which could otherwise hide the QR heading. */
+.adminLoginPage .loginPanelBody[data-qr-open] { overflow-y: hidden; }

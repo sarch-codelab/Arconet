@@ -12,7 +12,7 @@ export async function qrRequest(body, signal) {
   if (!response.ok) throw Object.assign(new Error(data.error || "No se pudo conectar. Intenta de nuevo."), { status: response.status });
   return data;
 }
-export default function QrLogin({ onOpenChange, disabled = false } = {}) {
+export default function QrLogin({ onOpenChange, disabled = false, fitViewport = false } = {}) {
   const router = useRouter();
   const [challenge, setChallenge] = useState(null);
   const [status, setStatus] = useState("closed");
@@ -79,7 +79,7 @@ export default function QrLogin({ onOpenChange, disabled = false } = {}) {
     setChallenge(null); setStatus("closed"); setError("");
     onOpenChange?.(false);
   }
-  return <section className={`${styles.root} ${open ? styles.open : ""}`} aria-label="Acceso rápido con QR" onKeyDown={event => {
+  return <section className={`${styles.root} ${open ? styles.open : ""}`} aria-label="Acceso rápido con QR" data-fit-viewport={fitViewport || undefined} onKeyDown={event => {
     if (open && event.key === "Escape") { event.preventDefault(); close(); }
   }}>
     <button ref={triggerRef} type="button" className={styles.trigger} onClick={generate} disabled={disabled || open} aria-hidden={open ? true : undefined} tabIndex={open ? -1 : undefined}><QrCode size={20} /> Acceso rápido con QR</button>

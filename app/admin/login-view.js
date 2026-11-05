@@ -4,7 +4,7 @@ import Link from "next/link";
 import CodeSlots from "@/components/ui/code-slots/code-slots";
 import QrLogin from "./qr-login";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Eye, EyeOff } from "lucide-react";
 import styles from "./admin-experience.module.css";
 import { notifyError } from "./admin-ui";
@@ -15,6 +15,15 @@ export default function LoginView() {
   const router = useRouter();
   const localPreview = isLocalPreview();
   const [qrOpen, setQrOpen] = useState(false);
+  const bodyRef = useRef(null);
+  const credentialScroll = useRef(0);
+  function changeQrMode(open) {
+    if (open) credentialScroll.current = bodyRef.current?.scrollTop || 0;
+    setQrOpen(open);
+  }
+  useLayoutEffect(() => {
+    if (bodyRef.current) bodyRef.current.scrollTop = qrOpen ? 0 : credentialScroll.current;
+  }, [qrOpen]);
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(true);
   const [email, setEmail] = useState("");
@@ -57,10 +66,10 @@ export default function LoginView() {
   }
 
   return (
-    <main className={styles.loginPage}>
+    <main className={`${styles.loginPage} ${styles.adminLoginPage}`}>
       <div className={styles.loginCard}>
         <section className={styles.loginPanel} aria-label="Formulario de acceso">
-          <div className={styles.loginPanelBody}>
+          <div ref={bodyRef} className={styles.loginPanelBody} data-qr-open={qrOpen || undefined}>
             <header className={qrOpen ? styles.loginCredentialsHidden : undefined} inert={qrOpen ? true : undefined}>
               <div className={styles.loginBrand}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -145,7 +154,7 @@ export default function LoginView() {
               </button>
             </form>
 
-            <QrLogin onOpenChange={setQrOpen} disabled={submitting} />
+            <QrLogin onOpenChange={changeQrMode} disabled={submitting} fitViewport />
 
             <p className={`${styles.loginFooter} ${qrOpen ? styles.loginCredentialsHidden : ""}`} inert={qrOpen ? true : undefined}>
               <Link href="/"><ArrowLeft size={14} /> Volver al inicio</Link>

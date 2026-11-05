@@ -106,7 +106,7 @@ describe("protección de origen y presentación del acceso QR", () => {
     expect(s.indexOf("<QrLogin onOpenChange=")).toBeGreaterThan(s.indexOf("</form>"));
     expect(s.indexOf("<QrLogin onOpenChange=")).toBeLessThan(s.indexOf("styles.loginFooter"));
     expect(s).toContain("authenticate(email, password, verificationCode)");
-    expect(s).toContain("onOpenChange={setQrOpen}");
+    expect(s).toContain("onOpenChange={changeQrMode}");
     expect(s).toContain("inert={qrOpen ? true : undefined}");
   });
   it("genera el QR localmente, no devuelve secretos ni sesiones de producción en JSON", () => {
