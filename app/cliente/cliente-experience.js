@@ -213,7 +213,8 @@ function ClientDashboard({ session, orders, setOrders, onSessionUpdate, onLogout
             <header className={styles.dashboardTopbar}>
               <div className={styles.brandArea}>
                 <Link className={styles.logo} href="/" aria-label="Arconet, inicio">
-                  <Image src="/arconet.png" alt="Arconet" width={1200} height={200} sizes="(max-width: 1040px) 114px, 176px" />
+                  <Image src="/arconet.png" alt="Arconet" width={1200} height={200} sizes="(max-width: 1040px) 114px, 176px" fetchPriority="low"
+              />
                 </Link>
                 <span className={styles.logoTag}>Portal de clientes</span>
               </div>

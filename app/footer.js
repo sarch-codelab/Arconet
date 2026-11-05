@@ -79,6 +79,7 @@ export default function Footer() {
               width={1200}
               height={200}
               sizes="(max-width: 760px) 150px, 190px"
+              fetchPriority="low"
             />
           </Link>
           <p className={styles.tagline}>Conectividad que acerca.</p>

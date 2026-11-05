@@ -357,6 +357,7 @@ export function Topbar({
               src="/arconet.png"
               alt="Arconet"
               className={styles.topbarBrandImg}
+              fetchPriority="low"
             />
           </Link>
         </div>

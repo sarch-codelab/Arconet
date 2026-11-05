@@ -306,7 +306,7 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
               src="/catalogo/bodeg.avifa.avif"
               alt=""
               fill
-              priority
+              loading="lazy"
               sizes="100vw"
               className={styles.branchGateImage}
             />
@@ -322,7 +322,8 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
               width={1200}
               height={200}
               sizes="(max-width: 1040px) 114px, 176px"
-              priority
+              loading="eager"
+              fetchPriority="low"
             />
             </span>
             <span className={styles.branchGateMeta}>Catálogo técnico · Honduras</span>
@@ -413,7 +414,8 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
               width={1200}
               height={200}
               sizes="(max-width: 1040px) 114px, 176px"
-              priority
+              loading="eager"
+              fetchPriority="low"
             />
             </Link>
             <nav className={styles.navigation} aria-label="Navegación principal">

@@ -73,7 +73,8 @@ export default function LoginView() {
             <header className={qrOpen ? styles.loginCredentialsHidden : undefined} inert={qrOpen ? true : undefined}>
               <div className={styles.loginBrand}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/arconet.png" alt="Arconet" width={1200} height={200} />
+                <img src="/arconet.png" alt="Arconet" width={1200} height={200} fetchPriority="low"
+              />
               </div>
               <h2>
                 Acceso

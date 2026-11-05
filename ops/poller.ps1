@@ -52,10 +52,17 @@ $head = $head.Trim(); $target = $target.Trim()
 # 2. Nada nuevo
 if ($head -eq $target) { W "Sin cambios (HEAD=$((Short $head)))"; exit 0 }
 
-# 3. Ese commit ya fallo
+# 3. Ese commit ya fallo. El bloqueo evita un bucle de deploys rotos cada
+# 5 minutos, pero no puede ser eterno: un fallo transitorio (lock ocupado,
+# red, npm) dejaria el servidor congelado en un build viejo para siempre.
 if ((Test-Path $StateFile) -and ((Get-Content $StateFile -Raw).Trim() -eq $target)) {
-    W "El commit $(Short $target) ya fallo antes; se reintenta cuando haya uno nuevo" 'WARN'
-    exit 0
+    $stateAge = (Get-Date) - (Get-Item $StateFile).LastWriteTime
+    if ($stateAge.TotalMinutes -lt 30) {
+        W "El commit $(Short $target) ya fallo antes; se reintenta cuando haya uno nuevo (o en $([int](30 - $stateAge.TotalMinutes)) min)" 'WARN'
+        exit 0
+    }
+    W "El commit $(Short $target) fallo hace $([int]$stateAge.TotalMinutes) min; se limpia el estado y se reintenta" 'WARN'
+    Remove-Item $StateFile -Force -ErrorAction SilentlyContinue
 }
 
 # 4. No pisar trabajo local
@@ -72,13 +79,19 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 # 5. Desplegar mediante la tarea SYSTEM
-# Si ya hay un deploy en curso (manual o anterior), no se lanza otro.
+# Solo el estado REAL de la tarea indica que hay un deploy en curso.
+# LastTaskResult=267009 (SCHED_S_TASK_RUNNING) puede quedar como residuo de
+# una ejecucion que se corto; si se usa como bloqueo, el poller deja de
+# desplegar PARA SIEMPRE aunque origin/main siga avanzando.
 $RUNNING_CODE = 267009   # 0x41301 = SCHED_S_TASK_RUNNING
 try {
     $cur = Get-ScheduledTaskInfo -TaskName $TaskName -ErrorAction Stop
-    if ($cur.State -eq 'Running' -or $cur.LastTaskResult -eq $RUNNING_CODE) {
+    if ($cur.State -eq 'Running') {
         W "Ya hay un deploy en curso ($TaskName); no lanzo otro" 'WARN'
         exit 0
+    }
+    if ($cur.LastTaskResult -eq $RUNNING_CODE) {
+        W "Resultado 267009 residual en $TaskName (la tarea no esta en ejecucion); se ignora y se continua" 'WARN'
     }
     $before = $cur.LastRunTime
 } catch {

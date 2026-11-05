@@ -252,6 +252,7 @@ export default function PageTransition() {
           loading="eager"
           decoding="async"
           draggable={false}
+        fetchPriority="low"
         />
       </span>
       {message ? <span className={styles.message}>{message}</span> : null}

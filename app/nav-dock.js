@@ -145,7 +145,7 @@ export default function NavDock({
             height={200}
             sizes="(max-width: 1040px) 114px, 176px"
             loading="eager"
-            fetchPriority="high"
+            fetchPriority="low"
           />
         </Link>
 
