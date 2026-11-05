@@ -31,7 +31,7 @@ jobs:
         # --ignore-scripts: en npm >= 11.6 los scripts de instalacion se
         # bloquean por defecto y "npm ci" falla al ejecutar el preinstall de
         # prisma (y el postinstall de @prisma/engines). No los necesitamos
-        # aqui: el paso "Compilar" corre "prisma generate" explicitamente
+        # aqui: el paso "Compilar" corre el wrapper de Prisma, que usa el motor WASM
         # (script build de package.json) y las binarias nativas de esbuild
         # se instalan como dependencias opcionales, sin scripts.
         run: npm ci --ignore-scripts
@@ -44,7 +44,9 @@ jobs:
           # prisma.config.ts resuelve env("DATABASE_URL") al cargar; sin este
           # valor el comando falla con "Cannot resolve environment variable".
           DATABASE_URL: 'postgresql://ci:ci@localhost:5432/ci?schema=public'
-        run: npx prisma validate
+        # scripts/prisma-cli.mjs usa el motor WASM que trae el propio paquete:
+        # ni `validate` ni `generate` necesitan descargar binaries.prisma.sh.
+        run: node scripts/prisma-cli.mjs validate
 
       - name: Tests
         run: npm test
@@ -55,6 +57,11 @@ jobs:
           # el valor solo evita que falle algo que instancie Prisma.
           DATABASE_URL: 'postgresql://ci:ci@localhost:5432/ci?schema=public'
         run: npm run build
+
+      - name: Verificar assets estáticos del build
+        # Un chunk ausente o vacío (p. ej. app/admin/page-*.js) provoca
+        # ChunkLoadError en el navegador. Se comprueba antes de desplegar.
+        run: node ops/verify-static-assets.mjs
 
       - name: Verificar bundler de producción
         # El runtime de Turbopack puede fallar en el navegador con «module

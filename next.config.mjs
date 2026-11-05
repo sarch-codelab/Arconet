@@ -1,4 +1,15 @@
 /** @type {import('next').NextConfig} */
+// Los chunks llevan hash en el nombre y deploy.ps1 conserva los de los builds
+// anteriores (ops/retain-static-assets.mjs). NEXT_DEPLOYMENT_ID añadía el
+// sufijo ?dpl=<sha> a TODOS los assets: obligaba a descargarlos de nuevo en
+// cada despliegue —justo cuando el único upstream se está reiniciando— y en
+// producción un chunk llegó a responderse como 500 text/plain, que el navegador
+// rechaza por MIME y termina en ChunkLoadError. Sin ese ID, Next detecta el
+// cambio de versión por BUILD_ID y los assets inmutables siguen disponibles.
+// Se elimina también por si el entorno del servidor lo heredó de un deploy
+// anterior. Ver docs/chunk-500-mime.md.
+delete process.env.NEXT_DEPLOYMENT_ID;
+
 const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },

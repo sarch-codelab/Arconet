@@ -75,9 +75,26 @@ describe('Contrato de despliegue Windows', () => {
     expect(deploy).toContain('$Lock.Dispose()');
     expect(watchdog.indexOf("'deploy.lock'")).toBeLessThan(watchdog.indexOf('Invoke-WebRequest'));
   });
-  it('persiste ID por build y elimina las copias temporales de .env', () => {
-    expect(deploy).toContain("Set-Content -Path '.next\\DEPLOYMENT_ID' -Value $Target");
-    expect(readFileSync('ops/start-arconet.ps1', 'utf8')).toContain("Join-Path $BuildDir 'DEPLOYMENT_ID'");
-    expect(deploy.slice(deploy.indexOf('} finally {\n    $env:NEXT_DEPLOYMENT_ID'))).toContain('Remove-Item $Candidate -Recurse -Force');
+  it('no usa ?dpl= y conserva los assets inmutables entre builds', () => {
+    const start = readFileSync('ops/start-arconet.ps1', 'utf8');
+    const config = readFileSync('next.config.mjs', 'utf8');
+    expect(deploy).not.toContain('NEXT_DEPLOYMENT_ID = $Target');
+    expect(deploy).not.toContain("Set-Content -Path '.next\\DEPLOYMENT_ID'");
+    expect(deploy).toContain('retain-static-assets.mjs');
+    expect(start).not.toContain("$env:NEXT_DEPLOYMENT_ID = (Get-Content");
+    expect(config).toContain('delete process.env.NEXT_DEPLOYMENT_ID');
+    expect(deploy.slice(deploy.indexOf('} finally {'))).toContain('Remove-Item $Candidate -Recurse -Force');
+  });
+
+  it('el health check cubre todas las rutas criticas y cada chunk JavaScript', () => {
+    for (const value of ['/admin', '/contacto', '/tienda', '?dpl=', 'HashSet[string]', 'Content-Type', 'javascript']) {
+      expect(deploy).toContain(value);
+    }
+  });
+
+  it('verifica los chunks en disco antes de promover', () => {
+    const build = deploy.indexOf("Invoke-Npm -NpmArgs @('run', 'build')");
+    expect(deploy.indexOf('verify-static-assets.mjs', build)).toBeGreaterThan(build);
+    expect(deploy.indexOf('Invoke-Boot $BootStop', build)).toBeGreaterThan(deploy.indexOf('verify-static-assets.mjs', build));
   });
 });
