@@ -12,10 +12,11 @@ describe('/login adaptado al viewport como /admin', () => {
     }
     expect(css).toMatch(/\.clientLoginPage \.loginPanelBody,\s*\.adminLoginPage \.loginPanelBody\s*\{[^}]*overflow-y: auto/);
   });
-  it('mantiene recuperacion y registro fuera del ajuste de altura fija', () => {
+  it('comparte el ajuste con recuperacion y registro como pantallas de acceso de clientes', () => {
     for (const path of ['app/recuperar/recuperar-experience.js', 'app/registro/registro-experience.js']) {
-      expect(readFileSync(path, 'utf8')).not.toContain('styles.clientLoginPage');
+      expect(readFileSync(path, 'utf8')).toContain('${styles.loginPage} ${styles.clientLoginPage}');
     }
+    expect(readFileSync('app/registro/registro-experience.js', 'utf8')).not.toContain('<Footer />');
   });
   it('conserva autenticacion, bloqueo de envio, acceso y enlaces', () => {
     for (const value of ['/api/cliente-auth/login', 'if (submitting) return;', 'recordarme: remember', 'disabled={submitting}', 'router.push("/cliente")', 'href="/recuperar"', 'href="/registro"', 'href="/ayuda"', '<MobileSiteMenu floating />']) expect(source).toContain(value);

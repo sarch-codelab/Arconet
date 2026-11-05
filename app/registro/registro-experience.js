@@ -2,14 +2,12 @@
 
 import { rememberLocalPreviewSession, clientApiFetch as fetch } from "@/lib/api-fetch";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ArrowRight, Check, Eye, EyeOff } from "lucide-react";
 import styles from "../admin/admin-experience.module.css";
 import registration from "./registro-experience.module.css";
-import Footer from "../footer";
 import { sileo } from "../toaster";
 import { fuerzaPassword, validarPassword } from '@/lib/seguridad';
 import MobileSiteMenu from "../mobile-site-menu";
@@ -88,63 +86,24 @@ export default function RegistroExperience() {
 
   return (
     <>
-      <main className={styles.loginPage}>
+      <main className={`${styles.loginPage} ${styles.clientLoginPage} ${styles.clientRegisterPage}`}>
         <MobileSiteMenu floating />
         <div className={styles.loginCard}>
-          <div className={styles.loginVisual}>
-            <Image
-              src="/catalogo/infraestructura.jpg"
-              alt=""
-              fill
-              priority
-              className={styles.loginVisualImg}
-              sizes="(max-width: 900px) 100vw, 53vw"
-            />
-            <div className={styles.loginVisualOverlay} />
-
-            <Link className={styles.logoTab} href="/" aria-label="Arconet, inicio">
-              <Image
-                src="/arconet.png"
-                alt="Arconet"
-                width={1200}
-                height={200}
-                sizes="(max-width: 1040px) 114px, 176px"
-                priority
-              />
-            </Link>
-
-            <div className={styles.loginVisualCopy}>
-              <p className={styles.eyebrow}><i /> Portal de clientes · Arconet</p>
-              <h1>
-                Crea tu cuenta
-                <br />
-                <em>y gestiona tus proyectos.</em>
-              </h1>
-              <p className={styles.lead}>
-                Registra tu empresa para solicitar cotizaciones, dar seguimiento a tus
-                órdenes y administrar tus servicios de fibra óptica, CATV e infraestructura.
-              </p>
-            </div>
-
-            <div className={styles.loginVisualFooter}>
-              <span>FIBRA ÓPTICA · CATV · TELECOMUNICACIONES</span>
-              <Link href="/contacto">
-                ¿Necesitas ayuda? Escríbenos <ArrowRight size={14} />
-              </Link>
-            </div>
-          </div>
-
           <section className={styles.loginPanel} aria-label="Formulario de registro">
             <div className={`${styles.loginPanelBody} ${registration.registrationBody}`}>
               <header>
-                <p className={styles.sectionLabel}>Crear cuenta</p>
+                <div className={styles.loginBrand}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/arconet.png" alt="Arconet" width={1200} height={200} />
+                </div>
                 <h2>
-                  Nueva
+                  Crea tu
                   <br />
                   <em>cuenta.</em>
                 </h2>
                 <p className={styles.loginIntro}>
-                  Completa tus datos para crear tu cuenta de cliente Arconet.
+                  Registra tu empresa para solicitar cotizaciones, dar seguimiento a tus
+                  órdenes y administrar tus servicios de fibra óptica, CATV e infraestructura.
                 </p>
                 <p className={registration.accountHint}>
                   ¿Tu correo ya está registrado como cliente? <Link href="/contacto">Solicita que habilitemos tu acceso.</Link>
@@ -255,7 +214,7 @@ export default function RegistroExperience() {
 
                 {formError ? <p className={registration.formError} role="alert">{formError}</p> : null}
 
-                <button type="submit" className={styles.submit} disabled={submitting}>
+                <button type="submit" className={`${styles.submit} ${styles.clientLoginSubmit}`} disabled={submitting}>
                   {submitting ? "Creando cuenta..." : "Crear mi cuenta"} <span><ArrowRight size={15} /></span>
                 </button>
               </form>
@@ -269,12 +228,16 @@ export default function RegistroExperience() {
                 <Link href="/terminos">Términos</Link>
                 <span aria-hidden="true"> · </span>
                 <Link href="/privacidad">Privacidad</Link>
+                <span aria-hidden="true"> · </span>
+                <Link href="/ayuda">Ayuda</Link>
+              </p>
+              <p className={styles.loginFooter}>
+                <Link href="/contacto">¿Necesitas ayuda? Escríbenos</Link>
               </p>
             </div>
           </section>
         </div>
       </main>
-      <Footer />
     </>
   );
 }

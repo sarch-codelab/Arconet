@@ -6,7 +6,7 @@ El acceso de clientes adopta las mismas reglas de altura y distribución de `/ad
 - Espaciados, logo y título compactos como en el acceso administrativo.
 - Scroll solo en el cuerpo de la tarjeta cuando la ventana es demasiado baja o el contenido lo requiere; no se recortan campos ni enlaces para simular que caben.
 - Se conservan fondos claro/oscuro, vidrio, animaciones, enlaces y menú existente.
-- Sin cambios de autenticación, recordarme, mensajes, bloqueo durante envío ni redirección al portal. Registro y recuperación no reciben esta clase.
+- Sin cambios de autenticación, recordarme, mensajes, bloqueo durante envío ni redirección al portal. Registro y recuperación se incorporaron después a la misma clase y al mismo ajuste; ver `docs/client-auth-viewport.md`.
 
 ## Validación local
 
