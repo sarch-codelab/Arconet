@@ -133,13 +133,10 @@ if (-not (Test-Path $BuildDir)) {
 }
 
 # --- 3) Arrancar ------------------------------------------------------------
-# El ID debe sobrevivir a reinicios programados, no solo al proceso de deploy.
-$idFile = Join-Path $BuildDir 'DEPLOYMENT_ID'
-if (Test-Path $idFile) {
-    $env:NEXT_DEPLOYMENT_ID = (Get-Content $idFile -Raw).Trim()
-} else {
-    Remove-Item Env:NEXT_DEPLOYMENT_ID -ErrorAction SilentlyContinue
-}
+# No se usa NEXT_DEPLOYMENT_ID: anadia ?dpl= a los chunks y obligaba a
+# descargarlos de nuevo en cada despliegue. El cambio de version lo detecta
+# Next por BUILD_ID y los assets inmutables se retienen siete dias.
+Remove-Item Env:NEXT_DEPLOYMENT_ID -ErrorAction SilentlyContinue
 $env:NODE_ENV = 'production'
 $env:PORT = "$Port"
 $env:NEXT_TELEMETRY_DISABLED = '1'

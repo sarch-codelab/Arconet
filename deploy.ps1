@@ -26,7 +26,6 @@ $Stopped = $false
 $SourceChanged = $false
 $Lock = $null
 $OldHead = $null
-$PreviousDeploymentId = $env:NEXT_DEPLOYMENT_ID
 
 function Write-Log([string]$Message, [string]$Level = 'INFO') {
     $line = '[{0}] [{1}] {2}' -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Level, $Message
@@ -46,7 +45,9 @@ function Invoke-Boot([string]$Script) {
     if ($LASTEXITCODE -ne 0) { throw "Fallo $Script (exit $LASTEXITCODE)" }
 }
 function Assert-Healthy {
-    # No basta que responda el HTML: comprobar BD/API, manifest y un chunk real.
+    # No basta que responda el HTML: comprobar BD/API, manifest y TODOS los
+    # chunks JavaScript que piden las rutas criticas, incluida /admin. Un chunk
+    # servido como 500 text/plain provoca ChunkLoadError en el navegador.
     $page = Invoke-WebRequest 'http://127.0.0.1:3000/' -UseBasicParsing -TimeoutSec 15
     $health = Invoke-WebRequest 'http://127.0.0.1:3000/api/health' -UseBasicParsing -TimeoutSec 15
     if ($page.StatusCode -ne 200 -or $health.StatusCode -ne 200 -or
@@ -58,10 +59,25 @@ function Assert-Healthy {
     # oficial usa 'next build --webpack' (ver docs/module-factory-recovery.md).
     if ($page.Content -match '(?i)turbopack') { throw 'El build promovido usa Turbopack; se exige next build --webpack' }
     if (-not [regex]::IsMatch($page.Content, '/_next/static/chunks/webpack-[^"<> ]+\.js')) { throw 'El HTML promovido no carga un runtime Webpack' }
-    $chunk = [regex]::Match($page.Content, '/_next/static/[^"<> ]+\.js(?:\?[^"<> ]*)?').Value
-    if (-not $chunk) { throw 'HTML sin chunk verificable' }
-    $asset = Invoke-WebRequest ("http://127.0.0.1:3000" + [System.Net.WebUtility]::HtmlDecode($chunk)) -UseBasicParsing -TimeoutSec 15
-    if ($asset.StatusCode -ne 200 -or $asset.Headers['Content-Type'] -notmatch 'javascript') { throw 'Chunk no disponible como JavaScript' }
+
+    $checked = New-Object 'System.Collections.Generic.HashSet[string]'
+    foreach ($route in @('/', '/admin', '/contacto', '/tienda')) {
+        $html = if ($route -eq '/') { $page } else { Invoke-WebRequest ('http://127.0.0.1:3000' + $route) -UseBasicParsing -TimeoutSec 15 }
+        if ($html.StatusCode -ne 200) { throw "Ruta $route respondio $($html.StatusCode)" }
+        # ?dpl= obligaba a re-descargar los chunks en cada deploy; un proxy
+        # llego a cachear un 500 text/plain para uno de ellos.
+        if ($html.Content -match '\?dpl=') { throw "Ruta $route aun usa el sufijo ?dpl=; revisar NEXT_DEPLOYMENT_ID" }
+        foreach ($match in [regex]::Matches($html.Content, '/_next/static/[^"<> ]+\.js(?:\?[^"<> ]*)?')) {
+            $url = [System.Net.WebUtility]::HtmlDecode($match.Value)
+            if (-not $checked.Add($url)) { continue }
+            $asset = Invoke-WebRequest ("http://127.0.0.1:3000" + $url) -UseBasicParsing -TimeoutSec 15
+            if ($asset.StatusCode -ne 200 -or $asset.Headers['Content-Type'] -notmatch 'javascript') {
+                throw "Chunk $url respondio $($asset.StatusCode) con $($asset.Headers['Content-Type']); se exige JavaScript 200"
+            }
+        }
+    }
+    if ($checked.Count -eq 0) { throw 'No se verifico ningun chunk JavaScript' }
+    Write-Log "Health check completo: $($checked.Count) chunks JavaScript 200 en /, /admin, /contacto y /tienda"
 }
 
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
@@ -98,12 +114,16 @@ try {
     }
     Set-Location $Candidate
     $env:NODE_ENV = 'production'
-    $env:NEXT_DEPLOYMENT_ID = $Target
+    # Sin NEXT_DEPLOYMENT_ID: ver el comentario en next.config.mjs.
+    Remove-Item Env:NEXT_DEPLOYMENT_ID -ErrorAction SilentlyContinue
     # build necesita tambien las devDependencies (Prisma/TypeScript).
     Invoke-Npm -NpmArgs @('ci', '--include=dev', '--no-audit', '--no-fund')
     Invoke-Npm -NpmArgs @('run', 'build')
     if (-not (Test-Path '.next\BUILD_ID')) { throw 'El candidato no contiene un build completo' }
-    Set-Content -Path '.next\DEPLOYMENT_ID' -Value $Target -Encoding ascii
+    # Verificar en disco que cada chunk referenciado por el HTML existe y que
+    # el chunk de /admin esta presente ANTES de tocar el runtime activo.
+    & $NodeExe (Join-Path $Candidate 'ops\verify-static-assets.mjs')
+    if ($LASTEXITCODE -ne 0) { throw 'Faltan chunks del build; no se promueve' }
     & $NodeExe (Join-Path $Candidate 'ops\retain-static-assets.mjs') (Join-Path $AppPath '.next\static') (Join-Path $Candidate '.next\static')
     if ($LASTEXITCODE -ne 0) { throw 'No se pudieron conservar los assets anteriores' }
     Write-Log 'Candidato compilado; comienza ventana corta de promocion'
@@ -150,13 +170,11 @@ try {
                 git reset --hard $OldHead
                 if ($LASTEXITCODE -ne 0) { throw 'No se pudo restaurar el codigo anterior' }
             }
-            $env:NEXT_DEPLOYMENT_ID = $PreviousDeploymentId
             Invoke-Boot $BootStart
             Write-Log 'Runtime y codigo anteriores restaurados. El deploy sigue marcado como fallido.' 'WARN'
         } catch { Write-Log "RECUPERACION FALLO: $($_.Exception.Message). Conservar previous y revisar logs." 'ERROR' }
     } else { Write-Log 'Fallo de preparacion: runtime activo intacto.' 'WARN' }
 } finally {
-    $env:NEXT_DEPLOYMENT_ID = $PreviousDeploymentId
     # El workspace contiene copias de .env: retirarlo al terminar, incluso al fallar.
     Set-Location $AppPath
     if (Test-Path $Candidate) { Remove-Item $Candidate -Recurse -Force -ErrorAction SilentlyContinue }

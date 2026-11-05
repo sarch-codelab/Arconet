@@ -16,8 +16,9 @@ describe("sección 01 de /contacto: mapa de ubicación", () => {
     expect(jsx).toContain("https://www.openstreetmap.org/export/embed.html?bbox=");
     expect(jsx).toContain("&layer=mapnik&marker=");
     expect(jsx).toContain("src={MAP_EMBED}");
-    expect(jsx).toContain("latitude: 15.5089");
-    expect(jsx).toContain("longitude: -88.0313");
+    expect(jsx).toContain("latitude: 15.5088");
+    expect(jsx).toContain("longitude: -88.0307");
+    expect(jsx).not.toContain("15.5089");
     expect(jsx).not.toContain('id="areas"');
     expect(jsx).not.toContain("data-areas");
     expect(jsx).not.toContain("styles.areaList");
@@ -36,7 +37,7 @@ describe("sección 01 de /contacto: mapa de ubicación", () => {
     expect(jsx).toContain('href="#ubicacion"');
     expect(jsx).toContain('title="Mapa de ubicación de Arconet en Barrio Guamilito, San Pedro Sula"');
     expect(jsx).toContain('loading="lazy"');
-    expect(jsx).toContain("Marcador aproximado");
+    expect(jsx).toContain("4 Calle y 11 Avenida NO, Barrio Guamilito");
   });
 
   it("el CSP permite el iframe del mapa sin relajar el resto", () => {

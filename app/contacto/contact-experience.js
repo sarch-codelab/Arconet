@@ -35,21 +35,22 @@ const INTERESTS = [
   "Microcables y Microproductos",
 ];
 
-// Punto aproximado de "4 Calle 11 Avenida, Barrio Guamilito": cruce de 4 Calle
-// NO con 11 Avenida NO, junto al Instituto María Auxiliadora (15.50899,
-// -88.03128). La dirección del footer no lleva número de local, así que el
-// marcador se sitúa en la intersección y se advierte que es aproximado.
+// Coordenada del local "4 Calle 11 Avenida, Barrio Guamilito": 15.5088,
+// -88.0307, que cae sobre 4a Calle NO (verificado por geocodificación inversa)
+// y coincide con el punto declarado en el listado del negocio. El pin anterior
+// caía sobre el Instituto María Auxiliadora, en 11 Avenida NO, y señalaba un
+// lugar equivocado.
 const LOCATION = {
   address: "4 Calle 11 Avenida, Barrio Guamilito",
   city: "San Pedro Sula, Cortés · Honduras",
   hours: "Lun–Vie 8:00–17:00 · Sáb 8:00–12:00",
-  latitude: 15.5089,
-  longitude: -88.0313,
+  latitude: 15.5088,
+  longitude: -88.0307,
 };
 
 // OpenStreetMap no necesita clave de API. El bbox encuadra el barrio y el
 // marcador queda en el centro; el enlace abre la ficha completa con el pin.
-const MAP_BBOX = "-88.0358,15.5054,-88.0268,15.5124";
+const MAP_BBOX = "-88.0352,15.5053,-88.0262,15.5123";
 const MAP_EMBED = `https://www.openstreetmap.org/export/embed.html?bbox=${MAP_BBOX}&layer=mapnik&marker=${LOCATION.latitude},${LOCATION.longitude}`;
 const MAP_LINK = `https://www.openstreetmap.org/?mlat=${LOCATION.latitude}&mlon=${LOCATION.longitude}#map=17/${LOCATION.latitude}/${LOCATION.longitude}`;
 const DIRECTIONS_LINK = `https://www.google.com/maps/dir/?api=1&destination=${LOCATION.latitude},${LOCATION.longitude}`;
@@ -235,7 +236,7 @@ export default function ContactExperience() {
         </div>
 
         <figure className={styles.mapFrame} data-reveal>
-          <div className={styles.mapTopLine}><span>ARCONET · BARRIO GUAMILITO</span><span>15.5089° N · 88.0313° O</span></div>
+          <div className={styles.mapTopLine}><span>ARCONET · BARRIO GUAMILITO</span><span>15.5088° N · 88.0307° O</span></div>
           <iframe
             className={styles.mapEmbed}
             src={MAP_EMBED}
@@ -246,7 +247,7 @@ export default function ContactExperience() {
           />
           <figcaption className={styles.mapCaption}>
             <span className={styles.mapPin} aria-hidden="true"><MapPin size={14} /></span>
-            Mapa de OpenStreetMap · Marcador aproximado sobre 4 Calle y 11 Avenida NO
+            Mapa de OpenStreetMap · 4 Calle y 11 Avenida NO, Barrio Guamilito
           </figcaption>
         </figure>
       </section>

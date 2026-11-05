@@ -36,6 +36,9 @@ GitHub Actions no puede alcanzarlo. Por eso el deploy es *pull*, no *push*:
    mientras la app sigue activa -> retener assets -> parar -> migrar -> promover
    codigo y runtime -> arrancar -> comprobar HTML, API/BD, manifest y chunk.
    El watchdog no compite con la promocion y el runtime anterior se conserva.
+   Los chunks son inmutables (sin `?dpl=`); se conservan siete dias y
+   `Assert-Healthy` comprueba todos los que piden `/`, `/admin`, `/contacto`
+   y `/tienda`, ademas de verificarlos en disco antes de promover.
 
 Ver [diagnostico y limites de 502/ChunkLoadError](../docs/502-chunk-recovery.md),
 incluida la validacion necesaria en staging Windows antes de publicar cambios

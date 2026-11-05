@@ -21,8 +21,8 @@ y el footer no se tocan.
   formulario mediante el arreglo `INTERESTS`.
 - Se elimina el estado `activeArea` y su `IntersectionObserver`, junto con los
   iconos y el CSS de la lista reemplazada. Se añaden estilos propios del mapa
-  (tarjeta con esquinas azules, cabecera, retícula de respaldo, pie con aviso
-  de marcador aproximado), variantes a 1040/760/390 px y reglas de tema oscuro.
+  (tarjeta con esquinas azules, cabecera, retícula de respaldo, pie con la
+  dirección), variantes a 1040/760/390 px y reglas de tema oscuro.
 - `next.config.mjs`: `frame-src` admite únicamente el origen
   `https://www.openstreetmap.org`, además de `'self' blob:` para el visor de
   documentos. El resto del CSP, incluido `frame-ancestors 'none'` en
@@ -31,13 +31,19 @@ y el footer no se tocan.
 ## Ubicación del marcador
 
 Se usa la dirección que el footer ya publicaba: **4 Calle 11 Avenida, Barrio
-Guamilito, San Pedro Sula, Cortés**. Como no tiene número de local, el pin se
-coloca en el cruce de 4 Calle NO con 11 Avenida NO, junto al Instituto María
-Auxiliadora: **15.5089, -88.0313** (referencia cartográfica aproximada
-15.50899, -88.03128). El pie del mapa indica explícitamente que el marcador es
-aproximado; el enlace a OpenStreetMap permite afinar la ubicación. Si se
-consigue la coordenada exacta del local, basta con cambiar `LOCATION.latitude`,
-`LOCATION.longitude` y `MAP_BBOX` en `app/contacto/contact-experience.js`.
+Guamilito, San Pedro Sula, Cortés**. El pin se coloca en **15.5088, -88.0307**,
+coordenada declarada en el listado del negocio para esa misma dirección y que
+la geocodificación inversa de OpenStreetMap resuelve sobre **4a Calle NO**, la
+calle de la dirección.
+
+El valor anterior, **15.5089, -88.0313**, se había tomado del cruce con 11
+Avenida NO y caía sobre el Instituto María Auxiliadora, en Colonia Santa Ana,
+señalando un lugar equivocado; se descartó.
+
+Para mover el pin basta con cambiar `LOCATION.latitude`, `LOCATION.longitude` y
+`MAP_BBOX` en `app/contacto/contact-experience.js`. El `bbox` debe quedar
+centrado en la nueva coordenada y conservar un ancho cercano a 0.009° de
+longitud y 0.007° de latitud, que es el encuadre actual del barrio.
 
 ## Validación
 
@@ -48,6 +54,8 @@ móvil, con tema claro y oscuro.
 
 ## Límites
 
-El pin es una aproximación al cruce, no una geocodificación del local exacto.
-No se verificaron Safari, Brave ni dispositivos físicos, y la fusión del PR no
-garantiza que el servidor de producción haya desplegado el nuevo build.
+El pin proviene del punto declarado por el listado del negocio, no de una
+verificación presencial ni de una ficha de Google Maps del local: si la empresa
+dispone de una coordenada propia, conviene reemplazarla. No se verificaron
+Safari, Brave ni dispositivos físicos, y la fusión del PR no garantiza que el
+servidor de producción haya desplegado el nuevo build.

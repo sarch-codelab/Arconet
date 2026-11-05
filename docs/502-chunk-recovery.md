@@ -19,7 +19,7 @@ No se accedió al servidor Windows/ZeroTier, a Cloudflare ni a los logs de produ
 7. Si falla la promoción, restaurar los artefactos movidos y el commit anterior; volver a arrancar y marcar el despliegue como fallido. El runtime anterior se conserva en `C:\arconet\previous` hasta el próximo despliegue. El rollback **no revierte migraciones de BD**: deben ser compatibles hacia atrás o requerir una ventana/migración operativa específica.
 8. Borrar el candidato y sus copias de `.env` al terminar normalmente o por excepción. Si se mata el proceso o el servidor pierde energía, comprobar y retirar ese workspace antes de una recuperación manual.
 
-Cada build lleva su commit en `NEXT_DEPLOYMENT_ID` y `.next/DEPLOYMENT_ID`. El arranque restaura ese ID incluso tras reiniciar Windows. Next puede detectar versiones distintas en navegaciones y cargar la página coherente con el servidor. La retención cubre también los módulos lazy dentro de una página abierta.
+Los chunks llevan hash en el nombre y se retienen siete días, así que son inmutables y no necesitan el sufijo `?dpl=` que añadía `NEXT_DEPLOYMENT_ID`: ese sufijo forzaba a re-descargar todos los assets en cada despliegue, justo cuando se reinicia el único upstream, y en producción un chunk llegó a servirse como `500 text/plain`. Sin él, Next detecta el cambio de versión por `BUILD_ID` y recarga la página cuando hace falta. Ver [incidente del chunk 500](chunk-500-mime.md).
 
 **No es un despliegue sin interrupciones**: sigue existiendo una ventana para detener, migrar, mover artefactos y arrancar el único upstream. Elimina la instalación/compilación de esa ventana. Cero interrupción requiere dos upstreams y cambio de tráfico en el proxy, fuera de esta corrección. También se necesita RAM para servir y compilar simultáneamente, y espacio para candidato, activo y respaldo de dependencias/build.
 
@@ -35,7 +35,7 @@ Remontar el mismo `React.lazy` no recupera un import rechazado porque React y/o 
 
 - ESLint sin advertencias, compilación de producción y 125 archivos / 1486 pruebas aprobados.
 - Sintaxis de los cuatro scripts PowerShell analizada con tree-sitter; no es una ejecución de Windows PowerShell.
-- Smoke local con un build de producción trasladado a otro directorio y PostgreSQL aislado: HTML, API/BD, manifest, 16 chunks actuales con Content-Type JavaScript, un chunk retenido del build anterior y `deploymentId` correctos. `/api/ordenes` sin sesión responde 401, no 502. El proceso y la base temporal se detuvieron al finalizar.
+- Smoke local con un build de producción trasladado a otro directorio y PostgreSQL aislado: HTML, API/BD, manifest, 16 chunks actuales con Content-Type JavaScript, un chunk retenido del build anterior y el chunk de `/admin` presentes. `/api/ordenes` sin sesión responde 401, no 502. El proceso y la base temporal se detuvieron al finalizar.
 
 ## Comprobación operativa antes de publicar
 
