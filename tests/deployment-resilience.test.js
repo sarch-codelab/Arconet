@@ -97,4 +97,21 @@ describe('Contrato de despliegue Windows', () => {
     expect(deploy.indexOf('verify-static-assets.mjs', build)).toBeGreaterThan(build);
     expect(deploy.indexOf('Invoke-Boot $BootStop', build)).toBeGreaterThan(deploy.indexOf('verify-static-assets.mjs', build));
   });
+
+  it('el health check pide por HTTP todos los chunks que hay en disco', () => {
+    // En produccion app/admin/page-*.js estaba en .next y aun asi respondia
+    // 500 text/plain. Revisar solo el HTML no habria detectado el caso.
+    expect(deploy).toContain("Get-ChildItem $chunksRoot -Recurse -File -Filter '*.js'");
+    expect(deploy).toContain('Chunk vacio en disco');
+    expect(deploy).toContain("se exige JavaScript 200");
+    expect(deploy).toContain('todos los del disco');
+  });
+
+  it('el poller no se bloquea para siempre por un resultado 267009 residual', () => {
+    const poller = readFileSync('ops/poller.ps1', 'utf8');
+    expect(poller).not.toContain("$cur.State -eq 'Running' -or $cur.LastTaskResult -eq $RUNNING_CODE");
+    expect(poller).toContain("if ($cur.State -eq 'Running')");
+    expect(poller).toContain('Resultado 267009 residual');
+    expect(poller).toContain('$stateAge.TotalMinutes');
+  });
 });

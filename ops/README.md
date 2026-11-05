@@ -52,8 +52,12 @@ Salvaguardas del poller (`ops/poller.ps1`):
 * No despliega si hay cambios sin commitear en el servidor.
 * No despliega si `HEAD` tiene commits que no estan en `origin/main` (el
   `git reset --hard` del deploy los borraria).
-* Si un commit falla, no lo reintenta hasta que aparezca uno nuevo
-  (`C:\arconet\logs\arconet-poller.state`).
+* Si un commit falla, espera a uno nuevo; tras 30 minutos limpia el estado y
+  lo reintenta una vez (`C:\arconet\logs\arconet-poller.state`). Un
+  `LastTaskResult=267009` residual ya no bloquea el poller para siempre.
+* `Assert-Healthy` pide por HTTP **todos** los chunks JavaScript del disco,
+  no solo los del HTML: un archivo presente en `.next` pero servido como
+  `500 text/plain` detiene la promocion y dispara el rollback.
 
 Deploy manual:
 

@@ -58,7 +58,8 @@ export default function LoginExperience() {
               <header>
                 <div className={styles.loginBrand}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/arconet.png" alt="Arconet" width={1200} height={200} />
+                  <img src="/arconet.png" alt="Arconet" width={1200} height={200} fetchPriority="low"
+              />
                 </div>
                 <h2>
                   Bienvenido

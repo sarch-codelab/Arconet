@@ -77,7 +77,28 @@ function Assert-Healthy {
         }
     }
     if ($checked.Count -eq 0) { throw 'No se verifico ningun chunk JavaScript' }
-    Write-Log "Health check completo: $($checked.Count) chunks JavaScript 200 en /, /admin, /contacto y /tienda"
+
+    # Un chunk puede estar en el disco y, aun asi, el servidor devolver un 500
+    # text/plain (directorio de estaticos corrupto, archivo ilegible o respuesta
+    # cacheada). En produccion paso exactamente eso con app/admin/page-*.js:
+    # el HTML lo pedia, existia en .next, pero nunca llego como JavaScript.
+    # Comprobar TODOS los .js del build, no solo los que aparecen en el HTML.
+    $staticRoot = Join-Path $AppPath '.next\static'
+    $chunksRoot = Join-Path $staticRoot 'chunks'
+    $diskChunks = @(Get-ChildItem $chunksRoot -Recurse -File -Filter '*.js' -ErrorAction Stop)
+    if ($diskChunks.Count -eq 0) { throw 'El runtime promovido no tiene chunks JavaScript en disco' }
+    $prefixLength = $staticRoot.Length
+    foreach ($file in $diskChunks) {
+        $url = '/_next/static' + $file.FullName.Substring($prefixLength).Replace('\', '/')
+        if ($file.Length -eq 0) { throw "Chunk vacio en disco: $url" }
+        if ($checked.Contains($url)) { continue }
+        $asset = Invoke-WebRequest ("http://127.0.0.1:3000" + $url) -UseBasicParsing -TimeoutSec 15
+        if ($asset.StatusCode -ne 200 -or $asset.Headers['Content-Type'] -notmatch 'javascript') {
+            throw "Chunk en disco $url respondio $($asset.StatusCode) con $($asset.Headers['Content-Type']); se exige JavaScript 200"
+        }
+        [void]$checked.Add($url)
+    }
+    Write-Log "Health check completo: $($checked.Count) chunks JavaScript 200 (HTML de /, /admin, /contacto y /tienda + todos los del disco)"
 }
 
 New-Item -ItemType Directory -Force -Path $LogDir | Out-Null

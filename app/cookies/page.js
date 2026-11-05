@@ -93,7 +93,8 @@ export default function CookiesPage() {
               width={1200}
               height={200}
               sizes="(max-width: 1040px) 114px, 176px"
-              priority
+              loading="eager"
+              fetchPriority="low"
             />
             </Link>
             <nav className={styles.navigation} aria-label="Navegación principal">

@@ -729,7 +729,7 @@ useEffect(() => {
               height={200}
               sizes="(max-width: 1040px) 114px, 176px"
               loading="eager"
-              fetchPriority="high"
+              fetchPriority="low"
             />
           </a>
 
@@ -994,7 +994,7 @@ useEffect(() => {
                   className={styles.heroLogoImg}
                   sizes="(max-width: 760px) 130px, 232px"
                   loading="eager"
-                  fetchPriority="high"
+                  fetchPriority="low"
                 />
               </a>
             </div>
