@@ -4481,8 +4481,9 @@
   pointer-events: none;
 }
 
-/* Only /admin: fit the login to the viewport instead of growing the document.
+/* /admin and /login fit the viewport instead of growing the document.
    Short windows/zoom retain an accessible inner scroll, never clipped controls. */
+.clientLoginPage,
 .adminLoginPage {
   box-sizing: border-box;
   height: 100vh;
@@ -4492,6 +4493,7 @@
   padding: clamp(12px, 2vh, 24px) clamp(16px, 5vw, 64px);
   overflow: hidden;
 }
+.clientLoginPage .loginCard,
 .adminLoginPage .loginCard {
   display: flex;
   flex-direction: column;
@@ -4500,10 +4502,12 @@
   min-height: 0;
   margin: 0;
 }
+.clientLoginPage .loginPanel,
 .adminLoginPage .loginPanel {
   flex: 1;
   min-height: 0;
 }
+.clientLoginPage .loginPanelBody,
 .adminLoginPage .loginPanelBody {
   flex: 1;
   width: min(460px, 100%);
@@ -4515,17 +4519,28 @@
   overscroll-behavior-y: contain;
   scrollbar-width: thin;
 }
+.clientLoginPage .loginPanelBody > *,
 .adminLoginPage .loginPanelBody > * { flex-shrink: 0; }
+.clientLoginPage .loginPanelBody header,
 .adminLoginPage .loginPanelBody header { gap: 8px; }
+.clientLoginPage .loginBrand img,
 .adminLoginPage .loginBrand img { width: 170px; }
+.clientLoginPage .loginPanelBody h2,
 .adminLoginPage .loginPanelBody h2 { font-size: clamp(30px, 4.5vh, 40px); }
+.clientLoginPage .loginIntro,
 .adminLoginPage .loginIntro { font-size: 12px; line-height: 1.5; }
+.clientLoginPage .form,
 .adminLoginPage .form { gap: 12px; }
+.clientLoginPage .formRow,
 .adminLoginPage .formRow { gap: 8px; }
+.clientLoginPage .loginFooter,
 .adminLoginPage .loginFooter { font-size: 12px; }
 @media (max-height: 600px) {
+  .clientLoginPage .loginPanelBody,
   .adminLoginPage .loginPanelBody { justify-content: flex-start; gap: 10px; }
+  .clientLoginPage .loginBrand img,
   .adminLoginPage .loginBrand img { width: 140px; }
+  .clientLoginPage .loginPanelBody h2,
   .adminLoginPage .loginPanelBody h2 { font-size: 28px; }
 }
 
