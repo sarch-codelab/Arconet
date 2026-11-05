@@ -14,6 +14,7 @@ import { isLocalPreview } from "@/lib/local-preview";
 export default function LoginView() {
   const router = useRouter();
   const localPreview = isLocalPreview();
+  const [qrOpen, setQrOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(true);
   const [email, setEmail] = useState("");
@@ -60,7 +61,7 @@ export default function LoginView() {
       <div className={styles.loginCard}>
         <section className={styles.loginPanel} aria-label="Formulario de acceso">
           <div className={styles.loginPanelBody}>
-            <header>
+            <header className={qrOpen ? styles.loginCredentialsHidden : undefined} inert={qrOpen ? true : undefined}>
               <div className={styles.loginBrand}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/arconet.png" alt="Arconet" width={1200} height={200} />
@@ -76,12 +77,12 @@ export default function LoginView() {
               </p>
             </header>
 
-            {localPreview && <p className={styles.loginIntro} role="note">
+            {localPreview && <p className={`${styles.loginIntro} ${qrOpen ? styles.loginCredentialsHidden : ""}`} inert={qrOpen ? true : undefined} role="note">
               Pruebas locales: usuario <strong>admin</strong> y contraseña <strong>1234</strong>.
               Los cambios solo afectan la base de demostración.
             </p>}
 
-            <form className={styles.form} onSubmit={submit}>
+            <form className={`${styles.form} ${qrOpen ? styles.loginCredentialsHidden : ""}`} inert={qrOpen ? true : undefined} onSubmit={submit}>
               <label className={styles.field}>
                 {localPreview ? "Correo o usuario" : "Correo electrónico"}
                 <input
@@ -144,9 +145,9 @@ export default function LoginView() {
               </button>
             </form>
 
-            <QrLogin />
+            <QrLogin onOpenChange={setQrOpen} disabled={submitting} />
 
-            <p className={styles.loginFooter}>
+            <p className={`${styles.loginFooter} ${qrOpen ? styles.loginCredentialsHidden : ""}`} inert={qrOpen ? true : undefined}>
               <Link href="/"><ArrowLeft size={14} /> Volver al inicio</Link>
             </p>
           </div>

@@ -167,3 +167,21 @@
 .success a {
   text-decoration: none;
 }
+
+/* Recovery shares the login card; only recovery-specific states live here. */
+.intro, .formError, .note, .success p {
+  overflow-wrap: anywhere;
+}
+
+.success { min-width: 0; width: 100%; }
+.success a { width: 100%; }
+
+:global(html[data-theme="dark"]) .formError {
+  color: #fecaca;
+  border-color: rgba(248, 113, 113, 0.4);
+  background: rgba(185, 28, 28, 0.15);
+}
+:global(html[data-theme="dark"]) .stepActive,
+:global(html[data-theme="dark"]) .linkButton { color: #93b4ff; }
+:global(html[data-theme="dark"]) .stepDone span { color: #93b4ff; }
+:global(html[data-theme="dark"]) .successIcon { color: #6ee7b7; }

@@ -12,13 +12,22 @@ export async function qrRequest(body, signal) {
   if (!response.ok) throw Object.assign(new Error(data.error || "No se pudo conectar. Intenta de nuevo."), { status: response.status });
   return data;
 }
-export default function QrLogin() {
+export default function QrLogin({ onOpenChange, disabled = false } = {}) {
   const router = useRouter();
   const [challenge, setChallenge] = useState(null);
   const [status, setStatus] = useState("closed");
   const [error, setError] = useState("");
   const [seconds, setSeconds] = useState(120);
   const creating = useRef(null);
+  const triggerRef = useRef(null);
+  const headingRef = useRef(null);
+  const wasOpen = useRef(false);
+  const open = status !== "closed";
+  useEffect(() => {
+    if (open && status === "creating") headingRef.current?.focus({ preventScroll: true });
+    else if (!open && wasOpen.current) triggerRef.current?.focus({ preventScroll: true });
+    wasOpen.current = open;
+  }, [open, status]);
   useEffect(() => () => creating.current?.abort(), []);
   useEffect(() => {
     if (!challenge || status !== "waiting") return;
@@ -53,6 +62,8 @@ export default function QrLogin() {
     return () => { controller.abort(); window.clearTimeout(pollTimer); window.clearInterval(ticker); };
   }, [challenge, status, router]);
   async function generate() {
+    if (disabled) return;
+    onOpenChange?.(true);
     creating.current?.abort();
     const controller = new AbortController();
     creating.current = controller;
@@ -66,10 +77,15 @@ export default function QrLogin() {
     creating.current?.abort();
     if (challenge) qrRequest({ action: "cancel", id: challenge.id }).catch(() => {});
     setChallenge(null); setStatus("closed"); setError("");
+    onOpenChange?.(false);
   }
-  return <section className={styles.root} aria-label="Acceso rápido con QR">
-    {status === "closed" ? <button type="button" className={styles.trigger} onClick={generate}><QrCode size={20} /> Acceso rápido con QR</button> : <>
+  return <section className={`${styles.root} ${open ? styles.open : ""}`} aria-label="Acceso rápido con QR" onKeyDown={event => {
+    if (open && event.key === "Escape") { event.preventDefault(); close(); }
+  }}>
+    <button ref={triggerRef} type="button" className={styles.trigger} onClick={generate} disabled={disabled || open} aria-hidden={open ? true : undefined} tabIndex={open ? -1 : undefined}><QrCode size={20} /> Acceso rápido con QR</button>
+    {open && <>
       <div className={styles.panel}>
+        <h3 ref={headingRef} tabIndex={-1} className={styles.title}>Acceso con QR</h3>
         <p className={styles.status} role="status">{status === "creating" ? "Generando QR seguro…" : status === "expired" ? "Este QR caducó." : status === "rejected" ? "El acceso fue rechazado." : status === "approved" ? "Acceso aprobado. Abriendo el panel…" : status === "waiting" ? "Escanea y aprueba desde tu teléfono" : "No se pudo completar el acceso."}</p>
         {challenge && status === "waiting" && <>
           <div className={styles.frame}><Image unoptimized src={challenge.image} alt="QR para aprobar el acceso a esta computadora" width={336} height={336} /></div>

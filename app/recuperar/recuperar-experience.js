@@ -2,13 +2,11 @@
 
 import { clientApiFetch as fetch } from "@/lib/api-fetch";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight, Check, Eye, EyeOff, KeyRound, Mail } from "lucide-react";
 import styles from "../admin/admin-experience.module.css";
 import extra from "./recuperar.module.css";
-import Footer from "../footer";
 import { sileo } from "../toaster";
 import { fuerzaPassword, validarPassword } from '@/lib/seguridad';
 import MobileSiteMenu from "../mobile-site-menu";
@@ -98,59 +96,19 @@ export default function RecuperarExperience() {
       <main className={styles.loginPage}>
         <MobileSiteMenu floating />
         <div className={styles.loginCard}>
-          <div className={styles.loginVisual}>
-            <Image
-              src="/catalogo/infraestructura.jpg"
-              alt=""
-              fill
-              priority
-              sizes="(max-width: 900px) 100vw, 50vw"
-              className={styles.loginVisualImg}
-            />
-            <div className={styles.loginVisualOverlay} />
-
-            <Link className={styles.logoTab} href="/" aria-label="Arconet, inicio">
-              <Image
-                src="/arconet.png"
-                alt="Arconet"
-                width={1200}
-                height={200}
-                sizes="(max-width: 1040px) 114px, 176px"
-                priority
-              />
-            </Link>
-
-            <div className={styles.loginVisualCopy}>
-              <p className={styles.eyebrow}><i /> Recuperar acceso · Arconet</p>
-              <h1>
-                Vuelve a tus proyectos
-                <br />
-                <em>sin perder el hilo.</em>
-              </h1>
-              <p className={styles.lead}>
-                Te enviamos un código de un solo uso al correo de tu cuenta. Con él
-                defines una contraseña nueva y segura.
-              </p>
-            </div>
-
-            <div className={styles.loginVisualFooter}>
-              <span>FIBRA ÓPTICA · CATV · TELECOMUNICACIONES</span>
-              <Link href="/contacto">
-                ¿Necesitas ayuda? Escríbenos <ArrowRight size={14} />
-              </Link>
-            </div>
-          </div>
-
           <section className={styles.loginPanel} aria-label="Recuperar contraseña">
             <div className={styles.loginPanelBody}>
               <header>
-                <p className={styles.sectionLabel}>Recuperar contraseña</p>
+                <div className={styles.loginBrand}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/arconet.png" alt="Arconet" width={1200} height={200} />
+                </div>
                 <h2>
                   {step === "listo" ? "Todo" : "Nueva"}
                   <br />
                   <em>{step === "listo" ? "listo." : "contraseña."}</em>
                 </h2>
-                <p className={styles.loginIntro}>
+                <p className={`${styles.loginIntro} ${extra.intro}`}>
                   {step === "solicitar" && "Escribe el correo con el que accedes a tu cuenta Arconet."}
                   {step === "codigo" && `Escribe el código de 6 dígitos que enviamos a ${correo.trim()}.`}
                   {step === "listo" && "Tu contraseña fue actualizada. Inicia sesión con la nueva."}
@@ -158,13 +116,13 @@ export default function RecuperarExperience() {
               </header>
 
               <ol className={extra.steps} aria-label="Pasos de la recuperación">
-                <li className={step === "solicitar" ? extra.stepActive : extra.stepDone}>
+                <li aria-current={step === "solicitar" ? "step" : undefined} className={step === "solicitar" ? extra.stepActive : extra.stepDone}>
                   <span>1</span> Correo
                 </li>
-                <li className={step === "codigo" ? extra.stepActive : step === "listo" ? extra.stepDone : ""}>
+                <li aria-current={step === "codigo" ? "step" : undefined} className={step === "codigo" ? extra.stepActive : step === "listo" ? extra.stepDone : ""}>
                   <span>2</span> Código
                 </li>
-                <li className={step === "listo" ? extra.stepActive : ""}>
+                <li aria-current={step === "listo" ? "step" : undefined} className={step === "listo" ? extra.stepActive : ""}>
                   <span>3</span> Listo
                 </li>
               </ol>
@@ -186,7 +144,7 @@ export default function RecuperarExperience() {
 
                   {error ? <p className={extra.formError} role="alert">{error}</p> : null}
 
-                  <button type="submit" className={styles.submit} disabled={submitting}>
+                  <button type="submit" className={`${styles.submit} ${styles.clientLoginSubmit}`} disabled={submitting}>
                     {submitting ? "Enviando..." : "Enviar código"} <span><Mail size={15} /></span>
                   </button>
                 </form>
@@ -259,7 +217,7 @@ export default function RecuperarExperience() {
 
                   {error ? <p className={extra.formError} role="alert">{error}</p> : null}
 
-                  <button type="submit" className={styles.submit} disabled={submitting}>
+                  <button type="submit" className={`${styles.submit} ${styles.clientLoginSubmit}`} disabled={submitting}>
                     {submitting ? "Guardando..." : "Cambiar contraseña"} <span><KeyRound size={15} /></span>
                   </button>
 
@@ -281,7 +239,7 @@ export default function RecuperarExperience() {
                     Tu contraseña quedó guardada. Por seguridad cerramos las sesiones que
                     estaban abiertas en otras computadoras.
                   </p>
-                  <Link className={styles.submit} href="/login">
+                  <Link className={`${styles.submit} ${styles.clientLoginSubmit}`} href="/login">
                     Iniciar sesión <span><ArrowRight size={15} /></span>
                   </Link>
                 </div>
@@ -303,7 +261,6 @@ export default function RecuperarExperience() {
           </section>
         </div>
       </main>
-      <Footer />
     </>
   );
 }

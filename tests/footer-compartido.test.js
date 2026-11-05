@@ -21,9 +21,8 @@ const APP = globSync("app/**/*.js", { cwd: raiz }).map((f) => [normalizar(f), le
 const CON_FOOTER = [
   // Home
   "app/home-experience.js",
-  // Registro y recuperación; el login conserva una sola pantalla de acceso.
+  // Registro; login y recuperación conservan una sola pantalla de acceso.
   "app/registro/registro-experience.js",
-  "app/recuperar/recuperar-experience.js",
   // Portal de cliente
   "app/cliente/cliente-experience.js",
   // Tienda y fichas
@@ -105,7 +104,6 @@ describe("el footer no se rompe en las pantallas que lo reciben", () => {
     // y salía deformado (1055 px de alto en una franja de 400).
     for (const ruta of [
       "app/registro/registro-experience.js",
-      "app/recuperar/recuperar-experience.js",
       "app/cliente/cliente-experience.js",
     ]) {
       const [, texto] = APP.find(([f]) => f === ruta);

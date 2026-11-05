@@ -3,9 +3,17 @@
 .trigger:hover, .secondary:hover { border-color: var(--accent-ink); }
 .trigger:focus-visible, .secondary:focus-visible, .approve:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 4px; }
 .trigger:disabled, .approve:disabled, .secondary:disabled { opacity: .6; cursor: not-allowed; }
-.panel { margin-top: 18px; display: grid; gap: 14px; justify-items: center; text-align: center; min-width: 0; }
+/* The root/trigger keep their original footprint; only the contents are
+   overlaid inside loginPanelBody, never appended below the password form. */
+.open { border-top-color: transparent; }
+.open > .trigger { visibility: hidden; pointer-events: none; }
+.panel { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: safe center; gap: 10px; padding: clamp(24px, 4vh, 40px) clamp(20px, 3vw, 40px); overflow-y: auto; overscroll-behavior-y: contain; text-align: center; min-width: 0; }
+.panel > * { flex-shrink: 0; }
+.title { margin: 0; color: var(--ink); font-size: 24px; line-height: 1.25; }
+.panel .help { font-size: 12px; line-height: 1.45; }
+.panel .secondary { margin-top: 4px; }
 .help { color: var(--muted); font-size: 13px; line-height: 1.65; margin: 0; overflow-wrap: anywhere; }
-.frame { width: min(100%, 280px); background: #fff; border-radius: 16px; padding: 8px; }
+.frame { width: min(100%, 208px); background: #fff; border-radius: 16px; padding: 8px; }
 .frame img { display: block; width: 100%; height: auto; }
 .code { font-size: 26px; font-weight: 750; letter-spacing: .15em; color: var(--ink); font-variant-numeric: tabular-nums; }
 .status { margin: 0; color: var(--ink); font-size: 14px; line-height: 1.6; }
@@ -19,3 +27,5 @@
 .field { display: grid; gap: 8px; font-size: 14px; }
 .field input { min-width: 0; width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); color: var(--ink); font: inherit; }
 .approve { width: 100%; min-height: 48px; border: 0; border-radius: 24px; padding: 12px 18px; background: #1544b5; color: #fff; font: inherit; font-weight: 650; cursor: pointer; }
+
+.panel .error { max-width: 100%; overflow-wrap: anywhere; }

@@ -101,11 +101,13 @@ describe("protección de origen y presentación del acceso QR", () => {
     expect(describeQrDevice("iPhone Safari/605")).toBe("Safari · iPhone / iPad");
     expect(describeQrDevice("<script>malicioso</script>")).toBe("Navegador · otro dispositivo");
   });
-  it("coloca QR debajo del formulario y preserva el acceso con contraseña", () => {
+  it("conserva el disparador QR y sustituye las credenciales dentro de la tarjeta", () => {
     const s = readFileSync("app/admin/login-view.js", "utf8");
-    expect(s.indexOf("<QrLogin />")).toBeGreaterThan(s.indexOf("</form>"));
-    expect(s.indexOf("<QrLogin />")).toBeLessThan(s.indexOf("styles.loginFooter"));
+    expect(s.indexOf("<QrLogin onOpenChange=")).toBeGreaterThan(s.indexOf("</form>"));
+    expect(s.indexOf("<QrLogin onOpenChange=")).toBeLessThan(s.indexOf("styles.loginFooter"));
     expect(s).toContain("authenticate(email, password, verificationCode)");
+    expect(s).toContain("onOpenChange={setQrOpen}");
+    expect(s).toContain("inert={qrOpen ? true : undefined}");
   });
   it("genera el QR localmente, no devuelve secretos ni sesiones de producción en JSON", () => {
     const route = readFileSync("app/api/auth/qr/route.js", "utf8");

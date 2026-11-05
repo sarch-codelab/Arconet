@@ -208,6 +208,8 @@
 }
 
 .loginPanelBody {
+  position: relative;
+  overflow-anchor: none;
   flex: 1;
   min-height: 0;
   width: min(420px, 100%);
@@ -4471,3 +4473,10 @@
 
 /* La píldora única de los listados es una etiqueta, no otro filtro. */
 .sectionMarker .pillItem { cursor: default; }
+
+/* Keep the credential layout as the QR view's size placeholder. Hidden/inert
+   content cannot receive focus, but the glass card never grows or recenters. */
+.loginCredentialsHidden {
+  visibility: hidden;
+  pointer-events: none;
+}
