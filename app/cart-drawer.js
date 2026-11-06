@@ -9,7 +9,6 @@ import {
   Check,
   Copy,
   FileText,
-  Mail,
   MessageCircle,
   Minus,
   Plus,
@@ -21,10 +20,7 @@ import {
 import { buildCartMessage, useCart } from "./cart-context";
 import { sileo } from "./toaster";
 import styles from "./cart.module.css";
-import { useContact } from "./contact-provider";
 import { copyText } from "@/lib/clipboard";
-
-const SUBJECT = "Solicitud de cotización — Arconet";
 
 // Líneas reales del catálogo: mismas etiquetas que el menú de soluciones.
 const SHORTCUTS = [
@@ -35,7 +31,6 @@ const SHORTCUTS = [
 ];
 
 export default function CartDrawer() {
-  const { email: CONTACT_EMAIL } = useContact();
   // El carrito cuelga del layout raíz, así que está montado también en el panel
   // de administración. Ahí sus enlaces no llevan a ninguna parte: precargarlos
   // descargaba la tienda y sus categorías al abrir el panel. En el sitio
@@ -83,7 +78,6 @@ export default function CartDrawer() {
   const whatsappHref = whatsappNumber
     ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`
     : null;
-  const mailHref = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(SUBJECT)}&body=${encodeURIComponent(message)}`;
 
   const copyOrder = async () => {
     const success = await copyText(message);
@@ -93,7 +87,7 @@ export default function CartDrawer() {
     } else {
       sileo.error({
         title: "No se pudo copiar el pedido.",
-        description: "El navegador restringe el portapapeles. Abre la vista previa en una pestaña nueva o usa Enviar por correo.",
+        description: "El navegador restringe el portapapeles. Usa Generar cotización para abrir la vista previa en una pestaña nueva.",
       });
     }
   };
@@ -272,12 +266,6 @@ export default function CartDrawer() {
                     <MessageCircle size={16} aria-hidden="true" /> Enviar por WhatsApp
                   </a>
                 ) : null}
-                <a
-                  className={styles.action}
-                  href={mailHref}
-                >
-                  <Mail size={16} aria-hidden="true" /> Enviar por correo
-                </a>
                 <button
                   type="button"
                   className={`${styles.action} ${styles.actionPrimary}`}
