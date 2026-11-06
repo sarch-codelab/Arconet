@@ -85,8 +85,8 @@ describe("el contenido es de Arconet y no hay enlaces muertos", () => {
       ...IDEAS.map((i) => i.image),
       SOBRE_NOVEDADES,
     ];
-    // 1 hero + 5 líneas + 6 productos + 5 ideas + 1 sobre del boletín.
-    expect(rutas).toHaveLength(18);
+    // 1 hero + 6 categorías + 6 productos + 5 ideas + 1 sobre del boletín.
+    expect(rutas).toHaveLength(19);
     for (const ruta of rutas) {
       expect(existsSync(`public${ruta}`), `falta public${ruta}`).toBe(true);
       expect(statSync(`public${ruta}`).size, `vacío public${ruta}`).toBeGreaterThan(1000);
@@ -114,7 +114,7 @@ describe("el contenido es de Arconet y no hay enlaces muertos", () => {
 
   it("la vitrina tiene la misma estructura que el diseño de referencia", () => {
     expect(CHIPS).toHaveLength(7);
-    expect(CATEGORY_CARDS).toHaveLength(5);
+    expect(CATEGORY_CARDS).toHaveLength(6);
     expect(PRODUCTS).toHaveLength(6);
     expect(BENEFITS).toHaveLength(4);
     expect(IDEAS).toHaveLength(5);

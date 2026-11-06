@@ -43,7 +43,8 @@ describe("/catalogo usa el azul de Arconet, no el rojo de la referencia", () => 
 
   it("los textos sobre fondo blanco conservan el azul saturado", () => {
     const css = leer(CSS);
-    expect(css).toContain(".dealsCard .categoryArrow { background: #fff; color: var(--accent); }");
+    // La tarjeta de ofertas conserva el azul saturado como tinte sobre la foto.
+    expect(css).toMatch(/\.dealsCard \.categoryTint\s*\{[^}]*var\(--accent\)/);
     const gift = css.match(/\.giftIcon\s*\{([^}]*)\}/)?.[1] || "";
     const boton = css.match(/\.dealsButton\s*\{([^}]*)\}/)?.[1] || "";
     expect(gift).toContain("background: #fff;");
