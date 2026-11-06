@@ -599,19 +599,65 @@
 
 .viewAll:hover { color: var(--accent-ink-hover); }
 
+.sectionActions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.rowArrows { display: flex; gap: 6px; }
+
+.rowArrows button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.rowArrows button:hover {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
 /* --------------------------------------------------------------------------
    PRODUCTOS DESTACADOS
    -------------------------------------------------------------------------- */
 
-.productGrid {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+.productRow,
+.ideaRow {
+  display: flex;
   gap: 12px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: 2px;
+  padding: 2px 2px 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) var(--line);
 }
+
+.productRow::-webkit-scrollbar,
+.ideaRow::-webkit-scrollbar { height: 6px; }
+
+.productRow::-webkit-scrollbar-track,
+.ideaRow::-webkit-scrollbar-track { border-radius: 6px; background: var(--line); }
+
+.productRow::-webkit-scrollbar-thumb,
+.ideaRow::-webkit-scrollbar-thumb { border-radius: 6px; background: var(--accent); }
 
 .productCard {
   display: flex;
+  flex: 0 0 clamp(210px, 22vw, 280px);
   flex-direction: column;
+  scroll-snap-align: start;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 14px;
@@ -656,7 +702,7 @@
   flex-direction: column;
   gap: 3px;
   min-height: 58px;
-  padding: 10px 10px 4px;
+  padding: 10px 10px 14px;
 }
 
 .productName {
@@ -669,32 +715,6 @@
 
 .productName:hover { color: var(--accent-ink); }
 .productLine { color: var(--muted); font-size: 9.5px; line-height: 1.35; }
-
-.productFoot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 4px 10px 12px;
-}
-
-.price { color: var(--accent-ink); font-size: 12.5px; font-weight: 750; white-space: nowrap; }
-
-.like {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--muted);
-  font: inherit;
-  font-size: 10px;
-  cursor: pointer;
-}
-
-.like:hover,
-.likeActive { color: var(--accent-ink); }
 
 .empty {
   display: flex;
@@ -758,15 +778,11 @@
    IDEAS
    -------------------------------------------------------------------------- */
 
-.ideaGrid {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 12px;
-}
-
 .ideaCard {
   position: relative;
   display: block;
+  flex: 0 0 clamp(240px, 27vw, 340px);
+  scroll-snap-align: start;
   aspect-ratio: 1 / 1.05;
   overflow: hidden;
   border-radius: 14px;
@@ -925,26 +941,15 @@
 
 .envelope {
   position: absolute;
-  right: 18px;
-  bottom: -14px;
-  display: grid;
-  place-items: center;
-  width: 110px;
-  height: 80px;
-  border-radius: 10px;
-  background: var(--accent);
-  color: #fff;
-  box-shadow: 0 16px 32px -18px rgba(21, 68, 181, 0.9);
-  transform: rotate(-12deg);
+  right: 20px;
+  bottom: 12px;
+  width: 150px;
+  height: 107px;
+  transform: rotate(-10deg);
+  pointer-events: none;
 }
 
-.envelope::before {
-  position: absolute;
-  inset: 0;
-  border-radius: 10px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.28), transparent 60%);
-  content: "";
-}
+.envelopeImg { object-fit: contain; }
 
 /* --------------------------------------------------------------------------
    CIERRE
@@ -1009,8 +1014,7 @@
 
 @media (max-width: 1180px) {
   .categoryRow { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .productGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .ideaGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .productCard, .ideaCard { flex-basis: clamp(200px, 28vw, 260px); }
   .benefits { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 14px; }
   .benefit:nth-child(2) { border-right: 0; }
   .promoRow { grid-template-columns: 1fr; }
@@ -1023,9 +1027,7 @@
   .heroContent { width: 60%; }
   .heroTitle { font-size: clamp(26px, 4vw, 40px); }
   .categoryRow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .productGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .ideaGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .ideaCard:last-child { grid-column: span 2; aspect-ratio: 2 / 1; }
+  .productCard, .ideaCard { flex-basis: clamp(190px, 36vw, 250px); }
   .bottomStrip { flex-direction: column; align-items: flex-start; }
 }
 
@@ -1064,17 +1066,24 @@
   .categoryThumb { width: 44px; height: 44px; }
   .dealsIcon { width: 44px; height: 44px; }
 
-  .productGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .productRow, .ideaRow { gap: 8px; }
+  .productCard, .ideaCard { flex-basis: 62vw; }
+  .sectionHead { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .sectionActions { width: 100%; justify-content: space-between; }
   .benefits { grid-template-columns: 1fr 1fr; padding: 14px 8px; }
   .benefit { padding: 6px 8px; gap: 8px; }
-  .ideaGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  .ideaCard:last-child { grid-column: span 2; }
 
   .dealsPromo { padding: 20px; gap: 14px; }
   .giftIcon { width: 44px; height: 44px; }
   .newsletter { padding: 20px; }
   .newsletterCopy { max-width: 100%; }
-  .envelope { right: -24px; opacity: 0.28; }
+  .envelope {
+    right: -12px;
+    bottom: -6px;
+    width: 118px;
+    height: 84px;
+    opacity: 0.22;
+  }
   .promises { gap: 12px; }
 }
 
@@ -1083,5 +1092,5 @@
   .heroPrimary,
   .heroSecondary { height: 38px; padding: 0 14px; font-size: 11px; }
   .categoryCopy strong { font-size: 11px; }
-  .price { font-size: 11px; }
+  .productCard, .ideaCard { flex-basis: 74vw; }
 }

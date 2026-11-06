@@ -16,7 +16,6 @@ import {
   Gift,
   Globe,
   Headphones,
-  Heart,
   LayoutGrid,
   Mail,
   Percent,
@@ -24,7 +23,6 @@ import {
   Search,
   Server,
   ShieldCheck,
-  ShoppingCart,
   Sparkles,
   Star,
   Truck,
@@ -32,7 +30,6 @@ import {
   Wrench,
 } from "lucide-react";
 import Footer from "../footer";
-import { useCart } from "../cart-context";
 import {
   BENEFITS,
   CATEGORY_CARDS,
@@ -43,6 +40,7 @@ import {
   NAV_LINKS,
   PRODUCTS,
   PROMISES,
+  SOBRE_NOVEDADES,
 } from "./vitrina-data";
 import styles from "./catalogo-experience.module.css";
 
@@ -59,20 +57,31 @@ const ICONOS = {
   rotate: RotateCcw,
   headphones: Headphones,
   badge: BadgeCheck,
-  heart: Heart,
+  sparkles: Sparkles,
   star: Star,
 };
 
-const formatoLikes = (cantidad) =>
-  cantidad >= 1000 ? `${(cantidad / 1000).toFixed(1)}k` : String(cantidad);
+// Avanza una fila deslizante de tarjetas. El movimiento es del navegador
+// (scroll nativo + scroll-snap); aquí solo se pide el desplazamiento, sin
+// interceptar rueda, touch ni teclado.
+const desplazarFila = (ref, direccion) => {
+  const fila = ref.current;
+  if (!fila) return;
+  const tarjeta = fila.firstElementChild;
+  const paso = tarjeta
+    ? tarjeta.getBoundingClientRect().width + 12
+    : fila.clientWidth * 0.8;
+  const reducido = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  fila.scrollBy({ left: direccion * paso, behavior: reducido ? "instant" : "smooth" });
+};
 
 export default function CatalogoExperience() {
   const [consulta, setConsulta] = useState("");
   const [chip, setChip] = useState("todas");
-  const [favoritos, setFavoritos] = useState(() => new Set());
   const [diapositiva, setDiapositiva] = useState(0);
   const productosRef = useRef(null);
-  const { count: cartCount, open: openCart } = useCart();
+  const productosFilaRef = useRef(null);
+  const ideasFilaRef = useRef(null);
 
   const slide = HERO_SLIDES[diapositiva];
 
@@ -88,15 +97,6 @@ export default function CatalogoExperience() {
     });
   }, [chip, consulta]);
 
-  const alternarFavorito = (id) => {
-    setFavoritos((actual) => {
-      const siguiente = new Set(actual);
-      if (siguiente.has(id)) siguiente.delete(id);
-      else siguiente.add(id);
-      return siguiente;
-    });
-  };
-
   const irAProductos = (event) => {
     event.preventDefault();
     // Sin behavior: respeta `scroll-behavior` (y su ajuste de movimiento
@@ -110,16 +110,10 @@ export default function CatalogoExperience() {
     productosRef.current?.scrollIntoView({ block: "start" });
   };
 
-  const verFavoritos = () => {
-    setChip("favoritos");
-    setConsulta("");
-    productosRef.current?.scrollIntoView({ block: "start" });
-  };
-
   return (
     <>
       <main className={styles.page}>
-        {/* Cabecera: logo, buscador, navegación y acciones. */}
+        {/* Cabecera: logo, buscador, navegación y acceso. */}
         <header className={styles.topbar}>
           <div className={styles.topbarInner}>
             <Link className={styles.brand} href="/" aria-label="Arconet, ir al inicio">
@@ -165,24 +159,6 @@ export default function CatalogoExperience() {
             </nav>
 
             <div className={styles.headerActions}>
-              <button
-                type="button"
-                className={styles.iconButton}
-                onClick={verFavoritos}
-                aria-label={`Ver favoritos, ${favoritos.size} guardados`}
-              >
-                <Heart size={18} aria-hidden="true" />
-                {favoritos.size > 0 && <i className={styles.miniBadge}>{favoritos.size}</i>}
-              </button>
-              <button
-                type="button"
-                className={styles.iconButton}
-                onClick={openCart}
-                aria-label={`Abrir carrito, ${cartCount} ${cartCount === 1 ? "artículo" : "artículos"}`}
-              >
-                <ShoppingCart size={18} aria-hidden="true" />
-                {cartCount > 0 && <i className={styles.miniBadge}>{cartCount > 99 ? "99+" : cartCount}</i>}
-              </button>
               <Link className={styles.iconButton} href="/login" aria-label="Acceder a mi cuenta">
                 <UserRound size={18} aria-hidden="true" />
               </Link>
@@ -218,7 +194,6 @@ export default function CatalogoExperience() {
               <span>HN</span>
               <i className={styles.localeSep}>|</i>
               <span>L</span>
-              <Heart size={15} aria-hidden="true" />
             </div>
           </div>
         </div>
@@ -303,54 +278,56 @@ export default function CatalogoExperience() {
           </Link>
         </section>
 
-        {/* Productos destacados con buscador y filtros reales. */}
+        {/* Productos destacados: una sola fila deslizante, con buscador y filtros. */}
         <section className={styles.section} id="destacados" ref={productosRef}>
           <div className={styles.sectionHead}>
             <div>
               <span className={styles.sectionEyebrow}>Lo más buscado</span>
               <h2 className={styles.sectionTitle}>Productos destacados</h2>
             </div>
-            <button type="button" className={styles.viewAll} onClick={limpiarFiltros}>
-              Ver todo <ArrowRight size={14} aria-hidden="true" />
-            </button>
+            <div className={styles.sectionActions}>
+              <button type="button" className={styles.viewAll} onClick={limpiarFiltros}>
+                Ver todo <ArrowRight size={14} aria-hidden="true" />
+              </button>
+              <div className={styles.rowArrows}>
+                <button
+                  type="button"
+                  aria-label="Productos anteriores"
+                  onClick={() => desplazarFila(productosFilaRef, -1)}
+                >
+                  <ChevronLeft size={15} aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Productos siguientes"
+                  onClick={() => desplazarFila(productosFilaRef, 1)}
+                >
+                  <ChevronRight size={15} aria-hidden="true" />
+                </button>
+              </div>
+            </div>
           </div>
 
           {productos.length > 0 ? (
-            <div className={styles.productGrid}>
-              {productos.map((producto) => {
-                const gusta = favoritos.has(producto.id);
-                return (
-                  <article key={producto.id} className={styles.productCard}>
-                    <Link href={producto.href} className={styles.productMedia} tabIndex={-1} aria-hidden="true">
-                      <Image
-                        src={producto.image}
-                        alt=""
-                        fill
-                        sizes="(max-width: 620px) 45vw, (max-width: 1100px) 30vw, 16vw"
-                        className={styles.productImg}
-                      />
-                      {producto.offer && <span className={styles.offerTag}>Oferta</span>}
-                    </Link>
-                    <div className={styles.productBody}>
-                      <Link href={producto.href} className={styles.productName}>{producto.name}</Link>
-                      <span className={styles.productLine}>{producto.line}</span>
-                    </div>
-                    <div className={styles.productFoot}>
-                      <strong className={styles.price}>{producto.price}</strong>
-                      <button
-                        type="button"
-                        className={`${styles.like}${gusta ? ` ${styles.likeActive}` : ""}`}
-                        aria-pressed={gusta}
-                        aria-label={`${gusta ? "Quitar de" : "Guardar en"} favoritos: ${producto.name}`}
-                        onClick={() => alternarFavorito(producto.id)}
-                      >
-                        <Heart size={13} fill={gusta ? "currentColor" : "none"} aria-hidden="true" />
-                        {formatoLikes(producto.likes + (gusta ? 1 : 0))}
-                      </button>
-                    </div>
-                  </article>
-                );
-              })}
+            <div className={styles.productRow} ref={productosFilaRef}>
+              {productos.map((producto) => (
+                <article key={producto.id} className={styles.productCard}>
+                  <Link href={producto.href} className={styles.productMedia} tabIndex={-1} aria-hidden="true">
+                    <Image
+                      src={producto.image}
+                      alt=""
+                      fill
+                      sizes="(max-width: 620px) 62vw, 280px"
+                      className={styles.productImg}
+                    />
+                    {producto.offer && <span className={styles.offerTag}>Oferta</span>}
+                  </Link>
+                  <div className={styles.productBody}>
+                    <Link href={producto.href} className={styles.productName}>{producto.name}</Link>
+                    <span className={styles.productLine}>{producto.line}</span>
+                  </div>
+                </article>
+              ))}
             </div>
           ) : (
             <div className={styles.empty}>
@@ -378,25 +355,43 @@ export default function CatalogoExperience() {
           })}
         </section>
 
-        {/* Ideas / inspiración. */}
+        {/* Ideas / inspiración: también en una sola fila deslizante. */}
         <section className={styles.section} id="ideas">
           <div className={styles.sectionHead}>
             <div>
               <span className={styles.sectionEyebrow}>Inspírate</span>
               <h2 className={styles.sectionTitle}>Ideas para tu próxima instalación</h2>
             </div>
-            <Link href="/tienda" className={styles.viewAll}>
-              Ver más ideas <ArrowRight size={14} aria-hidden="true" />
-            </Link>
+            <div className={styles.sectionActions}>
+              <Link href="/tienda" className={styles.viewAll}>
+                Ver más ideas <ArrowRight size={14} aria-hidden="true" />
+              </Link>
+              <div className={styles.rowArrows}>
+                <button
+                  type="button"
+                  aria-label="Ideas anteriores"
+                  onClick={() => desplazarFila(ideasFilaRef, -1)}
+                >
+                  <ChevronLeft size={15} aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Ideas siguientes"
+                  onClick={() => desplazarFila(ideasFilaRef, 1)}
+                >
+                  <ChevronRight size={15} aria-hidden="true" />
+                </button>
+              </div>
+            </div>
           </div>
-          <div className={styles.ideaGrid}>
+          <div className={styles.ideaRow} ref={ideasFilaRef}>
             {IDEAS.map((idea) => (
               <Link key={idea.title} href={idea.href} className={styles.ideaCard}>
                 <Image
                   src={idea.image}
                   alt=""
                   fill
-                  sizes="(max-width: 620px) 90vw, (max-width: 1100px) 45vw, 19vw"
+                  sizes="(max-width: 620px) 62vw, 280px"
                   className={styles.ideaImg}
                 />
                 <span className={styles.ideaShade} aria-hidden="true" />
@@ -435,7 +430,9 @@ export default function CatalogoExperience() {
                 <button type="submit">Suscribirme</button>
               </form>
             </div>
-            <span className={styles.envelope} aria-hidden="true"><Mail size={30} /></span>
+            <span className={styles.envelope} aria-hidden="true">
+              <Image src={SOBRE_NOVEDADES} alt="" fill sizes="160px" className={styles.envelopeImg} />
+            </span>
           </div>
         </section>
 

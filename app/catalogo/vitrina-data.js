@@ -1,8 +1,8 @@
 // Contenido editorial de la vitrina /catalogo.
 //
 // La página es una reinterpretación del diseño de referencia con marca Arconet:
-// las líneas, los textos y los equipos son de telecomunicaciones. Los precios
-// son ilustrativos (la cotización real se hace en /tienda) y CADA tarjeta
+// las líneas, los textos y los equipos son de telecomunicaciones. No se
+// muestran precios: la cotización real se hace en /tienda, y CADA tarjeta
 // enlaza a una línea real del catálogo para no dejar enlaces muertos.
 
 export const NAV_LINKS = [
@@ -96,8 +96,6 @@ export const PRODUCTS = [
     name: "Fusionadora de fibra óptica",
     line: "Instrumentos de medición óptica",
     category: "medicion",
-    price: "L 42,800.00",
-    likes: 2100,
     image: "/catalogo/prod-fusionadora.jpg",
     href: "/tienda/categoria/instrumentos-de-medicion-optica",
     offer: false,
@@ -107,8 +105,6 @@ export const PRODUCTS = [
     name: "OTDR de campo 1310/1550 nm",
     line: "Instrumentos de medición óptica",
     category: "medicion",
-    price: "L 36,500.00",
-    likes: 1600,
     image: "/catalogo/prod-otdr.jpg",
     href: "/tienda/categoria/instrumentos-de-medicion-optica",
     offer: true,
@@ -118,8 +114,6 @@ export const PRODUCTS = [
     name: "Medidor de potencia óptica",
     line: "Instrumentos de medición óptica",
     category: "medicion",
-    price: "L 4,890.00",
-    likes: 1200,
     image: "/catalogo/prod-powermeter.jpg",
     href: "/tienda/categoria/instrumentos-de-medicion-optica",
     offer: false,
@@ -129,8 +123,6 @@ export const PRODUCTS = [
     name: "Gabinete de distribución 24 puertos",
     line: "Gabinetes y Racks",
     category: "gabinetes",
-    price: "L 6,750.00",
-    likes: 960,
     image: "/catalogo/prod-gabinete.jpg",
     href: "/tienda/categoria/gabinetes-y-racks",
     offer: true,
@@ -140,8 +132,6 @@ export const PRODUCTS = [
     name: "Kit de herramientas FTTH",
     line: "Herramientas y kits",
     category: "herramientas",
-    price: "L 3,250.00",
-    likes: 1800,
     image: "/catalogo/prod-herramientas.jpg",
     href: "/tienda/categoria/herramientas-y-kits",
     offer: false,
@@ -151,8 +141,6 @@ export const PRODUCTS = [
     name: "Cable ADSS 24 hilos",
     line: "Componentes pasivos",
     category: "fibra",
-    price: "L 1,480.00",
-    likes: 760,
     image: "/catalogo/prod-adss.jpg",
     href: "/tienda/categoria/componentes-pasivos",
     offer: false,
@@ -176,9 +164,10 @@ export const IDEAS = [
 
 export const PROMISES = [
   { icon: "badge", title: "100% original", text: "Importación directa" },
-  { icon: "heart", title: "Recomendado por técnicos", text: "Instaladores de todo el país" },
+  { icon: "sparkles", title: "Recomendado por técnicos", text: "Instaladores de todo el país" },
   { icon: "star", title: "Líneas mejor valoradas", text: "Calidad que se mide en campo" },
   { icon: "percent", title: "Mejor precio", text: "Cotiza antes de comprar" },
 ];
 
 export const HERO_IMAGE = "/catalogo-vitrina/hero-banner.jpg";
+export const SOBRE_NOVEDADES = "/catalogo-vitrina/sobre-novedades.webp";

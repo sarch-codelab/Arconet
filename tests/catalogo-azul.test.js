@@ -23,7 +23,7 @@ describe("/catalogo usa el azul de Arconet, no el rojo de la referencia", () => 
     expect(css).toContain("--accent: #1544b5;");
     expect(css).toContain("--accent-dark: #11358f;");
     expect(css).toContain("--accent-ink: #1544b5;");
-    expect(css).toContain("rgba(21, 68, 181, 0.9)");
+    expect(css).toMatch(/\.dealsPromo\s*\{[^}]*background: var\(--accent\)/);
     expect(leer("app/page.module.css")).toContain("--blue: #1544b5;");
     expect(leer("app/tienda/catalogo-experience.module.css")).toContain("--blue: #1544b5;");
   });
@@ -36,7 +36,7 @@ describe("/catalogo usa el azul de Arconet, no el rojo de la referencia", () => 
     // Los fondos/botones siguen siendo el azul saturado: texto blanco legible.
     expect(bloque).not.toContain("--accent:");
     // El texto y los iconos sobre la superficie oscura usan la tinta clara.
-    expect(css).toMatch(/\.price\s*\{[^}]*color: var\(--accent-ink\)/);
+    expect(css).toMatch(/\.sectionEyebrow\s*\{[^}]*color: var\(--accent-ink\)/);
     expect(css).toMatch(/\.benefitIcon\s*\{[^}]*color: var\(--accent-ink\)/);
     expect(css).toMatch(/\.promiseIcon\s*\{[^}]*border: 1\.5px solid var\(--accent-ink\)/);
   });
