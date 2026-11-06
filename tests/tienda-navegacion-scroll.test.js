@@ -40,15 +40,22 @@ describe("dock compartido con aparición al hacer scroll", () => {
     }
   });
 
-  it("retira la lógica duplicada del dock sin quitar el menú del hero", () => {
+  it("el menú 1 mantiene su propio estado y ya no usa MobileSiteMenu", () => {
     const catalogo = leer(CATALOGO);
     const detalle = leer(DETALLE);
 
+    // La lógica del dock (menú 2) sigue estando solo en NavDock.
     expect(catalogo).not.toContain("mobileMenuOpen");
     expect(catalogo).not.toContain("megaMenu");
     expect(catalogo).not.toContain("navRef");
-    expect(catalogo).toContain('<header className={styles.heroHeader}>');
-    expect(catalogo).toContain("<MobileSiteMenu />");
+    expect(catalogo).toContain('<header className={styles.heroHeader}');
+    // El menú 1 del catálogo replica el del home: hamburguesa centrada,
+    // panel móvil en portal y la navegación compartida.
+    expect(catalogo).not.toMatch(/import MobileSiteMenu|<MobileSiteMenu/);
+    expect(catalogo).toContain("styles.heroMenuToggle");
+    expect(catalogo).toContain("styles.heroMobileMenu");
+    expect(catalogo).toContain("STORE_NAVIGATION.map");
+    expect(catalogo).toContain("createPortal(");
     expect(detalle).not.toContain("const NAVIGATION = [");
   });
 

@@ -835,29 +835,39 @@
   mask-image: radial-gradient(ellipse 85% 46% at 22% 52%, #000 48%, transparent 100%);
 }
 
+/* ==========================================================================
+   MENÚ 1 — réplica de la cabecera del hero del home (.cardHeader en
+   app/page.module.css). Mismas pestañas recortadas, mismo alto fluido, mismo
+   logo de 232px, misma navegación centrada que escala con la pantalla, misma
+   hamburguesa centrada en móvil y misma píldora. La única diferencia de
+   contenido es la píldora: aquí abre el carrito, en el home despliega Acceder.
+   ========================================================================== */
+
 .heroHeader {
   position: relative;
-  z-index: 2;
-  height: 72px;
+  z-index: 10;
+  width: 100%;
+  height: clamp(72px, 4.3vw, 92px);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.heroBrand {
+.heroLogoTab {
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 3;
-  height: 72px;
+  z-index: 2;
+  height: clamp(72px, 4.3vw, 92px);
+  padding: 0 30px 0 26px;
+  background: var(--paper);
+  border-bottom-right-radius: 30px;
   display: flex;
   align-items: center;
-  padding: 0 30px 0 26px;
-  border-bottom-right-radius: 30px;
-  background: var(--paper);
 }
 
-.heroBrand::after {
+.heroLogoTab::after {
+  content: "";
   position: absolute;
   top: 0;
   right: -30px;
@@ -866,45 +876,83 @@
   background: transparent;
   border-top-left-radius: 30px;
   box-shadow: -10px -10px 0 10px var(--paper);
-  content: "";
   pointer-events: none;
 }
 
-.heroBrand img {
-  position: relative;
-  z-index: 1;
-  display: block;
-  width: 176px;
+.heroBrand {
+  display: flex;
+  align-items: center;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.heroBrand:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.heroLogoImg {
+  width: 232px;
   height: auto;
+  display: block;
+}
+
+.heroActionTab {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
+  height: clamp(72px, 4.3vw, 92px);
+  padding: 0 24px;
+  background: var(--paper);
+  border-bottom-left-radius: 30px;
+  display: flex;
+  align-items: center;
+}
+
+.heroActionTab::before {
+  position: absolute;
+  top: 0;
+  left: -30px;
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  border-top-right-radius: 30px;
+  box-shadow: 10px -10px 0 10px var(--paper);
+  content: "";
+  pointer-events: none;
 }
 
 .navigation {
   position: relative;
   z-index: 1;
-  height: 72px;
+  height: clamp(72px, 4.3vw, 92px);
   display: flex;
   align-items: center;
-  gap: clamp(16px, 2.5vw, 36px);
+  gap: clamp(16px, 2.4vw, 46px);
   margin: 0 auto;
 }
 
-.navigation a {
+.navigation a,
+.heroMegaTrigger {
   position: relative;
   padding: 6px 0;
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: clamp(13.5px, 0.95vw, 18px);
   font-weight: 600;
   letter-spacing: 0.01em;
   white-space: nowrap;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-  transition: color 220ms ease, transform 180ms ease;
+  text-decoration: none;
   display: inline-block;
+  transition: color 220ms ease;
 }
 
 .navigation a:hover,
-.navigation .navigationActive {
-  color: #fff;
-  transform: translateY(1px);
+.navigation .navigationActive,
+.heroMegaTrigger:hover,
+.heroMegaTriggerOpen,
+.heroMegaTrigger:focus-visible {
+  color: #ffffff !important;
 }
 
 .navigation a::after {
@@ -926,65 +974,194 @@
   transform: scaleX(1);
 }
 
-.navigation a:focus-visible {
+.navigation a:focus-visible,
+.heroMegaTrigger:focus-visible {
   outline: 2px solid rgba(255, 255, 255, 0.4);
   outline-offset: 2px;
+  border-radius: 4px;
 }
 
-.heroActionTab {
+/* Disparador de Soluciones: mismo chevron que el menú 1 del home. */
+.heroMegaTrigger {
+  border: 0;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.heroMegaTrigger::after {
+  content: "";
+  width: 5px;
+  height: 5px;
+  margin-top: -3px;
+  border-right: 1.6px solid currentColor;
+  border-bottom: 1.6px solid currentColor;
+  border-radius: 1px;
+  opacity: 0.7;
+  transform: rotate(45deg);
+  transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms ease;
+}
+
+.heroMegaTriggerOpen::after {
+  margin-top: 3px;
+  opacity: 1;
+  transform: rotate(-135deg);
+}
+
+.heroMegaPanel {
   position: absolute;
-  top: 0;
-  right: 0;
-  z-index: 3;
-  height: 72px;
+  top: 100%;
+  left: 50%;
+  z-index: 30;
+  transform: translateX(-50%);
+  display: grid;
+  gap: 12px;
+  width: min(820px, calc(100vw - 32px));
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 22px;
+  background: rgba(16, 21, 30, 0.97);
+  box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(24px) saturate(160%);
+  animation: heroMegaIn 260ms ease both;
+}
+
+@keyframes heroMegaIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.heroMegaGroups {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.heroMegaGroup {
+  padding: 10px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.heroMegaGroup h4 {
+  margin: 0 0 8px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.heroMegaGroup ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.heroMegaGroup a {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 11.5px;
+  line-height: 1.35;
+}
+
+.heroMegaGroup a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.heroMegaAll {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 0 24px;
-  border-bottom-left-radius: 30px;
-  background: var(--paper);
+  padding: 10px;
+  border-radius: 12px;
+  background: #1544b5;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
 }
 
-.heroActionTab::before {
-  position: absolute;
-  top: 0;
-  left: -30px;
-  width: 30px;
-  height: 30px;
-  background: transparent;
-  border-top-right-radius: 30px;
-  box-shadow: 10px -10px 0 10px var(--paper);
-  content: "";
-  pointer-events: none;
+/* Hamburguesa centrada del hero: la pieza que más se notaba distinta en
+   teléfono. Antes /tienda usaba MobileSiteMenu (un botón dentro de la pestaña
+   derecha) y el home un círculo blanco en el centro. */
+.heroMenuToggle {
+  position: relative;
+  z-index: 3;
+  display: none;
+  width: 44px;
+  height: 44px;
+  padding: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
+  background: rgba(12, 18, 30, 0.32);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 220ms ease, border-color 220ms ease, transform 200ms ease;
 }
 
+.heroMenuToggle:hover {
+  border-color: rgba(255, 255, 255, 0.55);
+  background: rgba(12, 18, 30, 0.5);
+}
+
+.heroMenuToggle:active { transform: scale(0.95); }
+
+.heroMenuToggle:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.75);
+  outline-offset: 3px;
+}
+
+.heroMenuBar {
+  display: block;
+  width: 100%;
+  height: 2px;
+  margin: 2px auto;
+  border-radius: 999px;
+  background-color: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 200ms ease;
+}
+
+.heroMenuToggleActive .heroMenuBar:nth-child(1) { transform: translateY(4px) rotate(45deg); }
+.heroMenuToggleActive .heroMenuBar:nth-child(2) { opacity: 0; }
+.heroMenuToggleActive .heroMenuBar:nth-child(3) { transform: translateY(-4px) rotate(-45deg); }
+
+/* Píldora de acción: mismas medidas fluidas que .cardTopPill del home. */
 .contactButton {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  padding: 5px 6px 5px 18px;
+  gap: clamp(12px, 0.7vw, 16px);
+  padding: clamp(5px, 0.3vw, 7px) clamp(6px, 0.35vw, 8px) clamp(5px, 0.3vw, 7px)
+    clamp(18px, 1.15vw, 28px);
   border: 0;
   border-radius: 9999px;
   background: #171a22;
   color: #fff !important;
   font-family: inherit;
-  font-size: 13px;
+  font-size: clamp(13px, 0.9vw, 17px);
   font-weight: 600;
   cursor: pointer;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
   transition: background 200ms ease, transform 200ms ease, box-shadow 200ms ease;
 }
 
-.contactLabel {
-  color: #fff !important;
-}
+.contactLabel { color: #fff !important; }
 
 .contactIcon {
-  width: 30px;
-  height: 30px;
   position: relative;
-  display: grid;
-  place-items: center;
+  flex: 0 0 auto;
+  width: clamp(30px, 2vw, 40px);
+  height: clamp(30px, 2vw, 40px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 50%;
   background: #252a36;
   color: #fff !important;
@@ -1012,6 +1189,157 @@
   color: var(--blue) !important;
   stroke: var(--blue) !important;
 }
+
+/* Panel móvil del menú 1: mismo contenido y jerarquía que el del home. */
+.heroMenuBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  border: 0;
+  background: rgba(12, 18, 32, 0.38);
+  backdrop-filter: blur(3px);
+}
+
+.heroMobileMenu {
+  position: fixed;
+  z-index: 1201;
+  top: 72px;
+  right: 12px;
+  left: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: calc(100dvh - 86px - env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 14px 14px max(14px, env(safe-area-inset-bottom, 0px));
+  border: 1px solid rgba(20, 30, 55, 0.08);
+  border-radius: 22px;
+  background: rgba(250, 249, 246, 0.985);
+  backdrop-filter: blur(26px) saturate(180%);
+  -webkit-backdrop-filter: blur(26px) saturate(180%);
+  box-shadow: 0 44px 90px -46px rgba(9, 18, 40, 0.65);
+  animation: heroMenuIn 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  outline: none;
+}
+
+@keyframes heroMenuIn {
+  from { opacity: 0; transform: translateY(-10px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+.heroMobileMenu a { color: inherit; text-decoration: none; }
+
+.heroMobileHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 2px 0 4px;
+}
+
+.heroMobileEyebrow {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.heroMobileClose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 1px solid rgba(20, 30, 55, 0.08);
+  border-radius: 999px;
+  background: rgba(20, 30, 55, 0.04);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.heroMobilePrimary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 64px;
+  padding: 13px 13px 13px 16px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #1544b5 0%, #2f6df0 100%);
+  color: #fff !important;
+  box-shadow: 0 18px 34px -20px rgba(21, 68, 181, 0.95);
+}
+
+.heroMobilePrimaryText { display: grid; gap: 2px; min-width: 0; }
+.heroMobilePrimaryLabel { font-size: 16px; font-weight: 750; }
+.heroMobilePrimaryHint { color: rgba(255, 255, 255, 0.78); font-size: 11.5px; }
+.heroMobilePrimaryIcon { display: inline-flex; }
+
+.heroMobileAuth { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+.heroMobileAuth a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  border: 1px solid rgba(20, 30, 55, 0.1);
+  border-radius: 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.heroMobileLinks { display: grid; gap: 4px; }
+
+.heroMobileLink,
+.heroMobileGroupTitle {
+  display: block;
+  padding: 11px 12px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 650;
+}
+
+.heroMobileLink:hover,
+.heroMobileGroupTitle:hover { background: rgba(21, 68, 181, 0.08); color: var(--blue); }
+
+.heroMobileGroup { border-top: 1px solid rgba(20, 30, 55, 0.08); padding-top: 6px; }
+.heroMobileSubgroup { display: grid; gap: 3px; padding: 6px 12px 10px; }
+.heroMobileSubgroup strong { color: var(--muted); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; }
+.heroMobileSubgroup a { padding: 5px 0; color: var(--muted); font-size: 12px; }
+.heroMobileSubgroup a:hover { color: var(--blue); }
+
+.heroMobileTheme {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid rgba(20, 30, 55, 0.1);
+  border-radius: 14px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.heroMobileLegal { display: flex; gap: 18px; padding: 8px 12px 2px; border-top: 1px solid rgba(20, 30, 55, 0.08); }
+.heroMobileLegal a { color: var(--muted); font-size: 11.5px; }
+
+:global(html[data-theme="dark"]) .heroMobileMenu {
+  border-color: #30394a;
+  background: rgba(23, 29, 42, 0.985);
+}
+
+:global(html[data-theme="dark"]) .heroMobileMenu a,
+:global(html[data-theme="dark"]) .heroMobileTheme { color: #f4f6fb; }
 
 .primaryButton span {
   width: 33px;
@@ -2360,6 +2688,13 @@
   font-size: 21px; }
 }
 
+@media (max-width: 1040px) {
+  .navigation { gap: 6px; padding: 0 12px; }
+  .navigation a,
+  .heroMegaTrigger { font-size: 12px; padding: 8px 12px; }
+  .heroMegaGroups { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 @media (max-width: 900px) {
   .trustBar { grid-template-columns: 1fr; gap: 16px; }
 }
@@ -2367,17 +2702,39 @@
 @media (max-width: 760px) {
   .heroFrame { min-height: 100svh; padding: 6px; }
   .heroCard { min-height: calc(100svh - 12px); border-radius: 20px; }
-  .heroHeader { height: 56px; }
-  .heroBrand { height: 56px; padding: 0 18px 0 15px; border-bottom-right-radius: 20px; }
-  .heroBrand::after { right: -20px; width: 20px; height: 20px; border-top-left-radius: 20px; box-shadow: -7px -7px 0 7px var(--paper); }
-  .heroBrand img { width: 128px; }
+  .heroHeader {
+    height: 56px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+  }
+  .heroLogoTab {
+    position: relative;
+    top: auto;
+    left: auto;
+    height: 56px;
+    padding: 0 16px 0 14px;
+    border-bottom-right-radius: 20px;
+  }
+  .heroLogoTab::after { right: -20px; width: 20px; height: 20px; border-top-left-radius: 20px; box-shadow: -7px -7px 0 7px var(--paper); }
+  .heroLogoImg { width: 130px; }
   .navigation { display: none; }
-  .heroActionTab { height: 52px; padding: 0 12px; border-bottom-left-radius: 18px; }
-  .heroActionTab::before { left: -18px; width: 18px; height: 18px; border-top-right-radius: 18px; box-shadow: 6px -6px 0 6px var(--paper); }
-  .contactButton { gap: 7px; padding: 4px 5px 4px 12px;
-  font-size: 11px; }
-  .contactIcon { width: 24px; height: 24px; }
-  .contactIcon svg { width: 13px; height: 13px; }
+  .heroMenuToggle { display: block; justify-self: center; }
+  .heroMegaPanel { display: none; }
+  .heroActionTab {
+    position: relative;
+    top: auto;
+    right: auto;
+    justify-self: end;
+    height: 56px;
+    padding: 0 14px;
+    border-bottom-left-radius: 20px;
+  }
+  .heroActionTab::before { left: -20px; width: 20px; height: 20px; border-top-right-radius: 20px; box-shadow: 7px -7px 0 7px var(--paper); }
+  .contactButton { padding: 4px 5px 4px 10px;
+  font-size: 11px; gap: 6px; }
+  .contactIcon { width: 22px; height: 22px; }
+  .contactIcon svg { width: 12px; height: 12px; }
+  .heroMobileMenu { top: 62px; }
   .heroContent {
     width: calc(100% - 40px);
     margin-inline: 20px;
@@ -2433,9 +2790,9 @@
 
 /* Pantallas muy estrechas: el logo cede espacio para que la hamburguesa
    centrada del hero no se monte sobre las pestañas del encabezado. */
-@media (max-width: 380px) {
-  .heroBrand { padding: 0 14px 0 12px; }
-  .heroBrand img { width: 104px; }
+@media (max-width: 340px) {
+  .heroLogoTab { padding: 0 10px 0 9px; }
+  .heroLogoImg { width: 92px; }
   .heroActionTab { padding: 0 10px; }
 }
 
@@ -2917,4 +3274,21 @@
   .exampleGrid { grid-template-columns: 1fr; gap: 20px; }
   .exampleVisual { height: clamp(180px, 52vw, 260px); }
   .exampleSection { padding-bottom: 60px; }
+}
+
+/* Movimiento reducido: las animaciones siguen activas (animation-name no es
+   `none`) y terminan visibles, sin desplazamiento ni escala. Ningún panel
+   depende de un animationend para mostrarse. */
+@media (prefers-reduced-motion: reduce) {
+  .heroMegaPanel,
+  .heroMobileMenu {
+    animation-name: heroFadeVisible;
+    animation-duration: 180ms;
+    animation-timing-function: linear;
+  }
+}
+
+@keyframes heroFadeVisible {
+  from { opacity: 0.6; }
+  to { opacity: 1; }
 }
