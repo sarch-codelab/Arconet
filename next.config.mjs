@@ -38,8 +38,11 @@ const nextConfig = {
   // Solo afecta a `next dev`: permite las vistas previas de Amp y Arena.
   allowedDevOrigins: ["127.0.0.1", "*.onamp.dev", "*.e2b.app"],
   async redirects() {
-    // El catálogo pasó a vivir en /tienda. Las URLs anteriores se conservan con
-    // un salto 301 para no romper enlaces guardados ni el posicionamiento.
+    // La tienda vive en /tienda. /catalogo es ahora una vitrina propia
+    // (app/catalogo/page.js), así que la raíz NO se redirige: las redirecciones
+    // se evalúan antes que las rutas y un 301 aquí taparía la página nueva.
+    // Solo las URLs antiguas de detalle y de línea conservan su salto 301 para
+    // no romper enlaces guardados ni el posicionamiento.
     //
     // OJO: las imágenes del sitio están en `public/catalogo/` y se sirven como
     // /catalogo/algo.jpg. Las redirecciones se evalúan ANTES que los archivos
@@ -65,7 +68,7 @@ const nextConfig = {
       "fibra-optica",
     ];
     return [
-      { source: "/catalogo", destination: "/tienda", statusCode: 301 },
+      // `/catalogo` queda fuera a propósito: es la nueva vitrina.
       { source: "/catalogo/categoria/:slug", destination: "/tienda/categoria/:slug", statusCode: 301 },
       { source: "/catalogo/producto/:slug", destination: "/tienda/producto/:slug", statusCode: 301 },
       ...familias.map((slug) => ({
