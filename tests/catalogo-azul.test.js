@@ -48,7 +48,8 @@ describe("/catalogo usa el azul de Arconet, no el rojo de la referencia", () => 
     const gift = css.match(/\.giftIcon\s*\{([^}]*)\}/)?.[1] || "";
     const boton = css.match(/\.dealsButton\s*\{([^}]*)\}/)?.[1] || "";
     expect(gift).toContain("background: #fff;");
-    expect(gift).toContain("color: var(--accent);");
+    // El medallón ya no pinta un icono con `color`: muestra la imagen 3D.
+    expect(css).toMatch(/\.giftImg\s*\{[^}]*object-fit: contain/);
     expect(boton).toContain("background: #fff;");
     expect(boton).toContain("color: var(--accent);");
   });

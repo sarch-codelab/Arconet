@@ -13,7 +13,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Gauge,
-  Gift,
   Globe,
   Headphones,
   LayoutGrid,
@@ -40,6 +39,7 @@ import {
   NAV_LINKS,
   PRODUCTS,
   PROMISES,
+  REGALO_OFERTAS,
   SOBRE_NOVEDADES,
 } from "./vitrina-data";
 import styles from "./catalogo-experience.module.css";
@@ -408,7 +408,16 @@ export default function CatalogoExperience() {
         {/* Ofertas y boletín. */}
         <section className={styles.promoRow} aria-label="Ofertas y novedades">
           <div className={styles.dealsPromo}>
-            <span className={styles.giftIcon}><Gift size={24} aria-hidden="true" /></span>
+            <span className={styles.giftIcon} aria-hidden="true">
+              <Image
+                src={REGALO_OFERTAS}
+                alt=""
+                width={120}
+                height={120}
+                sizes="80px"
+                className={styles.giftImg}
+              />
+            </span>
             <div className={styles.dealsCopy}>
               <h2>Ofertas exclusivas para ti</h2>
               <p>Ahorra en equipos seleccionados para tu próxima instalación.</p>

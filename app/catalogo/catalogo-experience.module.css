@@ -845,16 +845,25 @@
   color: #fff;
 }
 
+/* Medallón blanco con el regalo 3D que aportó el usuario en lugar del
+   icono de línea. La imagen ya trae canal alfa, así que el círculo blanco
+   le sirve de fondo sin recorte ni halo negro. */
 .giftIcon {
   display: grid;
   place-items: center;
   flex: 0 0 auto;
-  width: 56px;
-  height: 56px;
+  width: 76px;
+  height: 76px;
   border-radius: 50%;
-  /* Sobre blanco se usa el azul saturado, no la tinta clara del modo oscuro. */
   background: #fff;
-  color: var(--accent);
+  box-shadow: 0 10px 22px -12px rgba(8, 12, 20, 0.55);
+}
+
+.giftImg {
+  display: block;
+  width: 92%;
+  height: 92%;
+  object-fit: contain;
 }
 
 .dealsCopy h2,
@@ -1066,7 +1075,7 @@
   .benefit { padding: 6px 8px; gap: 8px; }
 
   .dealsPromo { padding: 20px; gap: 14px; }
-  .giftIcon { width: 44px; height: 44px; }
+  .giftIcon { width: 60px; height: 60px; }
   .newsletter { padding: 20px; }
   .newsletterCopy { max-width: 100%; }
   .envelope {

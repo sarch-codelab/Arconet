@@ -65,6 +65,11 @@ No se usó un comodín `/catalogo/:path*` porque las fotos del sitio viven en
   con transparencia de la imagen de sobre azul que aportó el usuario. Sustituye
   al sobre dibujado con CSS y al icono `Mail` en «Recibe las novedades». No
   lleva `priority`, así que no se precarga.
+- `public/catalogo-vitrina/regalo-ofertas.webp` (~31 KB, 358 × 360): el
+  regalo 3D azul con estrellas verdes que aportó el usuario para «Ofertas
+  exclusivas para ti». El PNG original ya traía canal alfa, así que solo se
+  recortó al contenido útil y se convirtió a WebP; no se horneó el fondo
+  negro ni se hizo chroma key. No lleva `priority`.
 - `public/catalogo-vitrina/categorias/*.webp` (~160 KB en total): las 6 fotos
   de la cuadrícula de categorías, buscadas en internet a petición del usuario.
   Son de stock libre de **Pexels** y **Unsplash** (licencias que permiten uso
@@ -214,14 +219,43 @@ desde el CDN de terceros.
   consola. **Son comprobaciones y capturas locales**, no verificación visual
   humana ni del despliegue público.
 
+## Regalo 3D en «Ofertas exclusivas para ti» (6 de noviembre de 2026)
+
+A petición del usuario, el icono de línea `Gift` de la tarjeta azul de ofertas
+se sustituyó por la **imagen del regalo 3D azul** adjunta:
+
+- El PNG de 1200 × 1200 venía con fondo transparente real (canal alfa), no con
+  un fondo negro pintado. Se recortó al contenido útil (971 × 976), se redujo a
+  358 × 360 y se guardó como WebP con alfa (~31 KB), conservando los brillos y
+  las dos estrellas verde lima.
+- El medallón blanco se agrandó de 56 a **76 px** (60 px en móvil) para que la
+  ilustración se aprecie; la imagen se ajusta con `object-fit: contain` al 92 %
+  del círculo, sin recortes. Se quitó el `color: var(--accent)` del medallón
+  porque ya no pinta ningún glifo, y se añadió una sombra suave.
+- Es la única imagen de la tarjeta: sigue sin `priority` (solo el hero se
+  precarga) y el texto, el botón y el enlace a `/tienda` no cambiaron.
+- No se tocó `/tienda`, el carrito compartido ni ningún otro bloque de la
+  vitrina.
+
+### Verificación de este ajuste
+
+- `npm run lint`: 0; `npm test`: **150 archivos / 1644 pruebas**, incluidas 6
+  nuevas en `tests/catalogo-regalo-ofertas.test.js`; build de producción y
+  `ops/verify-static-assets.mjs` correctos.
+- Chromium headless local (claro/oscuro 1440 × 900 y móvil 390 × 844): el
+  regalo carga sobre el medallón blanco, sin desbordamiento horizontal ni
+  errores de consola. **Son comprobaciones y capturas locales**, no
+  verificación visual humana ni del despliegue público.
+
 ## Verificación
 
 - `npm run lint`: 0 errores.
 - `npm test`: incluye `tests/catalogo-vitrina.test.js`,
-  `tests/catalogo-azul.test.js`, `tests/catalogo-fila-deslizante.test.js` y
-  `tests/catalogo-categorias-grid.test.js` (ruta, metadatos, assets, enlaces,
+  `tests/catalogo-azul.test.js`, `tests/catalogo-fila-deslizante.test.js`,
+  `tests/catalogo-categorias-grid.test.js` y
+  `tests/catalogo-regalo-ofertas.test.js` (ruta, metadatos, assets, enlaces,
   SSR con `renderToStaticMarkup`, imagen prioritaria única, estilos, ausencia
-  de precio/carrito/corazón y cuadrícula de categorías).
+  de precio/carrito/corazón, cuadrícula de categorías y regalo de ofertas).
 - Build de producción con `NEXT_DEPLOYMENT_ID`: correcto, sin `?dpl=`;
   `ops/verify-static-assets.mjs`: HTML y assets correctos.
 - Con `next start` local: `/catalogo` 200; `/catalogo/categoria/...` y
