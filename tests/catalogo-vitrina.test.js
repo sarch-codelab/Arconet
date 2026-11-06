@@ -29,6 +29,7 @@ import {
   NAV_LINKS,
   PRODUCTS,
   PROMISES,
+  REGALO_OFERTAS,
   SOBRE_NOVEDADES,
 } from "../app/catalogo/vitrina-data";
 
@@ -84,9 +85,10 @@ describe("el contenido es de Arconet y no hay enlaces muertos", () => {
       ...PRODUCTS.map((p) => p.image),
       ...IDEAS.map((i) => i.image),
       SOBRE_NOVEDADES,
+      REGALO_OFERTAS,
     ];
-    // 1 hero + 6 categorías + 6 productos + 5 ideas + 1 sobre del boletín.
-    expect(rutas).toHaveLength(19);
+    // 1 hero + 6 categorías + 6 productos + 5 ideas + 1 sobre + 1 regalo.
+    expect(rutas).toHaveLength(20);
     for (const ruta of rutas) {
       expect(existsSync(`public${ruta}`), `falta public${ruta}`).toBe(true);
       expect(statSync(`public${ruta}`).size, `vacío public${ruta}`).toBeGreaterThan(1000);

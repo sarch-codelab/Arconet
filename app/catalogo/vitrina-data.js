@@ -176,3 +176,4 @@ export const PROMISES = [
 
 export const HERO_IMAGE = "/catalogo-vitrina/hero-banner.jpg";
 export const SOBRE_NOVEDADES = "/catalogo-vitrina/sobre-novedades.webp";
+export const REGALO_OFERTAS = "/catalogo-vitrina/regalo-ofertas.webp";
