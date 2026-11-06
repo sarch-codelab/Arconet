@@ -2408,7 +2408,6 @@
 }
 
 .solutionsStage {
-  --slide-progress: 0;
   position: relative;
   overflow: clip;
   background: var(--blue);
@@ -2725,6 +2724,10 @@
   background: #fff;
 }
 
+/* Se aplica desde el HTML del servidor (la clase no depende de hidratar).
+   Si la altura apareciera después de montar, document.scrollHeight cambiaba
+   de golpe y el ResizeObserver volvía a medir toda la página justo en el
+   primer gesto de scroll: ese era el "salto" inicial. */
 .scrollReady.solutionsStage {
   height: 400svh;
 }
@@ -2753,7 +2756,12 @@
   height: 100%;
   overflow: visible;
   scrollbar-width: none;
-  transform: translate3d(calc(var(--slide-progress) * -75%), 0, 0);
+  /* Estado inicial antes de hidratar. Durante el scroll el JS escribe el
+     transform DIRECTAMENTE en este elemento (style.transform), sin publicar
+     una variable CSS heredada en el section: las custom properties se heredan
+     y obligaban a recalcular el estilo de los 4 paneles completos en cada
+     fotograma. El transform en línea gana a esta regla. */
+  transform: translate3d(calc(var(--slide-progress, 0) * -75%), 0, 0);
   /* Sin will-change: una pista de 400vw promovida a capa propia obligaba a
      la GPU a mantener y repintar una textura enorme durante todo el scroll,
      lo que producía el tirón al mover la rueda. El transform por sí solo ya
@@ -2861,8 +2869,9 @@
 
 .solutionPanel.brandPanel .solutionVisual {
   z-index: 2;
+  /* El fondo ya es casi opaco; el blur(2px) apenas se veía y obligaba a
+     remuestrear el fondo en cada fotograma del recorrido horizontal. */
   background-color: #102f83e0;
-  backdrop-filter: blur(2px);
 }
 
 .companySection {

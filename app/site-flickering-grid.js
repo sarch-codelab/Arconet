@@ -32,9 +32,14 @@ export default function SiteFlickeringGrid() {
     const visible = new Set();
     const reduced = matchMedia('(prefers-reduced-motion: reduce)');
     let frame = 0, last = 0, scanFrame = 0;
+    // Mientras se desplaza la página se suspende el dibujo de los lienzos:
+    // cada draw() hace getBoundingClientRect() y miles de fillRect() en el
+    // hilo principal, compitiendo con el scroll y con el carrusel de inicio.
+    // Al detenerse el gesto se retoma sin acumular un delta gigante.
+    let scrolling = false, idleTimer = 0;
     const tick = now => {
       frame = 0;
-      if (document.hidden || !visible.size) return;
+      if (document.hidden || scrolling || !visible.size) return;
       if (now - last >= (reduced.matches ? 500 : 66)) {
         const delta = Math.min((now - last) / 1000, 1);
         last = now;
@@ -43,7 +48,16 @@ export default function SiteFlickeringGrid() {
       }
       frame = requestAnimationFrame(tick);
     };
-    const start = () => { if (!frame && !document.hidden && visible.size) frame = requestAnimationFrame(tick); };
+    const start = () => { if (!frame && !document.hidden && !scrolling && visible.size) frame = requestAnimationFrame(tick); };
+    const onScroll = () => {
+      scrolling = true;
+      cancelAnimationFrame(frame); frame = 0;
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => {
+        scrolling = false; last = performance.now(); start();
+      }, 180);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true, capture: true });
     const intersection = new IntersectionObserver(entries => {
       entries.forEach(entry => entry.isIntersecting ? visible.add(entry.target) : visible.delete(entry.target));
       start();
@@ -74,6 +88,8 @@ export default function SiteFlickeringGrid() {
     return () => {
       observer.disconnect(); theme.disconnect(); intersection.disconnect();
       cancelAnimationFrame(frame); cancelAnimationFrame(scanFrame);
+      clearTimeout(idleTimer); scrolling = false;
+      window.removeEventListener('scroll', onScroll, true);
       document.removeEventListener('visibilitychange', visibility);
       grids.forEach(grid => grid.remove()); grids.clear(); visible.clear();
     };
