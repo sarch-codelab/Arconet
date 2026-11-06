@@ -35,7 +35,7 @@ No se usó un comodín `/catalogo/:path*` porque las fotos del sitio viven en
 | Cabecera | logo Arconet + lema, buscador funcional, navegación y acceso |
 | Barra de líneas | 7 chips que filtran los productos; idioma/región/moneda |
 | Hero | imagen generada con el panel azul en diagonal y el cluster de equipos; 3 destacados con flechas, CTA y círculo «Novedades» |
-| Tarjetas de líneas | 5 líneas reales + tarjeta azul de ofertas |
+| Cuadrícula de categorías | **6 cuadros con foto de fondo y etiqueta blanca**, inspirados en el «Featured Category Grid»; 5 líneas reales + ofertas |
 | Productos destacados | **una sola fila deslizante** de 6 equipos con foto, nombre, línea y etiqueta de oferta; sin precio, sin carrito y sin corazón |
 | Ventajas | envíos, pagos, garantía y soporte |
 | Ideas | **una sola fila deslizante** de 5 tarjetas con foto y enlace a líneas reales |
@@ -65,10 +65,14 @@ No se usó un comodín `/catalogo/:path*` porque las fotos del sitio viven en
   con transparencia de la imagen de sobre azul que aportó el usuario. Sustituye
   al sobre dibujado con CSS y al icono `Mail` en «Recibe las novedades». No
   lleva `priority`, así que no se precarga.
-- Las demás son fotos que ya estaban en el repo: `public/catalogo/prod-*.jpg`
-  para productos, `public/catalogo/lineas/cards/*.webp` para las líneas y
-  `public/catalogo/sol-*.jpg` / `infraestructura.jpg` / `hero-fiber.jpg` para
-  las ideas. No se descargaron fotos de terceros.
+- `public/catalogo-vitrina/categorias/*.webp` (~160 KB en total): las 6 fotos
+  de la cuadrícula de categorías, buscadas en internet a petición del usuario.
+  Son de stock libre de **Pexels** y **Unsplash** (licencias que permiten uso
+  comercial sin atribución obligatoria; se acreditan igualmente más abajo).
+  Se recortaron a 1.6:1 y se convirtieron a WebP. Ninguna lleva `priority`.
+- Las fotos de productos e ideas siguen siendo las que ya estaban en el repo:
+  `public/catalogo/prod-*.jpg`, `public/catalogo/sol-*.jpg`,
+  `infraestructura.jpg` y `hero-fiber.jpg`.
 - El logo cumple el contrato de rendimiento: `sizes="132px"`,
   `loading="eager"` y `fetchPriority="low"` (React 19 no lo precarga).
 
@@ -161,13 +165,63 @@ A petición del usuario, sobre la misma vitrina azul:
 - **Son comprobaciones y capturas locales**, no verificación visual humana ni
   del despliegue público.
 
+## Cuadrícula de categorías con fotos (6 de noviembre de 2026)
+
+A petición del usuario, los **6 cuadros** que van justo encima de «Lo más
+buscado / Productos destacados» dejaron de ser tarjetas con miniatura y
+subtítulo y pasaron a un diseño parecido al **«Featured Category Grid»** de la
+imagen de referencia:
+
+- Cada cuadro es una **foto a sangre** (`next/image` con `fill` y
+  `object-fit: cover`), relación 1.6:1 y esquinas redondeadas, con la etiqueta
+  en blanco abajo a la izquierda sobre un degradado oscuro. Se añadió un tinte
+  de color suave por categoría (`--category-tint`) para darles una familia
+  visual común sin ocultar el equipo real. «Ofertas» conserva el azul de marca
+  `#1544b5` como tinte dominante.
+- Las 6 fotos son de telecomunicaciones y se **buscaron en internet**: fibras
+  ópticas, conectores/patch panels, un instrumento de medición, racks de data
+  center, un técnico con herramientas y fibra iluminada para ofertas.
+- Se mantiene la rejilla de 6 columnas en escritorio (3 y 2 en tablet/teléfono,
+  que recuerda las dos filas de la referencia), los 6 enlaces a líneas reales
+  de `/tienda`, el acento azul, el hero, las filas deslizantes, la ausencia de
+  precios/carrito/corazón y el footer compartido.
+- Se retiraron `.categoryThumb`, `.categoryCopy`, `.categoryArrow` y
+  `.dealsIcon`, que solo servían al diseño anterior.
+
+### Créditos de las fotos
+
+| Archivo | Fuente |
+| --- | --- |
+| `categorias/fibra-optica.webp` | [Pexels — fiber optic cables](https://pexels.com/search/fiber%20optic) |
+| `categorias/componentes-pasivos.webp` | [Pexels — fiber optic connectors](https://pexels.com/photo/close-up-photo-of-plugged-cables-1624895) |
+| `categorias/instrumentos.webp` | [Pexels — digital multimeter](https://pexels.com/photo/close-up-photo-of-a-digital-multimeter-5806812) |
+| `categorias/gabinetes-racks.webp` | [Pexels — server racks](https://pexels.com/photo/data-center-server-racks-with-active-equipment-37730212) |
+| `categorias/herramientas.webp` | [Pexels — electrician tools](https://pexels.com/search/electrician%20tools) |
+| `categorias/ofertas.webp` | [Unsplash — fiber optic lights](https://unsplash.com/photos/blury-lights-illuminate-fiber-optic-cables-eMoMpSKE8eE) |
+
+Se descartaron resultados de bancos de pago (Unsplash+, Dreamstime) y de
+tiendas (eBay) para no meter imágenes con licencia restrictiva ni marcas de
+agua. Las fotos se guardan optimizadas en el repo, no se sirven en caliente
+desde el CDN de terceros.
+
+### Verificación de este ajuste
+
+- `npm run lint`: 0; `npm test`: **149 archivos / 1638 pruebas**, incluidas 5
+  nuevas en `tests/catalogo-categorias-grid.test.js`; build de producción y
+  `ops/verify-static-assets.mjs` correctos.
+- Chromium headless local (claro/oscuro 1440 × 900 y móvil 390 × 844): los 6
+  cuadros cargan sus fotos, no hay desbordamiento horizontal ni errores de
+  consola. **Son comprobaciones y capturas locales**, no verificación visual
+  humana ni del despliegue público.
+
 ## Verificación
 
 - `npm run lint`: 0 errores.
 - `npm test`: incluye `tests/catalogo-vitrina.test.js`,
-  `tests/catalogo-azul.test.js` y `tests/catalogo-fila-deslizante.test.js`
-  (ruta, metadatos, assets, enlaces, SSR con `renderToStaticMarkup`, imagen
-  prioritaria única, estilos, y ausencia de precio/carrito/corazón).
+  `tests/catalogo-azul.test.js`, `tests/catalogo-fila-deslizante.test.js` y
+  `tests/catalogo-categorias-grid.test.js` (ruta, metadatos, assets, enlaces,
+  SSR con `renderToStaticMarkup`, imagen prioritaria única, estilos, ausencia
+  de precio/carrito/corazón y cuadrícula de categorías).
 - Build de producción con `NEXT_DEPLOYMENT_ID`: correcto, sin `?dpl=`;
   `ops/verify-static-assets.mjs`: HTML y assets correctos.
 - Con `next start` local: `/catalogo` 200; `/catalogo/categoria/...` y

@@ -52,41 +52,46 @@ export const HERO_SLIDES = [
   },
 ];
 
+// Cuadrícula de categorías: foto de fondo + etiqueta, inspirada en el
+// "Featured Category Grid" de la referencia. Las fotos son de stock libre
+// (Pexels / Unsplash) y los enlaces apuntan a líneas reales de /tienda.
 export const CATEGORY_CARDS = [
   {
     title: "Fibra óptica",
-    subtitle: "Conecta. Mide. Entrega.",
-    image: "/catalogo/lineas/cards/preconectorizado.webp",
+    tint: "#1e63c8",
+    image: "/catalogo-vitrina/categorias/fibra-optica.webp",
     href: "/tienda/categoria/soluciones-de-preconectorizado",
-    icon: "cable",
   },
   {
     title: "Componentes pasivos",
-    subtitle: "Splitters y adaptadores.",
-    image: "/catalogo/lineas/cards/pasivos.webp",
+    tint: "#14867c",
+    image: "/catalogo-vitrina/categorias/componentes-pasivos.webp",
     href: "/tienda/categoria/componentes-pasivos",
-    icon: "boxes",
   },
   {
     title: "Instrumentos",
-    subtitle: "Precisión en campo.",
-    image: "/catalogo/lineas/cards/medicion.webp",
+    tint: "#b8622a",
+    image: "/catalogo-vitrina/categorias/instrumentos.webp",
     href: "/tienda/categoria/instrumentos-de-medicion-optica",
-    icon: "gauge",
   },
   {
     title: "Gabinetes y Racks",
-    subtitle: "Ordena tu red.",
-    image: "/catalogo/lineas/cards/gabinetes.webp",
+    tint: "#28528f",
+    image: "/catalogo-vitrina/categorias/gabinetes-racks.webp",
     href: "/tienda/categoria/gabinetes-y-racks",
-    icon: "server",
   },
   {
     title: "Herramientas",
-    subtitle: "Listos para instalar.",
-    image: "/catalogo/lineas/cards/herramientas.webp",
+    tint: "#7b4aa6",
+    image: "/catalogo-vitrina/categorias/herramientas.webp",
     href: "/tienda/categoria/herramientas-y-kits",
-    icon: "wrench",
+  },
+  {
+    title: "Ofertas",
+    tint: "#1544b5",
+    image: "/catalogo-vitrina/categorias/ofertas.webp",
+    href: "/tienda",
+    featured: true,
   },
 ];
 

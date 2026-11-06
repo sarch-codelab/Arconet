@@ -474,16 +474,18 @@
   margin: 22px auto 0;
 }
 
+/* Cada cuadro es una foto a sangre con un tinte de color y la etiqueta en
+   blanco abajo a la izquierda, como el "Featured Category Grid" de la
+   referencia. El tinte es suave para que se siga viendo el equipo real. */
 .categoryCard {
   position: relative;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 92px;
-  padding: 12px;
+  display: block;
+  aspect-ratio: 1.6 / 1;
+  overflow: hidden;
+  isolation: isolate;
   border-radius: 14px;
   background: var(--soft);
-  color: var(--ink);
+  color: #fff;
   text-decoration: none;
   transition: transform 200ms ease, box-shadow 200ms ease;
 }
@@ -493,57 +495,49 @@
   box-shadow: 0 14px 28px -18px rgba(0, 0, 0, 0.45);
 }
 
-.categoryThumb {
-  display: block;
-  flex: 0 0 auto;
-  width: 56px;
-  height: 56px;
-  overflow: hidden;
-  border-radius: 12px;
-  background: #fff;
-}
-
 .categoryImg {
-  display: block;
-  width: 100%;
-  height: 100%;
   object-fit: cover;
+  transition: transform 400ms ease;
 }
 
-.categoryCopy {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-  padding-right: 14px;
-}
+.categoryCard:hover .categoryImg { transform: scale(1.06); }
 
-.categoryCopy strong { font-size: 12px; font-weight: 750; line-height: 1.25; }
-.categoryCopy small { color: var(--muted); font-size: 10px; line-height: 1.3; }
-
-.categoryArrow {
+.categoryTint {
   position: absolute;
-  right: 10px;
-  bottom: 10px;
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: #fff;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(135deg, var(--category-tint, #1544b5), transparent 88%);
+  opacity: 0.72;
+  mix-blend-mode: soft-light;
 }
 
-.dealsCard { background: var(--accent); color: #fff; }
-.dealsCard .categoryCopy small { color: rgba(255, 255, 255, 0.85); }
-.dealsCard .categoryArrow { background: #fff; color: var(--accent); }
+.categoryShade {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(180deg,
+    rgba(8, 12, 20, 0.06) 0%,
+    rgba(8, 12, 20, 0.16) 42%,
+    rgba(8, 12, 20, 0.82) 100%);
+}
 
-.dealsIcon {
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
-  width: 56px;
-  height: 56px;
+.categoryLabel {
+  position: absolute;
+  right: 36px;
+  bottom: 12px;
+  left: 13px;
+  z-index: 3;
+  font-size: clamp(12px, 1.15vw, 15.5px);
+  font-weight: 750;
+  line-height: 1.2;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55);
+}
+
+/* «Ofertas» conserva el azul saturado de marca, ahora sobre la foto. */
+.dealsCard .categoryTint {
+  background: linear-gradient(135deg, var(--accent), rgba(21, 68, 181, 0.4) 82%);
+  opacity: 0.7;
+  mix-blend-mode: multiply;
 }
 
 /* --------------------------------------------------------------------------
@@ -1062,9 +1056,7 @@
   .heroShip:nth-child(3) { display: none; }
 
   .categoryRow { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  .categoryCard { min-height: 80px; padding: 9px; gap: 8px; }
-  .categoryThumb { width: 44px; height: 44px; }
-  .dealsIcon { width: 44px; height: 44px; }
+  .categoryLabel { right: 28px; bottom: 9px; left: 10px; font-size: 12px; }
 
   .productRow, .ideaRow { gap: 8px; }
   .productCard, .ideaCard { flex-basis: 62vw; }
@@ -1091,6 +1083,6 @@
   .heroTitle { font-size: 28px; }
   .heroPrimary,
   .heroSecondary { height: 38px; padding: 0 14px; font-size: 11px; }
-  .categoryCopy strong { font-size: 11px; }
+  .categoryLabel { font-size: 11px; }
   .productCard, .ideaCard { flex-basis: 74vw; }
 }

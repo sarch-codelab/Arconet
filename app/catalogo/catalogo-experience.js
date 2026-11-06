@@ -254,28 +254,28 @@ export default function CatalogoExperience() {
           </div>
         </section>
 
-        {/* Tarjetas de líneas. */}
+        {/* Cuadrícula de categorías: foto de fondo con tinte y etiqueta, como
+            el "Featured Category Grid" de la referencia. */}
         <section className={styles.categoryRow} aria-label="Líneas de producto">
           {CATEGORY_CARDS.map((card) => (
-            <Link key={card.title} href={card.href} className={styles.categoryCard}>
-              <span className={styles.categoryThumb}>
-                <Image src={card.image} alt="" width={120} height={120} sizes="64px" className={styles.categoryImg} />
-              </span>
-              <span className={styles.categoryCopy}>
-                <strong>{card.title}</strong>
-                <small>{card.subtitle}</small>
-              </span>
-              <span className={styles.categoryArrow}><ArrowRight size={14} aria-hidden="true" /></span>
+            <Link
+              key={card.title}
+              href={card.href}
+              className={`${styles.categoryCard}${card.featured ? ` ${styles.dealsCard}` : ""}`}
+              style={{ "--category-tint": card.tint }}
+            >
+              <Image
+                src={card.image}
+                alt=""
+                fill
+                sizes="(max-width: 620px) 45vw, (max-width: 1180px) 30vw, 16vw"
+                className={styles.categoryImg}
+              />
+              <span className={styles.categoryTint} aria-hidden="true" />
+              <span className={styles.categoryShade} aria-hidden="true" />
+              <span className={styles.categoryLabel}>{card.title}</span>
             </Link>
           ))}
-          <Link href="/tienda" className={`${styles.categoryCard} ${styles.dealsCard}`}>
-            <span className={styles.dealsIcon}><Percent size={26} aria-hidden="true" /></span>
-            <span className={styles.categoryCopy}>
-              <strong>Ofertas</strong>
-              <small>Precios de temporada</small>
-            </span>
-            <span className={styles.categoryArrow}><ArrowRight size={14} aria-hidden="true" /></span>
-          </Link>
         </section>
 
         {/* Productos destacados: una sola fila deslizante, con buscador y filtros. */}
