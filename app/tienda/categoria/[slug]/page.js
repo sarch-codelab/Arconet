@@ -26,6 +26,80 @@ const getCategoria = cache(async function getCategoria(slug) {
   }
 });
 
+// Mismo criterio de coincidencia que el componente cliente: el producto puede
+// guardar el nombre de la línea, el slug, o el nombre con otros acentos.
+const normalizarCategoria = (value) =>
+  String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("es")
+    .replace(/\s+/g, " ")
+    .trim();
+
+// El listado se pinta EN EL SERVIDOR. Antes la página solo traía un esqueleto
+// y esperaba a que el navegador hidratara y pidiera /api/catalogo: si un chunk
+// fallaba, un bloqueador cortaba la petición o el revelado por scroll no se
+// disparaba, el usuario veía la categoría vacía aunque hubiera 50 productos.
+// Con los datos iniciales en el HTML, los productos existen desde el primer
+// byte y el fetch posterior solo los actualiza.
+const getProductosIniciales = cache(async function getProductosIniciales(nombre, slug) {
+  try {
+    const productos = await prisma.producto.findMany({
+      where: { estado: "activo", archivado: false },
+      orderBy: { nombre: "asc" },
+      select: {
+        id: true,
+        nombre: true,
+        sku: true,
+        categoria: true,
+        marca: true,
+        garantia: true,
+        unidad: true,
+        descripcion: true,
+        precio: true,
+        stock: true,
+        foto: true,
+        fotos: true,
+      },
+    });
+
+    const objetivoNombre = normalizarCategoria(nombre);
+    const objetivoSlug = normalizarCategoria(slug);
+
+    return productos
+      .filter((producto) => {
+        const categoria = normalizarCategoria(producto.categoria);
+        return (objetivoNombre && categoria === objetivoNombre) ||
+          (objetivoSlug && categoria === objetivoSlug);
+      })
+      .map((producto) => ({
+        id: producto.id,
+        nombre: producto.nombre,
+        sku: producto.sku,
+        categoria: producto.categoria,
+        marca: producto.marca || "",
+        garantia: producto.garantia || "",
+        unidad: producto.unidad,
+        descripcion: producto.descripcion || "",
+        precio: Number(producto.precio),
+        stock: producto.stock,
+        // Igual que /api/catalogo: nunca se envía un base64 al navegador.
+        foto: typeof producto.foto === "string" && producto.foto.startsWith("data:")
+          ? `/api/productos/${encodeURIComponent(producto.id)}/foto`
+          : (producto.foto || ""),
+        fotos: Array.isArray(producto.fotos)
+          ? producto.fotos.map((imagen, indice) =>
+              typeof imagen === "string" && imagen.startsWith("data:")
+                ? `/api/productos/${encodeURIComponent(producto.id)}/foto?i=${indice}`
+                : imagen)
+          : [],
+      }));
+  } catch (error) {
+    console.error("GET /tienda/categoria/[slug] productos iniciales", error);
+    return [];
+  }
+});
+
 export async function generateMetadata({ params }) {
   const { slug } = await params;
   const categoria = await getCategoria(slug);
@@ -63,15 +137,20 @@ export default async function CategoryPage({ params }) {
     return <CategoryProducts slug={slug} blocked />;
   }
 
-  // Solo datos primitivos cruzan la frontera servidor → cliente. Pasar el
-  // registro completo permitía que el objeto de Categoria terminara en el
-  // render de React (error #31) en lugar de limitarse a consultar la página.
+  const family = findFamily(slug);
+  const nombreLinea = categoria?.nombre || family?.category || slug;
+  const productosIniciales = await getProductosIniciales(nombreLinea, slug);
+
+  // Solo datos primitivos (y un arreglo de objetos planos) cruzan la frontera
+  // servidor → cliente. Pasar el registro completo permitía que el objeto de
+  // Categoria terminara en el render de React (error #31).
   return (
     <CategoryProducts
       slug={slug}
       categoryName={categoria?.nombre ?? null}
       categoryDescription={categoria?.descripcion ?? ""}
       categoryPhoto={categoria?.foto ?? ""}
+      productosIniciales={productosIniciales}
     />
   );
 }

@@ -11,7 +11,7 @@ const leer = (f) => readFileSync(f, "utf8");
 describe("listado de productos de categoría", () => {
   it("descompone `products` de useCatalogProducts", () => {
     const js = leer(JS);
-    expect(js).toMatch(/const \{ products, loading: productsLoading \} = useCatalogProducts\(\);/);
+    expect(js).toMatch(/const \{ products, loading: productsLoading \} = useCatalogProducts\(productosIniciales\);/);
   });
 
   it("el filtro por categoría usa `products` y lo declara como dependencia", () => {
