@@ -34,12 +34,12 @@ No se usó un comodín `/catalogo/:path*` porque las fotos del sitio viven en
 | --- | --- |
 | Cabecera | logo Arconet + lema, buscador funcional, navegación, favoritos, carrito real y acceso |
 | Barra de líneas | 7 chips que filtran los productos; idioma/región/moneda |
-| Hero | imagen generada con el panel rojo en diagonal y el cluster de equipos; 3 destacados con flechas, CTA y círculo «Novedades» |
-| Tarjetas de líneas | 5 líneas reales + tarjeta roja de ofertas |
+| Hero | imagen generada con el panel azul en diagonal y el cluster de equipos; 3 destacados con flechas, CTA y círculo «Novedades» |
+| Tarjetas de líneas | 5 líneas reales + tarjeta azul de ofertas |
 | Productos destacados | 6 equipos con foto, nombre, línea, precio, etiqueta de oferta y corazón (favoritos) |
 | Ventajas | envíos, pagos, garantía y soporte |
 | Ideas | 5 tarjetas con foto y enlace a líneas reales |
-| Ofertas y boletín | tarjeta roja + formulario de correo |
+| Ofertas y boletín | tarjeta azul + formulario de correo |
 | Cierre | 4 promesas y «Síguenos», más el `<Footer />` compartido |
 
 ### Funcionalidad real, no maqueta
@@ -58,8 +58,8 @@ No se usó un comodín `/catalogo/:path*` porque las fotos del sitio viven en
 
 ### Imágenes
 
-- `public/catalogo-vitrina/hero-banner.jpg` (64 KB): generada para esta
-  vitrina, con el panel rojo diagonal y los equipos de fibra óptica, sin texto
+- `public/catalogo-vitrina/hero-banner.jpg` (~70 KB): generada para esta
+  vitrina, con el panel azul diagonal y los equipos de fibra óptica, sin texto
   (el texto va en HTML). Es la única imagen con `priority` de la vista.
 - Las demás son fotos que ya estaban en el repo: `public/catalogo/prod-*.jpg`
   para productos, `public/catalogo/lineas/cards/*.webp` para las líneas y
@@ -71,7 +71,7 @@ No se usó un comodín `/catalogo/:path*` porque las fotos del sitio viven en
 ## Estilos y compatibilidad
 
 - `app/catalogo/catalogo-experience.module.css` define variables locales
-  (`--accent`, `--surface`, `--soft`, …) con variante para
+  (`--accent`, `--accent-ink`, `--surface`, `--soft`, …) con variante para
   `html[data-theme="dark"]`. El hero mantiene sus colores claros porque es una
   fotografía.
 - Cortes en 1180, 900, 620 y 400 px: la cuadrícula de 6 baja a 3/2 columnas,
@@ -80,6 +80,39 @@ No se usó un comodín `/catalogo/:path*` porque las fotos del sitio viven en
 - Solo hay transiciones de `hover`, sin `@keyframes`: el contrato global de
   `tests/animaciones-siempre-activas.test.js` enumera los únicos CSS con bloque
   `prefers-reduced-motion`, y esta vista no añade ninguno.
+
+## Acento azul (6 de noviembre de 2026)
+
+A petición del usuario, la vitrina dejó de usar el rojo de la referencia y pasó
+al **azul de marca `#1544b5`**, el mismo de home y `/tienda`:
+
+- `--accent: #1544b5` para fondos y botones, con `--accent-dark: #11358f` para
+  el hover; la sombra del sobre pasó a `rgba(21, 68, 181, 0.9)`.
+- Se añadió `--accent-ink` para texto, iconos y bordes: `#1544b5` en claro y
+  `#7fa6ff` en oscuro. El azul saturado solo daba **2.18:1** de contraste sobre
+  `--surface: #11161d`, mientras que la tinta clara llega a **7.61:1**. Los
+  textos que van sobre fondo blanco dentro de la tarjeta de ofertas conservan
+  `--accent` para no perder contraste.
+- `public/catalogo-vitrina/hero-banner.jpg` se recoloreó píxel a píxel: solo
+  los píxeles con dominante roja y `G≈B` se sustituyeron por el azul de marca,
+  con máscara suave en el borde diagonal y en las sombras de contacto. El
+  medidor naranja, el cable amarillo y los conectores azules de los equipos
+  quedaron intactos (no se regeneró la fotografía con IA).
+- La bandera `HN` de la cabecera ya era azul y no se tocó.
+
+No se cambió la estructura, los textos, los enlaces, los precios ni `/tienda`.
+
+### Verificación de este ajuste
+
+- `npm run lint`: 0; `npm test`: **147 archivos / 1624 pruebas** (6 nuevas en
+  `tests/catalogo-azul.test.js`); build de producción y
+  `ops/verify-static-assets.mjs` correctos.
+- Chromium headless local a 1440 × 900, temas claro y oscuro: capturas del hero
+  y del bloque de ofertas/boletín, `--accent: #1544b5` en ambos,
+  `--accent-ink: #1544b5` / `#7fa6ff`, precio `rgb(21, 68, 181)` /
+  `rgb(127, 166, 255)`, sin errores de consola ni desbordamiento horizontal.
+  **Es verificación en navegador local, no en el despliegue público ni en
+  dispositivos físicos.**
 
 ## Verificación
 

@@ -1,14 +1,19 @@
 /* ==========================================================================
    /catalogo — vitrina de Arconet inspirada en el diseño de referencia.
-   Estructura: cabecera con buscador, barra de líneas, hero con panel rojo en
+   Estructura: cabecera con buscador, barra de líneas, hero con panel azul en
    diagonal, tarjetas de líneas, productos destacados, ventajas, ideas,
-   ofertas/boletín y cierre. El acento rojo es el de la referencia; la marca,
-   las líneas y los equipos son de Arconet.
+   ofertas/boletín y cierre. El acento azul (#1544b5) es el de la marca
+   Arconet, como en el home y la tienda.
    ========================================================================== */
 
 .page {
-  --accent: #e11b22;
-  --accent-dark: #bd151b;
+  /* --accent: fondos y botones. --accent-ink: texto, iconos y bordes.
+     En modo oscuro el azul de marca queda demasiado oscuro para texto, así
+     que solo la tinta se aclara (mismo patrón que --accent-ink en globals.css). */
+  --accent: #1544b5;
+  --accent-dark: #11358f;
+  --accent-ink: #1544b5;
+  --accent-ink-hover: #0f3a9f;
   --ink: #16181d;
   --muted: #6f737c;
   --line: #e8e8e6;
@@ -21,6 +26,8 @@
 }
 
 :global(html[data-theme="dark"]) .page {
+  --accent-ink: #7fa6ff;
+  --accent-ink-hover: #a9c4ff;
   --ink: #f0f2f5;
   --muted: #a3aab4;
   --line: #2b323d;
@@ -31,7 +38,7 @@
 .page :global(a:focus-visible),
 .page :global(button:focus-visible),
 .page :global(input:focus-visible) {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--accent-ink);
   outline-offset: 2px;
 }
 
@@ -306,7 +313,7 @@
 
 .heroEyebrow {
   margin-bottom: 10px;
-  color: var(--accent);
+  color: var(--accent-ink);
   font-size: 11px;
   font-weight: 750;
   letter-spacing: 0.03em;
@@ -323,7 +330,7 @@
 
 .heroTitle span {
   display: block;
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .heroText {
@@ -559,7 +566,7 @@
 }
 
 .sectionEyebrow {
-  color: var(--accent);
+  color: var(--accent-ink);
   font-size: 10px;
   font-weight: 750;
   letter-spacing: 0.14em;
@@ -581,7 +588,7 @@
   padding: 0;
   border: 0;
   background: none;
-  color: var(--accent);
+  color: var(--accent-ink);
   font: inherit;
   font-size: 12px;
   font-weight: 700;
@@ -590,7 +597,7 @@
   cursor: pointer;
 }
 
-.viewAll:hover { color: var(--accent-dark); }
+.viewAll:hover { color: var(--accent-ink-hover); }
 
 /* --------------------------------------------------------------------------
    PRODUCTOS DESTACADOS
@@ -660,7 +667,7 @@
   text-decoration: none;
 }
 
-.productName:hover { color: var(--accent); }
+.productName:hover { color: var(--accent-ink); }
 .productLine { color: var(--muted); font-size: 9.5px; line-height: 1.35; }
 
 .productFoot {
@@ -671,7 +678,7 @@
   padding: 4px 10px 12px;
 }
 
-.price { color: var(--accent); font-size: 12.5px; font-weight: 750; white-space: nowrap; }
+.price { color: var(--accent-ink); font-size: 12.5px; font-weight: 750; white-space: nowrap; }
 
 .like {
   display: inline-flex;
@@ -687,7 +694,7 @@
 }
 
 .like:hover,
-.likeActive { color: var(--accent); }
+.likeActive { color: var(--accent-ink); }
 
 .empty {
   display: flex;
@@ -742,7 +749,7 @@
 }
 
 .benefit:last-child { border-right: 0; }
-.benefitIcon { display: inline-flex; flex: 0 0 auto; color: var(--accent); }
+.benefitIcon { display: inline-flex; flex: 0 0 auto; color: var(--accent-ink); }
 .benefitCopy { display: flex; flex-direction: column; gap: 3px; }
 .benefitCopy strong { font-size: 11.5px; font-weight: 700; }
 .benefitCopy small { color: var(--muted); font-size: 10px; }
@@ -835,6 +842,7 @@
   width: 56px;
   height: 56px;
   border-radius: 50%;
+  /* Sobre blanco se usa el azul saturado, no la tinta clara del modo oscuro. */
   background: #fff;
   color: var(--accent);
 }
@@ -926,7 +934,7 @@
   border-radius: 10px;
   background: var(--accent);
   color: #fff;
-  box-shadow: 0 16px 32px -18px rgba(225, 27, 34, 0.9);
+  box-shadow: 0 16px 32px -18px rgba(21, 68, 181, 0.9);
   transform: rotate(-12deg);
 }
 
@@ -969,9 +977,9 @@
   flex: 0 0 auto;
   width: 24px;
   height: 24px;
-  border: 1.5px solid var(--accent);
+  border: 1.5px solid var(--accent-ink);
   border-radius: 50%;
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .promise > span:last-child { display: flex; flex-direction: column; gap: 1px; }

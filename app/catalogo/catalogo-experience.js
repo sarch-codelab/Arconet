@@ -223,7 +223,7 @@ export default function CatalogoExperience() {
           </div>
         </div>
 
-        {/* Hero: la imagen ya trae el panel rojo en diagonal y el cluster de
+        {/* Hero: la imagen ya trae el panel azul en diagonal y el cluster de
             equipos; el texto va en HTML para que sea seleccionable y traducible. */}
         <section className={styles.hero} aria-label="Destacados del catálogo">
           <Image
