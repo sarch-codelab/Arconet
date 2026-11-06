@@ -3,23 +3,27 @@ import { describe, expect, it } from "vitest";
 import { FAMILIES } from "../app/tienda/catalogo-data";
 import nextConfig from "../next.config.mjs";
 
-// El catálogo vive en /tienda. Estos tests fijan las dos condiciones que más
-// fácil se rompen: que las URLs viejas redirijan, y que las imágenes de
+// La tienda vive en /tienda. /catalogo es una vitrina nueva e independiente,
+// así que la raíz NO puede seguir redirigiendo: las redirecciones se evalúan
+// antes que las rutas y un 301 taparía app/catalogo/page.js.
+// Estos tests fijan las dos condiciones que más fácil se rompen: que las URLs
+// viejas de detalle sigan redirigiendo, y que las imágenes de
 // `public/catalogo/` NO se redirijan (un comodín general las dejaría en 404 y
 // la home se quedaría sin fotos).
-describe("/tienda sustituye a /catalogo", () => {
-  it("las rutas de página viven en app/tienda", async () => {
+describe("/tienda y la vitrina /catalogo", () => {
+  it("las rutas de página viven en app/tienda y la vitrina en app/catalogo", async () => {
     for (const ruta of ["page.js", "layout.js", "[slug]/page.js", "categoria/[slug]/page.js", "producto/[id]/page.js"]) {
       expect(existsSync(`app/tienda/${ruta}`), `falta app/tienda/${ruta}`).toBe(true);
     }
-    expect(existsSync("app/catalogo")).toBe(false);
+    expect(existsSync("app/catalogo/page.js")).toBe(true);
+    expect(existsSync("app/catalogo/catalogo-experience.js")).toBe(true);
   });
 
-  it("redirige con 301 las URLs antiguas principales", async () => {
+  it("la raíz /catalogo ya no redirige, pero las URLs antiguas sí", async () => {
     const redirects = await nextConfig.redirects();
     const porOrigen = Object.fromEntries(redirects.map((r) => [r.source, r]));
 
-    expect(porOrigen["/catalogo"]).toMatchObject({ destination: "/tienda", statusCode: 301 });
+    expect(porOrigen["/catalogo"]).toBeUndefined();
     expect(porOrigen["/catalogo/categoria/:slug"]).toMatchObject({ destination: "/tienda/categoria/:slug", statusCode: 301 });
     expect(porOrigen["/catalogo/producto/:slug"]).toMatchObject({ destination: "/tienda/producto/:slug", statusCode: 301 });
   });
