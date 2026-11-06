@@ -3,12 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { observeNativeScroll } from "@/lib/native-scroll";
 import {
   ArrowDown,
   ArrowRight,
   ArrowUpRight,
   Handshake,
+  LogIn,
   MapPin,
   Network,
   PackageCheck,
@@ -24,38 +26,15 @@ import VideoFondoCTA from "../video-fondo-cta";
 import { FAMILIES, findFamily } from "./catalogo-data";
 import { useCart } from "../cart-context";
 import Footer from "../footer";
-import MobileSiteMenu from "../mobile-site-menu";
 import NavDock from "../nav-dock";
 import { STORE_NAVIGATION } from "../navigation-data";
+import { useThemeMode } from "../theme-toggle";
 
-const NAVIGATION = [
-  { id: "inicio", label: "Inicio", mega: false, href: "/" },
-  { id: "familias", label: "Soluciones", mega: true, href: "#familias", megaGroups: [
-    { title: "Red óptica y FTTH", links: [
-      { label: "Soluciones de Preconectorizado", href: "/tienda/soluciones-de-preconectorizado" },
-      { label: "Cajas de Distribución y Emplazamiento", href: "/tienda/cajas-de-distribucion-y-emplazamiento" },
-      { label: "Soluciones activas y Accesorios FTTH", href: "/tienda/soluciones-activas-y-accesorios-ftth" },
-      { label: "Componentes pasivos", href: "/tienda/componentes-pasivos" },
-      { label: "Microcables y Microproductos", href: "/tienda/microcables-y-microproductos" }
-    ]},
-    { title: "Infraestructura", links: [
-      { label: "Gabinetes y Racks", href: "/tienda/gabinetes-y-racks" },
-      { label: "Herrajes", href: "/tienda/herrajes" },
-      { label: "Escaleras", href: "/tienda/escaleras" },
-      { label: "Optical Distribution Frame - ODF", href: "/tienda/optical-distribution-frame-odf" }
-    ]},
-    { title: "Medición y herramientas", links: [
-      { label: "Instrumentos de medición óptica", href: "/tienda/instrumentos-de-medicion-optica" },
-      { label: "Herramientas y kits", href: "/tienda/herramientas-y-kits" }
-    ]},
-    { title: "Más de Arconet", links: [
-      { label: "La empresa", href: "/#empresa" },
-      { label: "Términos de uso", href: "/terminos" }
-    ]}
-  ]},
-  { id: "empresa", label: "La empresa", mega: false, href: "/#empresa" },
-  { id: "contacto", label: "Contacto", mega: false, href: "/contacto" },
-];
+// Solo los ids de las secciones que observa el IntersectionObserver para
+// marcar el enlace activo. Los ENLACES del menú 1 ya no se definen aquí: usan
+// STORE_NAVIGATION, que son exactamente los mismos que muestra el home, con
+// las anclas apuntando a la portada. Así los dos menús 1 se ven iguales.
+const SECCIONES = ["inicio", "familias", "empresa", "contacto"];
 
 const TRUST = [
   { icon: PackageCheck, title: "Importación directa", text: "Traemos el equipo sin intermediarios de más." },
@@ -115,10 +94,21 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
   // (primera visita entra directo al catalog: no bloquea la compra ni genera
   // scroll lateral por el overlay).
   const [gateOpen, setGateOpen] = useState(false);
+  // Menú 1: el mismo hamburguesa centrado y el mismo desplegable de
+  // Soluciones que el home. El menú 2 (NavDock) conserva su estado propio.
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [heroMenuOpen, setHeroMenuOpen] = useState(false);
   const heroRef = useRef(null);
   const topbarRef = useRef(null);
+  const heroHeaderRef = useRef(null);
+  const menuToggleRef = useRef(null);
+  const mobileMenuRef = useRef(null);
   const scrolledPastHeroRef = useRef(false);
   const { count: cartCount, open: openCart } = useCart();
+  const { label: themeLabel, Icon: ThemeIcon, cycle: cycleTheme } = useThemeMode();
+  // En la tienda la sección de soluciones se llama "familias"; en la
+  // navegación compartida del home se llama "soluciones".
+  const activeNavId = activeSection === "familias" ? "soluciones" : activeSection;
   // Llegan del servidor ya resueltas. Solo si la base no devolvió nada (por
   // ejemplo, sin conexión) se cae al catálogo estático del código.
   const catalogCategories = useMemo(
@@ -187,6 +177,46 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
     };
   }, [gateOpen]);
 
+  // El panel móvil se monta en un portal: `.catalog` tiene overflow: clip y
+  // el hero recorta con overflow: hidden, así que un fixed dentro del header
+  // podía quedar cortado. Mismo cierre que el menú 1 del home.
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const previousRoot = document.documentElement.style.overflow;
+    const previousBody = document.body.style.overflow;
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+        setHeroMenuOpen(false);
+        menuToggleRef.current?.focus();
+      }
+    };
+    const onPointerDown = (event) => {
+      if (heroHeaderRef.current && !heroHeaderRef.current.contains(event.target)) setHeroMenuOpen(false);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("pointerdown", onPointerDown, true);
+    const frame = window.requestAnimationFrame(() => mobileMenuRef.current?.focus({ preventScroll: true }));
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      document.documentElement.style.overflow = previousRoot;
+      document.body.style.overflow = previousBody;
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("pointerdown", onPointerDown, true);
+    };
+  }, [menuOpen]);
+
+  useEffect(() => {
+    if (!heroMenuOpen) return undefined;
+    const onKeyDown = (event) => { if (event.key === "Escape") setHeroMenuOpen(false); };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [heroMenuOpen]);
+
   const chooseBranch = (item) => {
     try {
       window.localStorage.setItem(BRANCH_KEY, item.id);
@@ -251,8 +281,7 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
   }, [gateOpen]);
 
   useEffect(() => {
-    const ids = NAVIGATION.map((item) => item.id).filter(Boolean);
-    const sections = ids.map((id) => document.getElementById(id)).filter(Boolean);
+    const sections = SECCIONES.map((id) => document.getElementById(id)).filter(Boolean);
     if (!sections.length || typeof IntersectionObserver === "undefined") return undefined;
 
     const observer = new IntersectionObserver(
@@ -373,7 +402,7 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
       <NavDock
         variant="scroll"
         visible={scrolledPastHero}
-        activeId={activeSection === "familias" ? "soluciones" : activeSection}
+        activeId={activeNavId}
         navigation={STORE_NAVIGATION}
         topbarRef={topbarRef}
         cartAction={
@@ -406,31 +435,99 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
             <div className={styles.heroOverlay} />
           </div>
 
-          <header className={styles.heroHeader}>
-            <Link className={styles.heroBrand} href="/" aria-label="Arconet, inicio">
-              <Image
-              src="/arconet.png"
-              alt="Arconet"
-              width={1200}
-              height={200}
-              sizes="(max-width: 1040px) 114px, 176px"
-              loading="eager"
-              fetchPriority="low"
-            />
-            </Link>
-            <nav className={styles.navigation} aria-label="Navegación principal">
-              {NAVIGATION.map((item) => (
-                <a
-                  className={`${item.id && activeSection === item.id ? styles.navigationActive : ""}${item.mega ? ` ${styles.megaTrigger}` : ""}`}
-                  href={item.href}
-                  key={item.label}
-                >
-                  {item.label}
-                </a>
-              ))}
+          {/* Menú 1: la MISMA cabecera que el home (pestaña de logo,
+              navegación centrada, hamburguesa centrada en móvil, pestaña de
+              acción con píldora). Solo cambia el contenido de la píldora:
+              aquí abre el carrito y en el home despliega Acceder. */}
+          <header className={styles.heroHeader} ref={heroHeaderRef}>
+            <div className={styles.heroLogoTab}>
+              <Link className={styles.heroBrand} href="/" aria-label="Arconet, inicio">
+                <Image
+                  src="/arconet.png"
+                  alt="Arconet"
+                  width={1200}
+                  height={200}
+                  className={styles.heroLogoImg}
+                  sizes="(max-width: 760px) 130px, 232px"
+                  loading="eager"
+                  fetchPriority="low"
+                />
+              </Link>
+            </div>
+
+            <nav className={styles.navigation} aria-label="Navegación del hero">
+              {STORE_NAVIGATION.map((item) =>
+                item.mega ? (
+                  <button
+                    key={item.id ?? item.label}
+                    type="button"
+                    className={`${styles.heroMegaTrigger}${heroMenuOpen ? ` ${styles.heroMegaTriggerOpen}` : ""}`}
+                    aria-expanded={heroMenuOpen}
+                    aria-haspopup="true"
+                    onClick={() => setHeroMenuOpen((value) => !value)}
+                    onMouseEnter={() => setHeroMenuOpen(true)}
+                  >
+                    {item.label}
+                  </button>
+                ) : (
+                  <Link
+                    key={item.id ?? item.label}
+                    className={item.id && activeNavId === item.id ? styles.navigationActive : ""}
+                    href={item.href}
+                  >
+                    {item.label}
+                  </Link>
+                )
+              )}
             </nav>
+
+            {heroMenuOpen ? (
+              <div
+                className={styles.heroMegaPanel}
+                role="menu"
+                aria-label="Soluciones"
+                onMouseLeave={() => setHeroMenuOpen(false)}
+              >
+                <div className={styles.heroMegaGroups}>
+                  {STORE_NAVIGATION.filter((item) => item.mega).flatMap((item) =>
+                    item.megaGroups.map((group) => (
+                      <section key={`${item.id}-${group.title}`} className={styles.heroMegaGroup}>
+                        <h4>{group.title}</h4>
+                        <ul>
+                          {group.links.map((link) => (
+                            <li key={link.label}>
+                              <Link href={link.href} role="menuitem" onClick={() => setHeroMenuOpen(false)}>
+                                {link.label}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </section>
+                    ))
+                  )}
+                </div>
+                <Link className={styles.heroMegaAll} href="/tienda" onClick={() => setHeroMenuOpen(false)}>
+                  Ver la tienda completa <ArrowRight size={14} aria-hidden="true" />
+                </Link>
+              </div>
+            ) : null}
+
+            <button
+              ref={menuToggleRef}
+              type="button"
+              className={`${styles.heroMenuToggle}${menuOpen ? ` ${styles.heroMenuToggleActive}` : ""}`}
+              aria-expanded={menuOpen}
+              aria-controls="tienda-mobile-menu"
+              aria-haspopup="true"
+              aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
+              onClick={() => setMenuOpen((value) => !value)}
+            >
+              <span className={styles.heroMenuBar} />
+              <span className={styles.heroMenuBar} />
+              <span className={styles.heroMenuBar} />
+            </button>
+
             <div className={styles.heroActionTab}>
-              <MobileSiteMenu />
               <button
                 type="button"
                 className={styles.contactButton}
@@ -587,6 +684,99 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
         </div>
         <span className={styles.contactLocation}>San Pedro Sula · Honduras</span>
       </section>
+
+      {/* Menú móvil del menú 1: mismo panel que el home (Tienda destacada,
+          Login/Admin, grupos de Soluciones y enlaces legales) más el cambio de
+          tema que antes aportaba el menú de sitio. Va en portal para no quedar
+          recortado por el overflow del hero. */}
+      {menuOpen && createPortal(
+        <>
+          <button
+            type="button"
+            className={styles.heroMenuBackdrop}
+            aria-label="Cerrar menú"
+            onClick={() => setMenuOpen(false)}
+          />
+          <nav
+            id="tienda-mobile-menu"
+            ref={mobileMenuRef}
+            className={styles.heroMobileMenu}
+            aria-label="Menú de navegación móvil"
+            tabIndex={-1}
+          >
+            <div className={styles.heroMobileHead}>
+              <span className={styles.heroMobileEyebrow}>Navegación</span>
+              <button
+                type="button"
+                className={styles.heroMobileClose}
+                onClick={() => { setMenuOpen(false); menuToggleRef.current?.focus(); }}
+                aria-label="Cerrar menú"
+              >
+                <X size={17} aria-hidden="true" />
+              </button>
+            </div>
+
+            <Link className={styles.heroMobilePrimary} href="/tienda" onClick={() => setMenuOpen(false)}>
+              <span className={styles.heroMobilePrimaryText}>
+                <span className={styles.heroMobilePrimaryLabel}>Tienda</span>
+                <span className={styles.heroMobilePrimaryHint}>Explora todos los productos</span>
+              </span>
+              <span className={styles.heroMobilePrimaryIcon}><ArrowRight size={18} aria-hidden="true" /></span>
+            </Link>
+
+            <div className={styles.heroMobileAuth}>
+              <Link href="/login" onClick={() => setMenuOpen(false)}><LogIn size={16} aria-hidden="true" /> Login</Link>
+              <Link href="/admin" onClick={() => setMenuOpen(false)}><ShieldCheck size={16} aria-hidden="true" /> Admin</Link>
+            </div>
+
+            <div className={styles.heroMobileLinks}>
+              {STORE_NAVIGATION.filter((item) => item.href !== "/tienda").map((item) =>
+                item.mega ? (
+                  <div key={item.id ?? item.label} className={styles.heroMobileGroup}>
+                    <Link className={styles.heroMobileGroupTitle} href={item.href} onClick={() => setMenuOpen(false)}>
+                      {item.label}
+                    </Link>
+                    {item.megaGroups.map((group) => (
+                      <div key={group.title} className={styles.heroMobileSubgroup}>
+                        <strong>{group.title}</strong>
+                        {group.links.map((link) => (
+                          <Link key={link.label} href={link.href} onClick={() => setMenuOpen(false)}>{link.label}</Link>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <Link
+                    key={item.id ?? item.label}
+                    className={styles.heroMobileLink}
+                    href={item.href}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                )
+              )}
+            </div>
+
+            <button
+              type="button"
+              className={styles.heroMobileTheme}
+              onClick={cycleTheme}
+              aria-label={`Tema: ${themeLabel}. Cambiar tema`}
+            >
+              <span>Tema: {themeLabel}</span>
+              <ThemeIcon size={18} aria-hidden="true" />
+            </button>
+
+            <div className={styles.heroMobileLegal}>
+              <Link href="/terminos" onClick={() => setMenuOpen(false)}>Términos</Link>
+              <Link href="/privacidad" onClick={() => setMenuOpen(false)}>Privacidad</Link>
+              <Link href="/ayuda" onClick={() => setMenuOpen(false)}>Ayuda</Link>
+            </div>
+          </nav>
+        </>,
+        document.body
+      )}
 
       <Footer />
       </div>
