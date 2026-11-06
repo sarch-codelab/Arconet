@@ -12,8 +12,8 @@ Se confirmaron dos decisiones antes de escribir código:
    `/catalogo/categoria/:slug`, `/catalogo/producto/:slug` y de las líneas
    antiguas se conservan.
 2. **Diseño de la imagen + marca Arconet.** Misma estructura y jerarquía visual
-   que la referencia, pero con el logo de Arconet, líneas y equipos de
-   telecomunicaciones y precios en Lempiras.
+   que la referencia, pero con el logo de Arconet y líneas y equipos de
+   telecomunicaciones.
 
 ## Por qué había que tocar `next.config.mjs`
 
@@ -32,24 +32,24 @@ No se usó un comodín `/catalogo/:path*` porque las fotos del sitio viven en
 
 | Bloque | Contenido |
 | --- | --- |
-| Cabecera | logo Arconet + lema, buscador funcional, navegación, favoritos, carrito real y acceso |
+| Cabecera | logo Arconet + lema, buscador funcional, navegación y acceso |
 | Barra de líneas | 7 chips que filtran los productos; idioma/región/moneda |
 | Hero | imagen generada con el panel azul en diagonal y el cluster de equipos; 3 destacados con flechas, CTA y círculo «Novedades» |
 | Tarjetas de líneas | 5 líneas reales + tarjeta azul de ofertas |
-| Productos destacados | 6 equipos con foto, nombre, línea, precio, etiqueta de oferta y corazón (favoritos) |
+| Productos destacados | **una sola fila deslizante** de 6 equipos con foto, nombre, línea y etiqueta de oferta; sin precio, sin carrito y sin corazón |
 | Ventajas | envíos, pagos, garantía y soporte |
-| Ideas | 5 tarjetas con foto y enlace a líneas reales |
-| Ofertas y boletín | tarjeta azul + formulario de correo |
+| Ideas | **una sola fila deslizante** de 5 tarjetas con foto y enlace a líneas reales |
+| Ofertas y boletín | tarjeta azul + formulario de correo + **imagen del sobre azul** aportada por el usuario |
 | Cierre | 4 promesas y «Síguenos», más el `<Footer />` compartido |
 
 ### Funcionalidad real, no maqueta
 
-- El **buscador** y los **chips** filtran la cuadrícula de productos en cliente
+- El **buscador** y los **chips** filtran la fila de productos en cliente
   (y hay estado vacío con botón para limpiar).
-- **Favoritos**: corazón con `aria-pressed` y contador; el icono de la cabecera
-  lleva a la vista de favoritos.
-- **Carrito**: el botón de la cabecera abre el `CartDrawer` real con el contador
-  del `CartProvider`.
+- **Flechas de las filas**: `scrollBy` nativo sobre el contenedor, con
+  `scroll-snap` para que cada tarjeta quede alineada. No se interceptan `wheel`,
+  `touch` ni teclado: el deslizamiento con el dedo, la rueda o el trackpad lo
+  hace el navegador.
 - **Flechas del hero** cambian entre tres destacados.
 - **Boletín**: `<form action="/contacto" method="get">` con `name="correo"`.
   No hay endpoint de suscripciones; en vez de fingir un alta, el formulario
@@ -61,6 +61,10 @@ No se usó un comodín `/catalogo/:path*` porque las fotos del sitio viven en
 - `public/catalogo-vitrina/hero-banner.jpg` (~70 KB): generada para esta
   vitrina, con el panel azul diagonal y los equipos de fibra óptica, sin texto
   (el texto va en HTML). Es la única imagen con `priority` de la vista.
+- `public/catalogo-vitrina/sobre-novedades.webp` (~44 KB, 520 × 371): recorte
+  con transparencia de la imagen de sobre azul que aportó el usuario. Sustituye
+  al sobre dibujado con CSS y al icono `Mail` en «Recibe las novedades». No
+  lleva `priority`, así que no se precarga.
 - Las demás son fotos que ya estaban en el repo: `public/catalogo/prod-*.jpg`
   para productos, `public/catalogo/lineas/cards/*.webp` para las líneas y
   `public/catalogo/sol-*.jpg` / `infraestructura.jpg` / `hero-fiber.jpg` para
@@ -74,12 +78,15 @@ No se usó un comodín `/catalogo/:path*` porque las fotos del sitio viven en
   (`--accent`, `--accent-ink`, `--surface`, `--soft`, …) con variante para
   `html[data-theme="dark"]`. El hero mantiene sus colores claros porque es una
   fotografía.
-- Cortes en 1180, 900, 620 y 400 px: la cuadrícula de 6 baja a 3/2 columnas,
-  la navegación se oculta en tablet, el buscador pasa a su propia fila en
+- Cortes en 1180, 900, 620 y 400 px: la rejilla de tarjetas de línea baja a
+  3/2 columnas, las tarjetas de las filas deslizantes ajustan su ancho, la
+  navegación se oculta en tablet, el buscador pasa a su propia fila en
   teléfono y el hero usa un velo degradado para que el texto siga legible.
 - Solo hay transiciones de `hover`, sin `@keyframes`: el contrato global de
   `tests/animaciones-siempre-activas.test.js` enumera los únicos CSS con bloque
-  `prefers-reduced-motion`, y esta vista no añade ninguno.
+  `prefers-reduced-motion`, y esta vista no añade ninguno. El desplazamiento de
+  las flechas consulta la preferencia en JS y usa `behavior: "instant"` cuando
+  está activa.
 
 ## Acento azul (6 de noviembre de 2026)
 
@@ -87,7 +94,7 @@ A petición del usuario, la vitrina dejó de usar el rojo de la referencia y pas
 al **azul de marca `#1544b5`**, el mismo de home y `/tienda`:
 
 - `--accent: #1544b5` para fondos y botones, con `--accent-dark: #11358f` para
-  el hover; la sombra del sobre pasó a `rgba(21, 68, 181, 0.9)`.
+  el hover.
 - Se añadió `--accent-ink` para texto, iconos y bordes: `#1544b5` en claro y
   `#7fa6ff` en oscuro. El azul saturado solo daba **2.18:1** de contraste sobre
   `--surface: #11161d`, mientras que la tinta clara llega a **7.61:1**. Los
@@ -100,7 +107,8 @@ al **azul de marca `#1544b5`**, el mismo de home y `/tienda`:
   quedaron intactos (no se regeneró la fotografía con IA).
 - La bandera `HN` de la cabecera ya era azul y no se tocó.
 
-No se cambió la estructura, los textos, los enlaces, los precios ni `/tienda`.
+En su momento no se cambió la estructura, los textos, los enlaces ni `/tienda`.
+Los precios se retiraron en el ajuste siguiente.
 
 ### Verificación de este ajuste
 
@@ -109,25 +117,65 @@ No se cambió la estructura, los textos, los enlaces, los precios ni `/tienda`.
   `ops/verify-static-assets.mjs` correctos.
 - Chromium headless local a 1440 × 900, temas claro y oscuro: capturas del hero
   y del bloque de ofertas/boletín, `--accent: #1544b5` en ambos,
-  `--accent-ink: #1544b5` / `#7fa6ff`, precio `rgb(21, 68, 181)` /
-  `rgb(127, 166, 255)`, sin errores de consola ni desbordamiento horizontal.
-  **Es verificación en navegador local, no en el despliegue público ni en
-  dispositivos físicos.**
+  `--accent-ink: #1544b5` / `#7fa6ff`, sin errores de consola ni
+  desbordamiento horizontal. **Es verificación en navegador local, no en el
+  despliegue público ni en dispositivos físicos.**
+
+## Fila deslizante, sin precios/carrito/corazón y sobre real (6 de noviembre de 2026)
+
+A petición del usuario, sobre la misma vitrina azul:
+
+- **Sobre real**: el recuadro azul con el icono `Mail` y su degradado
+  (`.envelope::before`) se sustituyó por
+  `public/catalogo-vitrina/sobre-novedades.webp`, la imagen de sobre azul
+  brillante que envió el usuario, recortada al contenido útil y con canal
+  alfa conservado. Se mantiene la ligera rotación decorativa.
+- **Una sola fila en ambas secciones**: `.productGrid` (6 columnas) y
+  `.ideaGrid` (5 columnas) pasaron a `.productRow` / `.ideaRow` con
+  `display: flex`, `overflow-x: auto` y `scroll-snap-type: x mandatory`. Cada
+  tarjeta tiene un ancho fijo por tramo y `scroll-snap-align: start`. Se
+  añadieron flechas anterior/siguiente en los dos encabezados.
+- **Sin precios**: se eliminaron `price` y `likes` de `PRODUCTS`, el pie de la
+  tarjeta y las reglas `.price` / `.like`. La cotización se hace en `/tienda`.
+- **Sin carrito ni corazón en `/catalogo`**: se quitaron los botones de
+  favoritos y carrito de la cabecera, el estado de favoritos, `useCart`, los
+  corazones de las tarjetas y de la barra de región, y el icono de corazón de
+  «Recomendado por técnicos». **No se tocó** el `CartProvider` del layout, el
+  `CartDrawer` compartido ni el carrito de `/tienda`: solo esta vitrina deja de
+  ofrecer esos controles.
+- Se conserva todo lo demás: acento azul, hero, textos, enlaces, buscador,
+  chips, `301` antiguos, `public/catalogo/` y el footer compartido.
+
+### Verificación de este ajuste
+
+- `npm run lint`: 0; `npm test`: **148 archivos / 1633 pruebas**, incluidas 9
+  nuevas en `tests/catalogo-fila-deslizante.test.js`; build de producción y
+  `ops/verify-static-assets.mjs` (17 HTML / 51 assets) correctos.
+- Chromium headless local, escritorio 1440 × 900 en tema claro y oscuro y
+  móvil 390 × 844: ambas filas con `display: flex`, `overflow-x: auto` y
+  `scroll-snap-type: x mandatory`; en escritorio `scrollWidth` 1744 (productos)
+  y 1752 (ideas) frente a 1368 visibles. Las flechas avanzan 292 y 352 px. El
+  sobre carga (`naturalWidth: 160`), no hay precios, corazones ni carrito en
+  `<main>`, el desbordamiento horizontal del documento es 0 y no hay errores
+  de consola. `--accent: #1544b5` y `--accent-ink: #1544b5` / `#7fa6ff`.
+- **Son comprobaciones y capturas locales**, no verificación visual humana ni
+  del despliegue público.
 
 ## Verificación
 
 - `npm run lint`: 0 errores.
-- `npm test`: **144 archivos / 1604 pruebas** en verde, incluidas 13 nuevas en
-  `tests/catalogo-vitrina.test.js` (ruta, metadatos, assets, enlaces, SSR con
-  `renderToStaticMarkup`, imagen prioritaria única y estilos).
+- `npm test`: incluye `tests/catalogo-vitrina.test.js`,
+  `tests/catalogo-azul.test.js` y `tests/catalogo-fila-deslizante.test.js`
+  (ruta, metadatos, assets, enlaces, SSR con `renderToStaticMarkup`, imagen
+  prioritaria única, estilos, y ausencia de precio/carrito/corazón).
 - Build de producción con `NEXT_DEPLOYMENT_ID`: correcto, sin `?dpl=`;
-  `ops/verify-static-assets.mjs`: 17 HTML y 51 assets correctos.
+  `ops/verify-static-assets.mjs`: HTML y assets correctos.
 - Con `next start` local: `/catalogo` 200; `/catalogo/categoria/...` y
   `/catalogo/<línea>` 301 a `/tienda/...`; `/tienda`, `/` y `/contacto` 200;
   las fotos de `public/catalogo/` siguen 200; solo se precarga el hero.
-- **No hay verificación visual en navegador**: en este entorno no hay
-  Chromium/Brave/Firefox ni jsdom/happy-dom. Conviene abrir `/catalogo` en PC
-  y en teléfono y hacer `Ctrl+Mayús+R` tras el despliegue.
+- Las capturas con Chromium headless son **verificación local**, no
+  verificación visual humana ni del despliegue público. Conviene abrir
+  `/catalogo` en PC y en teléfono y hacer `Ctrl+Mayús+R` tras el despliegue.
 
 ## Nota de alcance
 

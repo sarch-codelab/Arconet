@@ -29,6 +29,7 @@ import {
   NAV_LINKS,
   PRODUCTS,
   PROMISES,
+  SOBRE_NOVEDADES,
 } from "../app/catalogo/vitrina-data";
 
 const EXPERIENCIA = "app/catalogo/catalogo-experience.js";
@@ -82,9 +83,10 @@ describe("el contenido es de Arconet y no hay enlaces muertos", () => {
       ...CATEGORY_CARDS.map((c) => c.image),
       ...PRODUCTS.map((p) => p.image),
       ...IDEAS.map((i) => i.image),
+      SOBRE_NOVEDADES,
     ];
-    // 1 hero + 5 líneas + 6 productos + 5 ideas.
-    expect(rutas).toHaveLength(17);
+    // 1 hero + 5 líneas + 6 productos + 5 ideas + 1 sobre del boletín.
+    expect(rutas).toHaveLength(18);
     for (const ruta of rutas) {
       expect(existsSync(`public${ruta}`), `falta public${ruta}`).toBe(true);
       expect(statSync(`public${ruta}`).size, `vacío public${ruta}`).toBeGreaterThan(1000);
@@ -118,10 +120,11 @@ describe("el contenido es de Arconet y no hay enlaces muertos", () => {
     expect(IDEAS).toHaveLength(5);
     expect(PROMISES).toHaveLength(4);
     expect(HERO_SLIDES.length).toBeGreaterThan(1);
-    // Precios en Lempiras, como el resto del catálogo de Arconet.
+    // No se muestran precios ni contadores de "me gusta": la vitrina solo
+    // presenta equipos y enlaza a /tienda para cotizar.
     for (const producto of PRODUCTS) {
-      expect(producto.price).toMatch(/^L [\d,]+\.\d{2}$/);
-      expect(producto.likes).toBeGreaterThan(0);
+      expect(producto).not.toHaveProperty("price");
+      expect(producto).not.toHaveProperty("likes");
     }
     expect(PRODUCTS.some((p) => p.offer)).toBe(true);
   });
@@ -176,6 +179,11 @@ describe("estilos: responsive, modo oscuro y contratos de imagen", () => {
     }
     expect(css).toContain(':global(html[data-theme="dark"]) .page');
     expect(css).toContain("grid-template-columns: repeat(6, minmax(0, 1fr))");
+    // Productos e ideas van en una sola fila deslizante, no en rejilla.
+    expect(css).toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*overflow-x: auto/);
+    expect(css).toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*scroll-snap-type: x mandatory/);
+    expect(css).toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*display: flex/);
+    expect(css).not.toContain("grid-template-columns: repeat(5, minmax(0, 1fr))");
     // El contrato global de animaciones enumera los únicos CSS con bloque
     // reduced-motion; esta vitrina solo usa transiciones de hover, así que no
     // debe añadir uno nuevo sin actualizar tests/animaciones-siempre-activas.
