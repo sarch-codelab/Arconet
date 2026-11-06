@@ -394,24 +394,35 @@
   line-height: 1.55;
 }
 
+/* Antes las cuatro acciones iban apiladas (`display: grid`) y el pie del
+   carrito se comía media pantalla. Sin el botón de correo quedan tres y ahora
+   se reparten en una fila, una al lado de la otra. `flex: 1 1 120px` hace que
+   en el cajón de 440px quepan las tres; en móviles angostos bajan a dos filas
+   solas, sin media queries ni etiquetas recortadas. */
 .actions {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: 9px;
 }
 
 .action {
-  min-height: 46px;
+  flex: 1 1 120px;
+  min-width: 0;
+  min-height: 52px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 9px;
-  padding: 0 18px;
+  gap: 7px;
+  padding: 8px 10px;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--paper);
   color: var(--ink);
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  overflow-wrap: anywhere;
   cursor: pointer;
   transition: border-color 180ms ease, background 180ms ease, color 180ms ease;
 }
