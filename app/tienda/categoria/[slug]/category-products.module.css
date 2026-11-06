@@ -926,15 +926,25 @@
    REVEAL ANIMATION
    ========================================================================== */
 
+/* El contenido se ve SIEMPRE, incluso sin JavaScript. El revelado es un
+   adorno que se aplica al entrar en pantalla: es la misma convención que ya
+   usan el home, /contacto, /terminos y el detalle de producto (clase base
+   visible + animación al añadir la clase). Antes la clase base ponía
+   opacity: 0 y solo un IntersectionObserver podía levantarla: con 50 tarjetas
+   la sección es más alta que el viewport, el umbral de 0.12 nunca se cumplía
+   y la categoría parecía vacía pese a tener los productos en el DOM. */
 .reveal {
-  opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 600ms ease, transform 600ms ease;
+  opacity: 1;
+  transform: none;
 }
 
 .revealVisible {
-  opacity: 1;
-  transform: translateY(0);
+  animation: categoryRevealUp 600ms ease both;
+}
+
+@keyframes categoryRevealUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ==========================================================================

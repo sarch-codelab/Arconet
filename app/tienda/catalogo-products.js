@@ -7,21 +7,26 @@ import Image from "next/image";
  * Carga los productos activos de la BD y los expone en dos formas:
  * { products, byCategory, loading }. `products` es la lista completa y
  * byCategory es un mapa categoría -> lista de productos.
+ *
+ * `productosIniciales` permite que una página pinte su listado en el servidor:
+ * el fetch solo refresca esos datos. Si el refresco falla se CONSERVAN los
+ * productos ya visibles; un bloqueador o un error de red no debe vaciar la
+ * tienda que el servidor acaba de entregar.
  */
-export function useCatalogProducts() {
-  const [products, setProducts] = useState([]);
+export function useCatalogProducts(productosIniciales = []) {
+  const [products, setProducts] = useState(productosIniciales);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
     fetch("/api/catalogo")
-      .then((response) => (response.ok ? response.json() : []))
+      .then((response) => (response.ok ? response.json() : null))
       .then((data) => {
         if (!active || !Array.isArray(data)) return;
         setProducts(data);
       })
       .catch(() => {
-        if (active) setProducts([]);
+        // Sin datos nuevos se mantiene el último listado bueno.
       })
       .finally(() => {
         if (active) setLoading(false);

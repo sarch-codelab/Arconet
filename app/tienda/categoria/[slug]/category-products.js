@@ -190,6 +190,7 @@ export default function CategoryProducts({
   categoryName = null,
   categoryDescription = "",
   categoryPhoto = "",
+  productosIniciales = [],
   blocked = false,
 }) {
   const staticFamily = useMemo(
@@ -225,7 +226,7 @@ export default function CategoryProducts({
   const [orden, setOrden] = useState("relevancia");
   const [vista, setVista] = useState("grande");
   const { addItem, open: openCart, count: cartCount } = useCart();
-  const { products, loading: productsLoading } = useCatalogProducts();
+  const { products, loading: productsLoading } = useCatalogProducts(productosIniciales);
 
   // La preferencia de vista es del usuario, no de la sesión: se recuerda entre
   // visitas para que quien prefiere la lista no tenga que cambiarla cada vez.
@@ -268,7 +269,14 @@ export default function CategoryProducts({
 
   useEffect(() => {
     const targets = document.querySelectorAll(`.${styles.reveal}`);
-    if (!targets.length || typeof IntersectionObserver === "undefined") return undefined;
+    if (!targets.length) return undefined;
+
+    // El revelado es un adorno, nunca una condición para ver el contenido:
+    // si no hay IntersectionObserver, se aplica el estado final y ya está.
+    if (typeof IntersectionObserver === "undefined") {
+      targets.forEach((target) => target.classList.add(styles.revealVisible));
+      return undefined;
+    }
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -279,7 +287,10 @@ export default function CategoryProducts({
           }
         });
       },
-      { threshold: 0.12, rootMargin: "0px 0px -6% 0px" }
+      // threshold 0: con 0.12 una sección de 50 tarjetas es más alta que el
+      // viewport, jamás alcanza el 12 % de su propia área visible y el
+      // observador no vuelve a avisar → los productos quedaban en opacity: 0.
+      { threshold: 0, rootMargin: "0px 0px -6% 0px" }
     );
 
     targets.forEach((target) => observer.observe(target));
@@ -365,6 +376,11 @@ export default function CategoryProducts({
 
     return lista;
   }, [categoryProducts, searchTerm, rangoPrecio, marcasActivas, disponibilidad, orden]);
+
+  // Los productos que llegan del servidor se muestran aunque el refresco por
+  // /api/catalogo siga en vuelo. "Cargando..." solo sustituye al listado
+  // cuando todavía no hay NADA que pintar.
+  const esperandoProductos = productsLoading && filteredProducts.length === 0;
 
   const limpiarFiltros = () => {
     setSearchTerm("");
@@ -485,7 +501,7 @@ export default function CategoryProducts({
         </header>
 
         <div className={styles.productsLayout}>
-          {!productsLoading ? (
+          {!esperandoProductos ? (
             <CategoryFilters
               busqueda={searchTerm}
               onBusqueda={setSearchTerm}
@@ -516,7 +532,7 @@ export default function CategoryProducts({
               onVista={cambiarVista}
             />
 
-        {productsLoading ? (
+        {esperandoProductos ? (
           <div className={styles.loadingState}>
             <p>Cargando productos...</p>
           </div>
