@@ -36,6 +36,8 @@ describe('Flickering Grid global', () => {
     expect(source).toContain('document.hidden');
     expect(source).toContain('reduced.matches ? 500 : 66');
     expect(source).toContain('cancelAnimationFrame(frame)');
+    expect(source).toContain("addEventListener('scroll', onScroll");
+    expect(source).toContain('scrolling || !visible.size');
     expect(source).toContain('observer.disconnect()');
     expect(source).toContain('hasBackgroundImage(ancestor)');
     expect(read('components/ui/flickering-grid/flickering-grid.css')).toContain('pointer-events: none');

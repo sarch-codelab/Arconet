@@ -34,7 +34,17 @@ describe("revelado tipográfico de títulos", () => {
     // Antes, con `reduce` los títulos se marcaban ya "listos" en el mismo
     // render: el navegador los pintaba en su posición final y la cascada no
     // se veía. Ahora el revelado depende solo del IntersectionObserver.
-    expect(casa).not.toContain("prefers-reduced-motion");
+    // El interpolador de la pista de Soluciones consulta "reduce" para no
+    // animar el transform, pero NO toca los revelados: se revisa solo el
+    // bloque de los observadores, que es lo que esta regresión protege.
+    const revelados = casa.slice(
+      casa.indexOf('querySelectorAll("[data-reveal]")'),
+      casa.indexOf("const goTo =")
+    );
+    expect(revelados).not.toContain("prefers-reduced-motion");
+    expect(revelados).toContain("new IntersectionObserver(");
+    expect(casa.match(/prefers-reduced-motion/g)).toHaveLength(1);
+    expect(casa).toContain("reduced: () => reduced.matches");
     expect(casa).toContain("new IntersectionObserver(");
     expect(css).toMatch(/\.palabraInterior\s*\{[^}]*transform:\s*translateY\(110%\)/);
     const reduced = css.match(/@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\n\}/)?.[0] ?? "";

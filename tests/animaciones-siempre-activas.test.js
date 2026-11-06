@@ -41,7 +41,16 @@ describe("las animaciones no se apagan con el ajuste del sistema", () => {
     // home-experience marcaba los títulos como "listos" en el mismo render con
     // `reduce`: el navegador los pintaba en su sitio y la cascada no se veía.
     const home = JS.find(([f]) => f === "app/home-experience.js")[1];
-    expect(home).not.toContain("prefers-reduced-motion");
+    // La única consulta "reduce" es del interpolador del carrusel (no anima
+    // el transform con esa preferencia); los revelados siguen dependiendo
+    // exclusivamente de IntersectionObserver, que es lo que aquí se protege.
+    const revelados = home.slice(
+      home.indexOf('querySelectorAll("[data-reveal]")'),
+      home.indexOf("const goTo =")
+    );
+    expect(revelados).not.toContain("prefers-reduced-motion");
+    expect(home.match(/prefers-reduced-motion/g)).toHaveLength(1);
+    expect(home).toContain("reduced: () => reduced.matches");
     expect(home).toContain("new IntersectionObserver(");
     expect(home).not.toMatch(/if \(reducido\)/);
   });

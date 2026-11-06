@@ -7,6 +7,7 @@ import ContadorCifra from "./contador-cifra";
 import HomeWarpQuote from "./home-warp-quote";
 import VideoFondoCTA from "./video-fondo-cta";
 import { observeNativeScroll } from "@/lib/native-scroll";
+import { createSlideEasing } from "@/lib/slide-easing";
 import {
   ArrowDown,
   ArrowRight,
@@ -224,7 +225,6 @@ const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 export default function HomeExperience({ categorias = [] }) {
   const [activeSection, setActiveSection] = useState("inicio");
   const [activeSlide, setActiveSlide] = useState(0);
-  const [scrollReady, setScrollReady] = useState(false);
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   // Desplegable de "Acceder": se abre al pasar el mouse o al enfocar con
@@ -252,6 +252,7 @@ useEffect(() => {
 
   const trackRef = useRef(null);
   const stageRef = useRef(null);
+  const heroMediaRef = useRef(null);
   const scrollControllerRef = useRef(null);
   const navRef = useRef(null);
   const topbarRef = useRef(null);
@@ -426,11 +427,31 @@ useEffect(() => {
 
   useEffect(() => {
     const hero = document.getElementById("inicio");
+    const heroMedia = heroMediaRef.current;
     const stage = stageRef.current;
+    const track = trackRef.current;
     const topbar = topbarRef.current;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     let heroRange = 1, stageRange = 1, stageTop = 0, viewportHeight = 1;
-    let mobile = false, ready = false, pastHero = false, slide = 0, sectionId = "";
+    let mobile = false, pastHero = false, slide = 0, sectionId = "";
     let sections = [];
+
+    // El recorrido sigue ligado al scroll, pero el transform NO se escribe
+    // frame a frame como variable CSS heredada en <section>: eso invalidaba
+    // el estilo de los cuatro paneles (fotos a pantalla completa, video,
+    // degradados y texto) y repintaba una superficie de 400vw en cada rueda.
+    // Ahora se escribe directamente en la pista, con un interpolador corto
+    // que se apaga solo cuando alcanza el objetivo (ver lib/slide-easing.js).
+    const easing = createSlideEasing({
+      paint: (progreso) => {
+        if (track) track.style.transform = `translate3d(${(-75 * progreso).toFixed(4)}%, 0, 0)`;
+      },
+      requestFrame: (fn) => window.requestAnimationFrame(fn),
+      cancelFrame: (id) => window.cancelAnimationFrame(id),
+      reduced: () => reduced.matches,
+      hidden: () => document.hidden,
+    });
+    const moverPista = (progreso) => easing.setTarget(progreso);
 
     // Todas las lecturas de geometría juntas, al montar o cambiar dimensiones.
     // En cada scroll solo se calcula con números y después se escribe el estilo.
@@ -443,6 +464,12 @@ useEffect(() => {
         stageRange = Math.max(stage.offsetHeight - viewportHeight, 1);
         stageTop = stage.getBoundingClientRect().top + y;
       }
+      // En móvil el carrusel es un scroll horizontal nativo: no debe quedar
+      // un transform en línea que gane a la regla del media query.
+      if (mobile) {
+        easing.reset();
+        track?.style.removeProperty("transform");
+      }
       sections = NAVIGATION.map(item => {
         const element = document.getElementById(item.id);
         return element ? { id: item.id, top: element.getBoundingClientRect().top + y } : null;
@@ -452,16 +479,17 @@ useEffect(() => {
     const updateScrollEffects = ({ scroll: y, limit }) => {
       const nextPastHero = y > 360;
       const progress = clamp((y - stageTop) / stageRange);
-      const nextSlide = Math.min(SOLUTIONS.length - 1, Math.floor(progress * SOLUTIONS.length));
+      const nextSlide = clamp(Math.round(progress * (SOLUTIONS.length - 1)), 0, SOLUTIONS.length - 1);
       const marker = sections.find(item => item.top <= y + viewportHeight * 0.44);
       if (topbar) topbar.style.setProperty("--scroll-progress", clamp(y / limit).toFixed(4));
-      if (hero) hero.style.setProperty("--zoom-progress", clamp(y / heroRange).toFixed(4));
-      if (stage && !mobile) stage.style.setProperty("--slide-progress", progress.toFixed(4));
+      // La variable de zoom va en el contenedor de la foto, no en el hero
+      // completo: solo invalidan dos hijos en vez de menú, logo y paneles.
+      if (heroMedia) heroMedia.style.setProperty("--zoom-progress", clamp(y / heroRange).toFixed(4));
+      if (!mobile) moverPista(progress);
       // No despachar actualizaciones de React si no cambió un umbral visible.
       if (pastHero !== nextPastHero) { pastHero = nextPastHero; setScrolledPastHero(nextPastHero); }
       if (!mobile && slide !== nextSlide) { slide = nextSlide; setActiveSlide(nextSlide); }
       if (marker && sectionId !== marker.id) { sectionId = marker.id; setActiveSection(marker.id); }
-      if (!ready) { ready = true; setScrollReady(true); }
     };
 
     const scrollController = observeNativeScroll(updateScrollEffects, { onResize: measure });
@@ -469,6 +497,7 @@ useEffect(() => {
     return () => {
       scrollControllerRef.current = null;
       scrollController.destroy();
+      easing.stop();
     };
   }, []);
 
@@ -501,7 +530,7 @@ useEffect(() => {
       window.removeEventListener("resize", syncIndicator);
       observer?.disconnect();
     };
-  }, [activeSection, menuOpen, scrollReady]);
+  }, [activeSection, menuOpen]);
 
   useEffect(() => {
     const targets = document.querySelectorAll("[data-reveal]");
@@ -969,7 +998,7 @@ useEffect(() => {
         <section id="inicio" className={styles.heroCard}>
           <h1 className={styles.visuallyHidden}>Arconet</h1>
           {/* Background company image replacing the sofa */}
-          <div className={styles.heroBgMedia}>
+          <div ref={heroMediaRef} className={styles.heroBgMedia}>
             <Image
               src="/empresa.webp"
               alt="Instalaciones Arconet S.A. en San Pedro Sula"
@@ -1108,10 +1137,13 @@ useEffect(() => {
         <div><Network size={20} /><span>Telecomunicaciones</span></div>
       </section>
 
+      {/* La geometría de la sección se renderiza en el servidor: si se
+          activara al hidratar, la página crecía de golpe justo cuando el
+          visitante empezaba a deslizar (salto de layout + re-medición). */}
       <section
         id="soluciones"
         ref={stageRef}
-        className={`${styles.solutionsStage} ${scrollReady ? styles.scrollReady : ""}`}
+        className={`${styles.solutionsStage} ${styles.scrollReady}`}
         aria-label="Soluciones de Arconet"
       >
         <div className={styles.solutionsSticky}>
@@ -1174,7 +1206,7 @@ useEffect(() => {
           </div>
 
           <div className={styles.stageFooter}>
-            <span className={styles.stageHint}><span className={styles.stageHintLine} /> {scrollReady ? "Scroll para recorrer" : "Desliza para recorrer"}</span>
+            <span className={styles.stageHint}><span className={styles.stageHintLine} /> Desliza para recorrer</span>
             <div className={styles.slideDots} aria-label="Elegir solución">
               {SOLUTIONS.map((solution, index) => (
                 <button
