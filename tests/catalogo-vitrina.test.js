@@ -89,9 +89,9 @@ describe("el contenido es de Arconet y no hay enlaces muertos", () => {
       REGALO_OFERTAS,
       ...BRANDS.filter((b) => b.logo).map((b) => b.logo),
     ];
-    // 1 hero + 6 categorías + 6 productos + 5 ideas + 1 sobre + 1 regalo
+    // 1 hero + 6 categorías + 6 productos + 12 ideas + 1 sobre + 1 regalo
     // + 4 logotipos de fabricantes.
-    expect(rutas).toHaveLength(24);
+    expect(rutas).toHaveLength(31);
     for (const ruta of rutas) {
       expect(existsSync(`public${ruta}`), `falta public${ruta}`).toBe(true);
       expect(statSync(`public${ruta}`).size, `vacío public${ruta}`).toBeGreaterThan(1000);
@@ -124,7 +124,7 @@ describe("el contenido es de Arconet y no hay enlaces muertos", () => {
     expect(BRANDS).toHaveLength(6);
     expect(PRODUCTS).toHaveLength(6);
     expect(BENEFITS).toHaveLength(4);
-    expect(IDEAS).toHaveLength(5);
+    expect(IDEAS).toHaveLength(12);
     expect(PROMISES).toHaveLength(4);
     expect(HERO_SLIDES.length).toBeGreaterThan(1);
     // No se muestran precios ni contadores de "me gusta": la vitrina solo
@@ -162,6 +162,19 @@ describe("el primer HTML ya trae la vitrina completa", () => {
     expect(html).toContain("Descubre. Equipa. Conecta.");
   });
 
+  it("muestra la medalla decorativa en cada producto sin tapar la oferta", () => {
+    expect(existsSync("public/catalogo-vitrina/medalla-destacado.png")).toBe(true);
+    const tarjetas = html.match(/<article[^>]*class="[^"]*productCard[^>]*>[\s\S]*?<\/article>/g) || [];
+    expect(tarjetas).toHaveLength(6);
+    for (const tarjeta of tarjetas) {
+      expect(tarjeta).toMatch(/<img[^>]*alt=""[^>]*class="[^"]*featuredMedal/);
+      expect(tarjeta).toContain("medalla-destacado.png");
+    }
+    const css = leer(CSS);
+    expect(css.match(/\.featuredMedal\s*\{[^}]*\}/)?.[0]).toMatch(/left:\s*8px/);
+    expect(css.match(/\.offerTag\s*\{[^}]*\}/)?.[0]).toMatch(/right:\s*8px/);
+  });
+
   it("el hero y las tarjetas están en el HTML antes de hidratar", () => {
     expect(html).toContain("hero-banner");
     expect(html).toContain("Última tecnología");
@@ -186,10 +199,9 @@ describe("estilos: responsive, modo oscuro y contratos de imagen", () => {
     }
     expect(css).toContain(':global(html[data-theme="dark"]) .page');
     expect(css).toContain("grid-template-columns: repeat(6, minmax(0, 1fr))");
-    // Productos e ideas van en una sola fila controlada por flechas.
-    expect(css).toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*overflow-x: hidden/);
-    expect(css).not.toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*scroll-snap-type/);
-    expect(css).toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*display: flex/);
+    // Productos e ideas se muestran en páginas de hasta seis tarjetas.
+    expect(css).toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*display: grid/);
+    expect(css).toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*repeat\(6, minmax\(0, 1fr\)\)/);
     expect(css).not.toContain("grid-template-columns: repeat(5, minmax(0, 1fr))");
     // El contrato global de animaciones enumera los únicos CSS con bloque
     // reduced-motion; esta vitrina solo usa transiciones de hover, así que no
