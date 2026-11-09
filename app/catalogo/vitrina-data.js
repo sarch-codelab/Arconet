@@ -174,6 +174,40 @@ export const PROMISES = [
   { icon: "percent", title: "Mejor precio", text: "Cotiza antes de comprar" },
 ];
 
+// Vitrina de fabricantes para el bloque que va debajo de «Productos
+// destacados». Son los MISMOS fabricantes y logotipos que ya usa la home en
+// app/home-marcas.js: no se inventan alianzas ni se descargan logos nuevos de
+// terceros. PBI y Belden no tienen archivo y se muestran como wordmark.
+// Los enlaces llevan a la línea del catálogo más afín a cada fabricante.
+export const BRANDS = [
+  {
+    name: "FiberHome",
+    logo: "/marcas/fiberhome.png",
+    href: "/tienda/categoria/soluciones-de-preconectorizado",
+  },
+  {
+    name: "Sumitomo",
+    logo: "/marcas/sumitomo.png",
+    href: "/tienda/categoria/instrumentos-de-medicion-optica",
+  },
+  {
+    name: "Lindsay",
+    logo: "/marcas/lindsay.png",
+    href: "/tienda/categoria/componentes-pasivos",
+  },
+  {
+    name: "Joinwit",
+    logo: "/marcas/joinwit.png",
+    href: "/tienda/categoria/instrumentos-de-medicion-optica",
+  },
+  { name: "PBI", logo: "", href: "/tienda" },
+  {
+    name: "Belden",
+    logo: "",
+    href: "/tienda/categoria/componentes-pasivos",
+  },
+];
+
 export const HERO_IMAGE = "/catalogo-vitrina/hero-banner.jpg";
 export const SOBRE_NOVEDADES = "/catalogo-vitrina/sobre-novedades.webp";
 export const REGALO_OFERTAS = "/catalogo-vitrina/regalo-ofertas.webp";
