@@ -35,6 +35,29 @@ describe("verificación de chunks antes de promover", () => {
     await expect(verifyStaticAssets({ root })).rejects.toThrow(/ausentes o vacíos/);
   });
 
+  it("resuelve los segmentos dinámicos codificados de una ruta SSG", async () => {
+    // /catalogo/ficha/[slug] pide %5Bslug%5D en la URL del chunk, pero el
+    // archivo vive en el directorio literal [slug] en disco.
+    const root = await fixture();
+    const dinamico = path.join(root, ".next", "static", "chunks", "app", "catalogo", "ficha", "[slug]");
+    await mkdir(dinamico, { recursive: true });
+    await writeFile(path.join(dinamico, "page-abc.js"), "ficha");
+    await writeFile(
+      path.join(root, ".next", "server", "app", "ficha.html"),
+      '<script src="/_next/static/chunks/app/catalogo/ficha/%5Bslug%5D/page-abc.js"></script>',
+    );
+    await expect(verifyStaticAssets({ root })).resolves.toMatchObject({ html: 3, admin: true });
+  });
+
+  it("sigue detectando un chunk dinámico codificado que falta", async () => {
+    const root = await fixture();
+    await writeFile(
+      path.join(root, ".next", "server", "app", "ficha.html"),
+      '<script src="/_next/static/chunks/app/catalogo/ficha/%5Bslug%5D/page-abc.js"></script>',
+    );
+    await expect(verifyStaticAssets({ root })).rejects.toThrow(/ausentes o vacíos/);
+  });
+
   it("detecta un chunk vacío", async () => {
     const root = await fixture({ empty: true });
     await expect(verifyStaticAssets({ root })).rejects.toThrow(/ausentes o vacíos/);
