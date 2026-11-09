@@ -17,6 +17,7 @@ import {
   Headphones,
   LayoutGrid,
   Mail,
+  Menu,
   Percent,
   RotateCcw,
   Search,
@@ -45,6 +46,7 @@ import {
   SOBRE_NOVEDADES,
 } from "./vitrina-data";
 import { desplazarFila } from "./desplazar-fila";
+import { coincideBusqueda, sugerirDestacados } from "./busqueda-destacados";
 import styles from "./catalogo-experience.module.css";
 
 const ICONOS = {
@@ -64,33 +66,37 @@ const ICONOS = {
   star: Star,
 };
 
-// Las filas solo se mueven con sus flechas: ver desplazar-fila.js.
-
 export default function CatalogoExperience() {
   const [consulta, setConsulta] = useState("");
   const [chip, setChip] = useState("todas");
   const [diapositiva, setDiapositiva] = useState(0);
+  const [busquedaAbierta, setBusquedaAbierta] = useState(false);
+  const [categoriasAbiertas, setCategoriasAbiertas] = useState(false);
+  const [cuentaAbierta, setCuentaAbierta] = useState(false);
+  const [cuenta, setCuenta] = useState({ estado: "cargando" });
   const productosRef = useRef(null);
+  const categoriasBotonRef = useRef(null);
+  const cuentaBotonRef = useRef(null);
+  const cuentaPeticionRef = useRef(0);
   const productosFilaRef = useRef(null);
   const ideasFilaRef = useRef(null);
   const marcasFilaRef = useRef(null);
 
   const slide = HERO_SLIDES[diapositiva];
 
-  const productos = useMemo(() => {
-    const texto = consulta.trim().toLowerCase();
-    return PRODUCTS.filter((producto) => {
-      const porChip =
-        chip === "todas" ||
-        (chip === "ofertas" ? producto.offer : producto.category === chip);
-      const porTexto =
-        !texto || `${producto.name} ${producto.line}`.toLowerCase().includes(texto);
-      return porChip && porTexto;
-    });
-  }, [chip, consulta]);
+  const sugerencias = useMemo(() => sugerirDestacados(PRODUCTS, consulta), [consulta]);
+
+  const productos = useMemo(() => PRODUCTS.filter((producto) => {
+    const porChip =
+      chip === "todas" ||
+      (chip === "ofertas" ? producto.offer : producto.category === chip);
+    return porChip && coincideBusqueda(producto, consulta);
+  }), [chip, consulta]);
 
   const irAProductos = (event) => {
     event.preventDefault();
+    setBusquedaAbierta(false);
+    setChip("todas");
     // Sin behavior: respeta `scroll-behavior` (y su ajuste de movimiento
     // reducido) definido en globals.css.
     productosRef.current?.scrollIntoView({ block: "start" });
@@ -106,6 +112,48 @@ export default function CatalogoExperience() {
     setConsulta("");
     setChip("ofertas");
     productosRef.current?.scrollIntoView({ block: "start" });
+  };
+
+  const elegirCategoria = (id) => {
+    setConsulta("");
+    setChip(id);
+    setCategoriasAbiertas(false);
+    productosRef.current?.scrollIntoView({ block: "start" });
+  };
+
+  const abrirCuenta = async () => {
+    if (cuentaAbierta) {
+      setCuentaAbierta(false);
+      return;
+    }
+    setCuentaAbierta(true);
+    setCuenta({ estado: "cargando" });
+    const peticion = ++cuentaPeticionRef.current;
+    try {
+      const respuesta = await fetch("/api/cliente-auth/session", { cache: "no-store" });
+      if (respuesta.status === 401) {
+        if (peticion === cuentaPeticionRef.current) setCuenta({ estado: "invitado" });
+      } else if (respuesta.ok) {
+        const sesion = await respuesta.json();
+        if (peticion === cuentaPeticionRef.current) setCuenta({ estado: "activa", nombre: sesion.nombre });
+      } else if (peticion === cuentaPeticionRef.current) {
+        setCuenta({ estado: "error" });
+      }
+    } catch {
+      if (peticion === cuentaPeticionRef.current) setCuenta({ estado: "error" });
+    }
+  };
+
+  const cerrarSesion = async () => {
+    setCuenta({ estado: "cerrando" });
+    const peticion = ++cuentaPeticionRef.current;
+    try {
+      const respuesta = await fetch("/api/cliente-auth/logout", { method: "POST" });
+      if (!respuesta.ok) throw new Error("No se pudo cerrar la sesión");
+      if (peticion === cuentaPeticionRef.current) setCuenta({ estado: "invitado" });
+    } catch {
+      if (peticion === cuentaPeticionRef.current) setCuenta({ estado: "error-cierre" });
+    }
   };
 
   return (
@@ -128,19 +176,56 @@ export default function CatalogoExperience() {
               <span className={styles.brandTagline}>Descubre. Equipa. Conecta.</span>
             </Link>
 
-            <form className={styles.search} role="search" onSubmit={irAProductos}>
+            <form
+              className={styles.search}
+              role="search"
+              onSubmit={irAProductos}
+              onBlur={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget)) setBusquedaAbierta(false);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Escape" && busquedaAbierta) {
+                  event.currentTarget.querySelector("input")?.focus();
+                  setBusquedaAbierta(false);
+                }
+                if (event.key === "ArrowDown" && busquedaAbierta && sugerencias.length) {
+                  event.preventDefault();
+                  event.currentTarget.querySelector("[data-sugerencia]")?.focus();
+                }
+              }}
+            >
               <label className={styles.srOnly} htmlFor="buscar-catalogo">Buscar en el catálogo</label>
               <input
                 id="buscar-catalogo"
                 type="search"
                 value={consulta}
-                onChange={(event) => setConsulta(event.target.value)}
+                onFocus={() => setBusquedaAbierta(true)}
+                onChange={(event) => { setConsulta(event.target.value); setBusquedaAbierta(true); }}
                 placeholder="Busca equipos, líneas y más..."
                 autoComplete="off"
+                aria-describedby="alcance-busqueda"
               />
+              <span id="alcance-busqueda" className={styles.srOnly}>Busca entre los seis productos destacados del catálogo.</span>
               <button type="submit" className={styles.searchButton} aria-label="Buscar">
                 <Search size={16} aria-hidden="true" />
               </button>
+              {busquedaAbierta && consulta.trim() && (
+                <div className={styles.searchSuggestions} aria-label="Sugerencias de productos">
+                  <p>Productos destacados</p>
+                  {sugerencias.length ? (
+                    <ul>
+                      {sugerencias.map((producto) => (
+                        <li key={producto.id}>
+                          <Link href={producto.href} data-sugerencia onClick={() => setBusquedaAbierta(false)}>
+                            <Search size={15} aria-hidden="true" />
+                            <span><strong>{producto.name}</strong><small>{producto.line}</small></span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : <span className={styles.noSuggestions}>Sin coincidencias entre los productos destacados.</span>}
+                </div>
+              )}
             </form>
 
             <nav className={styles.mainNav} aria-label="Navegación principal">
@@ -156,10 +241,35 @@ export default function CatalogoExperience() {
               ))}
             </nav>
 
-            <div className={styles.headerActions}>
-              <Link className={styles.iconButton} href="/login" aria-label="Acceder a mi cuenta">
+            <div
+              className={styles.headerActions}
+              onBlur={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget)) setCuentaAbierta(false);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Escape" && cuentaAbierta) {
+                  setCuentaAbierta(false);
+                  cuentaBotonRef.current?.focus();
+                }
+              }}
+            >
+              <button ref={cuentaBotonRef} type="button" className={styles.iconButton} aria-label="Acceder a mi cuenta" aria-expanded={cuentaAbierta} aria-controls={cuentaAbierta ? "menu-cuenta-catalogo" : undefined} onClick={abrirCuenta}>
                 <UserRound size={18} aria-hidden="true" />
-              </Link>
+              </button>
+              {cuentaAbierta && (
+                <div id="menu-cuenta-catalogo" className={styles.accountMenu}>
+                  <strong>Mi cuenta</strong>
+                  {(cuenta.estado === "cargando" || cuenta.estado === "cerrando") && <p role="status">{cuenta.estado === "cerrando" ? "Cerrando sesión…" : "Consultando cuenta…"}</p>}
+                  {cuenta.estado === "activa" && <p>Hola, {cuenta.nombre}</p>}
+                  {cuenta.estado === "invitado" && <p>Accede para gestionar tus solicitudes.</p>}
+                  {cuenta.estado === "error" && <p role="alert">No se pudo consultar tu cuenta. Inténtalo de nuevo.</p>}
+                  {cuenta.estado === "error-cierre" && <p role="alert">No se pudo cerrar la sesión. Inténtalo de nuevo.</p>}
+                  {cuenta.estado === "invitado" && <><Link href="/login">Iniciar sesión</Link><Link href="/registro">Crear cuenta</Link></>}
+                  {cuenta.estado === "activa" && <><Link href="/cliente">Ir a mi cuenta</Link><button type="button" onClick={cerrarSesion}>Cerrar sesión</button></>}
+                  {cuenta.estado === "error" && <Link href="/cliente">Ir a mi cuenta</Link>}
+                  {cuenta.estado === "error-cierre" && <><Link href="/cliente">Ir a mi cuenta</Link><button type="button" onClick={cerrarSesion}>Reintentar cierre de sesión</button></>}
+                </div>
+              )}
             </div>
           </div>
         </header>
@@ -167,6 +277,33 @@ export default function CatalogoExperience() {
         {/* Segunda fila: chips de líneas y selector de región/moneda. */}
         <div className={styles.chipBar}>
           <div className={styles.chipInner}>
+            <div
+              className={styles.categoryMenuWrap}
+              onBlur={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget)) setCategoriasAbiertas(false);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Escape" && categoriasAbiertas) {
+                  setCategoriasAbiertas(false);
+                  categoriasBotonRef.current?.focus();
+                }
+              }}
+            >
+              <button ref={categoriasBotonRef} type="button" className={styles.categoryMenuButton} aria-expanded={categoriasAbiertas} aria-controls={categoriasAbiertas ? "menu-categorias-catalogo" : undefined} onClick={() => setCategoriasAbiertas((valor) => !valor)}>
+                <Menu size={16} aria-hidden="true" /> Categorías <ChevronRight size={14} aria-hidden="true" />
+              </button>
+              {categoriasAbiertas && (
+                <div id="menu-categorias-catalogo" className={styles.categoryMenu}>
+                  <strong>Filtrar productos destacados</strong>
+                  {CHIPS.map((item) => {
+                    const Icono = ICONOS[item.icon];
+                    return <button key={item.id} type="button" onClick={() => elegirCategoria(item.id)} aria-pressed={chip === item.id}>
+                      <Icono size={16} aria-hidden="true" /> {item.label}
+                    </button>;
+                  })}
+                </div>
+              )}
+            </div>
             <div className={styles.chips} role="group" aria-label="Filtrar por línea">
               {CHIPS.map((item) => {
                 const Icono = ICONOS[item.icon];

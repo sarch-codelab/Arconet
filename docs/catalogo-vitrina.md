@@ -480,3 +480,20 @@ y vuelve a productos. Las tarjetas de OTDR y gabinete enlazan a sus fichas ya
 marcadas como oferta; las otras enlazan a categorías existentes o a contacto.
 No se anuncian cupones, cashback ni promociones 2×1 que no estén configuradas.
 Las ilustraciones son decorativas y no representan fotografías de inventario.
+
+## Buscador y menús de la cabecera
+
+- Al escribir, el buscador muestra sugerencias enlazadas a las fichas de los
+  seis productos destacados de la vitrina. Acepta mayúsculas y búsquedas sin
+  tildes. No consulta ni representa todo el inventario de `/tienda`. Enter
+  limpia el filtro de línea y muestra las coincidencias en destacados; flecha
+  abajo lleva a la primera sugerencia y Escape cierra el panel.
+- El botón «Categorías» despliega los filtros existentes de la vitrina. Al
+  elegir uno limpia la búsqueda, aplica el filtro y lleva a productos; los
+  chips originales y las flechas de las filas se conservan.
+- El menú «Mi cuenta» consulta la sesión real de cliente al abrirlo. Para
+  invitados ofrece iniciar sesión o registrarse; con sesión activa enlaza al
+  portal y permite cerrar sesión con la API existente. Si falla la consulta o
+  el cierre, muestra un error sin fingir que la operación tuvo éxito. Los
+  menús se cierran al salir del foco o pulsar Escape.
+- No se agregaron favoritos, carrito ni seguimiento a la cabecera de la vitrina.
