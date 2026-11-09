@@ -112,6 +112,28 @@ export default function CatalogoExperience() {
     productosRef.current?.scrollIntoView({ block: "start" });
   };
 
+  // Esta fila no admite scroll del usuario, así que las flechas fijan una
+  // posición exacta por tarjeta en vez de sumar desplazamientos. Es instantáneo
+  // porque el scroll suave en un contenedor con `overflow-x: hidden` puede
+  // quedarse a mitad de camino y dejar la primera tarjeta recortada.
+  const desplazarMarcas = (direccion) => {
+    const fila = marcasFilaRef.current;
+    if (!fila) return;
+    const tarjeta = fila.firstElementChild;
+    // El gap cambia a 8 px en móvil; se lee del estilo calculado para no
+    // desalinear las tarjetas con un valor fijo.
+    const espacio = Number.parseFloat(getComputedStyle(fila).columnGap) || 12;
+    const paso = tarjeta
+      ? tarjeta.getBoundingClientRect().width + espacio
+      : fila.clientWidth * 0.8;
+    const maximo = Math.max(0, fila.scrollWidth - fila.clientWidth);
+    const actual = fila.scrollLeft;
+    const destino = direccion > 0
+      ? Math.min(maximo, Math.ceil((actual + 1) / paso) * paso)
+      : Math.max(0, Math.floor((actual - 1) / paso) * paso);
+    fila.scrollTo({ left: destino, behavior: "instant" });
+  };
+
   return (
     <>
       <main className={styles.page}>
@@ -351,19 +373,21 @@ export default function CatalogoExperience() {
               <button
                 type="button"
                 aria-label="Fabricantes anteriores"
-                onClick={() => desplazarFila(marcasFilaRef, -1)}
+                onClick={() => desplazarMarcas(-1)}
               >
                 <ChevronLeft size={15} aria-hidden="true" />
               </button>
               <button
                 type="button"
                 aria-label="Fabricantes siguientes"
-                onClick={() => desplazarFila(marcasFilaRef, 1)}
+                onClick={() => desplazarMarcas(1)}
               >
                 <ChevronRight size={15} aria-hidden="true" />
               </button>
             </div>
           </div>
+          {/* Solo las flechas mueven esta fila: el CSS mantiene el scroll
+              programático con `overflow-x: hidden`, sin gesto del mouse. */}
           <div className={styles.brandRow} ref={marcasFilaRef}>
             {BRANDS.map((marca) => (
               <Link
@@ -383,6 +407,7 @@ export default function CatalogoExperience() {
                     height={80}
                     unoptimized
                     loading="eager"
+                    draggable={false}
                     className={styles.brandLogo}
                   />
                 ) : (

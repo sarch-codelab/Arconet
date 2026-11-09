@@ -255,8 +255,9 @@ Showcase»** de la referencia, colocado **después** de la sección «Lo más bu
 / Productos destacados» y **antes** de las ventajas:
 
 - Título centrado **«Marcas que distribuimos»** con dos flechas circulares a la
-  derecha y una fila deslizante (`display: flex`, `overflow-x: auto`,
-  `scroll-snap`) de tarjetas blancas con borde redondeado y sombra suave.
+  derecha y una fila (`display: flex`, `overflow-x: hidden`) de tarjetas
+  blancas con borde redondeado y sombra suave. El desplazamiento lo hacen
+  **solo las flechas**; ver la sección siguiente.
 - **No se inventaron marcas ni se descargaron logos nuevos**: se reutilizan los
   6 fabricantes que ya declara `app/home-marcas.js` — FiberHome, Sumitomo,
   Lindsay, Joinwit, PBI y Belden — y sus 4 archivos de `public/marcas/*.png`.
@@ -287,6 +288,59 @@ Showcase»** de la referencia, colocado **después** de la sección «Lo más bu
   precios/carrito/corazones, sin desbordamiento horizontal ni errores de
   consola. **Son comprobaciones y capturas locales**, no verificación visual
   humana ni del despliegue público.
+
+## Solo las flechas mueven la fila de marcas
+
+A petición del usuario, la fila de fabricantes **dejó de desplazarse con el
+mouse**: nada de rueda, trackpad ni arrastre; solo los botones ‹ › la mueven.
+
+- `.brandRow` pasó de `overflow-x: auto` a **`overflow-x: hidden`**. El
+  elemento sigue siendo un contenedor con scroll (su contenido es más ancho que
+  la caja), así que JavaScript puede fijar su `scrollLeft`: es lo que hace
+  `desplazarMarcas()` al pulsar cada flecha. Lo que desaparece es el
+  desplazamiento por gesto del navegador y la barra de scroll.
+- Se quitaron `scrollbar-*`, las reglas `::-webkit-scrollbar*` y
+  `overscroll-behavior-x` de esa fila, y se añadió `user-select: none` junto con
+  `draggable={false}` en los logos para que no se puedan arrastrar ni
+  seleccionar como si fueran desplazables.
+- También se retiró el **`scroll-snap` obligatorio** solo de esta fila: con
+  `overflow-x: hidden` puede dejar un scroll suave a mitad de camino. Las
+  flechas avanzan exactamente el ancho de una tarjeta más el `gap`, así que las
+  tarjetas quedan alineadas sin depender del snap. Productos e ideas conservan
+  su `scroll-snap-type: x mandatory`.
+- Las flechas de marcas usan `desplazarMarcas()` en lugar del `scrollBy`
+  acumulativo: miden la tarjeta y el `column-gap` calculado (12 px en escritorio,
+  8 px en móvil) y llaman a **`scrollTo` con `behavior: "instant"`** y un
+  múltiplo exacto del paso, limitado al `scrollWidth - clientWidth`. Así no
+  quedan los 13 px de residuo que dejaba el scroll suave al volver al inicio,
+  y la flecha «anterior» regresa por el mismo escalón aunque el último tramo
+  sea más corto. Productos e ideas mantienen su `scrollBy` suave.
+- **No se interceptan eventos** (`wheel`, `touch`, `pointer`): no hacen falta y
+  así el scroll vertical de la página sigue funcionando con normalidad cuando
+  el cursor está sobre el bloque.
+- Alcance deliberadamente estrecho: **solo la vitrina de marcas**. Las filas de
+  «Productos destacados» e «Ideas para tu próxima instalación» conservan su
+  `overflow-x: auto`, porque el usuario pidió explícitamente que fueran filas
+  deslizantes. El regalo 3D, el sobre, el acento azul, los enlaces, `/tienda`
+  y el carrito compartido no se tocaron.
+
+### Verificación de este ajuste
+
+- `npm run lint`: 0; `npm test`: **151 archivos / 1652 pruebas** (2 nuevas y 1
+  reescrita en `tests/catalogo-marcas-showcase.test.js`); build de producción y
+  `ops/verify-static-assets.mjs` (17 HTML / 51 assets) correctos.
+- Chromium headless local a 1440 × 900, ya con el build definitivo:
+  `overflowX: hidden`, `scroll-snap-type: none` y `gap: 12px`; la rueda
+  horizontal sobre la fila **no** cambia `scrollLeft` (0 px) y un arrastre con
+  el mouse tampoco. Las flechas integradas van exactamente de **0 → 272 → 0 px**
+  (sin el residuo de 13 px que dejaba el scroll suave); con pulsaciones seguidas
+  la secuencia es **322 → 272 → 0 → 0 px**, respetando el último tramo más
+  corto. La rueda vertical sobre el bloque sí desplaza la página (897 →
+  1297 px), las filas de productos e ideas siguen en `overflow-x: auto`, los 4
+  logos cargan y no hay desbordamiento ni errores de consola.
+- La misma comprobación a 390 × 844 da `gap: 8px`, rueda 0 px, flecha
+  **265 px**, vuelta **0 px** y los 4 logos cargados. **Son comprobaciones
+  locales**, no verificación visual humana ni del despliegue público.
 
 ## Verificación
 
