@@ -48,9 +48,10 @@ describe("carrito y cotización de la tienda", () => {
     expect(PRODUCTO_CSS).toMatch(/\.headerAction > \.headerCartIcon\s*\{[^}]*position: relative/);
   });
 
-  it("el resumen de la categoría no se repite cuando la descripción es la misma", () => {
-    expect(CATEGORIA).toMatch(/\{family.summary && family.summary !== family.description \?/);
-    expect(CATEGORIA).toMatch(/summary: staticFamily\?.summary \|| categoryDescription/);
+  it("la categoría muestra directamente los productos sin portada descriptiva", () => {
+    expect(CATEGORIA).not.toContain("styles.heroContent");
+    expect(CATEGORIA).not.toContain("family.description");
+    expect(CATEGORIA).toContain("<h1>Productos disponibles</h1>");
   });
 
   it("el botón agotado se pone rojo", () => {

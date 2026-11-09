@@ -148,8 +148,6 @@ export default async function CategoryPage({ params }) {
     <CategoryProducts
       slug={slug}
       categoryName={categoria?.nombre ?? null}
-      categoryDescription={categoria?.descripcion ?? ""}
-      categoryPhoto={categoria?.foto ?? ""}
       productosIniciales={productosIniciales}
     />
   );
