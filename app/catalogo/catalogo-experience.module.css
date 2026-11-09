@@ -625,33 +625,24 @@
    PRODUCTOS DESTACADOS
    -------------------------------------------------------------------------- */
 
+/* Igual que .brandRow: solo las flechas mueven estas filas. `hidden` quita la
+   rueda, el trackpad, el arrastre y la barra de scroll, pero el contenedor
+   sigue siendo desplazable con `scrollTo()` desde JS. Sin scroll-snap: con
+   `hidden` puede dejar un scroll suave a mitad de camino; las flechas ya
+   avanzan exactamente una tarjeta + el gap calculado. */
 .productRow,
 .ideaRow {
   display: flex;
   gap: 12px;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scroll-snap-type: x mandatory;
-  scroll-padding-left: 2px;
+  overflow-x: hidden;
   padding: 2px 2px 8px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--accent) var(--line);
+  user-select: none;
 }
-
-.productRow::-webkit-scrollbar,
-.ideaRow::-webkit-scrollbar { height: 6px; }
-
-.productRow::-webkit-scrollbar-track,
-.ideaRow::-webkit-scrollbar-track { border-radius: 6px; background: var(--line); }
-
-.productRow::-webkit-scrollbar-thumb,
-.ideaRow::-webkit-scrollbar-thumb { border-radius: 6px; background: var(--accent); }
 
 .productCard {
   display: flex;
   flex: 0 0 clamp(210px, 22vw, 280px);
   flex-direction: column;
-  scroll-snap-align: start;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 14px;
@@ -890,7 +881,6 @@
   position: relative;
   display: block;
   flex: 0 0 clamp(240px, 27vw, 340px);
-  scroll-snap-align: start;
   aspect-ratio: 1 / 1.05;
   overflow: hidden;
   border-radius: 14px;

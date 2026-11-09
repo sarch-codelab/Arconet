@@ -186,9 +186,9 @@ describe("estilos: responsive, modo oscuro y contratos de imagen", () => {
     }
     expect(css).toContain(':global(html[data-theme="dark"]) .page');
     expect(css).toContain("grid-template-columns: repeat(6, minmax(0, 1fr))");
-    // Productos e ideas van en una sola fila deslizante, no en rejilla.
-    expect(css).toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*overflow-x: auto/);
-    expect(css).toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*scroll-snap-type: x mandatory/);
+    // Productos e ideas van en una sola fila controlada por flechas.
+    expect(css).toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*overflow-x: hidden/);
+    expect(css).not.toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*scroll-snap-type/);
     expect(css).toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*display: flex/);
     expect(css).not.toContain("grid-template-columns: repeat(5, minmax(0, 1fr))");
     // El contrato global de animaciones enumera los únicos CSS con bloque

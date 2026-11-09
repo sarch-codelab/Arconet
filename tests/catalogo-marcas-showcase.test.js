@@ -118,22 +118,19 @@ describe("la vitrina de fabricantes usa las marcas reales de Arconet", () => {
     expect(bloqueLogo).toContain("draggable={false}");
   });
 
-  it("las dos flechas fijan una posición exacta por tarjeta", () => {
+  it("las flechas de marcas, productos e ideas comparten desplazamiento exacto", () => {
     const js = leer(EXPERIENCIA);
+    const helper = leer("app/catalogo/desplazar-fila.js");
     expect(js).toContain('aria-label="Fabricantes anteriores"');
     expect(js).toContain('aria-label="Fabricantes siguientes"');
-    expect(js).toContain("const desplazarMarcas =");
-    expect(js).toContain('fila.scrollTo({ left: destino, behavior: "instant" })');
-    expect(js.match(/desplazarMarcas\(-?1\)/g)).toHaveLength(2);
-    // Productos e ideas siguen con su desplazamiento suave acumulativo.
-    expect(js).toContain("fila.scrollBy(");
-    expect(js.match(/desplazarFila\(\w+FilaRef/g)).toHaveLength(4);
+    expect(helper).toContain('fila.scrollTo({ left: destino, behavior: "instant" })');
+    expect(js.match(/desplazarFila\(\w+FilaRef/g)).toHaveLength(6);
+    expect(js).not.toContain("fila.scrollBy(");
   });
 
-  it("el cambio no quita el scroll con mouse de productos ni de ideas", () => {
+  it("productos e ideas tampoco muestran barra ni admiten scroll directo", () => {
     const css = leer(CSS);
-    expect(css).toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*overflow-x: auto/);
-    expect(css).not.toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*overflow-x: hidden/);
-    expect(css).toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*scroll-snap-type: x mandatory/);
+    expect(css).toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*overflow-x: hidden/);
+    expect(css).not.toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*scroll-snap-type/);
   });
 });

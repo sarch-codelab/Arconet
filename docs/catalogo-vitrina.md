@@ -47,10 +47,10 @@ No se usó un comodín `/catalogo/:path*` porque las fotos del sitio viven en
 
 - El **buscador** y los **chips** filtran la fila de productos en cliente
   (y hay estado vacío con botón para limpiar).
-- **Flechas de las filas**: `scrollBy` nativo sobre el contenedor, con
-  `scroll-snap` para que cada tarjeta quede alineada. No se interceptan `wheel`,
-  `touch` ni teclado: el deslizamiento con el dedo, la rueda o el trackpad lo
-  hace el navegador.
+- **Flechas de las filas**: productos, marcas, ideas y relacionados usan
+  `overflow-x: hidden` y se mueven con las flechas mediante `scrollTo`.
+  No se interceptan gestos y el scroll vertical de la página sigue funcionando.
+  El navegador puede desplazar la fila para mostrar un enlace enfocado por teclado.
 - **Flechas del hero** cambian entre tres destacados.
 - **Boletín**: `<form action="/contacto" method="get">` con `name="correo"`.
   No hay endpoint de suscripciones; en vez de fingir un alta, el formulario
@@ -94,9 +94,8 @@ No se usó un comodín `/catalogo/:path*` porque las fotos del sitio viven en
   teléfono y el hero usa un velo degradado para que el texto siga legible.
 - Solo hay transiciones de `hover`, sin `@keyframes`: el contrato global de
   `tests/animaciones-siempre-activas.test.js` enumera los únicos CSS con bloque
-  `prefers-reduced-motion`, y esta vista no añade ninguno. El desplazamiento de
-  las flechas consulta la preferencia en JS y usa `behavior: "instant"` cuando
-  está activa.
+  `prefers-reduced-motion`, y esta vista no añade ninguno. Las flechas se
+  desplazan de forma instantánea para que las tarjetas queden alineadas.
 
 ## Acento azul (6 de noviembre de 2026)
 
@@ -132,6 +131,8 @@ Los precios se retiraron en el ajuste siguiente.
   despliegue público ni en dispositivos físicos.**
 
 ## Fila deslizante, sin precios/carrito/corazón y sobre real (6 de noviembre de 2026)
+
+Nota histórica: el desplazamiento directo descrito aquí fue sustituido por el control con flechas de la sección final.
 
 A petición del usuario, sobre la misma vitrina azul:
 
@@ -291,6 +292,8 @@ Showcase»** de la referencia, colocado **después** de la sección «Lo más bu
 
 ## Solo las flechas mueven la fila de marcas
 
+Nota histórica: este cambio se extendió después a productos, ideas y relacionados; ver la sección final.
+
 A petición del usuario, la fila de fabricantes **dejó de desplazarse con el
 mouse**: nada de rueda, trackpad ni arrastre; solo los botones ‹ › la mueven.
 
@@ -373,7 +376,7 @@ Contenido de cada ficha:
   «Especificaciones», «Envío y garantía» y una **tabla de 6 filas × 4 columnas**
   que llega en el primer HTML, como en la referencia.
 - **Relacionados**: las otras 5 fichas de la vitrina, priorizando la misma
-  línea, con sus flechas ‹ › y desplazamiento nativo (hay recorrido real).
+  línea, con sus flechas ‹ › y desplazamiento controlado por botones (hay recorrido real).
 
 **Naturaleza editorial (importante):** los 6 equipos son contenido ilustrativo
 del catálogo, no artículos de la base de datos; la BD de producción contiene
@@ -447,3 +450,19 @@ La página **no** se añadió al menú global ni al footer: el menú 1 de home y
 `/tienda` se acaba de igualar en el cambio anterior y añadir un séptimo enlace
 los desalinearía. Se accede directamente por `/catalogo`; si se quiere
 descubribilidad desde el menú, debe hacerse en los dos sitios a la vez.
+
+## Filas de catálogo controladas por flechas
+
+La corrección posterior extiende el comportamiento de marcas a productos e
+ideas y a los relacionados de las fichas. Sus filas usan `overflow-x: hidden`,
+sin barra ni `scroll-snap`, y el helper compartido `desplazar-fila.js` mide
+el ancho de tarjeta y el `columnGap` real para avanzar o retroceder de forma
+instantánea y limitada. No intercepta eventos y los enlaces siguen disponibles
+para teclado. Los chips sin flechas y la tabla de especificaciones conservan
+su propio desplazamiento para que su contenido siga accesible.
+
+Comprobación local en Chromium a 1440 × 900 y 390 × 844: rueda horizontal,
+arrastre del mouse y gesto horizontal en móvil no desplazan las filas; cada
+par de flechas avanza y vuelve al inicio, y la rueda vertical sigue desplazando
+la página. Sin errores JavaScript. Pruebas unitarias cubren los gaps de 8, 12,
+14 y 0 px, límites y referencias vacías.
