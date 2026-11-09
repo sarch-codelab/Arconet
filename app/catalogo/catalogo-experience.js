@@ -31,6 +31,7 @@ import {
 import Footer from "../footer";
 import {
   BENEFITS,
+  BRANDS,
   CATEGORY_CARDS,
   CHIPS,
   HERO_IMAGE,
@@ -82,6 +83,7 @@ export default function CatalogoExperience() {
   const productosRef = useRef(null);
   const productosFilaRef = useRef(null);
   const ideasFilaRef = useRef(null);
+  const marcasFilaRef = useRef(null);
 
   const slide = HERO_SLIDES[diapositiva];
 
@@ -337,6 +339,58 @@ export default function CatalogoExperience() {
               <button type="button" onClick={limpiarFiltros}>Ver todo el catálogo</button>
             </div>
           )}
+        </section>
+
+        {/* Vitrina de fabricantes: título centrado, flechas y una fila de
+            tarjetas con los logos reales, como el «Brand Showcase» de la
+            referencia. Va justo debajo de «Productos destacados». */}
+        <section className={styles.brandShowcase} id="marcas" aria-label="Fabricantes que distribuimos">
+          <div className={styles.brandHead}>
+            <h2 className={styles.brandTitle}>Marcas que distribuimos</h2>
+            <div className={styles.brandArrows}>
+              <button
+                type="button"
+                aria-label="Fabricantes anteriores"
+                onClick={() => desplazarFila(marcasFilaRef, -1)}
+              >
+                <ChevronLeft size={15} aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                aria-label="Fabricantes siguientes"
+                onClick={() => desplazarFila(marcasFilaRef, 1)}
+              >
+                <ChevronRight size={15} aria-hidden="true" />
+              </button>
+            </div>
+          </div>
+          <div className={styles.brandRow} ref={marcasFilaRef}>
+            {BRANDS.map((marca) => (
+              <Link
+                key={marca.name}
+                href={marca.href}
+                className={styles.brandCard}
+                aria-label={`Ver equipos de ${marca.name} en la tienda`}
+              >
+                {/* Chromium no dispara el lazy loading de las tarjetas que
+                    quedan fuera de un scroller horizontal: son 4 PNG
+                    pequeños, así que se piden junto con la página. */}
+                {marca.logo ? (
+                  <Image
+                    src={marca.logo}
+                    alt=""
+                    width={240}
+                    height={80}
+                    unoptimized
+                    loading="eager"
+                    className={styles.brandLogo}
+                  />
+                ) : (
+                  <span className={styles.brandWordmark}>{marca.name}</span>
+                )}
+              </Link>
+            ))}
+          </div>
         </section>
 
         {/* Ventajas. */}

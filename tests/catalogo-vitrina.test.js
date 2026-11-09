@@ -21,6 +21,7 @@ import { ContactProvider } from "../app/contact-provider";
 import CatalogoExperience from "../app/catalogo/catalogo-experience";
 import {
   BENEFITS,
+  BRANDS,
   CATEGORY_CARDS,
   CHIPS,
   HERO_IMAGE,
@@ -86,9 +87,11 @@ describe("el contenido es de Arconet y no hay enlaces muertos", () => {
       ...IDEAS.map((i) => i.image),
       SOBRE_NOVEDADES,
       REGALO_OFERTAS,
+      ...BRANDS.filter((b) => b.logo).map((b) => b.logo),
     ];
-    // 1 hero + 6 categorías + 6 productos + 5 ideas + 1 sobre + 1 regalo.
-    expect(rutas).toHaveLength(20);
+    // 1 hero + 6 categorías + 6 productos + 5 ideas + 1 sobre + 1 regalo
+    // + 4 logotipos de fabricantes.
+    expect(rutas).toHaveLength(24);
     for (const ruta of rutas) {
       expect(existsSync(`public${ruta}`), `falta public${ruta}`).toBe(true);
       expect(statSync(`public${ruta}`).size, `vacío public${ruta}`).toBeGreaterThan(1000);
@@ -102,6 +105,7 @@ describe("el contenido es de Arconet y no hay enlaces muertos", () => {
       ...IDEAS.map((i) => i.href),
       ...HERO_SLIDES.map((s) => s.href),
       ...NAV_LINKS.map((n) => n.href),
+      ...BRANDS.map((b) => b.href),
     ];
     for (const destino of destinos) {
       expect(destino.startsWith("/"), destino).toBe(true);
@@ -117,6 +121,7 @@ describe("el contenido es de Arconet y no hay enlaces muertos", () => {
   it("la vitrina tiene la misma estructura que el diseño de referencia", () => {
     expect(CHIPS).toHaveLength(7);
     expect(CATEGORY_CARDS).toHaveLength(6);
+    expect(BRANDS).toHaveLength(6);
     expect(PRODUCTS).toHaveLength(6);
     expect(BENEFITS).toHaveLength(4);
     expect(IDEAS).toHaveLength(5);

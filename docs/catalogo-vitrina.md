@@ -37,6 +37,7 @@ No se usó un comodín `/catalogo/:path*` porque las fotos del sitio viven en
 | Hero | imagen generada con el panel azul en diagonal y el cluster de equipos; 3 destacados con flechas, CTA y círculo «Novedades» |
 | Cuadrícula de categorías | **6 cuadros con foto de fondo y etiqueta blanca**, inspirados en el «Featured Category Grid»; 5 líneas reales + ofertas |
 | Productos destacados | **una sola fila deslizante** de 6 equipos con foto, nombre, línea y etiqueta de oferta; sin precio, sin carrito y sin corazón |
+| Vitrina de fabricantes | título centrado «Marcas que distribuimos», flechas y **6 tarjetas con logos reales** en una fila deslizante, justo debajo de Productos destacados |
 | Ventajas | envíos, pagos, garantía y soporte |
 | Ideas | **una sola fila deslizante** de 5 tarjetas con foto y enlace a líneas reales |
 | Ofertas y boletín | tarjeta azul + formulario de correo + **imagen del sobre azul** aportada por el usuario |
@@ -247,15 +248,57 @@ se sustituyó por la **imagen del regalo 3D azul** adjunta:
   errores de consola. **Son comprobaciones y capturas locales**, no
   verificación visual humana ni del despliegue público.
 
+## Vitrina de fabricantes debajo de «Productos destacados»
+
+A petición del usuario, se añadió un bloque parecido al **«Interactive Brand
+Showcase»** de la referencia, colocado **después** de la sección «Lo más buscado
+/ Productos destacados» y **antes** de las ventajas:
+
+- Título centrado **«Marcas que distribuimos»** con dos flechas circulares a la
+  derecha y una fila deslizante (`display: flex`, `overflow-x: auto`,
+  `scroll-snap`) de tarjetas blancas con borde redondeado y sombra suave.
+- **No se inventaron marcas ni se descargaron logos nuevos**: se reutilizan los
+  6 fabricantes que ya declara `app/home-marcas.js` — FiberHome, Sumitomo,
+  Lindsay, Joinwit, PBI y Belden — y sus 4 archivos de `public/marcas/*.png`.
+  PBI y Belden no tienen logo y se muestran como *wordmark* tipográfico, con el
+  mismo criterio que la home (no se dibuja un logotipo falso).
+- Las tarjetas son **siempre blancas**, también en tema oscuro: varios logos
+  llevan texto negro y desaparecerían sobre la superficie oscura. Es la misma
+  placa de legibilidad que usa `app/home-marcas.module.css`.
+- Cada tarjeta enlaza a la línea de `/tienda` más afín al fabricante; es un
+  acceso al catálogo, **no** un filtro por marca (no existe ese filtro).
+- Los 4 logos llevan `loading="eager"` y `unoptimized`: Chromium no dispara el
+  *lazy loading* de las imágenes que quedan fuera de un contenedor con scroll
+  horizontal, y son PNG pequeños (~50 KB en total). Ninguno lleva `priority`,
+  así que el hero sigue siendo la única imagen precargada de la vista.
+- No se tocó el regalo 3D de «Ofertas exclusivas para ti», el sobre, el acento
+  azul, las filas de productos/ideas, los `301` antiguos, `/tienda` ni el
+  carrito compartido.
+
+### Verificación de este ajuste
+
+- `npm run lint`: 0; `npm test`: **151 archivos / 1650 pruebas**, incluidas 6
+  nuevas en `tests/catalogo-marcas-showcase.test.js`; build de producción y
+  `ops/verify-static-assets.mjs` (17 HTML / 51 assets) correctos.
+- Chromium headless local, escritorio 1440 × 900 en claro y oscuro y móvil
+  390 × 844: 6 tarjetas, fondo `rgb(255,255,255)` en los tres casos, 4/4 logos
+  cargados, fila con `scroll-snap-type: x mandatory` y `scrollWidth` 1624 /
+  1302 px en escritorio, la flecha avanza 272 px, el regalo 3D carga, sin
+  precios/carrito/corazones, sin desbordamiento horizontal ni errores de
+  consola. **Son comprobaciones y capturas locales**, no verificación visual
+  humana ni del despliegue público.
+
 ## Verificación
 
 - `npm run lint`: 0 errores.
 - `npm test`: incluye `tests/catalogo-vitrina.test.js`,
   `tests/catalogo-azul.test.js`, `tests/catalogo-fila-deslizante.test.js`,
-  `tests/catalogo-categorias-grid.test.js` y
-  `tests/catalogo-regalo-ofertas.test.js` (ruta, metadatos, assets, enlaces,
+  `tests/catalogo-categorias-grid.test.js`,
+  `tests/catalogo-regalo-ofertas.test.js` y
+  `tests/catalogo-marcas-showcase.test.js` (ruta, metadatos, assets, enlaces,
   SSR con `renderToStaticMarkup`, imagen prioritaria única, estilos, ausencia
-  de precio/carrito/corazón, cuadrícula de categorías y regalo de ofertas).
+  de precio/carrito/corazón, cuadrícula de categorías, regalo de ofertas y
+  vitrina de fabricantes).
 - Build de producción con `NEXT_DEPLOYMENT_ID`: correcto, sin `?dpl=`;
   `ops/verify-static-assets.mjs`: HTML y assets correctos.
 - Con `next start` local: `/catalogo` 200; `/catalogo/categoria/...` y
