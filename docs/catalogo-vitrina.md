@@ -326,9 +326,10 @@ mouse**: nada de rueda, trackpad ni arrastre; solo los botones ‹ › la mueven
 
 ### Verificación de este ajuste
 
-- `npm run lint`: 0; `npm test`: **151 archivos / 1652 pruebas** (2 nuevas y 1
-  reescrita en `tests/catalogo-marcas-showcase.test.js`); build de producción y
-  `ops/verify-static-assets.mjs` (17 HTML / 51 assets) correctos.
+- `npm run lint`: 0; `npm test`: **152 archivos / 1667 pruebas** (incluidas las
+  13 de `tests/catalogo-ficha-producto.test.js` y las 2 nuevas de
+  `tests/static-assets-contract.test.js`); build de producción y
+  `ops/verify-static-assets.mjs` (**23 HTML / 54 assets**) correctos.
 - Chromium headless local a 1440 × 900, ya con el build definitivo:
   `overflowX: hidden`, `scroll-snap-type: none` y `gap: 12px`; la rueda
   horizontal sobre la fila **no** cambia `scrollLeft` (0 px) y un arrastre con
@@ -342,17 +343,95 @@ mouse**: nada de rueda, trackpad ni arrastre; solo los botones ‹ › la mueven
   **265 px**, vuelta **0 px** y los 4 logos cargados. **Son comprobaciones
   locales**, no verificación visual humana ni del despliegue público.
 
+## Ficha de producto al dar clic en un destacado (9 de noviembre de 2026)
+
+Los 6 «Productos destacados» ya no enlazan a un listado de categoría: cada uno
+abre **su propia ficha** en `/catalogo/ficha/[slug]`, con la estructura de la
+imagen de referencia adaptada a Arconet. Decisiones confirmadas por el usuario:
+ficha nueva dentro de `/catalogo`, todas las secciones de la imagen y alcance
+limitado a esos 6 productos (categorías, ideas y marcas siguen igual).
+
+**Por qué `/catalogo/ficha/` y no `/catalogo/producto/`:** `next.config.mjs` ya
+tiene un 301 permanente de `/catalogo/producto/:slug` a
+`/tienda/producto/:slug`, y las redirecciones se evalúan antes que las páginas.
+Quitar ese 301 rompería enlaces guardados a fichas reales de la tienda; la ruta
+`/catalogo/ficha/` conserva el 301 y deja las 6 fichas editoriales accesibles.
+
+Contenido de cada ficha:
+
+- Cabecera con logo Arconet, navegación corta y acceso al carrito; ruta de
+  navegación (breadcrumb) hasta el equipo.
+- **Galería** con imagen principal y 4 miniaturas. Las vistas 2/3/4 son
+  **recortes de la misma foto** del equipo (`public/catalogo-vitrina/fichas/`,
+  18 WebP), no fotos de otros productos ni colores que no se vendan.
+- Línea, título, descripción, «Línea recomendada por instaladores» (adaptación
+  de las estrellas, **sin inventar reseñas ni conteos**), **precio de
+  referencia** en lempiras con precio anterior en los productos en oferta,
+  selector de **presentación** con tres opciones por equipo, cantidad,
+  «Comprar ahora» (lleva a `/contacto`) y «Agregar al carrito».
+- Tres beneficios (entrega, facturación, soporte), **pestañas** «Descripción»,
+  «Especificaciones», «Envío y garantía» y una **tabla de 6 filas × 4 columnas**
+  que llega en el primer HTML, como en la referencia.
+- **Relacionados**: las otras 5 fichas de la vitrina, priorizando la misma
+  línea, con sus flechas ‹ › y desplazamiento nativo (hay recorrido real).
+
+**Naturaleza editorial (importante):** los 6 equipos son contenido ilustrativo
+del catálogo, no artículos de la base de datos; la BD de producción contiene
+inventario heredado de «Componentes pasivos» con foto genérica. Por eso los
+**precios de referencia**, las existencias y las especificaciones se anuncian
+como tales en pantalla, y el precio final se confirma con el equipo. «Agregar
+al carrito» usa el carrito global de **cotización** (`CartProvider`): añade una
+línea local con el nombre y la presentación elegida, sin escribir en la BD ni
+llamar a ningún API de compra. `/tienda`, sus fichas reales y su carrito no se
+tocaron. La vitrina `/catalogo` sigue **sin precios, carrito ni corazones**;
+solo la ficha nueva muestra precio y controles de compra.
+
+La ficha usa el azul `#1544b5`, modo oscuro, cortes a 900/620 px y no añade un
+pie de página propio: el componente compartido sigue siendo el único. Tampoco
+intercepta `wheel`/`touch` ni se añade al menú global. Las fotos de estudio se
+muestran con `object-fit: contain` sobre fondo azul noche para no recortar el
+equipo, incluida la única imagen vertical.
+
+**Ajuste necesario en `ops/verify-static-assets.mjs`:** con la primera ruta SSG
+con segmento dinámico, el HTML referencia el chunk como
+`.../ficha/%5Bslug%5D/page-*.js` mientras que en disco está en
+`.../ficha/[slug]/page-*.js`. El verificador comparaba la URL sin decodificar y
+bloqueaba un build correcto. Ahora decodifica la ruta (sin salir de
+`.next/static`) y `tests/static-assets-contract.test.js` cubre el caso positivo
+y el de un chunk ausente. El chunk codificado se sirve con 200 y
+`application/javascript`.
+
+### Verificación de la ficha
+
+- HTTP local: las 6 fichas devuelven 200 (≈63 KB de HTML cada una), un slug
+  inexistente 404, el 301 heredado `/catalogo/producto/<id>` sigue activo, los
+  WebP de galería 200 y el chunk con `%5Bslug%5D` 200 con MIME JavaScript.
+- Chromium headless a 1440 × 900: desde `/catalogo` el clic en un destacado
+  abre su ficha; la vitrina sigue sin precios; la ficha trae 4 miniaturas,
+  imagen principal cargada, 3 pestañas, tabla de **6 filas × 4 columnas**, 5
+  relacionados, nota de precios de referencia y 0 px de desbordamiento.
+  Interacciones comprobadas: cambiar de vista, cantidad 1 → 2, cambiar de
+  presentación, alternar pestañas, «Agregar al carrito» abre el carrito global
+  con el equipo, y las flechas de relacionados mueven la fila **2 → 294 px**.
+- Modo oscuro (`data-theme="dark"`, fondo `rgb(17,22,29)`) y móvil 390 × 844
+  (una columna, tabla con scroll propio, 0 px de desbordamiento) revisados con
+  capturas. La única respuesta 503 local es `/api/site-config` al abrir el
+  carrito, porque este entorno no tiene PostgreSQL; en producción la BD está
+  activa. **Son comprobaciones locales**, no verificación visual humana ni del
+  despliegue público.
+
 ## Verificación
 
 - `npm run lint`: 0 errores.
 - `npm test`: incluye `tests/catalogo-vitrina.test.js`,
   `tests/catalogo-azul.test.js`, `tests/catalogo-fila-deslizante.test.js`,
   `tests/catalogo-categorias-grid.test.js`,
-  `tests/catalogo-regalo-ofertas.test.js` y
-  `tests/catalogo-marcas-showcase.test.js` (ruta, metadatos, assets, enlaces,
+  `tests/catalogo-regalo-ofertas.test.js`,
+  `tests/catalogo-marcas-showcase.test.js` y
+  `tests/catalogo-ficha-producto.test.js` (ruta, metadatos, assets, enlaces,
   SSR con `renderToStaticMarkup`, imagen prioritaria única, estilos, ausencia
-  de precio/carrito/corazón, cuadrícula de categorías, regalo de ofertas y
-  vitrina de fabricantes).
+  de precio/carrito/corazón en la vitrina, cuadrícula de categorías, regalo de
+  ofertas, vitrina de fabricantes y las 6 fichas de producto).
 - Build de producción con `NEXT_DEPLOYMENT_ID`: correcto, sin `?dpl=`;
   `ops/verify-static-assets.mjs`: HTML y assets correctos.
 - Con `next start` local: `/catalogo` 200; `/catalogo/categoria/...` y

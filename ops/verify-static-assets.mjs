@@ -44,8 +44,25 @@ export async function verifyStaticAssets({ root = process.cwd() } = {}) {
   if (!referenced.size) throw new Error('El HTML prerenderizado no referencia assets de /_next/static');
 
   const missing = [];
+  const raizEstatica = path.resolve(staticRoot);
   for (const url of referenced) {
-    const file = path.join(staticRoot, url.replace(/^\/_next\/static\//, ''));
+    // Next codifica los segmentos dinámicos en la URL del chunk: el HTML pide
+    // `.../ficha/%5Bslug%5D/page-*.js`, pero en disco está en
+    // `.../ficha/[slug]/page-*.js`. Sin decodificar, una build correcta con
+    // rutas SSG dinámicas pareciera tener un chunk ausente y el despliegue se
+    // detendría. Se decodifica con cuidado para no salir de .next/static.
+    let relativa;
+    try {
+      relativa = decodeURIComponent(url.replace(/^\/_next\/static\//, ''));
+    } catch {
+      missing.push(url);
+      continue;
+    }
+    const file = path.resolve(raizEstatica, relativa);
+    if (!file.startsWith(`${raizEstatica}${path.sep}`)) {
+      missing.push(url);
+      continue;
+    }
     try {
       const info = await stat(file);
       if (!info.isFile() || info.size === 0) missing.push(url);

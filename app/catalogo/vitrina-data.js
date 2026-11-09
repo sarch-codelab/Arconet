@@ -1,9 +1,11 @@
 // Contenido editorial de la vitrina /catalogo.
 //
 // La página es una reinterpretación del diseño de referencia con marca Arconet:
-// las líneas, los textos y los equipos son de telecomunicaciones. No se
-// muestran precios: la cotización real se hace en /tienda, y CADA tarjeta
-// enlaza a una línea real del catálogo para no dejar enlaces muertos.
+// las líneas, los textos y los equipos son de telecomunicaciones. Aquí NO se
+// muestran precios ni controles de compra: la cotización real se hace en
+// /tienda. Los 6 «Productos destacados» abren su ficha editorial en
+// /catalogo/ficha/[slug] (ver ficha-data.js); el resto de las tarjetas sigue
+// enlazando a líneas reales de /tienda para no dejar enlaces muertos.
 
 export const NAV_LINKS = [
   { label: "Inicio", href: "/" },
@@ -102,7 +104,7 @@ export const PRODUCTS = [
     line: "Instrumentos de medición óptica",
     category: "medicion",
     image: "/catalogo/prod-fusionadora.jpg",
-    href: "/tienda/categoria/instrumentos-de-medicion-optica",
+    href: "/catalogo/ficha/fusionadora",
     offer: false,
   },
   {
@@ -111,7 +113,7 @@ export const PRODUCTS = [
     line: "Instrumentos de medición óptica",
     category: "medicion",
     image: "/catalogo/prod-otdr.jpg",
-    href: "/tienda/categoria/instrumentos-de-medicion-optica",
+    href: "/catalogo/ficha/otdr",
     offer: true,
   },
   {
@@ -120,7 +122,7 @@ export const PRODUCTS = [
     line: "Instrumentos de medición óptica",
     category: "medicion",
     image: "/catalogo/prod-powermeter.jpg",
-    href: "/tienda/categoria/instrumentos-de-medicion-optica",
+    href: "/catalogo/ficha/powermeter",
     offer: false,
   },
   {
@@ -129,7 +131,7 @@ export const PRODUCTS = [
     line: "Gabinetes y Racks",
     category: "gabinetes",
     image: "/catalogo/prod-gabinete.jpg",
-    href: "/tienda/categoria/gabinetes-y-racks",
+    href: "/catalogo/ficha/gabinete",
     offer: true,
   },
   {
@@ -138,7 +140,7 @@ export const PRODUCTS = [
     line: "Herramientas y kits",
     category: "herramientas",
     image: "/catalogo/prod-herramientas.jpg",
-    href: "/tienda/categoria/herramientas-y-kits",
+    href: "/catalogo/ficha/kit-herramientas",
     offer: false,
   },
   {
@@ -147,7 +149,7 @@ export const PRODUCTS = [
     line: "Componentes pasivos",
     category: "fibra",
     image: "/catalogo/prod-adss.jpg",
-    href: "/tienda/categoria/componentes-pasivos",
+    href: "/catalogo/ficha/cable-adss",
     offer: false,
   },
 ];
