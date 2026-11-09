@@ -466,3 +466,17 @@ arrastre del mouse y gesto horizontal en móvil no desplazan las filas; cada
 par de flechas avanza y vuelve al inicio, y la rueda vertical sigue desplazando
 la página. Sin errores JavaScript. Pruebas unitarias cubren los gaps de 8, 12,
 14 y 0 px, límites y referencias vacías.
+
+## Mosaico de ofertas y destacados
+
+Debajo de «Marcas que distribuimos» se muestra un mosaico de siete tarjetas,
+inspirado en la referencia: cuatro columnas en escritorio, con una tarjeta
+alta de fibra, y dos columnas en móvil. Usa el azul de Arconet, tarjetas oscuras
+legibles también en modo oscuro y dos ilustraciones WebP optimizadas. No añade
+una fila deslizante: las tarjetas permanecen visibles y accesibles por teclado.
+
+El botón «Ver ofertas» limpia la búsqueda, activa el filtro de ofertas existente
+y vuelve a productos. Las tarjetas de OTDR y gabinete enlazan a sus fichas ya
+marcadas como oferta; las otras enlazan a categorías existentes o a contacto.
+No se anuncian cupones, cashback ni promociones 2×1 que no estén configuradas.
+Las ilustraciones son decorativas y no representan fotografías de inventario.

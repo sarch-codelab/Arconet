@@ -848,6 +848,68 @@
    VENTAJAS
    -------------------------------------------------------------------------- */
 
+/* Ofertas y destacados: siete tarjetas en mosaico, con una pieza alta como
+   en la referencia. Las tarjetas de categoría no prometen descuentos. */
+.dealHead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.dealGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(118px, auto));
+  gap: 12px;
+}
+
+.dealTile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: 118px;
+  overflow: hidden;
+  padding: 20px;
+  border: 1px solid #303846;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #202631, #111720);
+  color: #fff;
+  text-decoration: none;
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+}
+
+.dealTile:hover {
+  transform: translateY(-3px);
+  border-color: #6b91ed;
+  box-shadow: 0 14px 28px -20px rgba(21, 68, 181, 0.8);
+}
+
+.dealTileAccent { background: linear-gradient(130deg, #1544b5, #0d2868); border-color: #315fcc; }
+.dealTileFeatured { grid-column: 3; grid-row: 1 / span 2; align-items: flex-start; }
+.dealTileCopy { position: relative; z-index: 1; display: grid; gap: 8px; max-width: 60%; }
+.dealTileCopy strong { font-family: var(--font-heading), system-ui, sans-serif; font-size: clamp(15px, 1.4vw, 19px); line-height: 1.15; }
+.dealTileCopy small { display: flex; align-items: center; gap: 4px; color: #bed1ff; font-size: 11px; font-weight: 650; line-height: 1.25; }
+.dealTileImage { position: absolute; right: 5px; bottom: 0; width: 43%; height: 100%; object-fit: contain; }
+.dealTileFeatured .dealTileCopy { max-width: 100%; }
+.dealTileFeatured .dealTileImage { right: 4%; bottom: -2%; width: 75%; height: 76%; }
+.dealTileIcon {
+  position: absolute;
+  right: 9%;
+  display: grid;
+  place-items: center;
+  width: clamp(52px, 6vw, 76px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(165, 196, 255, 0.3);
+  border-radius: 22px;
+  background: linear-gradient(145deg, #3a70db, #102d72);
+  color: #e8f0ff;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.25), 0 10px 22px rgba(0, 0, 0, 0.25);
+  transform: rotate(-7deg);
+}
+
 .benefits {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1135,6 +1197,10 @@
   .heroTitle { font-size: clamp(26px, 4vw, 40px); }
   .categoryRow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .productCard, .ideaCard { flex-basis: clamp(190px, 36vw, 250px); }
+  .dealGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: none; }
+  .dealTileFeatured { grid-column: 1 / -1; grid-row: auto; min-height: 150px; align-items: center; }
+  .dealTileFeatured .dealTileCopy { max-width: 58%; }
+  .dealTileFeatured .dealTileImage { right: 3%; bottom: 0; width: 45%; height: 100%; }
   .bottomStrip { flex-direction: column; align-items: flex-start; }
 }
 
@@ -1179,6 +1245,14 @@
   .brandArrows { grid-column: 2; }
   .brandRow { gap: 8px; }
   .brandCard { flex-basis: 52vw; min-height: 84px; }
+  .dealGrid { gap: 8px; }
+  .dealTile { min-height: 112px; padding: 14px 12px; }
+  .dealTileFeatured { min-height: 140px; }
+  .dealTileCopy { max-width: 64%; }
+  .dealTileCopy strong { font-size: 14px; }
+  .dealTileCopy small { font-size: 10px; }
+  .dealTileIcon { right: 6%; width: 48px; border-radius: 16px; }
+  .dealTileIcon svg { width: 29px; height: 29px; }
   .sectionHead { flex-direction: column; align-items: flex-start; gap: 10px; }
   .sectionActions { width: 100%; justify-content: space-between; }
   .benefits { grid-template-columns: 1fr 1fr; padding: 14px 8px; }
