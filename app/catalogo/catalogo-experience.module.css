@@ -124,6 +124,30 @@
 
 .search input::placeholder { color: var(--muted); }
 
+.searchSuggestions,
+.accountMenu,
+.categoryMenu {
+  position: absolute;
+  z-index: 50;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.18);
+}
+
+.searchSuggestions { top: calc(100% + 7px); right: 0; left: 0; padding: 10px; }
+.searchSuggestions p,
+.categoryMenu > strong { display: block; margin: 2px 8px 6px; color: var(--muted); font-size: 11px; font-weight: 700; }
+.searchSuggestions ul { padding: 0; margin: 0; list-style: none; }
+.searchSuggestions li a { display: flex; align-items: center; gap: 10px; padding: 9px 8px; border-radius: 8px; color: var(--ink); text-decoration: none; }
+.searchSuggestions li a:hover, .searchSuggestions li a:focus-visible { background: var(--soft); }
+.searchSuggestions li svg { flex: 0 0 auto; color: var(--accent-ink); }
+.searchSuggestions li span { display: grid; gap: 2px; }
+.searchSuggestions li strong { font-size: 12px; }
+.searchSuggestions li small, .noSuggestions { color: var(--muted); font-size: 11px; }
+.noSuggestions { display: block; padding: 8px; }
+
 .searchButton {
   position: absolute;
   right: 4px;
@@ -168,6 +192,7 @@
 }
 
 .headerActions {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -189,6 +214,25 @@
 }
 
 .iconButton:hover { background: var(--soft); }
+
+.accountMenu { top: calc(100% + 8px); right: 0; width: 230px; padding: 14px; }
+.accountMenu > strong { font-size: 14px; }
+.accountMenu p { margin: 7px 0 10px; color: var(--muted); font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; }
+.accountMenu a, .accountMenu button {
+  display: block;
+  width: 100%;
+  padding: 9px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.accountMenu a:hover, .accountMenu button:hover { background: var(--soft); }
 
 .miniBadge {
   position: absolute;
@@ -212,6 +256,8 @@
    -------------------------------------------------------------------------- */
 
 .chipBar {
+  position: relative;
+  z-index: 30;
   background: var(--surface);
   border-bottom: 1px solid var(--line);
 }
@@ -226,8 +272,31 @@
   padding: 0 clamp(16px, 3vw, 40px);
 }
 
+.categoryMenuWrap { position: relative; flex: 0 0 auto; }
+.categoryMenuButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: #1544b5;
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.categoryMenuButton:hover { background: #11358f; }
+.categoryMenu { top: calc(100% + 7px); left: 0; width: min(260px, calc(100vw - 32px)); padding: 10px; }
+.categoryMenu button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 8px; border: 0; border-radius: 8px; background: transparent; color: var(--ink); font: inherit; font-size: 12px; text-align: left; cursor: pointer; }
+.categoryMenu button:hover, .categoryMenu button[aria-pressed="true"] { background: var(--soft); color: var(--accent-ink); }
+
 .chips {
   display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
   align-items: center;
   gap: clamp(12px, 1.9vw, 28px);
   overflow-x: auto;
