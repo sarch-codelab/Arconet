@@ -154,6 +154,19 @@ export const PRODUCTS = [
   },
 ];
 
+// Vitrina de ofertas y líneas destacadas: solo se señalan como ofertas los
+// equipos que ya tienen esa etiqueta en PRODUCTS. Las demás tarjetas llevan a
+// categorías reales o a contacto, sin prometer promociones no configuradas.
+export const DEAL_CARDS = [
+  { title: "OTDR de campo", detail: "En oferta", href: "/catalogo/ficha/otdr", image: "/catalogo-vitrina/ofertas/medalla-descuento.webp" },
+  { title: "Instrumentos de medición", detail: "Explorar equipos", href: "/tienda/categoria/instrumentos-de-medicion-optica", icon: "gauge", accent: true },
+  { title: "Fibra óptica", detail: "Conecta tus proyectos", href: "/tienda/categoria/soluciones-de-preconectorizado", image: "/catalogo-vitrina/ofertas/bobina-fibra.webp", featured: true },
+  { title: "Componentes pasivos", detail: "Para tu red", href: "/tienda/categoria/componentes-pasivos", icon: "cable" },
+  { title: "Gabinete de distribución", detail: "En oferta", href: "/catalogo/ficha/gabinete", image: "/catalogo-vitrina/ofertas/medalla-descuento.webp" },
+  { title: "Herramientas y kits", detail: "Para cada instalación", href: "/tienda/categoria/herramientas-y-kits", icon: "wrench" },
+  { title: "Cotiza tu proyecto", detail: "Hablemos de tu red", href: "/contacto", icon: "boxes" },
+];
+
 export const BENEFITS = [
   { icon: "truck", title: "Envíos a todo Honduras", text: "San Pedro Sula y todo el país" },
   { icon: "shield", title: "Pagos seguros", text: "Facturación y cotización clara" },

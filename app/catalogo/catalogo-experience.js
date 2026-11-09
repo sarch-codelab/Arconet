@@ -34,6 +34,7 @@ import {
   BRANDS,
   CATEGORY_CARDS,
   CHIPS,
+  DEAL_CARDS,
   HERO_IMAGE,
   HERO_SLIDES,
   IDEAS,
@@ -98,6 +99,12 @@ export default function CatalogoExperience() {
   const limpiarFiltros = () => {
     setConsulta("");
     setChip("todas");
+    productosRef.current?.scrollIntoView({ block: "start" });
+  };
+
+  const verOfertas = () => {
+    setConsulta("");
+    setChip("ofertas");
     productosRef.current?.scrollIntoView({ block: "start" });
   };
 
@@ -383,6 +390,41 @@ export default function CatalogoExperience() {
                 )}
               </Link>
             ))}
+          </div>
+        </section>
+
+        {/* Ofertas y líneas destacadas, justo debajo de fabricantes. */}
+        <section className={`${styles.section} ${styles.dealShowcase}`} aria-labelledby="titulo-ofertas-destacadas">
+          <div className={styles.dealHead}>
+            <div>
+              <span className={styles.sectionEyebrow}>Descubre más</span>
+              <h2 className={styles.sectionTitle} id="titulo-ofertas-destacadas">Ofertas y destacados</h2>
+            </div>
+            <button type="button" className={styles.viewAll} onClick={verOfertas}>
+              Ver ofertas <ArrowRight size={14} aria-hidden="true" />
+            </button>
+          </div>
+          <div className={styles.dealGrid}>
+            {DEAL_CARDS.map((item) => {
+              const Icono = ICONOS[item.icon];
+              return (
+                <Link
+                  key={item.title}
+                  href={item.href}
+                  className={`${styles.dealTile}${item.accent ? ` ${styles.dealTileAccent}` : ""}${item.featured ? ` ${styles.dealTileFeatured}` : ""}`}
+                >
+                  <span className={styles.dealTileCopy}>
+                    <strong>{item.title}</strong>
+                    <small>{item.detail} <ArrowUpRight size={13} aria-hidden="true" /></small>
+                  </span>
+                  {item.image ? (
+                    <Image src={item.image} alt="" width={520} height={520} sizes="(max-width: 900px) 45vw, 20vw" className={styles.dealTileImage} />
+                  ) : (
+                    <span className={styles.dealTileIcon} aria-hidden="true"><Icono size={44} strokeWidth={1.5} /></span>
+                  )}
+                </Link>
+              );
+            })}
           </div>
         </section>
 
