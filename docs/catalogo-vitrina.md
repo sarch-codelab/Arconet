@@ -525,3 +525,14 @@ Pexels (ilustrativas, no fotografías del inventario):
 están disponibles bajo la [licencia de Pexels](https://www.pexels.com/license/),
 que permite su uso gratuito en sitios web sin exigir atribución. Las secciones históricas
 anteriores describen el antiguo scroll y quedan sustituidas por esta.
+
+## Página de todos los destacados
+
+El enlace «Ver todo» de Productos destacados abre `/catalogo/destacados`.
+La página muestra todos los seis productos editoriales y los productos con
+existencias devueltos por `/api/catalogo`, sin dividirlos en grupos de seis.
+Permite buscar por nombre o línea y filtrar por categoría; cada tarjeta abre
+la ficha editorial o el producto real de la tienda, respectivamente. El diseño
+conserva la medalla y utiliza dos columnas en móvil. Si la API falla, los
+productos editoriales siguen visibles y se muestra un aviso, en vez de
+presentar el inventario incompleto como si estuviera actualizado.

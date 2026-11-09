@@ -5,7 +5,7 @@ import Image from "next/image";
 
 /**
  * Carga los productos activos de la BD y los expone en dos formas:
- * { products, byCategory, loading }. `products` es la lista completa y
+ * { products, byCategory, loading, error }. `products` es la lista completa y
  * byCategory es un mapa categoría -> lista de productos.
  *
  * `productosIniciales` permite que una página pinte su listado en el servidor:
@@ -16,17 +16,24 @@ import Image from "next/image";
 export function useCatalogProducts(productosIniciales = []) {
   const [products, setProducts] = useState(productosIniciales);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     let active = true;
     fetch("/api/catalogo")
       .then((response) => (response.ok ? response.json() : null))
       .then((data) => {
-        if (!active || !Array.isArray(data)) return;
+        if (!active) return;
+        if (!Array.isArray(data)) {
+          setError(true);
+          return;
+        }
         setProducts(data);
+        setError(false);
       })
       .catch(() => {
         // Sin datos nuevos se mantiene el último listado bueno.
+        if (active) setError(true);
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -45,7 +52,7 @@ export function useCatalogProducts(productosIniciales = []) {
     return grouped;
   }, [products]);
 
-  return { products, byCategory, loading };
+  return { products, byCategory, loading, error };
 }
 
 function formatPrice(value) {

@@ -432,9 +432,9 @@ export default function CatalogoExperience() {
               <h2 className={styles.sectionTitle}>Productos destacados</h2>
             </div>
             <div className={styles.sectionActions}>
-              <button type="button" className={styles.viewAll} onClick={limpiarFiltros}>
+              <Link href="/catalogo/destacados" className={styles.viewAll}>
                 Ver todo <ArrowRight size={14} aria-hidden="true" />
-              </button>
+              </Link>
               <div className={styles.rowArrows}>
                 <button
                   type="button"
