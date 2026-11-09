@@ -92,45 +92,30 @@ describe("la vitrina de fabricantes usa las marcas reales de Arconet", () => {
     expect(main).toContain("Ofertas exclusivas para ti");
   });
 
-  it("es una fila de tarjetas blancas que SOLO se mueve con las flechas", () => {
+  it("las tarjetas blancas se agrupan en páginas de seis", () => {
     const js = leer(EXPERIENCIA);
     const css = leer(CSS);
-    expect(css).toMatch(/\.brandRow\s*\{[^}]*display: flex/);
-    // `hidden` quita rueda, trackpad, arrastre y barra, pero el contenedor
-    // sigue siendo desplazable con scrollTo() desde JS (lo que usan las flechas).
-    expect(css).toMatch(/\.brandRow\s*\{[^}]*overflow-x: hidden/);
-    expect(css).not.toMatch(/\.brandRow\s*\{[^}]*overflow-x: auto/);
-    expect(css).not.toContain(".brandRow::-webkit-scrollbar");
-    expect(css).toMatch(/\.brandRow\s*\{[^}]*user-select: none/);
-    // Con `hidden`, el snap obligatorio deja el scroll suave a mitad de camino;
-    // las flechas avanzan exactamente una tarjeta + gap, así que no hace falta.
-    expect(css).not.toMatch(/\.brandRow\s*\{[^}]*scroll-snap-type/);
+    expect(css).toMatch(/\.brandRow\s*\{[^}]*display: grid/);
+    expect(css).toMatch(/\.brandRow\s*\{[^}]*repeat\(6, minmax\(0, 1fr\)\)/);
+    expect(css).toMatch(/@media \(max-width: 620px\)[\s\S]*\.productRow, \.ideaRow, \.brandRow \{ grid-template-columns: repeat\(2/);
     expect(css).toMatch(/\.brandCard\s*\{[^}]*background: #fff/);
-    expect(css).toMatch(/\.brandHead\s*\{[^}]*grid-template-columns: 1fr auto 1fr/);
-    expect(css).toMatch(/@media \(max-width: 620px\)[\s\S]*\.brandCard \{ flex-basis: 52vw/);
-    // No se interceptan gestos: no hacen falta, el overflow ya los impide.
     expect(js).not.toMatch(/onWheel|onTouch|addEventListener\(\s*["']wheel/);
     const bloqueLogo = js.match(/<Image[\s\S]{0,600}?src=\{marca\.logo\}[\s\S]{0,600}?\/>/)?.[0] || "";
     expect(bloqueLogo).toContain("unoptimized");
     expect(bloqueLogo).not.toMatch(/\bpriority\b/);
-    // Sin eager, Chromium no pide los logos que quedan fuera del scroller.
     expect(bloqueLogo).toContain('loading="eager"');
     expect(bloqueLogo).toContain("draggable={false}");
   });
 
-  it("las flechas de marcas, productos e ideas comparten desplazamiento exacto", () => {
+  it("las flechas de marcas, productos e ideas cambian grupos completos", () => {
     const js = leer(EXPERIENCIA);
-    const helper = leer("app/catalogo/desplazar-fila.js");
     expect(js).toContain('aria-label="Fabricantes anteriores"');
     expect(js).toContain('aria-label="Fabricantes siguientes"');
-    expect(helper).toContain('fila.scrollTo({ left: destino, behavior: "instant" })');
-    expect(js.match(/desplazarFila\(\w+FilaRef/g)).toHaveLength(6);
+    expect(js).toContain("setPaginaMarcas(marcasPagina.actual + 1)");
+    expect(js).toContain("marcasPagina.elementos.map");
+    expect(js).toContain("productosPagina.elementos.map");
+    expect(js).toContain("ideasPagina.elementos.map");
     expect(js).not.toContain("fila.scrollBy(");
   });
 
-  it("productos e ideas tampoco muestran barra ni admiten scroll directo", () => {
-    const css = leer(CSS);
-    expect(css).toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*overflow-x: hidden/);
-    expect(css).not.toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*scroll-snap-type/);
-  });
 });

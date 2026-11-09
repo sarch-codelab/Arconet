@@ -56,41 +56,34 @@ describe("el boletín usa la imagen del sobre aportada", () => {
   });
 });
 
-describe("productos e ideas van en una sola fila con flechas", () => {
-  it("ambas secciones usan contenedores flex desplazables solo con flechas", () => {
+describe("productos e ideas se muestran en páginas de seis", () => {
+  it("usan cuadrículas sin desplazamiento horizontal", () => {
     const js = leer(EXPERIENCIA);
     const css = leer(CSS);
     expect(js).toContain("className={styles.productRow}");
     expect(js).toContain("className={styles.ideaRow}");
-    expect(js).not.toContain("styles.productGrid");
-    expect(js).not.toContain("styles.ideaGrid");
-    expect(css).toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*display: flex/);
-    expect(css).toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*overflow-x: hidden/);
-    expect(css).not.toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*scroll-snap-type/);
-    expect(css).toMatch(/\.productCard\s*\{[^}]*flex: 0 0 /);
-    expect(css).toMatch(/\.ideaCard\s*\{[^}]*flex: 0 0 /);
+    expect(css).toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*display: grid/);
+    expect(css).toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*repeat\(6, minmax\(0, 1fr\)\)/);
     expect(css).not.toContain(".productRow::-webkit-scrollbar");
     expect(css).not.toContain(".ideaRow::-webkit-scrollbar");
-    // Ya no hay rejillas de 6/5 columnas para estas dos secciones.
     expect(css).not.toContain(".productGrid");
     expect(css).not.toContain(".ideaGrid");
-    expect(css).not.toContain("grid-template-columns: repeat(5, minmax(0, 1fr))");
-    expect(css).not.toContain(".ideaCard:last-child");
   });
 
-  it("las flechas desplazan sin interceptar gestos", () => {
+  it("las flechas cambian páginas sin interceptar gestos", () => {
     const js = leer(EXPERIENCIA);
     for (const etiqueta of ["Productos anteriores", "Productos siguientes", "Ideas anteriores", "Ideas siguientes"]) {
       expect(js).toContain(`aria-label="${etiqueta}"`);
       expect(main).toContain(`aria-label="${etiqueta}"`);
     }
-    expect(js).toContain("desplazarFila(productosFilaRef");
-    expect(js).toContain("desplazarFila(ideasFilaRef");
-    expect(leer("app/catalogo/desplazar-fila.js")).toContain('fila.scrollTo({ left: destino, behavior: "instant" })');
+    expect(js).toContain("productosPagina.elementos.map");
+    expect(js).toContain("ideasPagina.elementos.map");
+    expect(js).toContain("setPaginaProductos(productosPagina.actual + 1)");
+    expect(js).toContain("setPaginaIdeas(ideasPagina.actual + 1)");
     expect(js).not.toMatch(/onWheel|onTouch|addEventListener\(\s*["']wheel/);
   });
 
-  it("el primer HTML trae las 6 tarjetas de producto y las 5 ideas en la fila", () => {
+  it("el primer HTML trae los 6 productos y el primer grupo de ideas", () => {
     expect(main).toContain("Productos destacados");
     expect(main).toContain("Ideas para tu próxima instalación");
     expect(main).toContain("Fusionadora de fibra óptica");

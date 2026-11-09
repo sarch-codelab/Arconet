@@ -684,7 +684,10 @@
   transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
 }
 
-.rowArrows button:hover {
+.rowArrows button:disabled,
+.brandArrows button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.rowArrows button:hover:not(:disabled) {
   border-color: var(--accent);
   background: var(--accent);
   color: #fff;
@@ -694,23 +697,19 @@
    PRODUCTOS DESTACADOS
    -------------------------------------------------------------------------- */
 
-/* Igual que .brandRow: solo las flechas mueven estas filas. `hidden` quita la
-   rueda, el trackpad, el arrastre y la barra de scroll, pero el contenedor
-   sigue siendo desplazable con `scrollTo()` desde JS. Sin scroll-snap: con
-   `hidden` puede dejar un scroll suave a mitad de camino; las flechas ya
-   avanzan exactamente una tarjeta + el gap calculado. */
+/* Cada página muestra hasta seis elementos completos; en móvil se distribuyen
+   en cuadrícula. Solo las flechas cambian de página, sin scroll horizontal. */
 .productRow,
 .ideaRow {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 12px;
-  overflow-x: hidden;
   padding: 2px 2px 8px;
-  user-select: none;
 }
 
 .productCard {
   display: flex;
-  flex: 0 0 clamp(210px, 22vw, 280px);
+  min-width: 0;
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--line);
@@ -739,10 +738,20 @@
 
 .productCard:hover .productImg { transform: scale(1.05); }
 
-.offerTag {
+.featuredMedal {
   position: absolute;
   top: 8px;
   left: 8px;
+  width: 34px;
+  height: auto;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.4));
+}
+
+.offerTag {
+  position: absolute;
+  top: 8px;
+  right: 8px;
   padding: 3px 7px;
   border-radius: 6px;
   background: var(--accent);
@@ -753,6 +762,8 @@
 
 .productBody {
   display: flex;
+  min-width: 0;
+  overflow-wrap: anywhere;
   flex-direction: column;
   gap: 3px;
   min-height: 58px;
@@ -853,30 +864,22 @@
   transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
 }
 
-.brandArrows button:hover {
+.brandArrows button:hover:not(:disabled) {
   border-color: var(--accent);
   background: var(--accent);
   color: #fff;
 }
 
 .brandRow {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 12px;
-  /* El usuario no desplaza esta fila con rueda, trackpad ni arrastre: solo
-     las dos flechas la mueven. `hidden` sigue creando un contenedor con
-     scroll, así que `scrollTo()` desde JS continúa funcionando; lo que quita
-     es la barra y el desplazamiento por gesto del navegador. */
-  overflow-x: hidden;
-  /* Sin scroll-snap aquí: con `hidden` el snap obligatorio puede dejar un
-     scroll suave a mitad de camino. Las flechas avanzan exactamente el ancho
-     de una tarjeta + el gap calculado, así que las tarjetas quedan alineadas. */
   padding: 2px 2px 8px;
-  user-select: none;
 }
 
 .brandCard {
   display: grid;
-  flex: 0 0 clamp(190px, 22vw, 260px);
+  min-width: 0;
   place-items: center;
   min-height: 96px;
   padding: 14px;
@@ -907,7 +910,9 @@
 
 .brandWordmark {
   font-family: var(--font-heading), system-ui, sans-serif;
-  font-size: clamp(20px, 2vw, 26px);
+  font-size: clamp(14px, 1.6vw, 22px);
+  overflow-wrap: anywhere;
+  text-align: center;
   font-weight: 750;
   letter-spacing: -0.02em;
   color: #12161d;
@@ -1011,7 +1016,7 @@
 .ideaCard {
   position: relative;
   display: block;
-  flex: 0 0 clamp(240px, 27vw, 340px);
+  min-width: 0;
   aspect-ratio: 1 / 1.05;
   overflow: hidden;
   border-radius: 14px;
@@ -1252,7 +1257,6 @@
 
 @media (max-width: 1180px) {
   .categoryRow { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .productCard, .ideaCard { flex-basis: clamp(200px, 28vw, 260px); }
   .benefits { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 14px; }
   .benefit:nth-child(2) { border-right: 0; }
   .promoRow { grid-template-columns: 1fr; }
@@ -1265,7 +1269,7 @@
   .heroContent { width: 60%; }
   .heroTitle { font-size: clamp(26px, 4vw, 40px); }
   .categoryRow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .productCard, .ideaCard { flex-basis: clamp(190px, 36vw, 250px); }
+  .productRow, .ideaRow, .brandRow { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .dealGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: none; }
   .dealTileFeatured { grid-column: 1 / -1; grid-row: auto; min-height: 150px; align-items: center; }
   .dealTileFeatured .dealTileCopy { max-width: 58%; }
@@ -1306,14 +1310,12 @@
   .categoryRow { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .categoryLabel { right: 28px; bottom: 9px; left: 10px; font-size: 12px; }
 
-  .productRow, .ideaRow { gap: 8px; }
-  .productCard, .ideaCard { flex-basis: 62vw; }
+  .productRow, .ideaRow, .brandRow { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .brandShowcase { padding: 18px 12px 20px; }
   .brandHead { grid-template-columns: 1fr auto; margin-bottom: 14px; }
   .brandTitle { grid-column: 1; font-size: 18px; text-align: left; }
   .brandArrows { grid-column: 2; }
-  .brandRow { gap: 8px; }
-  .brandCard { flex-basis: 52vw; min-height: 84px; }
+  .brandCard { min-height: 84px; }
   .dealGrid { gap: 8px; }
   .dealTile { min-height: 112px; padding: 14px 12px; }
   .dealTileFeatured { min-height: 140px; }
@@ -1346,6 +1348,4 @@
   .heroPrimary,
   .heroSecondary { height: 38px; padding: 0 14px; font-size: 11px; }
   .categoryLabel { font-size: 11px; }
-  .productCard, .ideaCard { flex-basis: 74vw; }
-  .brandCard { flex-basis: 66vw; }
 }

@@ -45,8 +45,9 @@ import {
   REGALO_OFERTAS,
   SOBRE_NOVEDADES,
 } from "./vitrina-data";
-import { desplazarFila } from "./desplazar-fila";
 import { coincideBusqueda, sugerirDestacados } from "./busqueda-destacados";
+import { marcasDeTienda, paginaDe, productosDeTienda } from "./vitrina-paginacion";
+import { useCatalogProducts } from "../tienda/catalogo-products";
 import styles from "./catalogo-experience.module.css";
 
 const ICONOS = {
@@ -74,28 +75,35 @@ export default function CatalogoExperience() {
   const [categoriasAbiertas, setCategoriasAbiertas] = useState(false);
   const [cuentaAbierta, setCuentaAbierta] = useState(false);
   const [cuenta, setCuenta] = useState({ estado: "cargando" });
+  const [paginaProductos, setPaginaProductos] = useState(0);
+  const [paginaMarcas, setPaginaMarcas] = useState(0);
+  const [paginaIdeas, setPaginaIdeas] = useState(0);
+  const { products: inventario } = useCatalogProducts();
   const productosRef = useRef(null);
   const categoriasBotonRef = useRef(null);
   const cuentaBotonRef = useRef(null);
   const cuentaPeticionRef = useRef(0);
-  const productosFilaRef = useRef(null);
-  const ideasFilaRef = useRef(null);
-  const marcasFilaRef = useRef(null);
 
   const slide = HERO_SLIDES[diapositiva];
 
-  const sugerencias = useMemo(() => sugerirDestacados(PRODUCTS, consulta), [consulta]);
+  const destacados = useMemo(() => [...PRODUCTS, ...productosDeTienda(inventario)], [inventario]);
+  const marcas = useMemo(() => [...BRANDS, ...marcasDeTienda(inventario, BRANDS)], [inventario]);
+  const sugerencias = useMemo(() => sugerirDestacados(destacados, consulta), [destacados, consulta]);
 
-  const productos = useMemo(() => PRODUCTS.filter((producto) => {
+  const productos = useMemo(() => destacados.filter((producto) => {
     const porChip =
       chip === "todas" ||
       (chip === "ofertas" ? producto.offer : producto.category === chip);
     return porChip && coincideBusqueda(producto, consulta);
-  }), [chip, consulta]);
+  }), [destacados, chip, consulta]);
+  const productosPagina = paginaDe(productos, paginaProductos);
+  const marcasPagina = paginaDe(marcas, paginaMarcas);
+  const ideasPagina = paginaDe(IDEAS, paginaIdeas);
 
   const irAProductos = (event) => {
     event.preventDefault();
     setBusquedaAbierta(false);
+    setPaginaProductos(0);
     setChip("todas");
     // Sin behavior: respeta `scroll-behavior` (y su ajuste de movimiento
     // reducido) definido en globals.css.
@@ -103,18 +111,21 @@ export default function CatalogoExperience() {
   };
 
   const limpiarFiltros = () => {
+    setPaginaProductos(0);
     setConsulta("");
     setChip("todas");
     productosRef.current?.scrollIntoView({ block: "start" });
   };
 
   const verOfertas = () => {
+    setPaginaProductos(0);
     setConsulta("");
     setChip("ofertas");
     productosRef.current?.scrollIntoView({ block: "start" });
   };
 
   const elegirCategoria = (id) => {
+    setPaginaProductos(0);
     setConsulta("");
     setChip(id);
     setCategoriasAbiertas(false);
@@ -200,12 +211,12 @@ export default function CatalogoExperience() {
                 type="search"
                 value={consulta}
                 onFocus={() => setBusquedaAbierta(true)}
-                onChange={(event) => { setConsulta(event.target.value); setBusquedaAbierta(true); }}
+                onChange={(event) => { setPaginaProductos(0); setConsulta(event.target.value); setBusquedaAbierta(true); }}
                 placeholder="Busca equipos, líneas y más..."
                 autoComplete="off"
                 aria-describedby="alcance-busqueda"
               />
-              <span id="alcance-busqueda" className={styles.srOnly}>Busca entre los seis productos destacados del catálogo.</span>
+              <span id="alcance-busqueda" className={styles.srOnly}>Busca entre los productos destacados y los disponibles en la tienda.</span>
               <button type="submit" className={styles.searchButton} aria-label="Buscar">
                 <Search size={16} aria-hidden="true" />
               </button>
@@ -214,7 +225,7 @@ export default function CatalogoExperience() {
                   <p>Productos destacados</p>
                   {sugerencias.length ? (
                     <ul>
-                      {sugerencias.map((producto) => (
+                      {sugerencias.slice(0, 6).map((producto) => (
                         <li key={producto.id}>
                           <Link href={producto.href} data-sugerencia onClick={() => setBusquedaAbierta(false)}>
                             <Search size={15} aria-hidden="true" />
@@ -223,7 +234,7 @@ export default function CatalogoExperience() {
                         </li>
                       ))}
                     </ul>
-                  ) : <span className={styles.noSuggestions}>Sin coincidencias entre los productos destacados.</span>}
+                  ) : <span className={styles.noSuggestions}>Sin coincidencias entre los productos disponibles.</span>}
                 </div>
               )}
             </form>
@@ -314,7 +325,7 @@ export default function CatalogoExperience() {
                     type="button"
                     className={`${styles.chip}${activo ? ` ${styles.chipActive}` : ""}`}
                     aria-pressed={activo}
-                    onClick={() => setChip(item.id)}
+                    onClick={() => { setPaginaProductos(0); setChip(item.id); }}
                   >
                     <Icono size={14} aria-hidden="true" />
                     {item.label}
@@ -413,7 +424,7 @@ export default function CatalogoExperience() {
           ))}
         </section>
 
-        {/* Productos destacados: una sola fila deslizante, con buscador y filtros. */}
+        {/* Productos destacados en páginas de hasta seis, con buscador y filtros. */}
         <section className={styles.section} id="destacados" ref={productosRef}>
           <div className={styles.sectionHead}>
             <div>
@@ -428,39 +439,53 @@ export default function CatalogoExperience() {
                 <button
                   type="button"
                   aria-label="Productos anteriores"
-                  onClick={() => desplazarFila(productosFilaRef, -1)}
+                  aria-controls={productos.length ? "productos-pagina" : undefined}
+                  disabled={productosPagina.actual === 0}
+                  onClick={() => setPaginaProductos(productosPagina.actual - 1)}
                 >
                   <ChevronLeft size={15} aria-hidden="true" />
                 </button>
                 <button
                   type="button"
                   aria-label="Productos siguientes"
-                  onClick={() => desplazarFila(productosFilaRef, 1)}
+                  aria-controls={productos.length ? "productos-pagina" : undefined}
+                  disabled={productosPagina.actual >= productosPagina.totalPaginas - 1}
+                  onClick={() => setPaginaProductos(productosPagina.actual + 1)}
                 >
                   <ChevronRight size={15} aria-hidden="true" />
                 </button>
+                <span className={styles.srOnly} role="status">Página {productosPagina.actual + 1} de {productosPagina.totalPaginas}</span>
               </div>
             </div>
           </div>
 
           {productos.length > 0 ? (
-            <div className={styles.productRow} ref={productosFilaRef}>
-              {productos.map((producto) => (
+            <div className={styles.productRow} id="productos-pagina">
+              {productosPagina.elementos.map((producto) => (
                 <article key={producto.id} className={styles.productCard}>
                   <Link href={producto.href} className={styles.productMedia} tabIndex={-1} aria-hidden="true">
                     <Image
                       src={producto.image}
                       alt=""
                       fill
-                      sizes="(max-width: 620px) 62vw, 280px"
+                      unoptimized={producto.image.startsWith("https://")}
+                      sizes="(max-width: 620px) 46vw, (max-width: 900px) 31vw, 16vw"
                       className={styles.productImg}
+                      draggable={false}
+                    />
+                    <Image
+                      src="/catalogo-vitrina/medalla-destacado.png"
+                      alt=""
+                      width={237}
+                      height={348}
+                      className={styles.featuredMedal}
                       draggable={false}
                     />
                     {producto.offer && <span className={styles.offerTag}>Oferta</span>}
                   </Link>
                   <div className={styles.productBody}>
                     <Link href={producto.href} className={styles.productName}>{producto.name}</Link>
-                    <span className={styles.productLine}>{producto.line}</span>
+                    <span className={styles.productLine}>{producto.origen === "tienda" ? "Tienda · " : ""}{producto.line}</span>
                   </div>
                 </article>
               ))}
@@ -475,9 +500,7 @@ export default function CatalogoExperience() {
           )}
         </section>
 
-        {/* Vitrina de fabricantes: título centrado, flechas y una fila de
-            tarjetas con los logos reales, como el «Brand Showcase» de la
-            referencia. Va justo debajo de «Productos destacados». */}
+        {/* Fabricantes en grupos de seis, justo debajo de productos. */}
         <section className={styles.brandShowcase} id="marcas" aria-label="Fabricantes que distribuimos">
           <div className={styles.brandHead}>
             <h2 className={styles.brandTitle}>Marcas que distribuimos</h2>
@@ -485,32 +508,34 @@ export default function CatalogoExperience() {
               <button
                 type="button"
                 aria-label="Fabricantes anteriores"
-                onClick={() => desplazarFila(marcasFilaRef, -1)}
+                aria-controls="marcas-pagina"
+                disabled={marcasPagina.actual === 0}
+                onClick={() => setPaginaMarcas(marcasPagina.actual - 1)}
               >
                 <ChevronLeft size={15} aria-hidden="true" />
               </button>
               <button
                 type="button"
                 aria-label="Fabricantes siguientes"
-                onClick={() => desplazarFila(marcasFilaRef, 1)}
+                aria-controls="marcas-pagina"
+                disabled={marcasPagina.actual >= marcasPagina.totalPaginas - 1}
+                onClick={() => setPaginaMarcas(marcasPagina.actual + 1)}
               >
                 <ChevronRight size={15} aria-hidden="true" />
               </button>
+              <span className={styles.srOnly} role="status">Página {marcasPagina.actual + 1} de {marcasPagina.totalPaginas}</span>
             </div>
           </div>
-          {/* Solo las flechas mueven esta fila: el CSS mantiene el scroll
-              programático con `overflow-x: hidden`, sin gesto del mouse. */}
-          <div className={styles.brandRow} ref={marcasFilaRef}>
-            {BRANDS.map((marca) => (
+          {/* Se muestran hasta seis fabricantes por página; solo cambian con las flechas. */}
+          <div className={styles.brandRow} id="marcas-pagina">
+            {marcasPagina.elementos.map((marca) => (
               <Link
                 key={marca.name}
                 href={marca.href}
                 className={styles.brandCard}
                 aria-label={`Ver equipos de ${marca.name} en la tienda`}
               >
-                {/* Chromium no dispara el lazy loading de las tarjetas que
-                    quedan fuera de un scroller horizontal: son 4 PNG
-                    pequeños, así que se piden junto con la página. */}
+                {/* Las marcas sin logotipo usan su nombre como distintivo. */}
                 {marca.logo ? (
                   <Image
                     src={marca.logo}
@@ -581,7 +606,7 @@ export default function CatalogoExperience() {
           })}
         </section>
 
-        {/* Ideas / inspiración: también en una sola fila deslizante. */}
+        {/* Ideas / inspiración en páginas de hasta seis. */}
         <section className={styles.section} id="ideas">
           <div className={styles.sectionHead}>
             <div>
@@ -596,28 +621,33 @@ export default function CatalogoExperience() {
                 <button
                   type="button"
                   aria-label="Ideas anteriores"
-                  onClick={() => desplazarFila(ideasFilaRef, -1)}
+                aria-controls="ideas-pagina"
+                  disabled={ideasPagina.actual === 0}
+                  onClick={() => setPaginaIdeas(ideasPagina.actual - 1)}
                 >
                   <ChevronLeft size={15} aria-hidden="true" />
                 </button>
                 <button
                   type="button"
                   aria-label="Ideas siguientes"
-                  onClick={() => desplazarFila(ideasFilaRef, 1)}
+                aria-controls="ideas-pagina"
+                  disabled={ideasPagina.actual >= ideasPagina.totalPaginas - 1}
+                  onClick={() => setPaginaIdeas(ideasPagina.actual + 1)}
                 >
                   <ChevronRight size={15} aria-hidden="true" />
                 </button>
+                <span className={styles.srOnly} role="status">Página {ideasPagina.actual + 1} de {ideasPagina.totalPaginas}</span>
               </div>
             </div>
           </div>
-          <div className={styles.ideaRow} ref={ideasFilaRef}>
-            {IDEAS.map((idea) => (
+          <div className={styles.ideaRow} id="ideas-pagina">
+            {ideasPagina.elementos.map((idea) => (
               <Link key={idea.title} href={idea.href} className={styles.ideaCard}>
                 <Image
                   src={idea.image}
                   alt=""
                   fill
-                  sizes="(max-width: 620px) 62vw, 280px"
+                  sizes="(max-width: 620px) 46vw, (max-width: 900px) 31vw, 16vw"
                   className={styles.ideaImg}
                   draggable={false}
                 />

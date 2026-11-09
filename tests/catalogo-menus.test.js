@@ -32,7 +32,7 @@ describe("búsqueda y menús del catálogo", () => {
 
   it("los menús son botones accesibles y el alcance de búsqueda se indica", () => {
     expect(html).toContain("Buscar en el catálogo");
-    expect(html).toContain("Busca entre los seis productos destacados");
+    expect(html).toContain("Busca entre los productos destacados y los disponibles en la tienda");
     expect(html).toMatch(/<button[^>]*aria-expanded="false"[^>]*>[^<]*<svg[^>]*>[\s\S]*?Categorías/);
     expect(html).toContain('aria-label="Acceder a mi cuenta"');
     expect(js).toContain('event.key === "Escape"');

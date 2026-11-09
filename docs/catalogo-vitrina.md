@@ -36,10 +36,10 @@ No se usó un comodín `/catalogo/:path*` porque las fotos del sitio viven en
 | Barra de líneas | 7 chips que filtran los productos; idioma/región/moneda |
 | Hero | imagen generada con el panel azul en diagonal y el cluster de equipos; 3 destacados con flechas, CTA y círculo «Novedades» |
 | Cuadrícula de categorías | **6 cuadros con foto de fondo y etiqueta blanca**, inspirados en el «Featured Category Grid»; 5 líneas reales + ofertas |
-| Productos destacados | **una sola fila deslizante** de 6 equipos con foto, nombre, línea y etiqueta de oferta; sin precio, sin carrito y sin corazón |
-| Vitrina de fabricantes | título centrado «Marcas que distribuimos», flechas y **6 tarjetas con logos reales** en una fila deslizante, justo debajo de Productos destacados |
+| Productos destacados | **grupos de hasta 6 equipos** con foto, nombre, línea y etiqueta de oferta; sin precio, sin carrito y sin corazón |
+| Vitrina de fabricantes | título centrado «Marcas que distribuimos», flechas y **grupos de hasta 6 tarjetas** con logotipo o nombre, justo debajo de Productos destacados |
 | Ventajas | envíos, pagos, garantía y soporte |
-| Ideas | **una sola fila deslizante** de 5 tarjetas con foto y enlace a líneas reales |
+| Ideas | **grupos de hasta 6 tarjetas**, con 12 ideas, fotos y enlaces a líneas reales |
 | Ofertas y boletín | tarjeta azul + formulario de correo + **imagen del sobre azul** aportada por el usuario |
 | Cierre | 4 promesas y «Síguenos», más el `<Footer />` compartido |
 
@@ -47,10 +47,9 @@ No se usó un comodín `/catalogo/:path*` porque las fotos del sitio viven en
 
 - El **buscador** y los **chips** filtran la fila de productos en cliente
   (y hay estado vacío con botón para limpiar).
-- **Flechas de las filas**: productos, marcas, ideas y relacionados usan
-  `overflow-x: hidden` y se mueven con las flechas mediante `scrollTo`.
-  No se interceptan gestos y el scroll vertical de la página sigue funcionando.
-  El navegador puede desplazar la fila para mostrar un enlace enfocado por teclado.
+- **Flechas de las filas**: productos, marcas e ideas avanzan por grupos de
+  hasta seis. Las fichas conservan sus flechas para productos relacionados.
+  No se interceptan gestos y el scroll vertical sigue funcionando.
 - **Flechas del hero** cambian entre tres destacados.
 - **Boletín**: `<form action="/contacto" method="get">` con `name="correo"`.
   No hay endpoint de suscripciones; en vez de fingir un alta, el formulario
@@ -483,9 +482,9 @@ Las ilustraciones son decorativas y no representan fotografías de inventario.
 
 ## Buscador y menús de la cabecera
 
-- Al escribir, el buscador muestra sugerencias enlazadas a las fichas de los
-  seis productos destacados de la vitrina. Acepta mayúsculas y búsquedas sin
-  tildes. No consulta ni representa todo el inventario de `/tienda`. Enter
+- Al escribir, el buscador muestra sugerencias de los seis productos editoriales
+  y los productos disponibles cargados desde la tienda. Acepta mayúsculas y
+  búsquedas sin tildes. Enter
   limpia el filtro de línea y muestra las coincidencias en destacados; flecha
   abajo lleva a la primera sugerencia y Escape cierra el panel.
 - El botón «Categorías» despliega los filtros existentes de la vitrina. Al
@@ -497,3 +496,32 @@ Las ilustraciones son decorativas y no representan fotografías de inventario.
   el cierre, muestra un error sin fingir que la operación tuvo éxito. Los
   menús se cierran al salir del foco o pulsar Escape.
 - No se agregaron favoritos, carrito ni seguimiento a la cabecera de la vitrina.
+
+## Grupos de hasta seis elementos
+
+Las secciones de productos, marcas e ideas muestran seis elementos por página:
+seis columnas en escritorio, tres en tableta y dos en móvil. Las flechas cambian
+el grupo completo y se deshabilitan en los extremos; no hay deslizamiento con
+mouse ni controles táctiles que interfieran con el scroll vertical. Al cambiar
+filtros se vuelve al primer grupo. Las fichas editoriales y sus relacionados
+conservan su comportamiento anterior.
+
+Cada tarjeta de producto lleva la medalla facilitada por el usuario en la
+esquina superior izquierda; la etiqueta «Oferta» queda a la derecha para no
+solaparse. La medalla es decorativa y no altera el enlace de la ficha.
+
+Los seis productos y marcas originales siguen siendo la primera página. Se
+agregan productos con existencias obtenidos de `/api/catalogo`, que enlazan a
+sus fichas reales de `/tienda/producto/[id]`; las marcas adicionales se toman
+únicamente de esos productos, sin inventar logotipos ni relaciones de
+distribución autorizada. Si la API falla, se conserva el contenido original.
+El número de marcas adicionales depende del inventario real.
+
+Ideas cuenta con doce tarjetas y siete ideas adicionales; tres usan fotos de
+Pexels (ilustrativas, no fotografías del inventario):
+[conectores de Brett Sayles](https://www.pexels.com/photo/4373998/),
+[servidor de Omar Ashraf](https://www.pexels.com/photo/38246354/) y
+[cableado de Brett Sayles](https://www.pexels.com/photo/2881229/). Las fotos
+están disponibles bajo la [licencia de Pexels](https://www.pexels.com/license/),
+que permite su uso gratuito en sitios web sin exigir atribución. Las secciones históricas
+anteriores describen el antiguo scroll y quedan sustituidas por esta.

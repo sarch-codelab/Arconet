@@ -180,6 +180,13 @@ export const IDEAS = [
   { title: "Gabinetes y racks", count: "74 ideas", image: "/catalogo/infraestructura.jpg", href: "/tienda/categoria/gabinetes-y-racks" },
   { title: "Medición óptica", count: "155 ideas", image: "/catalogo/sol-medicion.jpg", href: "/tienda/categoria/instrumentos-de-medicion-optica" },
   { title: "Redes empresariales", count: "87 ideas", image: "/catalogo/hero-fiber.jpg", href: "/tienda" },
+  { title: "Conectores para fibra", count: "Explorar soluciones", image: "/catalogo-vitrina/ideas/fibra-conectores.jpg", href: "/tienda/categoria/soluciones-de-preconectorizado" },
+  { title: "Centros de datos", count: "Explorar gabinetes", image: "/catalogo-vitrina/ideas/conexion-servidor.jpg", href: "/tienda/categoria/gabinetes-y-racks" },
+  { title: "Cableado de red", count: "Explorar componentes", image: "/catalogo-vitrina/ideas/cableado-red.jpg", href: "/tienda/categoria/componentes-pasivos" },
+  { title: "Distribución óptica", count: "Explorar soluciones", image: "/catalogo/lineas/odf.webp", href: "/tienda/categoria/optical-distribution-frame-odf" },
+  { title: "Cajas de distribución", count: "Explorar soluciones", image: "/catalogo/lineas/cajas.webp", href: "/tienda/categoria/cajas-de-distribucion-y-emplazamiento" },
+  { title: "Montaje y herrajes", count: "Explorar equipos", image: "/catalogo/lineas/herrajes.webp", href: "/tienda/categoria/herrajes" },
+  { title: "Redes activas FTTH", count: "Explorar equipos", image: "/catalogo/lineas/activas.webp", href: "/tienda/categoria/soluciones-activas-y-accesorios-ftth" },
 ];
 
 export const PROMISES = [
