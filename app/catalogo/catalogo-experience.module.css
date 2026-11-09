@@ -802,18 +802,17 @@
 .brandRow {
   display: flex;
   gap: 12px;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scroll-snap-type: x mandatory;
-  scroll-padding-left: 2px;
+  /* El usuario no desplaza esta fila con rueda, trackpad ni arrastre: solo
+     las dos flechas la mueven. `hidden` sigue creando un contenedor con
+     scroll, así que `scrollTo()` desde JS continúa funcionando; lo que quita
+     es la barra y el desplazamiento por gesto del navegador. */
+  overflow-x: hidden;
+  /* Sin scroll-snap aquí: con `hidden` el snap obligatorio puede dejar un
+     scroll suave a mitad de camino. Las flechas avanzan exactamente el ancho
+     de una tarjeta + el gap calculado, así que las tarjetas quedan alineadas. */
   padding: 2px 2px 8px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--accent) var(--line);
+  user-select: none;
 }
-
-.brandRow::-webkit-scrollbar { height: 6px; }
-.brandRow::-webkit-scrollbar-track { border-radius: 6px; background: var(--line); }
-.brandRow::-webkit-scrollbar-thumb { border-radius: 6px; background: var(--accent); }
 
 .brandCard {
   display: grid;
@@ -821,7 +820,6 @@
   place-items: center;
   min-height: 96px;
   padding: 14px;
-  scroll-snap-align: start;
   border: 1px solid var(--line);
   border-radius: 14px;
   /* Siempre en blanco: varios logotipos son negros y desaparecerían sobre la
