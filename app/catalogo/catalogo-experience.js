@@ -43,6 +43,7 @@ import {
   REGALO_OFERTAS,
   SOBRE_NOVEDADES,
 } from "./vitrina-data";
+import { desplazarFila } from "./desplazar-fila";
 import styles from "./catalogo-experience.module.css";
 
 const ICONOS = {
@@ -62,19 +63,7 @@ const ICONOS = {
   star: Star,
 };
 
-// Avanza una fila deslizante de tarjetas. El movimiento es del navegador
-// (scroll nativo + scroll-snap); aquí solo se pide el desplazamiento, sin
-// interceptar rueda, touch ni teclado.
-const desplazarFila = (ref, direccion) => {
-  const fila = ref.current;
-  if (!fila) return;
-  const tarjeta = fila.firstElementChild;
-  const paso = tarjeta
-    ? tarjeta.getBoundingClientRect().width + 12
-    : fila.clientWidth * 0.8;
-  const reducido = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-  fila.scrollBy({ left: direccion * paso, behavior: reducido ? "instant" : "smooth" });
-};
+// Las filas solo se mueven con sus flechas: ver desplazar-fila.js.
 
 export default function CatalogoExperience() {
   const [consulta, setConsulta] = useState("");
@@ -110,28 +99,6 @@ export default function CatalogoExperience() {
     setConsulta("");
     setChip("todas");
     productosRef.current?.scrollIntoView({ block: "start" });
-  };
-
-  // Esta fila no admite scroll del usuario, así que las flechas fijan una
-  // posición exacta por tarjeta en vez de sumar desplazamientos. Es instantáneo
-  // porque el scroll suave en un contenedor con `overflow-x: hidden` puede
-  // quedarse a mitad de camino y dejar la primera tarjeta recortada.
-  const desplazarMarcas = (direccion) => {
-    const fila = marcasFilaRef.current;
-    if (!fila) return;
-    const tarjeta = fila.firstElementChild;
-    // El gap cambia a 8 px en móvil; se lee del estilo calculado para no
-    // desalinear las tarjetas con un valor fijo.
-    const espacio = Number.parseFloat(getComputedStyle(fila).columnGap) || 12;
-    const paso = tarjeta
-      ? tarjeta.getBoundingClientRect().width + espacio
-      : fila.clientWidth * 0.8;
-    const maximo = Math.max(0, fila.scrollWidth - fila.clientWidth);
-    const actual = fila.scrollLeft;
-    const destino = direccion > 0
-      ? Math.min(maximo, Math.ceil((actual + 1) / paso) * paso)
-      : Math.max(0, Math.floor((actual - 1) / paso) * paso);
-    fila.scrollTo({ left: destino, behavior: "instant" });
   };
 
   return (
@@ -343,6 +310,7 @@ export default function CatalogoExperience() {
                       fill
                       sizes="(max-width: 620px) 62vw, 280px"
                       className={styles.productImg}
+                      draggable={false}
                     />
                     {producto.offer && <span className={styles.offerTag}>Oferta</span>}
                   </Link>
@@ -373,14 +341,14 @@ export default function CatalogoExperience() {
               <button
                 type="button"
                 aria-label="Fabricantes anteriores"
-                onClick={() => desplazarMarcas(-1)}
+                onClick={() => desplazarFila(marcasFilaRef, -1)}
               >
                 <ChevronLeft size={15} aria-hidden="true" />
               </button>
               <button
                 type="button"
                 aria-label="Fabricantes siguientes"
-                onClick={() => desplazarMarcas(1)}
+                onClick={() => desplazarFila(marcasFilaRef, 1)}
               >
                 <ChevronRight size={15} aria-hidden="true" />
               </button>
@@ -472,6 +440,7 @@ export default function CatalogoExperience() {
                   fill
                   sizes="(max-width: 620px) 62vw, 280px"
                   className={styles.ideaImg}
+                  draggable={false}
                 />
                 <span className={styles.ideaShade} aria-hidden="true" />
                 <span className={styles.ideaCopy}>

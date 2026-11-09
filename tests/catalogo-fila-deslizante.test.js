@@ -4,7 +4,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 // Ajustes pedidos sobre la vitrina azul: el sobre es la imagen aportada,
-// productos e ideas van en una sola fila deslizante y desaparecen los precios,
+// productos e ideas van en una sola fila con flechas y desaparecen los precios,
 // el carrito y los corazones de ESTA página (no de /tienda ni del layout).
 
 vi.mock("next/navigation", () => ({
@@ -56,8 +56,8 @@ describe("el boletín usa la imagen del sobre aportada", () => {
   });
 });
 
-describe("productos e ideas van en una sola fila deslizante", () => {
-  it("ambas secciones usan contenedores flex con overflow horizontal", () => {
+describe("productos e ideas van en una sola fila con flechas", () => {
+  it("ambas secciones usan contenedores flex desplazables solo con flechas", () => {
     const js = leer(EXPERIENCIA);
     const css = leer(CSS);
     expect(js).toContain("className={styles.productRow}");
@@ -65,12 +65,12 @@ describe("productos e ideas van en una sola fila deslizante", () => {
     expect(js).not.toContain("styles.productGrid");
     expect(js).not.toContain("styles.ideaGrid");
     expect(css).toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*display: flex/);
-    expect(css).toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*overflow-x: auto/);
-    expect(css).toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*scroll-snap-type: x mandatory/);
+    expect(css).toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*overflow-x: hidden/);
+    expect(css).not.toMatch(/\.productRow,\s*\.ideaRow\s*\{[^}]*scroll-snap-type/);
     expect(css).toMatch(/\.productCard\s*\{[^}]*flex: 0 0 /);
     expect(css).toMatch(/\.ideaCard\s*\{[^}]*flex: 0 0 /);
-    expect(css).toMatch(/\.productCard\s*\{[^}]*scroll-snap-align: start/);
-    expect(css).toMatch(/\.ideaCard\s*\{[^}]*scroll-snap-align: start/);
+    expect(css).not.toContain(".productRow::-webkit-scrollbar");
+    expect(css).not.toContain(".ideaRow::-webkit-scrollbar");
     // Ya no hay rejillas de 6/5 columnas para estas dos secciones.
     expect(css).not.toContain(".productGrid");
     expect(css).not.toContain(".ideaGrid");
@@ -78,13 +78,15 @@ describe("productos e ideas van en una sola fila deslizante", () => {
     expect(css).not.toContain(".ideaCard:last-child");
   });
 
-  it("las flechas desplazan con scroll nativo, sin interceptar gestos", () => {
+  it("las flechas desplazan sin interceptar gestos", () => {
     const js = leer(EXPERIENCIA);
     for (const etiqueta of ["Productos anteriores", "Productos siguientes", "Ideas anteriores", "Ideas siguientes"]) {
       expect(js).toContain(`aria-label="${etiqueta}"`);
       expect(main).toContain(`aria-label="${etiqueta}"`);
     }
-    expect(js).toContain("fila.scrollBy(");
+    expect(js).toContain("desplazarFila(productosFilaRef");
+    expect(js).toContain("desplazarFila(ideasFilaRef");
+    expect(leer("app/catalogo/desplazar-fila.js")).toContain('fila.scrollTo({ left: destino, behavior: "instant" })');
     expect(js).not.toMatch(/onWheel|onTouch|addEventListener\(\s*["']wheel/);
   });
 

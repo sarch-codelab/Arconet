@@ -18,6 +18,7 @@ import {
   Truck,
 } from "lucide-react";
 import { useCart } from "../../../cart-context";
+import { desplazarFila } from "../../desplazar-fila";
 import {
   CONFIANZA_FICHA,
   NOTA_PRECIOS,
@@ -56,14 +57,6 @@ export default function FichaProducto({ producto, ficha, relacionados }) {
       image: producto.image,
       presentation: presentacionActual.label,
     }, cantidad);
-  };
-
-  const desplazarRelacionados = (direccion) => {
-    const fila = relacionadosRef.current;
-    if (!fila) return;
-    const tarjeta = fila.firstElementChild;
-    const paso = tarjeta ? tarjeta.getBoundingClientRect().width + 14 : fila.clientWidth * 0.8;
-    fila.scrollBy({ left: direccion * paso, behavior: "smooth" });
   };
 
   return (
@@ -339,10 +332,10 @@ export default function FichaProducto({ producto, ficha, relacionados }) {
               <h2>También te puede servir</h2>
             </div>
             <div className={styles.flechas}>
-              <button type="button" aria-label="Relacionados anteriores" onClick={() => desplazarRelacionados(-1)}>
+              <button type="button" aria-label="Relacionados anteriores" onClick={() => desplazarFila(relacionadosRef, -1)}>
                 <ChevronLeft size={16} aria-hidden="true" />
               </button>
-              <button type="button" aria-label="Relacionados siguientes" onClick={() => desplazarRelacionados(1)}>
+              <button type="button" aria-label="Relacionados siguientes" onClick={() => desplazarFila(relacionadosRef, 1)}>
                 <ChevronRight size={16} aria-hidden="true" />
               </button>
             </div>
@@ -352,7 +345,7 @@ export default function FichaProducto({ producto, ficha, relacionados }) {
             {relacionados.map((item) => (
               <Link key={item.id} href={rutaFicha(item.id)} className={styles.relCard}>
                 <div className={styles.relMedia}>
-                  <Image src={item.image} alt="" fill sizes="(max-width: 620px) 72vw, 300px" loading="lazy" className={styles.relImg} />
+                  <Image src={item.image} alt="" fill sizes="(max-width: 620px) 72vw, 300px" loading="lazy" draggable={false} className={styles.relImg} />
                   <span className={styles.relBadge}>Nuevo</span>
                 </div>
                 <div className={styles.relBody}>
