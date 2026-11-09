@@ -9,7 +9,6 @@ import {
   ArrowUpRight,
   Boxes,
   Cable,
-  Check,
   ChevronRight,
   Gauge,
   Layers,
@@ -188,8 +187,6 @@ function CategoryProductCard({ product, index, onAdd }) {
 export default function CategoryProducts({
   slug,
   categoryName = null,
-  categoryDescription = "",
-  categoryPhoto = "",
   productosIniciales = [],
   blocked = false,
 }) {
@@ -198,25 +195,8 @@ export default function CategoryProducts({
     [slug, categoryName],
   );
   const family = useMemo(() => categoryName
-    ? {
-        ...(staticFamily || {}),
-        slug: staticFamily?.slug || slug,
-        category: categoryName,
-        title: categoryName,
-        badge: staticFamily?.badge || "Línea",
-        // El resumen es el teaser corto; la descripcion larga puede venir de
-        // la base. Cuando la base solo tiene un texto, queda una sola
-        // linea (antes se pintaba dos veces iguales).
-        summary: staticFamily?.summary || categoryDescription || "Productos disponibles en esta línea.",
-        description:
-          categoryDescription ||
-          staticFamily?.description ||
-          "Explora las referencias disponibles y cotiza con el equipo técnico de Arconet.",
-        items: staticFamily?.items || [],
-        image: categoryPhoto || staticFamily?.image || "",
-        imageAlt: categoryName,
-      }
-    : staticFamily, [categoryName, categoryDescription, categoryPhoto, slug, staticFamily]);
+    ? { ...(staticFamily || {}), category: categoryName }
+    : staticFamily, [categoryName, staticFamily]);
   const pageRef = useRef(null);
   const topbarRef = useRef(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -440,59 +420,10 @@ export default function CategoryProducts({
         <span>{family.category}</span>
       </div>
 
-      {/* .hero NO lleva la clase reveal: el efecto de aparicion usa
-          transform:translateY(...) y, al terminar, transition + transform.
-          Mientras la transicion corre (o si IntersectionObserver no dispara),
-          el section se pinta desplazado ~30px hacia abajo y su fondo asoma por
-          encima de la foto como un "marco" gris detras de la imagen. La foto
-          ahora es elemento en flujo dentro de .heroVisual, asi que cualquier
-          offset del contenedor se ve como marco. El hero va siempre visible. */}
-      <section className={styles.hero}>
-        <div className={styles.heroVisual}>
-          {family.image ? (
-            /* Sin "fill": antes la imagen iba absoluta dentro de una caja con
-               aspect-ratio fijo + overflow:hidden (el "marco"), lo que recortaba
-               partes de la foto. Ahora se renderiza en flujo normal y crece con
-               su proporcion natural: se ve COMPLETA, sin marco que la corte. */
-            <Image
-              src={family.image}
-              alt={family.imageAlt}
-              width={1200}
-              height={900}
-              priority
-              unoptimized={String(family.image).startsWith("data:")}
-              sizes="(max-width: 1023px) 90vw, (max-width: 1600px) 46vw, 720px"
-              className={styles.heroImage}
-            />
-          ) : (
-            <div className={styles.heroGraphic} aria-hidden="true">
-              <div className={styles.graphicOrbit}><i /><i /><i /></div>
-              <span>ARCONET</span>
-            </div>
-          )}
-        </div>
-        <div className={styles.heroContent}>
-          <span className={styles.badge}>{family.badge}</span>
-          <h1>{family.category}</h1>
-          {family.summary && family.summary !== family.description ? (
-            <p className={styles.heroDescription}>{family.summary}</p>
-          ) : null}
-          <p className={styles.heroText}>{family.description}</p>
-          
-          <ul className={styles.featureList}>
-            {family.items.map((item) => (
-              <li key={item}><Check size={14} aria-hidden="true" />{item}</li>
-            ))}
-          </ul>
-
-          {/* El boton "Ver linea completa" se quito por pedido del cliente. */}
-        </div>
-      </section>
-
       <section className={`${styles.productsSection} ${styles.reveal}`} aria-label="Productos disponibles">
         <header className={styles.productsHeader}>
           <div>
-            <h2>Productos disponibles</h2>
+            <h1>Productos disponibles</h1>
             <p>
               {categoryProducts.length} referencia{categoryProducts.length === 1 ? "" : "s"} de {family.category} con
               precio y existencia actualizados.

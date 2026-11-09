@@ -5,27 +5,17 @@ const css = readFileSync("app/tienda/categoria/[slug]/category-products.module.c
 const js = readFileSync("app/tienda/categoria/[slug]/category-products.js", "utf8");
 const rule = name => css.match(new RegExp(`\\.${name} \\{([\\s\\S]*?)\\n\\}`))?.[1] || "";
 
-describe("categorías adaptables a pantalla y fotografía", () => {
-  it("equilibra la portada y reserva espacio sin recortar la imagen", () => {
-    expect(rule("hero")).toContain("minmax(0, 1.05fr) minmax(0, 1fr)");
-    expect(rule("hero")).toContain("max-width: 1600px");
-    expect(rule("heroVisual")).toContain("height: clamp(240px, 34vw, 540px)");
-    expect(rule("heroImage")).toContain("object-fit: contain");
-    expect(rule("heroImage")).not.toContain("object-fit: cover");
-    expect(rule("heroVisual")).toContain("background: transparent");
-  });
-  it("no permite que el título largo imponga un ancho mínimo a la columna", () => {
-    expect(rule("heroContent")).toContain("min-width: 0");
-    expect(css).toMatch(/\.hero h1 \{[^}]*overflow-wrap: anywhere/);
-    expect(css).toMatch(/\.hero h1 \{[^}]*font-size: clamp\(28px, 3.2vw, 48px\)/);
+describe("categorías adaptables a pantalla", () => {
+  it("empieza directamente con el listado, sin portada descriptiva", () => {
+    expect(js).not.toContain('className={styles.hero}');
+    expect(js).not.toContain('className={styles.heroVisual}');
+    expect(js).toContain('<h1>Productos disponibles</h1>');
+    expect(rule("productsHeader h1")).toContain("font-size: clamp(24px, 4vw, 32px)");
     expect(rule("breadcrumb span")).toContain("overflow-wrap: anywhere");
   });
-  it("apila en tableta sin una columna de mínimo intrínseco y limita el alto", () => {
-    const tablet = css.slice(css.indexOf("@media (max-width: 1023px)"));
-    expect(tablet).toContain("grid-template-columns: minmax(0, 1fr)");
-    expect(tablet).toContain("height: clamp(190px, 52vw, 360px)");
-    expect(tablet).toContain("max-height: 52svh");
-    expect(js).toContain('sizes="(max-width: 1023px) 90vw, (max-width: 1600px) 46vw, 720px"');
+  it("mantiene una cuadrícula adaptable para el listado", () => {
+    expect(css).toContain('@media (max-width: 700px)');
+    expect(css).toMatch(/\.productsGrid\s*\{[^}]*grid-template-columns: 1fr/);
   });
   it("permite ajustar controles y textos del producto en anchos pequeños", () => {
     expect(rule("familyCopy")).toContain("overflow-wrap: anywhere");

@@ -87,3 +87,13 @@ el patrón seguro: clase base **visible** + animación `both` que termina en
 > compilado y el render del servidor. La regla no añade ningún
 > `@media (prefers-reduced-motion)`, igual que el resto del sitio, así que el
 > estado final visible no depende de esa preferencia.
+
+## Categorías: empezar por productos
+
+Las páginas `/tienda/categoria/[slug]` ya no muestran la portada con imagen y
+texto de la categoría. Mantienen el menú fijo y las migas para orientarse; el
+primer bloque de contenido es «Productos disponibles» como `h1`, seguido por
+los filtros, el listado, soporte y footer existentes. La información de la
+categoría sigue disponible para metadatos y coincidencia de productos, sin
+pasar foto ni descripción al componente cliente. No se modifican las fichas de
+productos ni las páginas de familia `/tienda/[slug]`.

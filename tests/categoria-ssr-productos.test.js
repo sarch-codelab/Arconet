@@ -15,6 +15,7 @@ vi.mock("next/navigation", () => ({
 import { CartProvider } from "../app/cart-context";
 import { ContactProvider } from "../app/contact-provider";
 import CategoryProducts from "../app/tienda/categoria/[slug]/category-products";
+import { FAMILIES } from "../app/tienda/catalogo-data";
 
 const CONTACTO = { email: "contacto@arconet.test", phone: "0000-0000", phoneHref: "tel:00000000" };
 
@@ -48,6 +49,22 @@ function renderCategoria(productosIniciales = []) {
 }
 
 describe("listado de categoría en el primer HTML", () => {
+  it("todas las categorías empiezan con productos, sin imagen ni descripción de portada", () => {
+    for (const family of FAMILIES) {
+      const item = { ...producto("p-prueba", "Producto de prueba", 18, 2), categoria: family.category };
+      const html = renderToStaticMarkup(createElement(ContactProvider, { contact: CONTACTO },
+        createElement(CartProvider, null, createElement(CategoryProducts, {
+          slug: family.slug, categoryName: family.category, productosIniciales: [item],
+        }))));
+      expect(html, family.slug).toContain("<h1>Productos disponibles</h1>");
+      expect(html, family.slug).toContain("Producto de prueba");
+      expect(html, family.slug).toContain("¿Necesitas ayuda con tu proyecto?");
+      expect(html, family.slug).not.toContain(family.summary);
+      expect(html, family.slug).not.toContain(family.description);
+      expect(html, family.slug).not.toContain('class="category-products_hero');
+    }
+  });
+
   it("pinta todas las tarjetas recibidas del servidor", () => {
     const html = renderCategoria([
       producto("p-1", "Atenuador 03 dB", 18, 0),

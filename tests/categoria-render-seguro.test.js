@@ -8,17 +8,13 @@ describe("render seguro de la categoría", () => {
   it("el registro de Categoria no cruza como objeto al componente cliente", () => {
     expect(PAGE).not.toContain("category={categoria}");
     expect(PAGE).toContain("categoryName={categoria?.nombre ?? null}");
-    expect(PAGE).toContain('categoryDescription={categoria?.descripcion ?? ""}');
-    expect(PAGE).toContain('categoryPhoto={categoria?.foto ?? ""}');
+    expect(PAGE).not.toContain("categoryDescription={");
+    expect(PAGE).not.toContain("categoryPhoto={");
   });
 
   it("el componente consume texto y no renderiza el objeto de base", () => {
     expect(COMPONENT).toContain("categoryName = null");
-    expect(COMPONENT).toContain('categoryDescription = ""');
-    expect(COMPONENT).toContain('categoryPhoto = ""');
     expect(COMPONENT).toContain("category: categoryName");
-    expect(COMPONENT).toContain("title: categoryName");
-    expect(COMPONENT).toContain("imageAlt: categoryName");
     expect(COMPONENT).not.toContain("{category}");
     expect(COMPONENT).not.toContain("category.nombre");
     expect(COMPONENT).not.toContain("category.descripcion");
