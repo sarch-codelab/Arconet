@@ -5,6 +5,7 @@ import { Menu } from "lucide-react";
 import { apiFetch } from "@/lib/api-fetch";
 import { defaultDockMenu, visibleDockMenu } from "@/lib/dock-menu";
 import { MENU_UPDATED_EVENT, MENU_UPDATED_KEY } from "../use-dock-menu";
+import DropdownVisualEditor from "./dropdown-visual-editor";
 import admin from "./admin-experience.module.css";
 import styles from "./dock-menu-settings.module.css";
 
@@ -126,6 +127,7 @@ export default function DockMenuSettings({ session, menuNumber = 2 }) {
               {visibleDockMenu(data.menu).items.filter((item) => item.mega).map((item) => <div key={item.keyId}><strong>{item.label}</strong>{item.megaGroups.map((group) => <p key={group.id}>{group.title}: {group.links.map((link) => link.label).join(" · ")}</p>)}</div>)}
               {visibleDockMenu(data.menu).primary.enabled && <p>Acceso destacado: {visibleDockMenu(data.menu).primary.label} → {visibleDockMenu(data.menu).primary.href}</p>}
             </details>
+            <DropdownVisualEditor menu={data.menu} change={change} canWrite={canWrite && !saving} menuNumber={menuNumber} />
             <EditList title="Enlaces de la barra" entries={data.menu.items} path={["items"]} kind="item" change={change} canWrite={canWrite && !saving} />
             <details className={styles.entry}>
               <summary><strong>Acceso destacado</strong><span>{data.menu.primary.enabled ? "Visible" : "Oculto"}</span></summary>
