@@ -1,0 +1,27 @@
+.content { padding: 20px 22px 24px; }
+.hint { margin: 0 0 12px; color: var(--text-muted); font-size: 12px; line-height: 1.55; }
+.list { display: grid; gap: 8px; margin: 18px 0; }
+.listHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--text-main); font-size: 13px; }
+.listHead button, .actions button { border: 1px solid var(--border); border-radius: 8px; background: var(--bg-card); color: var(--text-main); padding: 7px 10px; font: inherit; font-size: 12px; cursor: pointer; }
+.listHead button:disabled, .actions button:disabled { opacity: .45; cursor: not-allowed; }
+.entry { min-width: 0; border: 1px solid var(--border); border-radius: 11px; background: var(--bg-card-subtle); }
+.entry summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px; cursor: pointer; font-size: 13px; color: var(--text-main); }
+.entry summary::after { content: "+"; font-size: 18px; color: var(--text-muted); }
+.entry[open] > summary::after { content: "−"; }
+.entry summary strong { flex: 1; overflow-wrap: anywhere; }
+.entry summary span { color: var(--text-muted); font-size: 11px; }
+.entryBody { display: grid; gap: 12px; padding: 4px 14px 14px; }
+.entryBody .list { margin: 4px 0 0; }
+.fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 10px; }
+.fields label { display: grid; gap: 5px; color: var(--text-muted); font-size: 12px; font-weight: 600; }
+.fields input { width: 100%; min-width: 0; min-height: 40px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-card); color: var(--text-main); font: inherit; font-size: 13px; }
+.checkbox { display: flex; align-items: center; gap: 8px; color: var(--text-main); font-size: 12px; }
+.checkbox input { width: 16px; height: 16px; accent-color: var(--blue); }
+.actions, .footer { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.actions .remove { color: var(--text-danger); }
+.footer { margin-top: 20px; }
+.footer .hint { margin: 0; }
+.error, .notice { padding: 10px 12px; border-radius: 8px; font-size: 12px; line-height: 1.5; }
+.error { color: var(--text-danger); background: var(--red-light); }
+.notice { color: var(--text-success); background: var(--green-light); }
+@media (max-width: 620px) { .content { padding: 16px; } .fields input { font-size: 16px; } }
