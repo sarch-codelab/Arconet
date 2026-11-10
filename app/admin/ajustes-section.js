@@ -94,7 +94,7 @@ export default function AjustesSection({ session, workers = [] }) {
       />
 
       <div className={styles.body}>
-        <p className={organization.intro}>Elige una sección para abrirla. Cerrar una sección no borra los cambios pendientes; recuerda guardarlos antes de salir de Ajustes.</p>
+        <p className={organization.intro}>{canWrite ? "Elige una sección para abrirla. Cerrar una sección no borra los cambios pendientes; recuerda guardarlos antes de salir de Ajustes." : "Acceso de solo lectura: puedes consultar la configuración, pero no modificarla. Elige una sección para abrirla."}</p>
         <div className={organization.group}>
           <h2 className={organization.groupHeading}><Globe size={17} aria-hidden="true" /> Sitio público</h2>
           <SettingsDisclosure title="Páginas públicas" description="Activar o desactivar páginas del sitio.">

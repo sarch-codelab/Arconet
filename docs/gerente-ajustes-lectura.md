@@ -1,0 +1,5 @@
+# Consulta de Ajustes para gerente
+
+El rol incorporado `gerente` recibe `ajustes:read`, que permite abrir Ajustes y consultar páginas, menús, datos generales y datos fiscales/CAI. No se añade `ajustes:write`; los controles de edición quedan deshabilitados y las API de escritura siguen protegidas. Los demás permisos permanecen intactos. El administrador puede seguir personalizando el rol desde Roles: esta modificación no elimina permisos de escritura que ya se hubieran concedido expresamente.
+
+La migración `20261105000000_gerente_lectura_ajustes` añade la lectura al rol existente sin reactivarlo, duplicar el permiso ni sobrescribir otros permisos; actualiza solo las descripciones originales conocidas. Las bases nuevas reciben el mismo permiso desde los valores predeterminados. Para que aplique en el servidor existente debe ejecutarse la migración como parte del despliegue (`npm run db:migrate`); una fusión en GitHub por sí sola no confirma ese despliegue. Los permisos efectivos se consultan en cada petición; la sesión abierta puede necesitar recargar el panel para mostrar la sección.
