@@ -42,6 +42,7 @@ import HomeMarcas from "./home-marcas";
 import Footer from "./footer";
 import { CONTACT_PHONE } from '@/lib/contact';
 import { NAVIGATION } from "./navigation-data";
+import useDockMenu from "./use-dock-menu";
 
 
 
@@ -223,6 +224,8 @@ const COMMITMENTS = [
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 
 export default function HomeExperience({ categorias = [] }) {
+  const dockMenu = useDockMenu();
+  const [activeMega, setActiveMega] = useState(null);
   const [activeSection, setActiveSection] = useState("inicio");
   const [activeSlide, setActiveSlide] = useState(0);
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
@@ -530,7 +533,7 @@ useEffect(() => {
       window.removeEventListener("resize", syncIndicator);
       observer?.disconnect();
     };
-  }, [activeSection, menuOpen]);
+  }, [activeSection, menuOpen, dockMenu.items]);
 
   useEffect(() => {
     const targets = document.querySelectorAll("[data-reveal]");
@@ -764,14 +767,16 @@ useEffect(() => {
 
           <nav className={styles.navigation} aria-label="Navegación principal" ref={navRef}>
             <span className={styles.navIndicator} aria-hidden="true" />
-            {NAVIGATION.map((item) => {
+            {dockMenu.items.map((item) => {
               const isActive = Boolean(item.id) && activeSection === item.id;
               return (
                 <a
-                  key={item.id ?? item.label}
+                  key={item.keyId || item.id || item.label}
                   data-active={isActive ? "true" : "false"}
                   className={`${isActive ? styles.navigationActive : ""}${item.mega ? ` ${styles.megaTrigger}` : ""}`}
                   href={item.href}
+                  onMouseEnter={() => { if (item.mega) setActiveMega(item.keyId); }}
+                  onFocus={() => { if (item.mega) setActiveMega(item.keyId); }}
                   aria-current={isActive ? "location" : undefined}
                 >
                   {item.label}
@@ -836,18 +841,18 @@ useEffect(() => {
           {/* Menú de escritorio: misma estructura y piezas que el menú de
               móvil (acceso destacado a la tienda, Login/Admin y grupos), pero
               en rejilla ancha y con fondo translúcido para el escritorio. */}
-          {NAVIGATION.some((item) => item.mega) && (
+          {dockMenu.items.some((item) => item.mega) && (
             <div className={styles.desktopMenu} aria-label="Menú desplegable">
               <div className={styles.desktopMenuTop}>
-                <Link className={styles.desktopMenuPrimary} href="/tienda">
+                {dockMenu.primary.enabled && <Link className={styles.desktopMenuPrimary} href={dockMenu.primary.href}>
                   <span className={styles.desktopMenuPrimaryText}>
-                    <span className={styles.desktopMenuPrimaryLabel}>Tienda</span>
-                    <span className={styles.desktopMenuPrimaryHint}>Explora todos los productos</span>
+                    <span className={styles.desktopMenuPrimaryLabel}>{dockMenu.primary.label}</span>
+                    <span className={styles.desktopMenuPrimaryHint}>{dockMenu.primary.description}</span>
                   </span>
                   <span className={styles.desktopMenuPrimaryIcon}>
                     <ArrowRight size={18} aria-hidden="true" />
                   </span>
-                </Link>
+                </Link>}
 
                 <div className={styles.desktopMenuAuth}>
                   <a className={styles.desktopMenuLogin} href="/login">
@@ -862,13 +867,13 @@ useEffect(() => {
               </div>
 
               <div className={styles.desktopMenuGroups}>
-                {NAVIGATION.filter((item) => item.mega).map((item) =>
+                {dockMenu.items.filter((item) => item.mega && item.keyId === (activeMega || dockMenu.items.find((candidate) => candidate.mega)?.keyId)).map((item) =>
                   item.megaGroups.map((group) => (
-                    <section key={`${item.id}-${group.title}`} className={styles.desktopMenuGroup}>
+                    <section key={`${item.keyId}-${group.id}`} className={styles.desktopMenuGroup}>
                       <h4>{group.title}</h4>
                       <ul>
                         {group.links.map((link) => (
-                          <li key={link.label}>
+                          <li key={link.id}>
                             <a href={link.href}>{link.label}</a>
                           </li>
                         ))}
@@ -882,9 +887,7 @@ useEffect(() => {
                   anterior ("Inventario técnico listo para cotizar…") se retiró
                   porque el pedido era sustituir el bloque completo. */}
               <div className={styles.desktopMenuLegal}>
-                <a href="/terminos">Términos</a>
-                <a href="/privacidad">Privacidad</a>
-                <a href="/ayuda">Ayuda</a>
+                {dockMenu.legal.map((link) => <a key={link.id} href={link.href}>{link.label}</a>)}
               </div>
             </div>
           )}
@@ -912,19 +915,19 @@ useEffect(() => {
                 </button>
               </div>
 
-              <Link
+              {dockMenu.primary.enabled && <Link
                 className={styles.mobileMenuPrimary}
-                href="/tienda"
+                href={dockMenu.primary.href}
                 onClick={() => setMenuOpen(false)}
               >
                 <span className={styles.mobileMenuPrimaryText}>
-                  <span className={styles.mobileMenuPrimaryLabel}>Tienda</span>
-                  <span className={styles.mobileMenuPrimaryHint}>Explora todos los productos</span>
+                  <span className={styles.mobileMenuPrimaryLabel}>{dockMenu.primary.label}</span>
+                  <span className={styles.mobileMenuPrimaryHint}>{dockMenu.primary.description}</span>
                 </span>
                 <span className={styles.mobileMenuPrimaryIcon}>
                   <ArrowRight size={18} aria-hidden="true" />
                 </span>
-              </Link>
+              </Link>}
 
               <div className={styles.mobileMenuAuth}>
                 <a
@@ -946,9 +949,9 @@ useEffect(() => {
               </div>
 
               <div className={styles.mobileMenuLinks}>
-                {NAVIGATION.filter((item) => item.href !== "/tienda").map((item) =>
+                {dockMenu.items.filter((item) => (!dockMenu.primary.enabled || item.keyId !== "enlace-2" || item.label !== "Tienda" || dockMenu.primary.label !== "Tienda" || item.mega || item.href !== dockMenu.primary.href)).map((item) =>
                   item.mega ? (
-                    <div key={item.id ?? item.label} className={styles.mobileMenuGroup}>
+                    <div key={item.keyId || item.id || item.label} className={styles.mobileMenuGroup}>
                       <a
                         className={styles.mobileMenuGroupTitle}
                         href={item.href}
@@ -957,11 +960,11 @@ useEffect(() => {
                         {item.label}
                       </a>
                       {item.megaGroups.map((group) => (
-                        <div key={group.title} className={styles.mobileMenuSubgroup}>
+                        <div key={group.id} className={styles.mobileMenuSubgroup}>
                           <strong>{group.title}</strong>
                           {group.links.map((link) => (
                             <a
-                              key={link.label}
+                              key={link.id}
                               href={link.href}
                               onClick={() => setMenuOpen(false)}
                             >
@@ -973,7 +976,7 @@ useEffect(() => {
                     </div>
                   ) : (
                     <a
-                      key={item.id ?? item.label}
+                      key={item.keyId || item.id || item.label}
                       className={styles.mobileMenuLink}
                       href={item.href}
                       onClick={() => setMenuOpen(false)}
@@ -984,9 +987,7 @@ useEffect(() => {
                 )}
               </div>
               <div className={styles.mobileMenuLegal}>
-                <a href="/terminos" onClick={() => setMenuOpen(false)}>Términos</a>
-                <a href="/privacidad" onClick={() => setMenuOpen(false)}>Privacidad</a>
-                <a href="/ayuda" onClick={() => setMenuOpen(false)}>Ayuda</a>
+                {dockMenu.legal.map((link) => <a key={link.id} href={link.href} onClick={() => setMenuOpen(false)}>{link.label}</a>)}
               </div>
             </nav>
           )}

@@ -11,6 +11,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowRight, ArrowUpRight, LogIn, ShieldCheck, X } from "lucide-react";
 import { NAVIGATION } from "./navigation-data";
+import useDockMenu from "./use-dock-menu";
 import { useThemeMode } from "./theme-toggle";
 import styles from "./nav-dock.module.css";
 
@@ -18,10 +19,13 @@ export default function NavDock({
   variant = "scroll",
   visible = false,
   activeId,
-  navigation = NAVIGATION,
+  navigation: initialNavigation = NAVIGATION,
   cartAction = null,
   topbarRef,
 }) {
+  const dockMenu = useDockMenu(initialNavigation !== NAVIGATION);
+  const [activeMega, setActiveMega] = useState(null);
+  const navigation = dockMenu.items;
   const [menuOpen, setMenuOpen] = useState(false);
   const [accessOpen, setAccessOpen] = useState(false);
   const internalTopbarRef = useRef(null);
@@ -71,7 +75,7 @@ export default function NavDock({
       window.removeEventListener("resize", syncIndicator);
       observer?.disconnect();
     };
-  }, [activeId, menuOpen]);
+  }, [activeId, menuOpen, navigation]);
 
   // Menú móvil: escape, clic fuera y lock de scroll en pantallas chicas.
   useEffect(() => {
@@ -155,10 +159,12 @@ export default function NavDock({
             const isActive = Boolean(item.id) && activeId === item.id;
             return (
               <a
-                key={item.id ?? item.label}
+                key={item.keyId || item.id || item.label}
                 data-active={isActive ? "true" : "false"}
                 className={`${isActive ? styles.navigationActive : ""}${item.mega ? ` ${styles.megaTrigger}` : ""}`}
                 href={item.href}
+                onMouseEnter={() => { if (item.mega) setActiveMega(item.keyId); }}
+                onFocus={() => { if (item.mega) setActiveMega(item.keyId); }}
                 aria-current={isActive ? "location" : undefined}
               >
                 {item.label}
@@ -226,15 +232,15 @@ export default function NavDock({
         {navigation.some((item) => item.mega) && (
           <div className={styles.desktopMenu} aria-label="Menú desplegable">
             <div className={styles.desktopMenuTop}>
-              <Link className={styles.desktopMenuPrimary} href="/tienda">
+              {dockMenu.primary.enabled && <Link className={styles.desktopMenuPrimary} href={dockMenu.primary.href}>
                 <span className={styles.desktopMenuPrimaryText}>
-                  <span className={styles.desktopMenuPrimaryLabel}>Tienda</span>
-                  <span className={styles.desktopMenuPrimaryHint}>Explora todos los productos</span>
+                  <span className={styles.desktopMenuPrimaryLabel}>{dockMenu.primary.label}</span>
+                  <span className={styles.desktopMenuPrimaryHint}>{dockMenu.primary.description}</span>
                 </span>
                 <span className={styles.desktopMenuPrimaryIcon}>
                   <ArrowRight size={18} aria-hidden="true" />
                 </span>
-              </Link>
+              </Link>}
 
               <div className={styles.desktopMenuAuth}>
                 <a className={styles.desktopMenuLogin} href="/login">
@@ -249,13 +255,13 @@ export default function NavDock({
             </div>
 
             <div className={styles.desktopMenuGroups}>
-              {navigation.filter((item) => item.mega).map((item) =>
+              {navigation.filter((item) => item.mega && item.keyId === (activeMega || navigation.find((candidate) => candidate.mega)?.keyId)).map((item) =>
                 item.megaGroups.map((group) => (
-                  <section key={`${item.id}-${group.title}`} className={styles.desktopMenuGroup}>
+                  <section key={`${item.keyId}-${group.id}`} className={styles.desktopMenuGroup}>
                     <h4>{group.title}</h4>
                     <ul>
                       {group.links.map((link) => (
-                        <li key={link.label}>
+                        <li key={link.id}>
                           <a href={link.href}>{link.label}</a>
                         </li>
                       ))}
@@ -266,9 +272,7 @@ export default function NavDock({
             </div>
 
             <div className={styles.desktopMenuLegal}>
-              <a href="/terminos">Términos</a>
-              <a href="/privacidad">Privacidad</a>
-              <a href="/ayuda">Ayuda</a>
+              {dockMenu.legal.map((link) => <a key={link.id} href={link.href}>{link.label}</a>)}
             </div>
           </div>
         )}
@@ -296,19 +300,19 @@ export default function NavDock({
               </button>
             </div>
 
-            <Link
+            {dockMenu.primary.enabled && <Link
               className={styles.mobileMenuPrimary}
-              href="/tienda"
+              href={dockMenu.primary.href}
               onClick={() => setMenuOpen(false)}
             >
               <span className={styles.mobileMenuPrimaryText}>
-                <span className={styles.mobileMenuPrimaryLabel}>Tienda</span>
-                <span className={styles.mobileMenuPrimaryHint}>Explora todos los productos</span>
+                <span className={styles.mobileMenuPrimaryLabel}>{dockMenu.primary.label}</span>
+                <span className={styles.mobileMenuPrimaryHint}>{dockMenu.primary.description}</span>
               </span>
               <span className={styles.mobileMenuPrimaryIcon}>
                 <ArrowRight size={18} aria-hidden="true" />
               </span>
-            </Link>
+            </Link>}
 
             <div className={styles.mobileMenuAuth}>
               <a
@@ -330,9 +334,9 @@ export default function NavDock({
             </div>
 
             <div className={styles.mobileMenuLinks}>
-              {navigation.filter((item) => item.href !== "/tienda").map((item) =>
+              {navigation.filter((item) => (!dockMenu.primary.enabled || item.keyId !== "enlace-2" || item.label !== "Tienda" || dockMenu.primary.label !== "Tienda" || item.mega || item.href !== dockMenu.primary.href)).map((item) =>
                 item.mega ? (
-                  <div key={item.id ?? item.label} className={styles.mobileMenuGroup}>
+                  <div key={item.keyId || item.id || item.label} className={styles.mobileMenuGroup}>
                     <a
                       className={styles.mobileMenuGroupTitle}
                       href={item.href}
@@ -341,11 +345,11 @@ export default function NavDock({
                       {item.label}
                     </a>
                     {item.megaGroups.map((group) => (
-                      <div key={group.title} className={styles.mobileMenuSubgroup}>
+                      <div key={group.id} className={styles.mobileMenuSubgroup}>
                         <strong>{group.title}</strong>
                         {group.links.map((link) => (
                           <a
-                            key={link.label}
+                            key={link.id}
                             href={link.href}
                             onClick={() => setMenuOpen(false)}
                           >
@@ -357,7 +361,7 @@ export default function NavDock({
                   </div>
                 ) : (
                   <a
-                    key={item.id ?? item.label}
+                    key={item.keyId || item.id || item.label}
                     className={styles.mobileMenuLink}
                     href={item.href}
                     onClick={() => setMenuOpen(false)}
@@ -381,9 +385,7 @@ export default function NavDock({
             </button>
 
             <div className={styles.mobileMenuLegal}>
-              <a href="/terminos" onClick={() => setMenuOpen(false)}>Términos</a>
-              <a href="/privacidad" onClick={() => setMenuOpen(false)}>Privacidad</a>
-              <a href="/ayuda" onClick={() => setMenuOpen(false)}>Ayuda</a>
+              {dockMenu.legal.map((link) => <a key={link.id} href={link.href} onClick={() => setMenuOpen(false)}>{link.label}</a>)}
             </div>
           </nav>
         )}

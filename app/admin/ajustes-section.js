@@ -10,6 +10,7 @@ import { useToast } from "./admin-ui";
 import { Topbar } from "./topbar";
 import FiscalSettingsPanel from "./fiscal-settings-panel";
 import PublicPagesSettings from "./public-pages-settings";
+import DockMenuSettings from "./dock-menu-settings";
 import BusinessNotice, { focusBusinessNotice } from "./business-notice";
 import business from "./business-feedback.module.css";
 
@@ -81,6 +82,7 @@ export default function AjustesSection({ session, workers = [] }) {
         <BusinessNotice title="Centro de configuración empresarial" message="Aquí se administran los datos de empresa y CAI. Las credenciales de base de datos, sesiones y correo del servidor no se muestran ni se guardan en este formulario. La apariencia personal de cada trabajador sigue en Mi perfil." />
         {notice && <BusinessNotice id="company-settings-feedback" {...notice} />}
         <PublicPagesSettings session={session} />
+        <DockMenuSettings session={session} />
         <section className={styles.card} aria-label="Configuración general">
           <header className={styles.cardHeader}>
             <h3><Settings size={18} /> Configuración general</h3>
