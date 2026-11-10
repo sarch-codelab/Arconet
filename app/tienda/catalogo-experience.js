@@ -738,7 +738,7 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
             </div>
 
             <div className={styles.heroMobileLinks}>
-              {heroMenu.items.filter((item) => (!heroMenu.primary.enabled || item.keyId !== "enlace-2" || item.label !== "Tienda" || heroMenu.primary.label !== "Tienda" || item.mega || item.href !== heroMenu.primary.href)).map((item) =>
+              {heroMenu.items.filter((item) => (!heroMenu.primary.enabled || item.keyId !== "enlace-2" || !heroMenu.primary.linked || item.mega)).map((item) =>
                 item.mega ? (
                   <div key={item.keyId} className={styles.heroMobileGroup}>
                     <Link className={styles.heroMobileGroupTitle} href={item.href} onClick={() => setMenuOpen(false)}>

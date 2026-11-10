@@ -1398,3 +1398,25 @@
   color: #fff;
   stroke: #fff;
 }
+
+.topbar a { text-decoration: none; }
+
+/* La primera barra de las páginas públicas está en el flujo y se desplaza
+   con el contenido; la segunda sigue siendo el dock flotante. */
+.topbarInline {
+  position: relative;
+  z-index: 45;
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: none;
+  padding-bottom: 12px;
+}
+
+/* Si se añaden muchos enlaces, ninguno queda tapado por el logo o acciones.
+   La barra se puede recorrer con teclado o con su barra de desplazamiento. */
+@media (min-width: 761px) {
+  .topbarShell { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .navigation { min-width: 0; max-width: 100%; overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; }
+  .navigation a { flex-shrink: 0; }
+}

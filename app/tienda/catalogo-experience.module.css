@@ -3292,3 +3292,9 @@
   from { opacity: 0.6; }
   to { opacity: 1; }
 }
+
+/* La barra inicial admite más enlaces que los predeterminados. */
+@media (min-width: 761px) {
+  .heroHeader .navigation { max-width: max(200px, calc(100% - 520px)); overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; }
+  .heroHeader .navigation a, .heroHeader .navigation button { flex-shrink: 0; }
+}

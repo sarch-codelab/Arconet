@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { Menu } from "lucide-react";
 import { apiFetch } from "@/lib/api-fetch";
-import { defaultDockMenu } from "@/lib/dock-menu";
+import { defaultDockMenu, visibleDockMenu } from "@/lib/dock-menu";
+import { MENU_UPDATED_EVENT, MENU_UPDATED_KEY } from "../use-dock-menu";
 import admin from "./admin-experience.module.css";
 import styles from "./dock-menu-settings.module.css";
 
@@ -88,7 +89,18 @@ export default function DockMenuSettings({ session, menuNumber = 2 }) {
       const response = await apiFetch(api, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ menu: data.menu, revision: data.revision }) });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.error || "No se pudo guardar el menú.");
-      setData(result); setDirty(false); setNotice("Menú guardado. Los visitantes verán los cambios al volver a cargar o abrir el sitio.");
+      setData(result); setDirty(false);
+      window.dispatchEvent(new Event(MENU_UPDATED_EVENT));
+      try { window.localStorage.setItem(MENU_UPDATED_KEY, `${Date.now()}-${Math.random()}`); } catch { /* La actualización por foco y periódica sigue activa. */ }
+      try {
+        const publicUrl = menuNumber === 1 ? "/api/menu-navegacion-1" : "/api/menu-navegacion";
+        const publicResponse = await fetch(publicUrl, { cache: "no-store" });
+        const publicData = await publicResponse.json();
+        if (!publicResponse.ok || JSON.stringify(publicData.menu) !== JSON.stringify(visibleDockMenu(result.menu))) throw new Error("El contenido público no coincide con lo guardado.");
+        setNotice(`Menú ${menuNumber} guardado y comprobado en la consulta pública. Las páginas abiertas se actualizan automáticamente.`);
+      } catch {
+        setError(`El menú ${menuNumber} se guardó, pero no se pudo confirmar su publicación. Recarga y verifica la conexión o la configuración del servidor.`);
+      }
     } catch (err) { setError(err.message); }
     finally { setSaving(false); }
   }
@@ -108,12 +120,20 @@ export default function DockMenuSettings({ session, menuNumber = 2 }) {
         {notice && <p className={styles.notice} role="status">{notice}</p>}
         {loading ? <p className={styles.hint}>Cargando menú…</p> : !data ? <button className={admin.ghostBtn} type="button" onClick={reload}>Reintentar</button> : (
           <form onSubmit={save} noValidate>
+            <details className={styles.preview}>
+              <summary>Vista previa del contenido {dirty ? "(con cambios sin guardar)" : "guardado"}</summary>
+              <p>Barra: {visibleDockMenu(data.menu).items.map((item) => item.label).join(" · ") || "Sin enlaces visibles"}</p>
+              {visibleDockMenu(data.menu).items.filter((item) => item.mega).map((item) => <div key={item.keyId}><strong>{item.label}</strong>{item.megaGroups.map((group) => <p key={group.id}>{group.title}: {group.links.map((link) => link.label).join(" · ")}</p>)}</div>)}
+              {visibleDockMenu(data.menu).primary.enabled && <p>Acceso destacado: {visibleDockMenu(data.menu).primary.label} → {visibleDockMenu(data.menu).primary.href}</p>}
+            </details>
             <EditList title="Enlaces de la barra" entries={data.menu.items} path={["items"]} kind="item" change={change} canWrite={canWrite && !saving} />
             <details className={styles.entry}>
               <summary><strong>Acceso destacado</strong><span>{data.menu.primary.enabled ? "Visible" : "Oculto"}</span></summary>
               <div className={styles.entryBody}>
+                <label className={styles.checkbox}><input type="checkbox" disabled={!canWrite || saving} checked={data.menu.primary.linked} onChange={(event) => { const checked = event.target.checked; change(["primary"], (primary) => ({ ...primary, linked: checked })); }} /> Usar el nombre, destino y visibilidad del enlace original Tienda de la barra</label>
+                {data.menu.primary.linked && <p className={styles.hint}>El acceso destacado sigue al enlace Tienda de la barra, aunque le cambies el nombre. Si eliminas u ocultas ese enlace, el acceso también se oculta. Desmarca esta opción para configurarlo por separado.</p>}
                 <div className={styles.fields}>
-                  {[['label', 'Nombre', 80], ['description', 'Descripción', 120], ['href', 'Destino', 300]].map(([key, label, max]) => <label key={key}>{label}<input maxLength={max} required disabled={!canWrite || saving} value={data.menu.primary[key]} onChange={(event) => { const value = event.target.value; change(["primary"], (primary) => ({ ...primary, [key]: value })); }} /></label>)}
+                  {[['label', 'Nombre', 80], ['description', 'Descripción', 120], ['href', 'Destino', 300]].map(([key, label, max]) => <label key={key}>{label}<input maxLength={max} required disabled={!canWrite || saving || (data.menu.primary.linked && key !== "description")} value={data.menu.primary.linked && key !== "description" ? (data.menu.items.find((item) => item.id === "enlace-2")?.[key] || "") : data.menu.primary[key]} onChange={(event) => { const value = event.target.value; change(["primary"], (primary) => ({ ...primary, [key]: value })); }} /></label>)}
                 </div>
                 <label className={styles.checkbox}><input type="checkbox" disabled={!canWrite || saving} checked={data.menu.primary.enabled} onChange={(event) => { const checked = event.target.checked; change(["primary"], (primary) => ({ ...primary, enabled: checked })); }} /> Mostrar acceso destacado</label>
               </div>

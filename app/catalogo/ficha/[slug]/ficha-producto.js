@@ -74,11 +74,7 @@ export default function FichaProducto({ producto, ficha, relacionados }) {
               className={styles.brandImg}
             />
           </Link>
-          <nav className={styles.nav} aria-label="Navegación de la ficha">
-            <Link href="/catalogo">Catálogo</Link>
-            <Link href="/tienda">Tienda</Link>
-            <Link href="/contacto">Contacto</Link>
-          </nav>
+          <span aria-hidden="true" />
           <button
             type="button"
             className={styles.cartButton}

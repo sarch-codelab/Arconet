@@ -31,11 +31,7 @@ export default function Destacados() {
               <Image src="/arconet.png" alt="Arconet" width={1200} height={200} sizes="128px" fetchPriority="low" className={vitrina.brandImg} />
               <span className={vitrina.brandTagline}>Descubre. Equipa. Conecta.</span>
             </Link>
-            <nav className={styles.nav} aria-label="Navegación principal">
-              <Link href="/catalogo">Catálogo</Link>
-              <Link href="/tienda">Tienda</Link>
-              <Link href="/contacto">Contacto</Link>
-            </nav>
+            <span aria-hidden="true" />
           </div>
         </header>
 

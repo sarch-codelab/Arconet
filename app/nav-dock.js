@@ -8,7 +8,7 @@
 //     scroll (páginas de categoría).
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { ArrowRight, ArrowUpRight, LogIn, ShieldCheck, X } from "lucide-react";
 import { NAVIGATION } from "./navigation-data";
 import useDockMenu from "./use-dock-menu";
@@ -17,13 +17,15 @@ import styles from "./nav-dock.module.css";
 
 export default function NavDock({
   variant = "scroll",
+  menuNumber = 2,
   visible = false,
   activeId,
   navigation: initialNavigation = NAVIGATION,
   cartAction = null,
   topbarRef,
 }) {
-  const dockMenu = useDockMenu(initialNavigation !== NAVIGATION);
+  const dockMenu = useDockMenu(initialNavigation !== NAVIGATION, menuNumber);
+  const mobileMenuId = useId();
   const [activeMega, setActiveMega] = useState(null);
   const navigation = dockMenu.items;
   const [menuOpen, setMenuOpen] = useState(false);
@@ -131,7 +133,7 @@ export default function NavDock({
   return (
     <header
       ref={dockRef}
-      className={`${styles.topbar}${esScroll ? "" : ` ${styles.topbarFixed}`}${cartAction ? ` ${styles.topbarWithCart}` : ""}${menuOpen ? ` ${styles.topbarMenuOpen}` : ""}${
+      className={`${styles.topbar}${esScroll ? "" : variant === "inline" ? ` ${styles.topbarInline}` : ` ${styles.topbarFixed}`}${cartAction ? ` ${styles.topbarWithCart}` : ""}${menuOpen ? ` ${styles.topbarMenuOpen}` : ""}${
         esScroll ? ` ${visibleDock ? styles.topbarVisible : styles.topbarHidden}` : ""
       }`}
       aria-hidden={esScroll && !visibleDock ? true : undefined}
@@ -153,7 +155,7 @@ export default function NavDock({
           />
         </Link>
 
-        <nav className={styles.navigation} aria-label="Navegación principal" ref={navRef}>
+        <nav className={styles.navigation} aria-label={menuNumber === 1 ? "Navegación del hero" : "Navegación principal"} ref={navRef}>
           <span className={styles.navIndicator} aria-hidden="true" />
           {navigation.map((item) => {
             const isActive = Boolean(item.id) && activeId === item.id;
@@ -176,7 +178,7 @@ export default function NavDock({
             type="button"
             className={`${styles.menuToggle}${menuOpen ? ` ${styles.menuToggleActive}` : ""}`}
             aria-expanded={menuOpen}
-            aria-controls="nav-dock-mobile-menu"
+            aria-controls={mobileMenuId}
             aria-haspopup="true"
             aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
             onClick={() => setMenuOpen((value) => !value)}
@@ -279,7 +281,7 @@ export default function NavDock({
 
         {menuOpen && (
           <nav
-            id="nav-dock-mobile-menu"
+            id={mobileMenuId}
             ref={mobileMenuRef}
             className={styles.mobileMenu}
             aria-label="Menú de navegación móvil"
@@ -334,7 +336,7 @@ export default function NavDock({
             </div>
 
             <div className={styles.mobileMenuLinks}>
-              {navigation.filter((item) => (!dockMenu.primary.enabled || item.keyId !== "enlace-2" || item.label !== "Tienda" || dockMenu.primary.label !== "Tienda" || item.mega || item.href !== dockMenu.primary.href)).map((item) =>
+              {navigation.filter((item) => (!dockMenu.primary.enabled || item.keyId !== "enlace-2" || !dockMenu.primary.linked || item.mega)).map((item) =>
                 item.mega ? (
                   <div key={item.keyId || item.id || item.label} className={styles.mobileMenuGroup}>
                     <a

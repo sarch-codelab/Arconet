@@ -199,6 +199,7 @@ export default function CategoryProducts({
     : staticFamily, [categoryName, staticFamily]);
   const pageRef = useRef(null);
   const topbarRef = useRef(null);
+  const [scrolledPastHeader, setScrolledPastHeader] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [rangoPrecio, setRangoPrecio] = useState({ min: "", max: "" });
   const [marcasActivas, setMarcasActivas] = useState([]);
@@ -235,7 +236,8 @@ export default function CategoryProducts({
     const page = pageRef.current;
     if (!page) return undefined;
 
-    const updateScroll = ({ progress }) => {
+    const updateScroll = ({ scroll, progress }) => {
+      setScrolledPastHeader(scroll > 100);
       const pageProgress = progress;
       topbarRef.current?.style.setProperty("--scroll-progress", pageProgress.toFixed(4));
     };
@@ -391,10 +393,10 @@ export default function CategoryProducts({
 
   return (
     <main className={styles.category} ref={pageRef}>
-      {/* Menú 2 del home, fijo desde el primer render: no depende de
-          scrolledPastHero ni aparece después de hacer scroll. */}
+      {/* Menú 2 compartido, visible al desplazarse; el menú 1 precede al contenido. */}
       <NavDock
-        variant="fixed"
+        variant="scroll"
+        visible={scrolledPastHeader}
         activeId="soluciones"
         navigation={STORE_NAVIGATION}
         topbarRef={topbarRef}

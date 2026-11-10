@@ -16,14 +16,7 @@ import Footer from "../footer";
 import { sileo } from "../toaster";
 import { useContact } from "../contact-provider";
 import { copyText } from "@/lib/clipboard";
-import MobileSiteMenu from "../mobile-site-menu";
 
-const NAVIGATION = [
-  { href: "/", label: "Inicio" },
-  { href: "/#soluciones", label: "Soluciones" },
-  { href: "/tienda", label: "Tienda" },
-  { href: "#formulario", label: "Contacto" },
-];
 
 // Las áreas de interés siguen disponibles en el formulario, aunque la sección
 // 01 ya no las enumere: ese bloque ahora es el mapa de ubicación.
@@ -188,15 +181,9 @@ export default function ContactExperience() {
               fetchPriority="low"
             />
             </Link>
-            <nav className={styles.navigation} aria-label="Navegación principal">
-              {NAVIGATION.map((item, index) => (
-                <a className={index === 3 ? styles.navigationActive : ""} href={item.href} key={item.label}>
-                  {item.label}
-                </a>
-              ))}
-            </nav>
+            <span aria-hidden="true" />
             <div className={styles.headerActionTab}>
-              <MobileSiteMenu />
+
               <a className={styles.headerAction} href="#formulario">Hablemos <span><ArrowUpRight size={15} /></span></a>
             </div>
           </header>

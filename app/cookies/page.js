@@ -4,7 +4,6 @@ import { ArrowDown, ArrowRight, ArrowUpRight, Cookie } from "lucide-react";
 import Footer from "../footer";
 import styles from "../terminos/terminos-experience.module.css";
 import { CONTACT_EMAIL } from '@/lib/contact';
-import MobileSiteMenu from "../mobile-site-menu";
 
 export const metadata = {
   title: "Política de cookies",
@@ -97,16 +96,9 @@ export default function CookiesPage() {
               fetchPriority="low"
             />
             </Link>
-            <nav className={styles.navigation} aria-label="Navegación principal">
-              <Link href="/">Inicio</Link>
-              <Link href="/tienda">Tienda</Link>
-              <Link href="/terminos">Términos</Link>
-              <Link href="/privacidad">Privacidad</Link>
-              <Link className={styles.navigationActive} href="/cookies" aria-current="page">Cookies</Link>
-              <Link href="/contacto">Contacto</Link>
-            </nav>
+            <span aria-hidden="true" />
             <div className={styles.headerActionTab}>
-              <MobileSiteMenu />
+
               <Link className={styles.headerAction} href="/contacto">Hablemos <span><ArrowUpRight size={15} /></span></Link>
             </div>
           </header>

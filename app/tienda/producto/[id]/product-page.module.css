@@ -8,9 +8,8 @@
   --blue: #1544b5;
   --blue-deep: #0c2874;
   min-height: 100vh;
-  /* El dock compartido es fixed: se reserva su altura para que no tape las
-     migas ni la ficha. Es la misma medida usada por la página de categoría. */
-  padding-top: calc(clamp(62px, 3.6vw, 78px) + 24px);
+  /* El menú inicial está antes del contenido; el dock aparece al desplazar. */
+  padding-top: 16px;
   padding-bottom: 0;
   background: var(--bg);
   color: var(--ink);
@@ -428,13 +427,13 @@
 
 @media (max-width: 760px) {
   .page {
-    padding-top: 76px;
+    padding-top: 16px;
   }
 }
 
 @media (max-width: 420px) {
   .page {
-    padding-top: 70px;
+    padding-top: 16px;
   }
 }
 

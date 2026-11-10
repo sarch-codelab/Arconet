@@ -8,6 +8,7 @@ import ThemeToggle from "./theme-toggle";
 import { CartProvider } from "./cart-context";
 import CartDrawer from "./cart-drawer";
 import PageTransition from "./page-transition";
+import PublicSiteNavigation from "./public-site-navigation";
 import AppToaster from "./toaster";
 import DocumentPreview from "./document-preview";
 import ThemeInit from "./theme-init";
@@ -117,6 +118,7 @@ export default function RootLayout({ children }) {
             <ThemeInit />
             <SiteFlickeringGrid />
             <SiteBorderGlow />
+            <PublicSiteNavigation />
             {children}
             <ThemeToggle />
             <CartDrawer />

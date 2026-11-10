@@ -143,7 +143,8 @@ describe("el primer HTML ya trae la vitrina completa", () => {
   it("incluye buscador, navegación, hero, líneas y productos", () => {
     expect(html).toContain('role="search"');
     expect(html).toContain("Busca equipos, líneas y más...");
-    expect(html).toContain('aria-label="Navegación principal"');
+    // La navegación compartida se monta en el layout raíz, fuera de la vitrina.
+    expect(readFileSync("app/layout.js", "utf8")).toContain("<PublicSiteNavigation />");
     expect(html).toContain("Productos destacados");
     expect(html).toContain("Fusionadora de fibra óptica");
     expect(html).toContain("Cable ADSS 24 hilos");
