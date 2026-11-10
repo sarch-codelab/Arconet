@@ -1,0 +1,15 @@
+.page { min-height: 100vh; padding: 30px clamp(20px, 5vw, 72px); background: #f5f7fb; color: #111827; }
+.logo { display: inline-block; }
+.logo img { display: block; width: 150px; height: auto; }
+.content { width: min(100%, 620px); margin: clamp(70px, 14vh, 150px) auto 60px; text-align: center; }
+.icon { display: inline-grid; place-items: center; width: 64px; height: 64px; border-radius: 20px; background: #e5edff; color: #1544b5; }
+.eyebrow { margin: 25px 0 10px; color: #1544b5; font-size: 12px; font-weight: 750; text-transform: uppercase; letter-spacing: .13em; }
+.content h1 { margin: 0; font-family: var(--font-body), sans-serif; font-size: clamp(30px, 5vw, 48px); line-height: 1.12; letter-spacing: -.035em; }
+.content > p:not(.eyebrow) { margin: 18px 0 28px; color: #596476; line-height: 1.6; }
+.back { display: inline-flex; align-items: center; gap: 9px; padding: 13px 18px; border-radius: 10px; background: #1544b5; color: white; text-decoration: none; font-size: 14px; font-weight: 700; }
+.back:hover { background: #103a9c; }
+.back:focus-visible, .logo:focus-visible { outline: 3px solid #4b80fa; outline-offset: 4px; }
+:global(html[data-theme="dark"]) .page { background: #11161d; color: #f2f5fb; }
+:global(html[data-theme="dark"]) .logo img { filter: brightness(0) invert(1); }
+:global(html[data-theme="dark"]) .content > p:not(.eyebrow) { color: #b4bdca; }
+:global(html[data-theme="dark"]) .eyebrow { color: #8cb0ff; }

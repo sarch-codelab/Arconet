@@ -2,6 +2,7 @@ import { getLocalPreviewToken, isLocalPreviewAuthEnabled } from "./lib/local-pre
 import { NextResponse } from "next/server";
 import { verifyToken, SESSION_COOKIE, CLIENT_SESSION_COOKIE } from "./lib/session";
 import { checkRateLimit, getClientIp } from "./lib/rate-limit";
+import { publicPageForPath } from "./lib/public-pages";
 
 const PROTECTED_PAGES = "/panel-administrativo";
 const PROTECTED_API = [
@@ -110,6 +111,27 @@ export default async function proxy(request) {
     }
   }
 
+  const publicPage = (method === "GET" || method === "HEAD") && publicPageForPath(pathname);
+  if (publicPage) {
+    // Proxy de Next 16 usa Node. La consulta solo corre en rutas públicas de
+    // contenido, nunca en recursos ni accesos administrativos.
+    const { cachedPublicPages } = await import("./lib/public-pages-service");
+    const pages = await cachedPublicPages();
+    if (pages[publicPage.id] === false) {
+      const url = new URL("/pagina-no-disponible", request.url);
+      url.searchParams.set("pagina", publicPage.id);
+      const res = NextResponse.redirect(url, 307);
+      res.headers.set("Cache-Control", "no-store");
+      res.headers.set("X-Robots-Tag", "noindex, nofollow");
+      res.headers.set("X-Request-Id", requestId);
+      return res;
+    }
+    const res = NextResponse.next();
+    res.headers.set("Cache-Control", "no-store");
+    res.headers.set("X-Request-Id", requestId);
+    return res;
+  }
+
   const session = await readSession(request);
 
   if (
@@ -184,5 +206,14 @@ export const config = {
   matcher: [
     "/panel-administrativo/:path*",
     "/api/:path*",
+    "/catalogo/:path*",
+    "/tienda/:path*",
+    "/contacto",
+    "/ayuda",
+    "/garantias",
+    "/terminos",
+    "/privacidad",
+    "/cookies",
+    "/aviso-legal",
   ],
 };
