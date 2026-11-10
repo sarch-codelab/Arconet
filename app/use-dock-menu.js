@@ -3,16 +3,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { defaultDockMenu, visibleDockMenu } from "@/lib/dock-menu";
 
-export default function useDockMenu(forStore = false) {
+export default function useDockMenu(forStore = false, menuNumber = 2) {
   const [menu, setMenu] = useState(() => visibleDockMenu(defaultDockMenu()));
   useEffect(() => {
     let active = true;
-    fetch("/api/menu-navegacion", { cache: "no-store" })
+    fetch(menuNumber === 1 ? "/api/menu-navegacion-1" : "/api/menu-navegacion", { cache: "no-store" })
       .then((response) => response.ok ? response.json() : null)
       .then((data) => { if (active && data?.menu && Array.isArray(data.menu.items)) setMenu(data.menu); })
       .catch(() => { /* El menú original sigue disponible sin conexión. */ });
     return () => { active = false; };
-  }, []);
+  }, [menuNumber]);
   return useMemo(() => {
     if (!forStore) return menu;
     const href = (value) => value.startsWith("#") ? `/${value}` : value;

@@ -80,7 +80,7 @@ describe("menú 1: el panel de Soluciones no se descuadra", () => {
     // respecto a él y el panel saldría corrido.
     const main = casa.indexOf("<main className={styles.experience}>");
     // El marcado del panel, no la referencia al className dentro del handler.
-    const panel = casa.indexOf("aria-label=\"Soluciones\"");
+    const panel = casa.indexOf("className={`${styles.cardMegaPanel}");
     const hero = casa.indexOf("<div className={styles.heroFrame}>");
     expect(main).toBeLessThan(panel);
     expect(panel).toBeLessThan(hero);
@@ -92,7 +92,7 @@ describe("menú 1: el panel de Soluciones no se descuadra", () => {
   });
 
   it("no queda una copia duplicada del panel", () => {
-    expect(casa.match(/cardMegaAll/g)?.length).toBe(1);
+    expect(casa.match(/className=\{`\$\{styles\.cardMegaPanel\}/g)?.length).toBe(1);
     expect(casa.match(/role="menu"/g)?.length).toBeGreaterThanOrEqual(1);
   });
 
@@ -105,7 +105,7 @@ describe("menú 1: defectos reales detectados en navegador", () => {
   it("el clic abre el menú en vez de cerrarlo", () => {
     // Con un toggle, mouseenter ya lo abría y el cliqueo lo cerraba en el
     // acto: parecía que el botón no hacía nada.
-    expect(casa).toContain("onClick={() => abrirMenuHero()}");
+    expect(casa).toContain("onClick={(event) => abrirMenuHero(item, event.currentTarget)}");
     expect(casa).not.toContain("onClick={() => setHeroMenuOpen((open) => !open)}");
   });
 

@@ -52,8 +52,8 @@ describe("desplegables del hero con transición", () => {
     const bloque = js.slice(js.lastIndexOf("const centro ="), js.lastIndexOf("setHeroPanelPos"));
     expect(bloque).toContain("caja.left + caja.width / 2");
     expect(bloque).toContain("Math.max(16, Math.min(");
-    // El efecto debe recalcular cuando el panel se monta, no al abrirse.
-    expect(js).toMatch(/\}, \[heroPanelMounted\]\);/);
+    // El panel también se reposiciona al cambiar entre disparadores.
+    expect(js).toMatch(/\}, \[heroPanelMounted, heroMegaId\]\);/);
   });
 });
 

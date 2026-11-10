@@ -225,6 +225,10 @@ const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 
 export default function HomeExperience({ categorias = [] }) {
   const dockMenu = useDockMenu();
+  const heroMenu = useDockMenu(false, 1);
+  const [mobileMenuNumber, setMobileMenuNumber] = useState(2);
+  const mobileNavigation = mobileMenuNumber === 1 ? heroMenu : dockMenu;
+  const [heroMegaId, setHeroMegaId] = useState(null);
   const [activeMega, setActiveMega] = useState(null);
   const [activeSection, setActiveSection] = useState("inicio");
   const [activeSlide, setActiveSlide] = useState(0);
@@ -274,7 +278,9 @@ useEffect(() => {
     }
   };
 
-  const abrirMenuHero = () => {
+  const abrirMenuHero = (item, trigger) => {
+    heroTriggerRef.current = trigger;
+    setHeroMegaId(item.keyId);
     cancelarCierre();
     setHeroMenuOpen(true);
   };
@@ -378,7 +384,7 @@ useEffect(() => {
     };
     // Depende del montaje, no de la apertura: el panel debe quedar colocado
     // antes de que se le aplique la clase de apertura.
-  }, [heroPanelMounted]);
+  }, [heroPanelMounted, heroMegaId]);
 
   useEffect(() => {
     if (!menuOpen) return undefined;
@@ -704,25 +710,25 @@ useEffect(() => {
       {/* Panel de Soluciones del menú 1: mismo contenido que el menú de
           escritorio. Vive fuera del hero, en <main>, porque el hero recorta
           con overflow: hidden y un panel interno quedaría cortado. */}
-      {NAVIGATION.some((item) => item.mega) && heroPanelMounted && (
+      {heroMenu.items.some((item) => item.mega) && heroPanelMounted && (
         <div
           className={`${styles.cardMegaPanel}${
             heroPanelListo ? ` ${styles.cardMegaPanelOpen}` : ""
           }`}
           style={{ left: `${heroPanelPos.left}px`, top: `${heroPanelPos.top}px` }}
           role="menu"
-          aria-label="Soluciones"
+          aria-label={heroMenu.items.find((item) => item.keyId === heroMegaId)?.label || "Menú desplegable"}
           onMouseEnter={() => cancelarCierre()}
           onMouseLeave={() => programarCierre()}
         >
           <div className={styles.cardMegaGroups}>
-            {NAVIGATION.filter((item) => item.mega).map((item) =>
+            {heroMenu.items.filter((item) => item.mega && item.keyId === heroMegaId).map((item) =>
               item.megaGroups.map((group) => (
-                <section key={`${item.id}-${group.title}`} className={styles.cardMegaGroup}>
+                <section key={`${item.keyId}-${group.id}`} className={styles.cardMegaGroup}>
                   <h4>{group.title}</h4>
                   <ul>
                     {group.links.map((link) => (
-                      <li key={link.label}>
+                      <li key={link.id}>
                         <a href={link.href} role="menuitem">
                           {link.label}
                         </a>
@@ -733,10 +739,15 @@ useEffect(() => {
               ))
             )}
           </div>
-          <Link className={styles.cardMegaAll} href="/tienda">
-            Ver la tienda completa
+          {heroMenu.items.filter((item) => item.keyId === heroMegaId).map((item) => (
+            <a key={item.keyId} className={styles.cardMegaAll} href={item.href} role="menuitem" onClick={() => setHeroMenuOpen(false)}>
+              Ir a {item.label} <ArrowRight size={14} aria-hidden="true" />
+            </a>
+          ))}
+          {heroMenu.primary.enabled && <Link className={styles.cardMegaAll} href={heroMenu.primary.href}>
+            {heroMenu.primary.label === "Tienda" && heroMenu.primary.href === "/tienda" ? "Ver la tienda completa" : heroMenu.primary.label}
             <ArrowRight size={14} aria-hidden="true" />
-          </Link>
+          </Link>}
         </div>
       )}
 
@@ -791,7 +802,7 @@ useEffect(() => {
               aria-controls="home-mobile-menu"
               aria-haspopup="true"
               aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
-              onClick={() => setMenuOpen(!menuOpen)}
+              onClick={() => { setMobileMenuNumber(2); setMenuOpen(!menuOpen); }}
             >
               <span className={styles.menuBar} />
               <span className={styles.menuBar} />
@@ -915,14 +926,14 @@ useEffect(() => {
                 </button>
               </div>
 
-              {dockMenu.primary.enabled && <Link
+              {mobileNavigation.primary.enabled && <Link
                 className={styles.mobileMenuPrimary}
-                href={dockMenu.primary.href}
+                href={mobileNavigation.primary.href}
                 onClick={() => setMenuOpen(false)}
               >
                 <span className={styles.mobileMenuPrimaryText}>
-                  <span className={styles.mobileMenuPrimaryLabel}>{dockMenu.primary.label}</span>
-                  <span className={styles.mobileMenuPrimaryHint}>{dockMenu.primary.description}</span>
+                  <span className={styles.mobileMenuPrimaryLabel}>{mobileNavigation.primary.label}</span>
+                  <span className={styles.mobileMenuPrimaryHint}>{mobileNavigation.primary.description}</span>
                 </span>
                 <span className={styles.mobileMenuPrimaryIcon}>
                   <ArrowRight size={18} aria-hidden="true" />
@@ -949,7 +960,7 @@ useEffect(() => {
               </div>
 
               <div className={styles.mobileMenuLinks}>
-                {dockMenu.items.filter((item) => (!dockMenu.primary.enabled || item.keyId !== "enlace-2" || item.label !== "Tienda" || dockMenu.primary.label !== "Tienda" || item.mega || item.href !== dockMenu.primary.href)).map((item) =>
+                {mobileNavigation.items.filter((item) => (!mobileNavigation.primary.enabled || item.keyId !== "enlace-2" || item.label !== "Tienda" || mobileNavigation.primary.label !== "Tienda" || item.mega || item.href !== mobileNavigation.primary.href)).map((item) =>
                   item.mega ? (
                     <div key={item.keyId || item.id || item.label} className={styles.mobileMenuGroup}>
                       <a
@@ -987,7 +998,7 @@ useEffect(() => {
                 )}
               </div>
               <div className={styles.mobileMenuLegal}>
-                {dockMenu.legal.map((link) => <a key={link.id} href={link.href} onClick={() => setMenuOpen(false)}>{link.label}</a>)}
+                {mobileNavigation.legal.map((link) => <a key={link.id} href={link.href} onClick={() => setMenuOpen(false)}>{link.label}</a>)}
               </div>
             </nav>
           )}
@@ -1030,26 +1041,25 @@ useEffect(() => {
             </div>
 
             <nav className={styles.cardCenterNav} aria-label="Navegación del hero">
-              {NAVIGATION.map((item) =>
+              {heroMenu.items.map((item) =>
                 item.mega ? (
                   <button
-                    key={item.id}
+                    key={item.keyId}
                     type="button"
                     className={`${styles.cardMegaTrigger}${
                       activeSection === item.id ? ` ${styles.cardNavActive}` : ""
-                    }${heroMenuOpen ? ` ${styles.cardMegaTriggerOpen}` : ""}`}
-                    ref={heroTriggerRef}
-                    aria-expanded={heroMenuOpen}
+                    }${heroMenuOpen && heroMegaId === item.keyId ? ` ${styles.cardMegaTriggerOpen}` : ""}`}
+                    aria-expanded={heroMenuOpen && heroMegaId === item.keyId}
                     aria-haspopup="true"
-                    onClick={() => abrirMenuHero()}
-                    onMouseEnter={() => abrirMenuHero()}
+                    onClick={(event) => abrirMenuHero(item, event.currentTarget)}
+                    onMouseEnter={(event) => abrirMenuHero(item, event.currentTarget)}
                     onMouseLeave={() => programarCierre()}
                   >
                     {item.label}
                   </button>
                 ) : (
                   <a
-                    key={item.id ?? item.label}
+                    key={item.keyId}
                     className={activeSection === item.id ? styles.cardNavActive : ""}
                     href={item.href}
                   >
@@ -1066,7 +1076,7 @@ useEffect(() => {
               aria-controls="home-mobile-menu"
               aria-haspopup="true"
               aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
-              onClick={() => setMenuOpen(!menuOpen)}
+              onClick={() => { setMobileMenuNumber(1); setMenuOpen(!menuOpen); }}
             >
               <span className={styles.menuBar} />
               <span className={styles.menuBar} />

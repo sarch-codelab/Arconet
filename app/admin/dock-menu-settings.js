@@ -50,7 +50,8 @@ function EditList({ title, entries, path, kind, change, canWrite }) {
   );
 }
 
-export default function DockMenuSettings({ session }) {
+export default function DockMenuSettings({ session, menuNumber = 2 }) {
+  const api = menuNumber === 1 ? "/api/configuracion/menu-navegacion-1" : "/api/configuracion/menu-navegacion";
   const canWrite = session?.permisos?.includes("ajustes:read") && session?.permisos?.includes("ajustes:write");
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -62,13 +63,13 @@ export default function DockMenuSettings({ session }) {
 
   useEffect(() => {
     let active = true;
-    apiFetch("/api/configuracion/menu-navegacion", { cache: "no-store" }).then(async (response) => {
+    apiFetch(api, { cache: "no-store" }).then(async (response) => {
       const value = await response.json().catch(() => ({}));
       if (!response.ok || !value.menu) throw new Error(value.error || "No se pudo cargar el menú.");
       if (active) { setData(value); setDirty(false); if (value.corrupt) setNotice("La configuración anterior no es válida. Se muestran los valores originales; guárdalos para restaurarla."); }
     }).catch((err) => { if (active) setError(err.message); }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [retry]);
+  }, [retry, api]);
 
   function change(path, update) {
     setData((old) => {
@@ -84,7 +85,7 @@ export default function DockMenuSettings({ session }) {
     if (!canWrite || saving || !data) return;
     setSaving(true); setError(""); setNotice("");
     try {
-      const response = await apiFetch("/api/configuracion/menu-navegacion", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ menu: data.menu, revision: data.revision }) });
+      const response = await apiFetch(api, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ menu: data.menu, revision: data.revision }) });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.error || "No se pudo guardar el menú.");
       setData(result); setDirty(false); setNotice("Menú guardado. Los visitantes verán los cambios al volver a cargar o abrir el sitio.");
@@ -97,10 +98,10 @@ export default function DockMenuSettings({ session }) {
   }
 
   return (
-    <section className={admin.card} aria-labelledby="dock-menu-settings-title">
-      <header className={admin.cardHeader}><h3 id="dock-menu-settings-title"><Menu size={18} /> Menú de navegación 2</h3></header>
+    <section className={admin.card} aria-labelledby={`dock-menu-settings-title-${menuNumber}`}>
+      <header className={admin.cardHeader}><h3 id={`dock-menu-settings-title-${menuNumber}`}><Menu size={18} /> Menú de navegación {menuNumber}</h3></header>
       <div className={styles.content}>
-        <p className={styles.hint}>Edita la barra que aparece al desplazarte y su menú desplegable en escritorio y móvil. El menú inicial del hero no cambia. Los accesos a Login y Admin permanecen fijos.</p>
+        <p className={styles.hint}>{menuNumber === 1 ? "Edita la barra inicial del hero y su menú desplegable en escritorio y móvil. El menú 2 no cambia." : "Edita la barra que aparece al desplazarte y su menú desplegable en escritorio y móvil. El menú 1 no cambia."} Los accesos a Login y Admin permanecen fijos.</p>
         <p className={styles.hint}>Los destinos pueden ser rutas del sitio (como /tienda), secciones (como #inicio) o enlaces HTTPS. Ocultar un enlace no desactiva su página.</p>
         {!canWrite && <p className={styles.hint}>Solo lectura: necesitas permiso de escritura de Ajustes para modificar el menú.</p>}
         {error && <p className={styles.error} role="alert">{error}</p>}

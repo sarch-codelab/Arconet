@@ -54,7 +54,7 @@ describe("dock compartido con aparición al hacer scroll", () => {
     expect(catalogo).not.toMatch(/import MobileSiteMenu|<MobileSiteMenu/);
     expect(catalogo).toContain("styles.heroMenuToggle");
     expect(catalogo).toContain("styles.heroMobileMenu");
-    expect(catalogo).toContain("STORE_NAVIGATION.map");
+    expect(catalogo).toContain("heroMenu.items.map");
     expect(catalogo).toContain("createPortal(");
     expect(detalle).not.toContain("const NAVIGATION = [");
   });
