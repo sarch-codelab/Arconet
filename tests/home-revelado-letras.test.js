@@ -124,10 +124,10 @@ describe("menú 1: defectos reales detectados en navegador", () => {
     expect(casa).toContain("Math.max(16, Math.min(centro - ancho / 2");
   });
 
-  it("los cuatro grupos van en 2x2 y no estirados", () => {
+  it("los grupos van en 2x2 como el menú 2", () => {
     const grupos = css.match(/\.cardMegaGroups\s*\{[^}]*\}/)?.[0] ?? "";
     expect(grupos).toContain("repeat(2, minmax(0, 1fr))");
-    expect(grupos).toContain("align-items: start");
+    expect(grupos).toContain("align-items: stretch");
   });
 
   it("el titular de contacto respeta sus dos líneas", () => {

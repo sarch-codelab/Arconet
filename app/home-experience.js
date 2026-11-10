@@ -287,7 +287,9 @@ useEffect(() => {
 
   const programarCierre = () => {
     cancelarCierre();
-    heroMenuTimer.current = setTimeout(() => setHeroMenuOpen(false), 180);
+    heroMenuTimer.current = setTimeout(() => {
+      if (!document.activeElement?.closest?.(`.${styles.cardMegaPanel}`)) setHeroMenuOpen(false);
+    }, 180);
   };
 
   // Lo mismo para "Acceder": abrir al instante y cerrar con un respiro, para
@@ -354,7 +356,7 @@ useEffect(() => {
       // termina más arriba y el panel se montaba encima de la barra.
       const header = trigger.closest("header");
       const base = header ? header.getBoundingClientRect().bottom : caja.bottom;
-      const ancho = Math.min(820, window.innerWidth - 32);
+      const ancho = Math.min(1180, window.innerWidth - 48);
       // Centrado sobre el botón "Soluciones", que es lo que el visitante
       // acaba de señalar. Antes se centraba sobre toda la navegación y el
       // panel se salía por la izquierda (el clamp lo pegaba a x=16 y aun así
@@ -371,14 +373,22 @@ useEffect(() => {
       }
     };
     const alDesplazar = () => setHeroMenuOpen(false);
+    const alTeclado = (event) => {
+      if (event.key === "Escape") {
+        setHeroMenuOpen(false);
+        heroTriggerRef.current?.focus();
+      }
+    };
 
     colocar();
     document.addEventListener("pointerdown", alClicFuera);
+    document.addEventListener("keydown", alTeclado);
     window.addEventListener("scroll", alDesplazar, { passive: true });
     window.addEventListener("resize", colocar);
 
     return () => {
       document.removeEventListener("pointerdown", alClicFuera);
+      document.removeEventListener("keydown", alTeclado);
       window.removeEventListener("scroll", alDesplazar);
       window.removeEventListener("resize", colocar);
     };
@@ -720,34 +730,40 @@ useEffect(() => {
           aria-label={heroMenu.items.find((item) => item.keyId === heroMegaId)?.label || "Menú desplegable"}
           onMouseEnter={() => cancelarCierre()}
           onMouseLeave={() => programarCierre()}
+          onFocusCapture={() => cancelarCierre()}
+          onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) programarCierre(); }}
         >
+          <div className={styles.desktopMenuTop}>
+            {heroMenu.primary.enabled && <Link className={styles.desktopMenuPrimary} href={heroMenu.primary.href} role="menuitem" onClick={() => setHeroMenuOpen(false)}>
+              <span className={styles.desktopMenuPrimaryText}>
+                <span className={styles.desktopMenuPrimaryLabel}>{heroMenu.primary.label}</span>
+                <span className={styles.desktopMenuPrimaryHint}>{heroMenu.primary.description}</span>
+              </span>
+              <span className={styles.desktopMenuPrimaryIcon}><ArrowRight size={18} aria-hidden="true" /></span>
+            </Link>}
+            <div className={styles.desktopMenuAuth}>
+              <a className={styles.desktopMenuLogin} href="/login" role="menuitem"><LogIn size={16} aria-hidden="true" /> Login</a>
+              <a className={styles.desktopMenuAdmin} href="/admin" role="menuitem"><ShieldCheck size={16} aria-hidden="true" /> Admin</a>
+            </div>
+          </div>
           <div className={styles.cardMegaGroups}>
             {heroMenu.items.filter((item) => item.mega && item.keyId === heroMegaId).map((item) =>
               item.megaGroups.map((group) => (
-                <section key={`${item.keyId}-${group.id}`} className={styles.cardMegaGroup}>
+                <section key={`${item.keyId}-${group.id}`} className={`${styles.desktopMenuGroup} ${styles.cardMegaGroup}`}>
                   <h4>{group.title}</h4>
                   <ul>
                     {group.links.map((link) => (
-                      <li key={link.id}>
-                        <a href={link.href} role="menuitem">
-                          {link.label}
-                        </a>
-                      </li>
+                      <li key={link.id}><a href={link.href} role="menuitem" onClick={() => setHeroMenuOpen(false)}>{link.label}</a></li>
                     ))}
                   </ul>
                 </section>
               ))
             )}
           </div>
-          {heroMenu.items.filter((item) => item.keyId === heroMegaId).map((item) => (
-            <a key={item.keyId} className={styles.cardMegaAll} href={item.href} role="menuitem" onClick={() => setHeroMenuOpen(false)}>
-              Ir a {item.label} <ArrowRight size={14} aria-hidden="true" />
-            </a>
-          ))}
-          {heroMenu.primary.enabled && <Link className={styles.cardMegaAll} href={heroMenu.primary.href}>
-            {heroMenu.primary.label === "Tienda" && heroMenu.primary.href === "/tienda" ? "Ver la tienda completa" : heroMenu.primary.label}
-            <ArrowRight size={14} aria-hidden="true" />
-          </Link>}
+          <div className={styles.desktopMenuLegal}>
+            {heroMenu.items.filter((item) => item.mega && item.keyId === heroMegaId).map((item) => <a key={item.keyId} href={item.href} role="menuitem" onClick={() => setHeroMenuOpen(false)}>Ir a {item.label}</a>)}
+            {heroMenu.legal.map((link) => <a key={link.id} href={link.href} role="menuitem" onClick={() => setHeroMenuOpen(false)}>{link.label}</a>)}
+          </div>
         </div>
       )}
 

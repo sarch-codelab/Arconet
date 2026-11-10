@@ -36,10 +36,11 @@ describe("menú 1 (el del hero): Soluciones despliega", () => {
     expect(casa).toContain("pointerdown");
   });
 
-  it("el panel trae los cuatro grupos y el enlace a la tienda", () => {
+  it("el panel usa los grupos, acceso destacado, Login/Admin y legales del menú 1", () => {
     expect(casa).toContain("cardMegaGroups");
-    expect(casa).toContain("cardMegaAll");
-    expect(casa).toContain("Ver la tienda completa");
+    const panel = casa.slice(casa.indexOf("{heroMenu.items.some((item) => item.mega) && heroPanelMounted"), casa.indexOf("{/* Dock de navegación secundaria"));
+    for (const value of ["heroMenu.primary.label", "heroMenu.primary.description", "heroMenu.primary.href", "heroMenu.legal.map", 'href="/login"', 'href="/admin"']) expect(panel).toContain(value);
+    expect(panel).not.toContain("dockMenu.");
   });
 
   it("el panel se mantiene dentro de la pantalla en cualquier ancho", () => {
