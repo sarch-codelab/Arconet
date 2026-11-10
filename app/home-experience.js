@@ -960,7 +960,7 @@ useEffect(() => {
               </div>
 
               <div className={styles.mobileMenuLinks}>
-                {mobileNavigation.items.filter((item) => (!mobileNavigation.primary.enabled || item.keyId !== "enlace-2" || item.label !== "Tienda" || mobileNavigation.primary.label !== "Tienda" || item.mega || item.href !== mobileNavigation.primary.href)).map((item) =>
+                {mobileNavigation.items.filter((item) => (!mobileNavigation.primary.enabled || item.keyId !== "enlace-2" || !mobileNavigation.primary.linked || item.mega)).map((item) =>
                   item.mega ? (
                     <div key={item.keyId || item.id || item.label} className={styles.mobileMenuGroup}>
                       <a

@@ -75,6 +75,7 @@ export default function ProductPage({ product }) {
   const { addItem, open: openCart, count: cartCount } = useCart();
   const { products } = useCatalogProducts();
   const topbarRef = useRef(null);
+  const [scrolledPastHeader, setScrolledPastHeader] = useState(false);
   const pageRef = useRef(null);
 
   const stock = Number(product.stock) || 0;
@@ -96,7 +97,8 @@ export default function ProductPage({ product }) {
     const topbar = topbarRef.current;
     if (!page) return undefined;
 
-    const updateScroll = ({ progress }) => {
+    const updateScroll = ({ scroll, progress }) => {
+      setScrolledPastHeader(scroll > 100);
       const pageProgress = progress;
       page.style.setProperty("--page-progress", pageProgress.toFixed(4));
 
@@ -133,7 +135,8 @@ export default function ProductPage({ product }) {
   return (
     <main className={styles.page} ref={pageRef}>
       <NavDock
-        variant="fixed"
+        variant="scroll"
+        visible={scrolledPastHeader}
         activeId="soluciones"
         navigation={STORE_NAVIGATION}
         topbarRef={topbarRef}

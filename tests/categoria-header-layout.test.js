@@ -12,13 +12,14 @@ const leer = (f) => readFileSync(f, "utf8");
 const sinComentarios = (css) => css.replace(/\/\*[\s\S]*?\*\//g, "");
 
 describe("header de la página de categoría", () => {
-  it("usa el menú 2 fijo y visible, sin el header sticky anterior", () => {
+  it("usa el menú 2 al desplazar, sin el header sticky anterior", () => {
     const js = leer(JS);
     const css = sinComentarios(leer(DOCK_CSS));
     const fija = css.match(/\.topbarFixed\s*\{([^}]*)\}/)?.[1] || "";
 
     expect(js).toContain("<NavDock");
-    expect(js).toContain('variant="fixed"');
+    expect(js).toContain('variant="scroll"');
+    expect(js).toContain('visible={scrolledPastHeader}');
     expect(js).toContain("cartAction={");
     expect(js).not.toContain("<header className={styles.header}>");
     expect(css).toMatch(/\.topbar\s*\{[^}]*position: fixed/);

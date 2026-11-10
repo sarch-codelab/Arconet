@@ -39,7 +39,6 @@ import {
   HERO_IMAGE,
   HERO_SLIDES,
   IDEAS,
-  NAV_LINKS,
   PRODUCTS,
   PROMISES,
   REGALO_OFERTAS,
@@ -239,18 +238,7 @@ export default function CatalogoExperience() {
               )}
             </form>
 
-            <nav className={styles.mainNav} aria-label="Navegación principal">
-              {NAV_LINKS.map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className={item.href === "/catalogo" ? styles.navActive : ""}
-                  aria-current={item.href === "/catalogo" ? "page" : undefined}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
+            <span aria-hidden="true" />
 
             <div
               className={styles.headerActions}

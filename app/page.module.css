@@ -4536,3 +4536,12 @@
   .heroLogoImg { width: 92px; }
   .cardActionTab { padding: 0 10px; }
 }
+
+/* Los enlaces administrados pueden superar el ancho de la cabecera. */
+@media (min-width: 761px) {
+  .topbarShell { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .navigation { min-width: 0; max-width: 100%; overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; }
+  .navigation a { flex-shrink: 0; }
+  .cardCenterNav { max-width: max(200px, calc(100% - 520px)); overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; }
+  .cardCenterNav a, .cardCenterNav button { flex-shrink: 0; white-space: nowrap; }
+}
