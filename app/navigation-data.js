@@ -5,21 +5,21 @@ export const NAVIGATION = [
   { id: "inicio", label: "Inicio", href: "#inicio", mega: false },
   { id: "soluciones", label: "Soluciones", href: "#soluciones", mega: true, megaGroups: [
     { title: "Red óptica y FTTH", links: [
-      { label: "Soluciones de Preconectorizado", href: "/tienda/soluciones-de-preconectorizado" },
-      { label: "Cajas de Distribución y Emplazamiento", href: "/tienda/cajas-de-distribucion-y-emplazamiento" },
-      { label: "Soluciones activas y Accesorios FTTH", href: "/tienda/soluciones-activas-y-accesorios-ftth" },
-      { label: "Componentes pasivos", href: "/tienda/componentes-pasivos" },
-      { label: "Microcables y Microproductos", href: "/tienda/microcables-y-microproductos" }
+      { label: "Soluciones de Preconectorizado", href: "/tienda/categoria/soluciones-de-preconectorizado" },
+      { label: "Cajas de Distribución y Emplazamiento", href: "/tienda/categoria/cajas-de-distribucion-y-emplazamiento" },
+      { label: "Soluciones activas y Accesorios FTTH", href: "/tienda/categoria/soluciones-activas-y-accesorios-ftth" },
+      { label: "Componentes pasivos", href: "/tienda/categoria/componentes-pasivos" },
+      { label: "Microcables y Microproductos", href: "/tienda/categoria/microcables-y-microproductos" }
     ]},
     { title: "Infraestructura", links: [
-      { label: "Gabinetes y Racks", href: "/tienda/gabinetes-y-racks" },
-      { label: "Herrajes", href: "/tienda/herrajes" },
-      { label: "Escaleras", href: "/tienda/escaleras" },
-      { label: "Optical Distribution Frame - ODF", href: "/tienda/optical-distribution-frame-odf" }
+      { label: "Gabinetes y Racks", href: "/tienda/categoria/gabinetes-y-racks" },
+      { label: "Herrajes", href: "/tienda/categoria/herrajes" },
+      { label: "Escaleras", href: "/tienda/categoria/escaleras" },
+      { label: "Optical Distribution Frame - ODF", href: "/tienda/categoria/optical-distribution-frame-odf" }
     ]},
     { title: "Medición y herramientas", links: [
-      { label: "Instrumentos de medición óptica", href: "/tienda/instrumentos-de-medicion-optica" },
-      { label: "Herramientas y kits", href: "/tienda/herramientas-y-kits" }
+      { label: "Instrumentos de medición óptica", href: "/tienda/categoria/instrumentos-de-medicion-optica" },
+      { label: "Herramientas y kits", href: "/tienda/categoria/herramientas-y-kits" }
     ]},
     { title: "Más de Arconet", links: [
       { label: "La empresa", href: "/#empresa" },
