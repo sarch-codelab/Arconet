@@ -65,7 +65,7 @@ describe("el copy visible acompaña al nombre de la ruta", () => {
     expect(navigation).toContain('{ label: "Tienda", href: "/tienda"');
     expect(navigation).not.toContain('{ label: "Catálogo", href: "/tienda"');
     expect(home).toContain('import { NAVIGATION } from "./navigation-data"');
-    expect(home).toContain("mobileMenuPrimaryLabel}>{dockMenu.primary.label}<");
+    expect(home).toContain("mobileMenuPrimaryLabel}>{mobileNavigation.primary.label}<");
     const dockMenu = readFileSync("lib/dock-menu.js", "utf8");
     expect(dockMenu).toContain('primary: { label: "Tienda"');
 

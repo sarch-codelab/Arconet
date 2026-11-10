@@ -59,12 +59,14 @@ describe("menú 1 de /tienda con la misma apariencia que el home", () => {
     const home = leer(HOME_JS);
 
     expect(tienda).toContain('import { STORE_NAVIGATION } from "../navigation-data"');
-    expect(tienda).toContain("STORE_NAVIGATION.map((item) =>");
+    expect(tienda).toContain("const heroMenu = useDockMenu(true, 1)");
+    expect(tienda).toContain("heroMenu.items.map((item) =>");
     // Ya no hay una lista de enlaces local distinta a la del home.
     expect(tienda).not.toContain("const NAVIGATION = [");
     expect(tienda).not.toContain("{ label: \"Inicio\", mega: false");
     // Ambos despliegan el mega de Soluciones y marcan el enlace activo.
-    expect(home).toContain("NAVIGATION.map");
+    expect(home).toContain("const heroMenu = useDockMenu(false, 1)");
+    expect(home).toContain("heroMenu.items.map((item) =>");
     expect(tienda).toContain("styles.heroMegaTrigger");
     expect(tienda).toContain("styles.heroMegaPanel");
     expect(tienda).toContain("styles.navigationActive");
@@ -152,11 +154,11 @@ describe("menú 1 de /tienda con la misma apariencia que el home", () => {
     expect(tienda).not.toMatch(/import MobileSiteMenu|<MobileSiteMenu/);
     expect(tienda).toContain("createPortal(");
     expect(tienda).toContain('id="tienda-mobile-menu"');
-    expect(tienda).toContain("styles.heroMobilePrimaryLabel}>Tienda<");
+    expect(tienda).toContain("styles.heroMobilePrimaryLabel}>{heroMenu.primary.label}<");
     expect(tienda).toContain('href="/login"');
     expect(tienda).toContain('href="/admin"');
     expect(tienda).toContain("item.megaGroups.map");
-    expect(tienda).toContain('href="/terminos"');
+    expect(tienda).toContain("heroMenu.legal.map");
     expect(tienda).toContain("cycleTheme");
     expect(tienda).toContain("styles.heroMenuBackdrop");
     // Escape y bloqueo de scroll, como en el home.

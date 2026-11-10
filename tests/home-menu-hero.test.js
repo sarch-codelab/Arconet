@@ -14,7 +14,7 @@ describe("menú 1 (el del hero): Soluciones despliega", () => {
     const bloque = nav.slice(0, nav.indexOf("</nav>"));
     expect(bloque).toContain("item.mega ?");
     expect(bloque).toContain("cardMegaTrigger");
-    expect(bloque).toContain("aria-expanded={heroMenuOpen}");
+    expect(bloque).toContain("aria-expanded={heroMenuOpen && heroMegaId === item.keyId}");
   });
 
   it("el panel se abre con estado propio, no solo con CSS", () => {
@@ -22,7 +22,7 @@ describe("menú 1 (el del hero): Soluciones despliega", () => {
     // Al pasar el mouse también debe abrir, como el menú 2. Va por el helper
     // que además cancela un cierre pendiente y evita que un roce lo abra de
     // golpe sin querer.
-    expect(casa).toMatch(/onMouseEnter=\{\(\) => abrirMenuHero\(\)\}/);
+    expect(casa).toMatch(/onMouseEnter=\{\(event\) => abrirMenuHero\(item, event.currentTarget\)\}/);
   });
 
   it("el panel no se recorta con el overflow: hidden del hero", () => {

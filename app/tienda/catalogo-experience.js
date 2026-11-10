@@ -28,6 +28,7 @@ import { useCart } from "../cart-context";
 import Footer from "../footer";
 import NavDock from "../nav-dock";
 import { STORE_NAVIGATION } from "../navigation-data";
+import useDockMenu from "../use-dock-menu";
 import { useThemeMode } from "../theme-toggle";
 
 // Solo los ids de las secciones que observa el IntersectionObserver para
@@ -97,6 +98,8 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
   // Menú 1: el mismo hamburguesa centrado y el mismo desplegable de
   // Soluciones que el home. El menú 2 (NavDock) conserva su estado propio.
   const [menuOpen, setMenuOpen] = useState(false);
+  const heroMenu = useDockMenu(true, 1);
+  const [heroMegaId, setHeroMegaId] = useState(null);
   const [heroMenuOpen, setHeroMenuOpen] = useState(false);
   const heroRef = useRef(null);
   const topbarRef = useRef(null);
@@ -456,22 +459,22 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
             </div>
 
             <nav className={styles.navigation} aria-label="Navegación del hero">
-              {STORE_NAVIGATION.map((item) =>
+              {heroMenu.items.map((item) =>
                 item.mega ? (
                   <button
-                    key={item.id ?? item.label}
+                    key={item.keyId}
                     type="button"
-                    className={`${styles.heroMegaTrigger}${heroMenuOpen ? ` ${styles.heroMegaTriggerOpen}` : ""}`}
-                    aria-expanded={heroMenuOpen}
+                    className={`${styles.heroMegaTrigger}${heroMenuOpen && heroMegaId === item.keyId ? ` ${styles.heroMegaTriggerOpen}` : ""}`}
+                    aria-expanded={heroMenuOpen && heroMegaId === item.keyId}
                     aria-haspopup="true"
-                    onClick={() => setHeroMenuOpen((value) => !value)}
-                    onMouseEnter={() => setHeroMenuOpen(true)}
+                    onClick={() => { setHeroMegaId(item.keyId); setHeroMenuOpen((value) => heroMegaId !== item.keyId || !value); }}
+                    onMouseEnter={() => { setHeroMegaId(item.keyId); setHeroMenuOpen(true); }}
                   >
                     {item.label}
                   </button>
                 ) : (
                   <Link
-                    key={item.id ?? item.label}
+                    key={item.keyId}
                     className={item.id && activeNavId === item.id ? styles.navigationActive : ""}
                     href={item.href}
                   >
@@ -485,17 +488,17 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
               <div
                 className={styles.heroMegaPanel}
                 role="menu"
-                aria-label="Soluciones"
+                aria-label={heroMenu.items.find((item) => item.keyId === heroMegaId)?.label || "Menú desplegable"}
                 onMouseLeave={() => setHeroMenuOpen(false)}
               >
                 <div className={styles.heroMegaGroups}>
-                  {STORE_NAVIGATION.filter((item) => item.mega).flatMap((item) =>
+                  {heroMenu.items.filter((item) => item.mega && item.keyId === heroMegaId).flatMap((item) =>
                     item.megaGroups.map((group) => (
-                      <section key={`${item.id}-${group.title}`} className={styles.heroMegaGroup}>
+                      <section key={`${item.keyId}-${group.id}`} className={styles.heroMegaGroup}>
                         <h4>{group.title}</h4>
                         <ul>
                           {group.links.map((link) => (
-                            <li key={link.label}>
+                            <li key={link.id}>
                               <Link href={link.href} role="menuitem" onClick={() => setHeroMenuOpen(false)}>
                                 {link.label}
                               </Link>
@@ -506,9 +509,14 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
                     ))
                   )}
                 </div>
-                <Link className={styles.heroMegaAll} href="/tienda" onClick={() => setHeroMenuOpen(false)}>
-                  Ver la tienda completa <ArrowRight size={14} aria-hidden="true" />
-                </Link>
+                {heroMenu.items.filter((item) => item.keyId === heroMegaId).map((item) => (
+                  <Link key={item.keyId} className={styles.heroMegaAll} href={item.href} role="menuitem" onClick={() => setHeroMenuOpen(false)}>
+                    Ir a {item.label} <ArrowRight size={14} aria-hidden="true" />
+                  </Link>
+                ))}
+                {heroMenu.primary.enabled && <Link className={styles.heroMegaAll} href={heroMenu.primary.href} onClick={() => setHeroMenuOpen(false)}>
+                  {heroMenu.primary.label === "Tienda" && heroMenu.primary.href === "/tienda" ? "Ver la tienda completa" : heroMenu.primary.label} <ArrowRight size={14} aria-hidden="true" />
+                </Link>}
               </div>
             ) : null}
 
@@ -716,13 +724,13 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
               </button>
             </div>
 
-            <Link className={styles.heroMobilePrimary} href="/tienda" onClick={() => setMenuOpen(false)}>
+            {heroMenu.primary.enabled && <Link className={styles.heroMobilePrimary} href={heroMenu.primary.href} onClick={() => setMenuOpen(false)}>
               <span className={styles.heroMobilePrimaryText}>
-                <span className={styles.heroMobilePrimaryLabel}>Tienda</span>
-                <span className={styles.heroMobilePrimaryHint}>Explora todos los productos</span>
+                <span className={styles.heroMobilePrimaryLabel}>{heroMenu.primary.label}</span>
+                <span className={styles.heroMobilePrimaryHint}>{heroMenu.primary.description}</span>
               </span>
               <span className={styles.heroMobilePrimaryIcon}><ArrowRight size={18} aria-hidden="true" /></span>
-            </Link>
+            </Link>}
 
             <div className={styles.heroMobileAuth}>
               <Link href="/login" onClick={() => setMenuOpen(false)}><LogIn size={16} aria-hidden="true" /> Login</Link>
@@ -730,24 +738,24 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
             </div>
 
             <div className={styles.heroMobileLinks}>
-              {STORE_NAVIGATION.filter((item) => item.href !== "/tienda").map((item) =>
+              {heroMenu.items.filter((item) => (!heroMenu.primary.enabled || item.keyId !== "enlace-2" || item.label !== "Tienda" || heroMenu.primary.label !== "Tienda" || item.mega || item.href !== heroMenu.primary.href)).map((item) =>
                 item.mega ? (
-                  <div key={item.id ?? item.label} className={styles.heroMobileGroup}>
+                  <div key={item.keyId} className={styles.heroMobileGroup}>
                     <Link className={styles.heroMobileGroupTitle} href={item.href} onClick={() => setMenuOpen(false)}>
                       {item.label}
                     </Link>
                     {item.megaGroups.map((group) => (
-                      <div key={group.title} className={styles.heroMobileSubgroup}>
+                      <div key={group.id} className={styles.heroMobileSubgroup}>
                         <strong>{group.title}</strong>
                         {group.links.map((link) => (
-                          <Link key={link.label} href={link.href} onClick={() => setMenuOpen(false)}>{link.label}</Link>
+                          <Link key={link.id} href={link.href} onClick={() => setMenuOpen(false)}>{link.label}</Link>
                         ))}
                       </div>
                     ))}
                   </div>
                 ) : (
                   <Link
-                    key={item.id ?? item.label}
+                    key={item.keyId}
                     className={styles.heroMobileLink}
                     href={item.href}
                     onClick={() => setMenuOpen(false)}
@@ -769,9 +777,7 @@ export default function CatalogoExperience({ categoriasIniciales = [] }) {
             </button>
 
             <div className={styles.heroMobileLegal}>
-              <Link href="/terminos" onClick={() => setMenuOpen(false)}>Términos</Link>
-              <Link href="/privacidad" onClick={() => setMenuOpen(false)}>Privacidad</Link>
-              <Link href="/ayuda" onClick={() => setMenuOpen(false)}>Ayuda</Link>
+              {heroMenu.legal.map((link) => <Link key={link.id} href={link.href} onClick={() => setMenuOpen(false)}>{link.label}</Link>)}
             </div>
           </nav>
         </>,
