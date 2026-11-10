@@ -24,8 +24,12 @@ export const CHIPS = [
   { id: "ofertas", label: "Ofertas", icon: "percent" },
 ];
 
+export const HERO_IMAGE = "/catalogo-vitrina/hero-banner.jpg";
+
 export const HERO_SLIDES = [
   {
+    image: HERO_IMAGE,
+    imageAlt: "Equipos de fibra óptica e instrumentos de medición",
     eyebrow: "Descubre. Equipa. Conecta.",
     title: "Última tecnología",
     accent: "en redes",
@@ -35,6 +39,8 @@ export const HERO_SLIDES = [
     badge: "Novedades",
   },
   {
+    image: "/catalogo-vitrina/hero-medicion.jpg",
+    imageAlt: "Instrumentos de medición óptica y cable de fibra",
     eyebrow: "Precisión que se mide.",
     title: "Instrumentos",
     accent: "para campo",
@@ -44,6 +50,8 @@ export const HERO_SLIDES = [
     badge: "Medición",
   },
   {
+    image: "/catalogo-vitrina/hero-ftth.jpg",
+    imageAlt: "Cables, conectores y cajas de distribución de fibra óptica",
     eyebrow: "Listo para instalar.",
     title: "Soluciones",
     accent: "preconectorizadas",
@@ -230,6 +238,5 @@ export const BRANDS = [
   },
 ];
 
-export const HERO_IMAGE = "/catalogo-vitrina/hero-banner.jpg";
 export const SOBRE_NOVEDADES = "/catalogo-vitrina/sobre-novedades.webp";
 export const REGALO_OFERTAS = "/catalogo-vitrina/regalo-ofertas.webp";

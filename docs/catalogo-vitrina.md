@@ -536,3 +536,12 @@ la ficha editorial o el producto real de la tienda, respectivamente. El diseño
 conserva la medalla y utiliza dos columnas en móvil. Si la API falla, los
 productos editoriales siguen visibles y se muestra un aviso, en vez de
 presentar el inventario incompleto como si estuviera actualizado.
+
+## Imágenes del hero
+
+Cada una de las tres diapositivas tiene su propia imagen: se conserva la
+original y se agregan imágenes generadas de instrumentos de medición y de
+conectividad FTTH, con el mismo fondo claro y panel azul. Las flechas cambian
+el texto, enlace e imagen juntos; no se añadió movimiento automático. Las
+imágenes son ilustrativas y no representan modelos específicos en inventario.
+Solo la primera imagen del hero se solicita con prioridad.

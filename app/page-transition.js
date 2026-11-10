@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { resolveSectionHref } from "@/lib/section-navigation";
+import { publicPageForPath } from "@/lib/public-pages";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import styles from "./page-transition.module.css";
@@ -77,7 +78,12 @@ export default function PageTransition() {
     setMessage("");
     setPhaseSafe("cover");
     timers.current.cover = window.setTimeout(() => {
-      routerRef.current.push(href);
+      // El router puede reutilizar hasta cinco minutos una página precargada.
+      // Las rutas que se pueden desactivar deben consultar el servidor de nuevo
+      // al navegar, incluso si ya se precargaron antes de cambiar el ajuste.
+      const path = new URL(href, window.location.href).pathname;
+      if (publicPageForPath(path)) window.location.assign(href);
+      else routerRef.current.push(href);
       setPhaseSafe("covered");
       timers.current.safety = window.setTimeout(startReveal, SAFETY_MS);
     }, COVER_MS);
@@ -186,6 +192,7 @@ export default function PageTransition() {
       const href = resolveInternalHref(anchor);
       if (!href) return;
       const path = href.split("#")[0];
+      if (publicPageForPath(new URL(path, window.location.href).pathname)) return;
       if (prefetched.has(path)) return;
       prefetched.add(path);
       try {

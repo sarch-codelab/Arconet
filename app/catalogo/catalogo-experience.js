@@ -344,14 +344,14 @@ export default function CatalogoExperience() {
           </div>
         </div>
 
-        {/* Hero: la imagen ya trae el panel azul en diagonal y el cluster de
-            equipos; el texto va en HTML para que sea seleccionable y traducible. */}
+        {/* Cada destacado tiene su imagen con panel azul en diagonal; el texto
+            va en HTML para que sea seleccionable y traducible. */}
         <section className={styles.hero} aria-label="Destacados del catálogo">
           <Image
-            src={HERO_IMAGE}
-            alt="Equipos de fibra óptica, instrumentos de medición y gabinetes de Arconet"
+            src={slide.image || HERO_IMAGE}
+            alt={slide.imageAlt}
             fill
-            priority
+            priority={diapositiva === 0}
             sizes="100vw"
             className={styles.heroImage}
           />
