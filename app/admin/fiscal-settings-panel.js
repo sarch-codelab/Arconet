@@ -12,11 +12,14 @@ const fields = [
   ["cai", "CAI autorizado", "text"], ["serie", "Serie / establecimiento", "text"], ["correlativo", "Próximo correlativo", "number"],
   ["rangoInicio", "Inicio del rango autorizado", "text"], ["rangoFin", "Fin del rango autorizado", "text"], ["fechaLimite", "Fecha límite de emisión", "date"],
 ];
-export default function FiscalSettingsPanel({ session }) {
+export default function FiscalSettingsPanel({ session, onDirtyChange }) {
   const canWrite = session?.permisos?.includes("ajustes:write") && session?.permisos?.includes("ajustes:read");
   const [saved, setSaved] = useState(null), [draft, setDraft] = useState(null), [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false), [confirmed, setConfirmed] = useState(false), [notice, setNotice] = useState(null);
   const inFlight = useRef(false);
+  useEffect(() => {
+    onDirtyChange?.(Boolean(draft && saved && FISCAL_FIELDS.some(field => draft[field] !== (saved[field] == null ? "" : String(saved[field])))));
+  }, [draft, saved, onDirtyChange]);
   const load = useCallback(signal => apiFetch("/api/facturacion/config", { cache: "no-store", signal })
     .then(async response => {
       const data = await response.json();

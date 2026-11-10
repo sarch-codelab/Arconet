@@ -52,7 +52,7 @@ function EditList({ title, entries, path, kind, change, canWrite }) {
   );
 }
 
-export default function DockMenuSettings({ session, menuNumber = 2 }) {
+export default function DockMenuSettings({ session, menuNumber = 2, onDirtyChange }) {
   const api = menuNumber === 1 ? "/api/configuracion/menu-navegacion-1" : "/api/configuracion/menu-navegacion";
   const canWrite = session?.permisos?.includes("ajustes:read") && session?.permisos?.includes("ajustes:write");
   const [data, setData] = useState(null);
@@ -62,6 +62,8 @@ export default function DockMenuSettings({ session, menuNumber = 2 }) {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [retry, setRetry] = useState(0);
+
+  useEffect(() => { onDirtyChange?.(dirty); }, [dirty, onDirtyChange]);
 
   useEffect(() => {
     let active = true;
@@ -117,8 +119,8 @@ export default function DockMenuSettings({ session, menuNumber = 2 }) {
         <p className={styles.hint}>{menuNumber === 1 ? "Edita la barra inicial del hero y su menú desplegable en escritorio y móvil. El menú 2 no cambia." : "Edita la barra que aparece al desplazarte y su menú desplegable en escritorio y móvil. El menú 1 no cambia."} Los accesos a Login y Admin permanecen fijos.</p>
         <p className={styles.hint}>Los destinos pueden ser rutas del sitio (como /tienda), secciones (como #inicio) o enlaces HTTPS. Ocultar un enlace no desactiva su página.</p>
         {!canWrite && <p className={styles.hint}>Solo lectura: necesitas permiso de escritura de Ajustes para modificar el menú.</p>}
-        {error && <p className={styles.error} role="alert">{error}</p>}
-        {notice && <p className={styles.notice} role="status">{notice}</p>}
+        {(loading || !data) && error && <p className={styles.error} role="alert">{error}</p>}
+        {(loading || !data) && notice && <p className={styles.notice} role="status">{notice}</p>}
         {loading ? <p className={styles.hint}>Cargando menú…</p> : !data ? <button className={admin.ghostBtn} type="button" onClick={reload}>Reintentar</button> : (
           <form onSubmit={save} noValidate>
             <details className={styles.preview}>
@@ -127,8 +129,14 @@ export default function DockMenuSettings({ session, menuNumber = 2 }) {
               {visibleDockMenu(data.menu).items.filter((item) => item.mega).map((item) => <div key={item.keyId}><strong>{item.label}</strong>{item.megaGroups.map((group) => <p key={group.id}>{group.title}: {group.links.map((link) => link.label).join(" · ")}</p>)}</div>)}
               {visibleDockMenu(data.menu).primary.enabled && <p>Acceso destacado: {visibleDockMenu(data.menu).primary.label} → {visibleDockMenu(data.menu).primary.href}</p>}
             </details>
-            <DropdownVisualEditor menu={data.menu} change={change} canWrite={canWrite && !saving} menuNumber={menuNumber} />
-            <EditList title="Enlaces de la barra" entries={data.menu.items} path={["items"]} kind="item" change={change} canWrite={canWrite && !saving} />
+            <details className={styles.editorSection}>
+              <summary><strong>Desplegable visual</strong><span>Grupos y enlaces de Soluciones u otro desplegable</span></summary>
+              <DropdownVisualEditor menu={data.menu} change={change} canWrite={canWrite && !saving} menuNumber={menuNumber} />
+            </details>
+            <details className={styles.editorSection}>
+              <summary><strong>Enlaces de la barra</strong><span>Añadir, cambiar, ocultar o reordenar enlaces</span></summary>
+              <EditList title="Enlaces de la barra" entries={data.menu.items} path={["items"]} kind="item" change={change} canWrite={canWrite && !saving} />
+            </details>
             <details className={styles.entry}>
               <summary><strong>Acceso destacado</strong><span>{data.menu.primary.enabled ? "Visible" : "Oculto"}</span></summary>
               <div className={styles.entryBody}>
@@ -140,8 +148,13 @@ export default function DockMenuSettings({ session, menuNumber = 2 }) {
                 <label className={styles.checkbox}><input type="checkbox" disabled={!canWrite || saving} checked={data.menu.primary.enabled} onChange={(event) => { const checked = event.target.checked; change(["primary"], (primary) => ({ ...primary, enabled: checked })); }} /> Mostrar acceso destacado</label>
               </div>
             </details>
-            <EditList title="Enlaces inferiores" entries={data.menu.legal} path={["legal"]} kind="link" change={change} canWrite={canWrite && !saving} />
+            <details className={styles.editorSection}>
+              <summary><strong>Enlaces inferiores</strong><span>Enlaces del pie del menú desplegable</span></summary>
+              <EditList title="Enlaces inferiores" entries={data.menu.legal} path={["legal"]} kind="link" change={change} canWrite={canWrite && !saving} />
+            </details>
             <div className={styles.footer}>
+              {error && <p className={`${styles.error} ${styles.footerFeedback}`} role="alert">{error}</p>}
+              {notice && <p className={`${styles.notice} ${styles.footerFeedback}`} role="status">{notice}</p>}
               <button type="submit" className={admin.submit} disabled={!canWrite || saving || !dirty}>{saving ? "Guardando…" : "Guardar menú"}</button>
               <button type="button" className={admin.ghostBtn} onClick={reload} disabled={saving}>Recargar</button>
               <button type="button" className={admin.ghostBtn} disabled={!canWrite || saving} onClick={() => { if (window.confirm("¿Restaurar el menú original? Debes guardar para aplicar el cambio.")) change([], () => defaultDockMenu()); }}>Restaurar original</button>

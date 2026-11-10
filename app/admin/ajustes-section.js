@@ -4,7 +4,7 @@ import { apiFetch as fetch } from "@/lib/api-fetch";
 
 import { useEffect, useRef, useState } from "react";
 import { setThemeMode } from "../theme-toggle";
-import { Settings, ShieldCheck } from "lucide-react";
+import { Settings, ShieldCheck, Globe, ChevronDown } from "lucide-react";
 import styles from "./admin-experience.module.css";
 import { useToast } from "./admin-ui";
 import { Topbar } from "./topbar";
@@ -13,9 +13,21 @@ import PublicPagesSettings from "./public-pages-settings";
 import DockMenuSettings from "./dock-menu-settings";
 import BusinessNotice, { focusBusinessNotice } from "./business-notice";
 import business from "./business-feedback.module.css";
+import organization from "./ajustes-organizacion.module.css";
+
+function SettingsDisclosure({ title, description, pending, children }) {
+  return <details className={organization.disclosure}>
+    <summary><span className={organization.summaryText}><strong>{title}</strong><small>{description}</small></span>{pending && <span className={organization.pending}>Sin guardar</span>}<ChevronDown className={organization.chevron} size={18} aria-hidden="true" /></summary>
+    <div className={organization.contents}>{children}</div>
+  </details>;
+}
 
 export default function AjustesSection({ session, workers = [] }) {
   const [settings, setSettings] = useState(null);
+  const [menu1Dirty, setMenu1Dirty] = useState(false);
+  const [menu2Dirty, setMenu2Dirty] = useState(false);
+  const [companyDirty, setCompanyDirty] = useState(false);
+  const [fiscalDirty, setFiscalDirty] = useState(false);
   const savedTheme = useRef(null);
   const inFlight = useRef(false);
   const [notice, setNotice] = useState(null);
@@ -33,6 +45,7 @@ export default function AjustesSection({ session, workers = [] }) {
       if (!response.ok) throw new Error(data.error || "No se pudo cargar la configuración.");
       if (active) {
         setSettings(data);
+        setCompanyDirty(false);
         savedTheme.current = data.theme;
       }
     }).catch((loadError) => { if (active) setError(loadError.message); }).finally(() => { if (active) setLoading(false); });
@@ -52,6 +65,7 @@ export default function AjustesSection({ session, workers = [] }) {
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || "No se pudo guardar la configuración.");
       setSettings(data);
+      setCompanyDirty(false);
       savedTheme.current = data.theme;
       // El tema solo se aplica cuando el usuario lo cambia y guarda: antes se
       // imponía al abrir la sección y el sitio cambiaba de color "de la nada".
@@ -67,6 +81,7 @@ export default function AjustesSection({ session, workers = [] }) {
 
   function changeField(field, value) {
     setSettings((prev) => ({ ...prev, [field]: value }));
+    setCompanyDirty(true);
   }
 
   return (
@@ -79,15 +94,27 @@ export default function AjustesSection({ session, workers = [] }) {
       />
 
       <div className={styles.body}>
-        <BusinessNotice title="Centro de configuración empresarial" message="Aquí se administran los datos de empresa y CAI. Las credenciales de base de datos, sesiones y correo del servidor no se muestran ni se guardan en este formulario. La apariencia personal de cada trabajador sigue en Mi perfil." />
-        {notice && <BusinessNotice id="company-settings-feedback" {...notice} />}
-        <PublicPagesSettings session={session} />
-        <DockMenuSettings session={session} menuNumber={1} />
-        <DockMenuSettings session={session} />
+        <p className={organization.intro}>Elige una sección para abrirla. Cerrar una sección no borra los cambios pendientes; recuerda guardarlos antes de salir de Ajustes.</p>
+        <div className={organization.group}>
+          <h2 className={organization.groupHeading}><Globe size={17} aria-hidden="true" /> Sitio público</h2>
+          <SettingsDisclosure title="Páginas públicas" description="Activar o desactivar páginas del sitio.">
+            <PublicPagesSettings session={session} />
+          </SettingsDisclosure>
+          <SettingsDisclosure title="Menú de navegación 1" description="Barra inicial y desplegables." pending={menu1Dirty}>
+            <DockMenuSettings session={session} menuNumber={1} onDirtyChange={setMenu1Dirty} />
+          </SettingsDisclosure>
+          <SettingsDisclosure title="Menú de navegación 2" description="Barra al desplazarse y desplegables." pending={menu2Dirty}>
+            <DockMenuSettings session={session} menuNumber={2} onDirtyChange={setMenu2Dirty} />
+          </SettingsDisclosure>
+        </div>
+        <div className={organization.group}>
+          <h2 className={organization.groupHeading}><Settings size={17} aria-hidden="true" /> Empresa y facturación</h2>
+          <SettingsDisclosure title="Configuración general" description="Nombre, contacto, moneda y tema público." pending={companyDirty}>
         <section className={styles.card} aria-label="Configuración general">
           <header className={styles.cardHeader}>
             <h3><Settings size={18} /> Configuración general</h3>
           </header>
+          {notice && <BusinessNotice id="company-settings-feedback" {...notice} />}
           {loading ? <p className={styles.cardBody}>Cargando configuración…</p> : error ? <div className={styles.cardBody}><p className={styles.dangerText} role="alert">{error}</p><button type="button" className={styles.ghostBtn} onClick={() => { setError("");setLoading(true);setReload(value => value + 1); }}>Reintentar</button></div> : <form className={`${styles.form} ${business.settingsBody}`} onSubmit={handleSave}>
             <div className={styles.fieldGrid}>
               <label className={styles.field}>
@@ -155,9 +182,14 @@ export default function AjustesSection({ session, workers = [] }) {
             </footer>
           </form>}
         </section>
-
-        <FiscalSettingsPanel session={session} />
-
+          </SettingsDisclosure>
+          <SettingsDisclosure title="Datos fiscales y CAI" description="Autorización, serie, rango y vigencia para facturación." pending={fiscalDirty}>
+            <FiscalSettingsPanel session={session} onDirtyChange={setFiscalDirty} />
+          </SettingsDisclosure>
+        </div>
+        <div className={organization.group}>
+          <h2 className={organization.groupHeading}><ShieldCheck size={17} aria-hidden="true" /> Sistema</h2>
+          <SettingsDisclosure title="Información del sistema" description="Versión y entorno de la aplicación.">
         <section className={styles.card} aria-label="Información del sistema">
           <header className={styles.cardHeader}>
             <h3><ShieldCheck size={18} /> Información del sistema</h3>
@@ -173,6 +205,9 @@ export default function AjustesSection({ session, workers = [] }) {
             </div>
           </div>
         </section>
+          </SettingsDisclosure>
+          <p className={organization.intro}>Las credenciales del servidor no se muestran aquí. La apariencia personal se configura en Mi perfil.</p>
+        </div>
       </div>
 
     </>

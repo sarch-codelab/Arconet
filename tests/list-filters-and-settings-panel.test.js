@@ -43,7 +43,7 @@ describe("Ajustes empresarial y emisión con feedback dentro del formulario", ()
     const html = render(FacturacionPanel);expect(html).not.toContain("Próximo correlativo");expect(html).not.toContain("Guardar configuración");
   });
   it("Ajustes contiene el centro empresarial y la sección fiscal protegida", () => {
-    const html = render(Ajustes);expect(html).toContain("Centro de configuración empresarial");expect(html).toContain('aria-label="Configuración fiscal y CAI"');expect(html).toContain("Mi perfil");
+    const html = render(Ajustes);expect(html).toContain("Empresa y facturación");expect(html).toContain('aria-label="Configuración fiscal y CAI"');expect(html).toContain("Mi perfil");
   });
   it("la factura tiene feedback focalizable, validación propia y datos faltantes visibles", () => {
     const html = render(FacturacionPanel, { embedded: true, saleEditorOpen: true });
