@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import styles from "./contact-experience.module.css";
 import Footer from "../footer";
+import NavDock from "../nav-dock";
+import { STORE_NAVIGATION } from "../navigation-data";
 import { sileo } from "../toaster";
 import { useContact } from "../contact-provider";
 import { copyText } from "@/lib/clipboard";
@@ -156,6 +158,7 @@ export default function ContactExperience() {
     <main className={styles.contactPage} ref={pageRef}>
       <div className={styles.readingProgress} aria-hidden="true" />
       <div className={styles.heroFrame}>
+        <NavDock variant="hero" menuNumber={1} navigation={STORE_NAVIGATION} />
         <section id="contacto-inicio" className={styles.heroCard}>
           <div className={styles.heroBackground}>
             <Image
@@ -169,24 +172,7 @@ export default function ContactExperience() {
             <div className={styles.heroOverlay} />
           </div>
 
-          <header className={styles.heroHeader}>
-            <Link className={styles.logoTab} href="/" aria-label="Arconet, inicio">
-              <Image
-              src="/arconet.png"
-              alt="Arconet"
-              width={1200}
-              height={200}
-              sizes="(max-width: 1040px) 114px, 176px"
-              loading="eager"
-              fetchPriority="low"
-            />
-            </Link>
-            <span aria-hidden="true" />
-            <div className={styles.headerActionTab}>
-
-              <a className={styles.headerAction} href="#formulario">Hablemos <span><ArrowUpRight size={15} /></span></a>
-            </div>
-          </header>
+          <div className={styles.heroHeader} aria-hidden="true" />
 
           <div className={styles.heroCopy}>
             <p className={styles.eyebrow}><i /> Arconet · San Pedro Sula, Honduras</p>

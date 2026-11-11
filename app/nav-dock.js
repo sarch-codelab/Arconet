@@ -27,6 +27,9 @@ export default function NavDock({
   const dockMenu = useDockMenu(initialNavigation !== NAVIGATION, menuNumber);
   const mobileMenuId = useId();
   const [activeMega, setActiveMega] = useState(null);
+  const [heroMegaOpen, setHeroMegaOpen] = useState(false);
+  const heroMegaTimer = useRef(null);
+  const heroTriggerRef = useRef(null);
   const navigation = dockMenu.items;
   const [menuOpen, setMenuOpen] = useState(false);
   const [accessOpen, setAccessOpen] = useState(false);
@@ -127,15 +130,48 @@ export default function NavDock({
     };
   }, [menuOpen, dockRef]);
 
+  useEffect(() => {
+    if (variant !== "hero" || !heroMegaOpen) return undefined;
+    const onKey = (event) => {
+      if (event.key === "Escape") {
+        setHeroMegaOpen(false);
+        heroTriggerRef.current?.focus({ preventScroll: true });
+      }
+    };
+    const onPointer = (event) => { if (!dockRef.current?.contains(event.target)) setHeroMegaOpen(false); };
+    const onScroll = () => setHeroMegaOpen(false);
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onPointer, true);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onPointer, true);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [variant, heroMegaOpen, dockRef]);
+  useEffect(() => () => clearTimeout(heroMegaTimer.current), []);
+
+  const programarCierreHero = () => {
+    clearTimeout(heroMegaTimer.current);
+    heroMegaTimer.current = setTimeout(() => {
+      if (!dockRef.current?.querySelector(`.${styles.desktopMenu}`)?.contains(document.activeElement)) setHeroMegaOpen(false);
+    }, 180);
+  };
+
+  const esHero = variant === "hero";
   const esScroll = variant === "scroll";
   const visibleDock = !esScroll || visible || menuOpen;
 
   return (
     <header
       ref={dockRef}
-      className={`${styles.topbar}${esScroll ? "" : variant === "inline" ? ` ${styles.topbarInline}` : ` ${styles.topbarFixed}`}${cartAction ? ` ${styles.topbarWithCart}` : ""}${menuOpen ? ` ${styles.topbarMenuOpen}` : ""}${
+      className={`${styles.topbar}${esScroll ? "" : variant === "inline" ? ` ${styles.topbarInline}` : esHero ? ` ${styles.topbarHero}` : ` ${styles.topbarFixed}`}${cartAction ? ` ${styles.topbarWithCart}` : ""}${menuOpen ? ` ${styles.topbarMenuOpen}` : ""}${
         esScroll ? ` ${visibleDock ? styles.topbarVisible : styles.topbarHidden}` : ""
       }`}
+      data-hero-menu-open={esHero && heroMegaOpen ? "true" : undefined}
+      onMouseEnter={esHero ? () => clearTimeout(heroMegaTimer.current) : undefined}
+      onMouseLeave={esHero ? programarCierreHero : undefined}
+      onBlur={esHero ? (event) => { if (!event.currentTarget.contains(event.relatedTarget)) setHeroMegaOpen(false); } : undefined}
       aria-hidden={esScroll && !visibleDock ? true : undefined}
     >
       <span className={styles.scrollProgress} aria-hidden="true">
@@ -159,6 +195,20 @@ export default function NavDock({
           <span className={styles.navIndicator} aria-hidden="true" />
           {navigation.map((item) => {
             const isActive = Boolean(item.id) && activeId === item.id;
+            if (esHero && item.mega) return (
+              <button
+                key={item.keyId || item.id || item.label}
+                type="button"
+                ref={activeMega === item.keyId ? heroTriggerRef : undefined}
+                className={styles.megaTrigger}
+                aria-expanded={heroMegaOpen && activeMega === item.keyId}
+                aria-haspopup="true"
+                onMouseEnter={(event) => { clearTimeout(heroMegaTimer.current); heroTriggerRef.current = event.currentTarget; setActiveMega(item.keyId); setHeroMegaOpen(true); }}
+                onMouseLeave={programarCierreHero}
+                onFocus={(event) => { heroTriggerRef.current = event.currentTarget; setActiveMega(item.keyId); }}
+                onClick={(event) => { clearTimeout(heroMegaTimer.current); heroTriggerRef.current = event.currentTarget; setActiveMega(item.keyId); setHeroMegaOpen(true); }}
+              >{item.label}</button>
+            );
             return (
               <a
                 key={item.keyId || item.id || item.label}
@@ -232,7 +282,7 @@ export default function NavDock({
         </div>
 
         {navigation.some((item) => item.mega) && (
-          <div className={styles.desktopMenu} aria-label="Menú desplegable">
+          <div className={styles.desktopMenu} aria-label="Menú desplegable" onMouseEnter={esHero ? () => clearTimeout(heroMegaTimer.current) : undefined} onMouseLeave={esHero ? programarCierreHero : undefined}>
             <div className={styles.desktopMenuTop}>
               {dockMenu.primary.enabled && <Link className={styles.desktopMenuPrimary} href={dockMenu.primary.href}>
                 <span className={styles.desktopMenuPrimaryText}>
@@ -274,6 +324,7 @@ export default function NavDock({
             </div>
 
             <div className={styles.desktopMenuLegal}>
+              {esHero && navigation.filter(item => item.mega && item.keyId === activeMega).map(item => <a key={item.keyId} href={item.href}>Ir a {item.label}</a>)}
               {dockMenu.legal.map((link) => <a key={link.id} href={link.href}>{link.label}</a>)}
             </div>
           </div>

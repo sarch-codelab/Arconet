@@ -35,7 +35,7 @@ export default function PublicSiteNavigation() {
   if (!enabled) return null;
   const cart = <button type="button" className={styles.cart} onClick={open} aria-label={`Carrito, ${count} ${count === 1 ? "unidad" : "unidades"}`}><ShoppingCart size={17} aria-hidden="true" /><span>Carrito</span>{count > 0 && <b>{count > 99 ? "99+" : count}</b>}</button>;
   return <>
-    <NavDock variant="inline" menuNumber={1} navigation={STORE_NAVIGATION} cartAction={pathname.startsWith("/tienda/") ? cart : null} />
+    {pathname !== "/contacto" && <NavDock variant="inline" menuNumber={1} navigation={STORE_NAVIGATION} cartAction={pathname.startsWith("/tienda/") ? cart : null} />}
     {!ownDock && <NavDock variant="scroll" visible={scrolled} navigation={STORE_NAVIGATION} />}
   </>;
 }
