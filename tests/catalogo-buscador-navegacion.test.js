@@ -13,8 +13,10 @@ describe("herramientas y navegación del catálogo", () => {
     expect(catalogo).toContain("styles.headerActions");
     expect(catalogo).not.toContain('src="/arconet.png"');
     expect(catalogo).not.toContain("styles.topbar");
-    expect(css).toContain('grid-template-areas: "search category chips account locale"');
-    expect(css).toContain('grid-template-areas: "search search account" "category chips chips"');
+    expect(catalogo).not.toContain("styles.chips");
+    expect(catalogo).toContain("onClick={() => elegirCategoria(item.id)}");
+    expect(css).toContain('grid-template-areas: "search category . account locale"');
+    expect(css).toContain('grid-template-areas: "search category account"');
   });
 
   it("muestra el dock al salir las herramientas, sin cambiar otras páginas", () => {
