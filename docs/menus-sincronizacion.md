@@ -19,3 +19,5 @@ Pulsa **Guardar menú** para publicar los cambios en ambas barras. Ajustes compr
 El acceso destacado originalmente llamado Tienda puede vincularse al enlace original Tienda de la barra para heredar su nombre, destino y visibilidad, o desvincularse para editarlo por separado. Los cambios de menú no activan páginas públicas desactivadas.
 
 Ajustes agrupa sus secciones en **Sitio público**, **Empresa y facturación** y **Sistema**. Cerrar un apartado no descarta los cambios mientras permanezcas en Ajustes: si hay cambios pendientes verás «Sin guardar» junto al título. Los datos generales y fiscales se guardan por separado del menú.
+
+En Contacto, el menú inicial adopta el diseño del hero de Inicio, sobre la imagen y sin duplicar el logo. El menú flotante aparece al desplazarse; ambos siguen usando la configuración compartida y sus accesos fijos. En otras páginas se conserva su presentación anterior.
