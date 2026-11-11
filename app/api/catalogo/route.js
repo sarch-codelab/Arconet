@@ -21,6 +21,7 @@ export async function GET() {
         descripcion: true,
         precio: true,
         stock: true,
+        createdAt: true,
         foto: true,
         fotos: true,
       },
@@ -37,6 +38,7 @@ export async function GET() {
       descripcion: producto.descripcion || "",
       precio: Number(producto.precio),
       stock: producto.stock,
+      creado: producto.createdAt?.toISOString() || null,
       // Las fotos viven en /media o en una URL: se entrega la ruta, nunca el
       // base64. Antes este endpoint arrastraba todas las imágenes y la tienda
       // tenía que descargarlas antes de pintar la primera tarjeta.

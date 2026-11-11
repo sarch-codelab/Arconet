@@ -4,32 +4,62 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { CHIPS } from "./vitrina-data";
 import { paginaDe } from "./vitrina-paginacion";
+import { leerVistos } from "./vistos-recientes";
 import styles from "./catalogo-experience.module.css";
 
-// Son filtros reales, no categorías inventadas de popularidad o valoraciones.
-export function productosPorLinea(productos, linea) {
-  if (linea === "destacados") return productos.filter(producto => producto.origen !== "tienda");
-  // Prioriza el inventario disponible para no repetir siempre la fila editorial.
-  if (linea === "todas") return [...productos.filter(producto => producto.origen === "tienda"), ...productos.filter(producto => producto.origen !== "tienda")];
-  if (linea === "ofertas") return productos.filter(producto => producto.offer);
-  return productos.filter(producto => producto.category === linea);
+export const SECCIONES = [
+  { id: "ia", label: "Recomendados por IA para ti" },
+  { id: "tendencia", label: "Productos en tendencia" },
+  { id: "vendidos", label: "Más vendidos" },
+  { id: "novedades", label: "Novedades" },
+  { id: "vistos", label: "Vistos recientemente" },
+  { id: "valorados", label: "Mejor valorados" },
+];
+
+export function productosDeSeccion(productos, seccion, vistos = []) {
+  if (seccion === "novedades") return productos
+    .filter(producto => producto.origen === "tienda" && producto.creado && Number.isFinite(Date.parse(producto.creado)))
+    .slice().sort((a, b) => Date.parse(b.creado) - Date.parse(a.creado));
+  if (seccion === "vistos") {
+    const porRuta = new Map(productos.map(producto => [producto.href, producto]));
+    return vistos.map(href => porRuta.get(href)).filter(Boolean);
+  }
+  return [];
 }
 
+const mensajes = {
+  ia: "Las recomendaciones por IA aún no están disponibles.",
+  tendencia: "Aún no hay datos disponibles de productos en tendencia.",
+  vendidos: "Aún no hay datos disponibles de los productos más vendidos.",
+  novedades: "Todavía no hay novedades disponibles.",
+  vistos: "Aún no has visto productos en este navegador.",
+  valorados: "Aún no hay valoraciones disponibles.",
+};
+
 export default function ExploraLineas({ productos, loading, error }) {
-  const [linea, setLinea] = useState("todas");
+  const [seccion, setSeccion] = useState("novedades");
   const [pagina, setPagina] = useState(0);
-  const filtrados = useMemo(() => productosPorLinea(productos, linea), [productos, linea]);
+  const [vistos, setVistos] = useState([]);
+  const filtrados = useMemo(() => productosDeSeccion(productos, seccion, vistos), [productos, seccion, vistos]);
   const resultado = paginaDe(filtrados, pagina);
-  const opciones = [{ id: "destacados", label: "Destacados" }, ...CHIPS];
 
   return (
     <section className={`${styles.section} ${styles.explora}`} aria-labelledby="titulo-explora-lineas">
+      <h2 className={styles.srOnly} id="titulo-explora-lineas">Explora nuestros equipos</h2>
       <div className={styles.exploraHead}>
-        <div>
-          <span className={styles.sectionEyebrow}>Encuentra lo que necesitas</span>
-          <h2 className={styles.sectionTitle} id="titulo-explora-lineas">Explora nuestros equipos</h2>
+        <div className={styles.exploraFilters} role="group" aria-label="Explorar equipos por selección">
+          {SECCIONES.map(opcion => (
+            <button key={opcion.id} type="button" aria-pressed={seccion === opcion.id}
+              onClick={() => {
+                if (opcion.id === "vistos") {
+                  try { setVistos(leerVistos(window.localStorage)); } catch { setVistos([]); }
+                }
+                setSeccion(opcion.id); setPagina(0);
+              }}>
+              {opcion.label}
+            </button>
+          ))}
         </div>
         <div className={styles.rowArrows}>
           <button type="button" aria-label="Equipos anteriores" aria-controls={filtrados.length ? "equipos-explora" : undefined}
@@ -41,14 +71,6 @@ export default function ExploraLineas({ productos, loading, error }) {
             <ChevronRight size={15} aria-hidden="true" />
           </button>
         </div>
-      </div>
-      <div className={styles.exploraFilters} role="group" aria-label="Explorar equipos por línea">
-        {opciones.map(opcion => (
-          <button key={opcion.id} type="button" aria-pressed={linea === opcion.id}
-            onClick={() => { setLinea(opcion.id); setPagina(0); }}>
-            {opcion.label}
-          </button>
-        ))}
       </div>
       <p className={styles.srOnly} role="status">{filtrados.length} equipos. Página {resultado.actual + 1} de {resultado.totalPaginas}.</p>
       {filtrados.length ? (
@@ -70,7 +92,8 @@ export default function ExploraLineas({ productos, loading, error }) {
         </div>
       ) : (
         <div className={styles.exploraEmpty} role="status">
-          {loading ? "Cargando equipos disponibles…" : error ? "No pudimos cargar los equipos de la tienda. Intenta recargar la página." : "No hay equipos disponibles para esta línea en este momento."}
+          {(seccion === "novedades" || seccion === "vistos") && loading ? "Cargando equipos disponibles…" :
+            (seccion === "novedades" || seccion === "vistos") && error ? "No pudimos cargar los equipos de la tienda. Intenta recargar la página." : mensajes[seccion]}
         </div>
       )}
     </section>

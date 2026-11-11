@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { PRODUCTS } from "../../vitrina-data";
 import { FICHAS, FICHA_BASE, FICHA_SLUGS } from "../../ficha-data";
 import FichaProducto from "./ficha-producto";
+import RegistrarVisto from "../../registrar-visto";
 
 // Fichas editoriales de los 6 «Productos destacados». Se prerenderizan las 6:
 // no dependen de la base de datos ni de parámetros dinámicos.
@@ -52,5 +53,5 @@ export default async function FichaProductoPage({ params }) {
       precioAnterior: FICHAS[item.id].precioAnterior,
     }));
 
-  return <FichaProducto producto={producto} ficha={ficha} relacionados={relacionados} />;
+  return <><RegistrarVisto href={producto.href} /><FichaProducto producto={producto} ficha={ficha} relacionados={relacionados} /></>;
 }

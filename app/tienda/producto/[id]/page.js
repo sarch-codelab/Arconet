@@ -2,6 +2,7 @@ import { cache } from "react";
 import { notFound } from "next/navigation";
 import { prisma } from '@/lib/prisma';
 import ProductPage from "./product-page";
+import RegistrarVisto from "../../../catalogo/registrar-visto";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -84,5 +85,5 @@ export default async function ProductoPage({ params }) {
 
   if (!product) notFound();
 
-  return <ProductPage product={product} />;
+  return <><RegistrarVisto href={`/tienda/producto/${encodeURIComponent(product.id)}`} /><ProductPage product={product} /></>;
 }
