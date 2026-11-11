@@ -2,21 +2,25 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const css = readFileSync("app/catalogo/catalogo-experience.module.css", "utf8");
-const dock = readFileSync("app/nav-dock.js", "utf8");
+const catalogo = readFileSync("app/catalogo/catalogo-experience.js", "utf8");
+const navigation = readFileSync("app/public-site-navigation.js", "utf8");
 
-describe("buscador y navegación flotante en catálogo", () => {
-  it("separa la cabecera fija del dock solo cuando está visible", () => {
-    expect(dock).toContain('data-scroll-dock-visible={esScroll && visibleDock ? "true" : undefined}');
-    expect(css).toMatch(/\.topbar\s*\{[^}]*position:\s*sticky;[^}]*top:\s*0;[^}]*z-index:\s*39;/);
-    expect(css).toContain(':global([data-scroll-dock-visible="true"]) ~ .page .topbar');
-    expect(css).toContain("top: calc(20px + clamp(62px, 3.6vw, 78px))");
-    expect(css).toContain("top: 76px");
-    expect(css).toContain("top: 70px");
+describe("herramientas y navegación del catálogo", () => {
+  it("integra la búsqueda y filtros sin otra cabecera ni logo", () => {
+    expect(catalogo).toContain("data-catalog-toolbar");
+    expect(catalogo).toContain('id="buscar-catalogo"');
+    expect(catalogo).toContain("styles.categoryMenuWrap");
+    expect(catalogo).toContain("styles.headerActions");
+    expect(catalogo).not.toContain('src="/arconet.png"');
+    expect(catalogo).not.toContain("styles.topbar");
+    expect(css).toContain('grid-template-areas: "search category chips account locale"');
+    expect(css).toContain('grid-template-areas: "search search account" "category chips chips"');
   });
 
-  it("deja espacio para ambas barras al navegar a las secciones", () => {
-    expect(css).toContain("scroll-margin-top: 180px");
-    expect(css).toContain("scroll-margin-top: 220px");
-    expect(css).toContain("scroll-margin-top: 240px");
+  it("muestra el dock al salir las herramientas, sin cambiar otras páginas", () => {
+    expect(navigation).toContain('pathname === "/catalogo"');
+    expect(navigation).toContain('document.querySelector("[data-catalog-toolbar]")');
+    expect(navigation).toContain("toolbar.getBoundingClientRect().bottom <= 0 : window.scrollY > 100");
+    expect(css).toContain("scroll-margin-top: 108px");
   });
 });

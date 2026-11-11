@@ -169,23 +169,9 @@ export default function CatalogoExperience() {
   return (
     <>
       <main className={styles.page}>
-        {/* Cabecera: logo, buscador, navegación y acceso. */}
-        <header className={styles.topbar}>
-          <div className={styles.topbarInner}>
-            <Link className={styles.brand} href="/" aria-label="Arconet, ir al inicio">
-              <Image
-                src="/arconet.png"
-                alt="Arconet"
-                width={1200}
-                height={200}
-                className={styles.brandImg}
-                sizes="132px"
-                loading="eager"
-                fetchPriority="low"
-              />
-              <span className={styles.brandTagline}>Descubre. Equipa. Conecta.</span>
-            </Link>
-
+        {/* Una sola franja de herramientas del catálogo, sin un segundo logo. */}
+        <div className={`${styles.chipBar} ${styles.catalogToolbar}`} data-catalog-toolbar>
+          <div className={styles.chipInner}>
             <form
               className={styles.search}
               role="search"
@@ -238,44 +224,6 @@ export default function CatalogoExperience() {
               )}
             </form>
 
-            <span aria-hidden="true" />
-
-            <div
-              className={styles.headerActions}
-              onBlur={(event) => {
-                if (!event.currentTarget.contains(event.relatedTarget)) setCuentaAbierta(false);
-              }}
-              onKeyDown={(event) => {
-                if (event.key === "Escape" && cuentaAbierta) {
-                  setCuentaAbierta(false);
-                  cuentaBotonRef.current?.focus();
-                }
-              }}
-            >
-              <button ref={cuentaBotonRef} type="button" className={styles.iconButton} aria-label="Acceder a mi cuenta" aria-expanded={cuentaAbierta} aria-controls={cuentaAbierta ? "menu-cuenta-catalogo" : undefined} onClick={abrirCuenta}>
-                <UserRound size={18} aria-hidden="true" />
-              </button>
-              {cuentaAbierta && (
-                <div id="menu-cuenta-catalogo" className={styles.accountMenu}>
-                  <strong>Mi cuenta</strong>
-                  {(cuenta.estado === "cargando" || cuenta.estado === "cerrando") && <p role="status">{cuenta.estado === "cerrando" ? "Cerrando sesión…" : "Consultando cuenta…"}</p>}
-                  {cuenta.estado === "activa" && <p>Hola, {cuenta.nombre}</p>}
-                  {cuenta.estado === "invitado" && <p>Accede para gestionar tus solicitudes.</p>}
-                  {cuenta.estado === "error" && <p role="alert">No se pudo consultar tu cuenta. Inténtalo de nuevo.</p>}
-                  {cuenta.estado === "error-cierre" && <p role="alert">No se pudo cerrar la sesión. Inténtalo de nuevo.</p>}
-                  {cuenta.estado === "invitado" && <><Link href="/login">Iniciar sesión</Link><Link href="/registro">Crear cuenta</Link></>}
-                  {cuenta.estado === "activa" && <><Link href="/cliente">Ir a mi cuenta</Link><button type="button" onClick={cerrarSesion}>Cerrar sesión</button></>}
-                  {cuenta.estado === "error" && <Link href="/cliente">Ir a mi cuenta</Link>}
-                  {cuenta.estado === "error-cierre" && <><Link href="/cliente">Ir a mi cuenta</Link><button type="button" onClick={cerrarSesion}>Reintentar cierre de sesión</button></>}
-                </div>
-              )}
-            </div>
-          </div>
-        </header>
-
-        {/* Segunda fila: chips de líneas y selector de región/moneda. */}
-        <div className={styles.chipBar}>
-          <div className={styles.chipInner}>
             <div
               className={styles.categoryMenuWrap}
               onBlur={(event) => {
@@ -320,6 +268,36 @@ export default function CatalogoExperience() {
                   </button>
                 );
               })}
+            </div>
+            <div
+              className={styles.headerActions}
+              onBlur={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget)) setCuentaAbierta(false);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Escape" && cuentaAbierta) {
+                  setCuentaAbierta(false);
+                  cuentaBotonRef.current?.focus();
+                }
+              }}
+            >
+              <button ref={cuentaBotonRef} type="button" className={styles.iconButton} aria-label="Acceder a mi cuenta" aria-expanded={cuentaAbierta} aria-controls={cuentaAbierta ? "menu-cuenta-catalogo" : undefined} onClick={abrirCuenta}>
+                <UserRound size={18} aria-hidden="true" />
+              </button>
+              {cuentaAbierta && (
+                <div id="menu-cuenta-catalogo" className={styles.accountMenu}>
+                  <strong>Mi cuenta</strong>
+                  {(cuenta.estado === "cargando" || cuenta.estado === "cerrando") && <p role="status">{cuenta.estado === "cerrando" ? "Cerrando sesión…" : "Consultando cuenta…"}</p>}
+                  {cuenta.estado === "activa" && <p>Hola, {cuenta.nombre}</p>}
+                  {cuenta.estado === "invitado" && <p>Accede para gestionar tus solicitudes.</p>}
+                  {cuenta.estado === "error" && <p role="alert">No se pudo consultar tu cuenta. Inténtalo de nuevo.</p>}
+                  {cuenta.estado === "error-cierre" && <p role="alert">No se pudo cerrar la sesión. Inténtalo de nuevo.</p>}
+                  {cuenta.estado === "invitado" && <><Link href="/login">Iniciar sesión</Link><Link href="/registro">Crear cuenta</Link></>}
+                  {cuenta.estado === "activa" && <><Link href="/cliente">Ir a mi cuenta</Link><button type="button" onClick={cerrarSesion}>Cerrar sesión</button></>}
+                  {cuenta.estado === "error" && <Link href="/cliente">Ir a mi cuenta</Link>}
+                  {cuenta.estado === "error-cierre" && <><Link href="/cliente">Ir a mi cuenta</Link><button type="button" onClick={cerrarSesion}>Reintentar cierre de sesión</button></>}
+                </div>
+              )}
             </div>
             <div className={styles.locale} aria-label="Idioma español, Honduras, Lempiras">
               <Globe size={14} aria-hidden="true" />
