@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 const m = vi.hoisted(() => ({ permissions: [], session: true, read: vi.fn(), save: vi.fn(), log: vi.fn() }));
 vi.mock("../lib/dal", () => ({ requirePermission: async permission => !m.session ? { response: Response.json({}, { status: 401 }) } : m.permissions.includes(permission) ? { session: { correo: "qa@local" }, permisos: m.permissions } : { response: Response.json({}, { status: 403 }) } }));
-vi.mock("../lib/dock-menu-service", () => ({ readDockMenu: m.read, saveDockMenu: m.save }));
+vi.mock("../lib/unified-menu-service", () => ({ readUnifiedMenu: m.read, saveUnifiedMenu: m.save }));
 vi.mock("../lib/logs", () => ({ writeLog: m.log }));
 import { GET, PUT } from "../app/api/configuracion/menu-navegacion/route";
 const req = body => new Request("https://arconet.test/api/configuracion/menu-navegacion", { method: "PUT", body: JSON.stringify(body) });

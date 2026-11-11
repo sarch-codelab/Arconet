@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { visibleDockMenu } from "@/lib/dock-menu";
+import { MENU_LIMITS, visibleDockMenu } from "@/lib/dock-menu";
 import styles from "./dock-menu-settings.module.css";
 
 const freshId = () => `n-${crypto.randomUUID()}`;
@@ -77,12 +77,12 @@ export default function DropdownVisualEditor({ menu, change, canWrite, menuNumbe
                   </div>
                 </div>)}
               </div>
-              <button type="button" className={styles.visualAdd} disabled={!canWrite || group.links.length >= 20} onClick={() => addLink(gi)}>+ Añadir enlace al grupo</button>
+              <button type="button" className={styles.visualAdd} disabled={!canWrite || group.links.length >= MENU_LIMITS.links} onClick={() => addLink(gi)}>+ Añadir enlace al grupo</button>
             </section>)}
           </div>
           <div className={styles.visualLegal}>{menu.legal.filter((link) => link.enabled).map((link) => <span key={link.id}>{link.label}</span>)}</div>
         </div>
-        <button type="button" className={styles.visualAdd} disabled={!canWrite || selected.groups.length >= 8} onClick={addGroup}>+ Añadir grupo desplegable</button>
+        <button type="button" className={styles.visualAdd} disabled={!canWrite || selected.groups.length >= MENU_LIMITS.groups} onClick={addGroup}>+ Añadir grupo desplegable</button>
         <p className={styles.hint}>Los elementos ocultos se muestran atenuados aquí para poder recuperarlos. El acceso destacado y los enlaces inferiores se editan en sus apartados; Login y Admin son fijos.</p>
       </>}
     </section>

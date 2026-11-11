@@ -19,6 +19,6 @@ describe("contenido del menú 2", () => {
   it("rechaza ids repetidos, datos malformados y exceso de entradas", () => {
     const menu = defaultDockMenu(); menu.items[1].id = menu.items[0].id; expect(() => validateDockMenu(menu)).toThrow();
     const other = defaultDockMenu(); other.items[0].href = "javascript:alert(1)"; expect(() => validateDockMenu(other)).toThrow();
-    const long = defaultDockMenu(); long.items = Array(11).fill(long.items[0]); expect(() => validateDockMenu(long)).toThrow();
+    const long = defaultDockMenu(); long.items = Array.from({ length: 22 }, (_, i) => ({ id: `long-${i}`, label: "Enlace", href: "/", enabled: true, groups: [] })); expect(() => validateDockMenu(long)).toThrow();
   });
 });
