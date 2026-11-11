@@ -32,7 +32,9 @@ export function productosDeTienda(productos) {
       name: item.nombre,
       line: typeof item.categoria === "string" ? item.categoria : "Productos de tienda",
       category: CATEGORIAS[normalizarBusqueda(typeof item.categoria === "string" ? item.categoria : "")] || "otras",
-      image: typeof item.foto === "string" && (/^\/(?!\/)/.test(item.foto) || /^https:\/\//i.test(item.foto)) ? item.foto : "/catalogo/hero-fiber.jpg",
+      image: typeof item.foto === "string" && item.foto.startsWith(`/api/productos/${encodeURIComponent(item.id)}/foto`)
+        ? `/api/foto-catalogo/${encodeURIComponent(item.id)}`
+        : typeof item.foto === "string" && (/^\/(?!\/)/.test(item.foto) || /^https:\/\//i.test(item.foto)) ? item.foto : "/catalogo/hero-fiber.jpg",
       href: `/tienda/producto/${encodeURIComponent(item.id)}`,
       offer: false,
     }));

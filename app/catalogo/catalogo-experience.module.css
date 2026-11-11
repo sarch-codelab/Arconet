@@ -1335,3 +1335,28 @@
 @media (max-width: 620px) {
   .catalogToolbar .chipInner { padding-right: 16px; }
 }
+
+/* Exploración por línea: filtros envolventes y páginas de hasta seis, sin
+   deslizar la fila ni añadir precios o indicadores de popularidad ficticios. */
+.explora { padding: clamp(18px, 2vw, 28px); border: 1px solid var(--line); border-radius: 18px; background: var(--soft); }
+.exploraHead { display: flex; justify-content: space-between; align-items: end; gap: 12px; }
+.exploraFilters { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 16px 0 18px; border-bottom: 1px solid var(--line); }
+.exploraFilters button { position: relative; padding: 8px 0 11px; border: 0; background: none; color: var(--muted); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.exploraFilters button:hover, .exploraFilters button[aria-pressed="true"] { color: var(--accent-ink); }
+.exploraFilters button[aria-pressed="true"]::after { content: ""; position: absolute; right: 0; bottom: -1px; left: 0; height: 2px; border-radius: 2px; background: var(--accent-ink); }
+.exploraGrid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+.exploraCard { min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.exploraMedia { position: relative; display: block; aspect-ratio: 1 / 1; overflow: hidden; background: var(--surface); }
+.exploraImage { object-fit: cover; transition: transform 300ms ease; }
+.exploraCard:hover .exploraImage { transform: scale(1.04); }
+.exploraCopy { display: flex; flex-direction: column; gap: 5px; padding: 12px; overflow-wrap: anywhere; }
+.exploraCopy a { color: var(--ink); font-size: 12px; font-weight: 700; line-height: 1.35; text-decoration: none; }
+.exploraCopy a:hover { color: var(--accent-ink); }
+.exploraCopy span { color: var(--muted); font-size: 10.5px; line-height: 1.4; }
+.exploraEmpty { padding: 30px 16px; border: 1px dashed var(--line); border-radius: 12px; background: var(--surface); color: var(--muted); font-size: 13px; text-align: center; }
+@media (max-width: 900px) { .exploraGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 620px) {
+  .explora { padding: 16px 12px; }
+  .exploraFilters { gap: 2px 14px; }
+  .exploraGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+}
