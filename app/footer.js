@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { ArrowUp, Clock, Mail, MapPin, Phone } from "lucide-react";
 import { FAMILIES } from "./tienda/catalogo-data";
 import styles from "./footer.module.css";
@@ -37,11 +38,58 @@ const SOCIAL = [
   },
 ];
 
-const SEDES = ["San Pedro Sula", "Tegucigalpa"];
 const HORARIO = "Lun–Vie 8:00–17:00 · Sáb 8:00–12:00";
 const DIRECCION = "4 Calle 11 Avenida, Barrio Guamilito";
 
+export function Sedes({ estado, sedes }) {
+  return (
+    <div className={styles.sedes} aria-live="polite" aria-busy={estado === "cargando"}>
+      <span className={styles.sedesLabel}>Sedes</span>
+      {estado === "cargando" && <span className={styles.sedesEstado}>Cargando sedes…</span>}
+      {estado === "error" && <span className={styles.sedesEstado}>No se pudieron cargar las sedes.</span>}
+      {estado === "listo" && sedes.length === 0 && <span className={styles.sedesEstado}>No hay sedes activas en este momento.</span>}
+      {estado === "listo" && sedes.map((sede) => (
+        <span key={sede.id} className={styles.sede}>{sede.nombre} · {sede.ciudad}</span>
+      ))}
+    </div>
+  );
+}
+
 export default function Footer() {
+  const [sedes, setSedes] = useState({ estado: "cargando", sedes: [] });
+  useEffect(() => {
+    let active = true;
+    let sequence = 0;
+    let controller;
+    const refresh = async () => {
+      const request = ++sequence;
+      controller?.abort();
+      controller = new AbortController();
+      try {
+        const response = await fetch("/api/sedes-publicas", { cache: "no-store", signal: controller.signal });
+        if (!response.ok) throw new Error("No disponible");
+        const data = await response.json();
+        if (!Array.isArray(data.sedes) || !data.sedes.every(s => typeof s.id === "string" && typeof s.nombre === "string" && typeof s.ciudad === "string")) throw new Error("Datos inválidos");
+        if (active && request === sequence) setSedes({ estado: "listo", sedes: data.sedes });
+      } catch {
+        if (active && request === sequence) setSedes({ estado: "error", sedes: [] });
+      }
+    };
+    const onVisible = () => { if (document.visibilityState === "visible") refresh(); };
+    refresh();
+    window.addEventListener("focus", onVisible);
+    window.addEventListener("pageshow", onVisible);
+    document.addEventListener("visibilitychange", onVisible);
+    const interval = window.setInterval(onVisible, 60000);
+    return () => {
+      active = false;
+      controller?.abort();
+      window.clearInterval(interval);
+      window.removeEventListener("focus", onVisible);
+      window.removeEventListener("pageshow", onVisible);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, []);
   const { email: CONTACT_EMAIL, phone: CONTACT_PHONE, phoneHref: CONTACT_PHONE_HREF } = useContact();
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -174,14 +222,7 @@ export default function Footer() {
             </li>
           </ul>
 
-          <div className={styles.sedes}>
-            <span className={styles.sedesLabel}>Sedes</span>
-            {SEDES.map((sede) => (
-              <span key={sede} className={styles.sede}>
-                {sede}
-              </span>
-            ))}
-          </div>
+          <Sedes estado={sedes.estado} sedes={sedes.sedes} />
         </div>
       </div>
 
