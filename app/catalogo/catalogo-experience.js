@@ -30,6 +30,7 @@ import {
   Wrench,
 } from "lucide-react";
 import Footer from "../footer";
+import ExploraLineas from "./explora-lineas";
 import {
   BENEFITS,
   BRANDS,
@@ -77,7 +78,7 @@ export default function CatalogoExperience() {
   const [paginaProductos, setPaginaProductos] = useState(0);
   const [paginaMarcas, setPaginaMarcas] = useState(0);
   const [paginaIdeas, setPaginaIdeas] = useState(0);
-  const { products: inventario } = useCatalogProducts();
+  const { products: inventario, loading: cargandoInventario, error: errorInventario } = useCatalogProducts();
   const productosRef = useRef(null);
   const categoriasBotonRef = useRef(null);
   const cuentaBotonRef = useRef(null);
@@ -416,7 +417,7 @@ export default function CatalogoExperience() {
                       src={producto.image}
                       alt=""
                       fill
-                      unoptimized={producto.image.startsWith("https://")}
+                      unoptimized={producto.image.startsWith("https://") || producto.image.startsWith("/api/foto-catalogo/")}
                       sizes="(max-width: 620px) 46vw, (max-width: 900px) 31vw, 16vw"
                       className={styles.productImg}
                       draggable={false}
@@ -503,7 +504,9 @@ export default function CatalogoExperience() {
           </div>
         </section>
 
-        {/* Ofertas y líneas destacadas, justo debajo de fabricantes. */}
+        <ExploraLineas productos={destacados} loading={cargandoInventario} error={errorInventario} />
+
+        {/* Ofertas y líneas destacadas. */}
         <section className={`${styles.section} ${styles.dealShowcase}`} aria-labelledby="titulo-ofertas-destacadas">
           <div className={styles.dealHead}>
             <div>
