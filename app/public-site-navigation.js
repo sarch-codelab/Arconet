@@ -21,9 +21,16 @@ export default function PublicSiteNavigation() {
   const { count, open } = useCart();
   useEffect(() => {
     if (!enabled) return undefined;
-    const update = () => setScrolled(window.scrollY > 100);
-    update(); window.addEventListener("scroll", update, { passive: true });
-    return () => window.removeEventListener("scroll", update);
+    const update = () => {
+      // En la vitrina el buscador y los filtros se desplazan con el contenido;
+      // el dock entra cuando la herramienta ya salió, sin taparla al pasar.
+      const toolbar = pathname === "/catalogo" ? document.querySelector("[data-catalog-toolbar]") : null;
+      setScrolled(toolbar ? toolbar.getBoundingClientRect().bottom <= 0 : window.scrollY > 100);
+    };
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => { window.removeEventListener("scroll", update); window.removeEventListener("resize", update); };
   }, [enabled, pathname]);
   if (!enabled) return null;
   const cart = <button type="button" className={styles.cart} onClick={open} aria-label={`Carrito, ${count} ${count === 1 ? "unidad" : "unidades"}`}><ShoppingCart size={17} aria-hidden="true" /><span>Carrito</span>{count > 0 && <b>{count > 99 ? "99+" : count}</b>}</button>;

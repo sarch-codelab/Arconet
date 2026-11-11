@@ -211,12 +211,11 @@ describe("estilos: responsive, modo oscuro y contratos de imagen", () => {
     expect(css).not.toContain("@keyframes");
   });
 
-  it("el logo de la cabecera no se pide a 3840px", () => {
-    const js = leer(EXPERIENCIA);
-    const bloque = js.match(/<Image[\s\S]{0,300}?\/arconet\.png[\s\S]{0,300}?\/>/)?.[0] || "";
+  it("usa solo el logo optimizado de la navegación compartida", () => {
+    expect(leer(EXPERIENCIA)).not.toContain('src="/arconet.png"');
+    const bloque = leer("app/nav-dock.js").match(/<Image[\s\S]{0,300}?\/arconet\.png[\s\S]{0,300}?\/>/)?.[0] || "";
     expect(bloque).toContain("sizes=");
     expect(bloque).toContain('fetchPriority="low"');
-    expect(leer(CSS)).not.toMatch(/\.brandImg\s*\{[^}]*width:\s*clamp\(/);
   });
 
   it("solo la foto del hero es prioritaria", () => {
