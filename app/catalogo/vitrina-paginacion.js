@@ -29,6 +29,7 @@ export function productosDeTienda(productos) {
     .map((item) => ({
       id: item.id,
       origen: "tienda",
+      creado: item.creado || null,
       name: item.nombre,
       line: typeof item.categoria === "string" ? item.categoria : "Productos de tienda",
       category: CATEGORIAS[normalizarBusqueda(typeof item.categoria === "string" ? item.categoria : "")] || "otras",

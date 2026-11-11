@@ -1339,9 +1339,9 @@
 /* Exploración por línea: filtros envolventes y páginas de hasta seis, sin
    deslizar la fila ni añadir precios o indicadores de popularidad ficticios. */
 .explora { padding: clamp(18px, 2vw, 28px); border: 1px solid var(--line); border-radius: 18px; background: var(--soft); }
-.exploraHead { display: flex; justify-content: space-between; align-items: end; gap: 12px; }
-.exploraFilters { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 16px 0 18px; border-bottom: 1px solid var(--line); }
-.exploraFilters button { position: relative; padding: 8px 0 11px; border: 0; background: none; color: var(--muted); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.exploraHead { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }
+.exploraFilters { display: flex; flex: 1; flex-wrap: wrap; justify-content: space-between; gap: 6px 18px; border-bottom: 1px solid var(--line); }
+.exploraFilters button { position: relative; padding: 8px 0 11px; border: 0; background: none; color: var(--muted); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; text-align: left; }
 .exploraFilters button:hover, .exploraFilters button[aria-pressed="true"] { color: var(--accent-ink); }
 .exploraFilters button[aria-pressed="true"]::after { content: ""; position: absolute; right: 0; bottom: -1px; left: 0; height: 2px; border-radius: 2px; background: var(--accent-ink); }
 .exploraGrid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
@@ -1357,6 +1357,7 @@
 @media (max-width: 900px) { .exploraGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 620px) {
   .explora { padding: 16px 12px; }
-  .exploraFilters { gap: 2px 14px; }
+  .exploraHead { flex-wrap: wrap; justify-content: flex-end; }
+  .exploraFilters { flex: 1 0 100%; gap: 2px 14px; }
   .exploraGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 }

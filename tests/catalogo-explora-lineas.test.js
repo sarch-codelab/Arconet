@@ -4,53 +4,59 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/catalogo", useRouter: () => ({ push() {}, refresh() {}, prefetch() {} }), useSearchParams: () => new URLSearchParams() }));
-import ExploraLineas, { productosPorLinea } from "../app/catalogo/explora-lineas";
+import ExploraLineas, { productosDeSeccion, SECCIONES } from "../app/catalogo/explora-lineas";
 import CatalogoExperience from "../app/catalogo/catalogo-experience";
 import { PRODUCTS } from "../app/catalogo/vitrina-data";
 import { paginaDe, productosDeTienda } from "../app/catalogo/vitrina-paginacion";
+import { leerVistos, registrarVisto, VISTOS_KEY } from "../app/catalogo/vistos-recientes";
 import { CartProvider } from "../app/cart-context";
 import { ContactProvider } from "../app/contact-provider";
 
-const tienda = productosDeTienda(Array.from({ length: 8 }, (_, i) => ({ id: `equipo-${i}`, nombre: `Equipo ${i}`, categoria: "Componentes pasivos", stock: 5, foto: "/catalogo/hero-fiber.jpg" })));
+const tienda = productosDeTienda(Array.from({ length: 8 }, (_, i) => ({ id: `equipo-${i}`, nombre: `Equipo ${i}`, categoria: "Componentes pasivos", stock: 5, creado: `2026-01-0${i + 1}T00:00:00Z`, foto: "/catalogo/hero-fiber.jpg" })));
 const productos = [...PRODUCTS, ...tienda];
-const render = (props) => renderToStaticMarkup(createElement(ExploraLineas, props));
+const render = props => renderToStaticMarkup(createElement(ExploraLineas, props));
 
-describe("exploración de equipos bajo las marcas", () => {
-  it("muestra categorías reales y conserva los destinos sin inventar métricas ni precios", () => {
+describe("selecciones de equipos bajo las marcas", () => {
+  it("muestra los seis textos de la referencia y novedades reales, sin precios ni reseñas inventadas", () => {
     const html = render({ productos, loading: false, error: false });
-    expect(html).toContain("Explora nuestros equipos");
-    expect(html).toContain('aria-label="Explorar equipos por línea"');
-    expect(html).toContain('aria-pressed="true">Todas');
-    expect(html).toContain('href="/tienda/producto/equipo-0"');
+    for (const opcion of SECCIONES) expect(html).toContain(opcion.label);
+    expect(html).toContain('aria-pressed="true">Novedades');
+    expect(html).toContain('href="/tienda/producto/equipo-7"');
     expect(html.match(/<article/g)).toHaveLength(6);
-    expect(html).not.toMatch(/IA recomend|más vendidos|mejor valorados|heart|carrito|\$\d|L\s*\d/i);
+    expect(html).not.toMatch(/heart|carrito|\$\d|L\s*\d/i);
+    expect(html).not.toContain('>Componentes pasivos</button>');
   });
-  it("filtra de manera independiente por línea y pagina en grupos de seis", () => {
-    expect(productosPorLinea(productos, "destacados")).toEqual(PRODUCTS);
-    expect(productosPorLinea(productos, "todas")).toHaveLength(14);
-    expect(productosPorLinea(productos, "todas")[0].origen).toBe("tienda");
-    expect(paginaDe(productosPorLinea(productos, "todas"), 2).elementos[0].href).toMatch(/^\/catalogo\/ficha\//);
-    expect(productosPorLinea(productos, "pasivos")).toHaveLength(8);
-    expect(paginaDe(productosPorLinea(productos, "pasivos"), 1).elementos).toHaveLength(2);
-    expect(productosPorLinea(productos, "ofertas").every(p => p.offer)).toBe(true);
-    expect(productosPorLinea(productos, "gabinetes")[0].href).toMatch(/^\/catalogo\/ficha\//);
-    expect(productosPorLinea(productos, "pasivos")[0].href).toBe("/tienda/producto/equipo-0");
+  it("ordena novedades por fecha real y pagina de seis", () => {
+    const novedades = productosDeSeccion(productos, "novedades");
+    expect(novedades.map(p => p.id)).toEqual(tienda.map(p => p.id).reverse());
+    expect(paginaDe(novedades, 1).elementos).toHaveLength(2);
+    expect(productosDeSeccion([{ ...tienda[0], creado: null }, ...PRODUCTS], "novedades")).toEqual([]);
   });
-  it("distingue carga, error y ausencia de equipos", () => {
+  it("no inventa recomendaciones, ventas, tendencias ni valoraciones", () => {
+    for (const seccion of ["ia", "tendencia", "vendidos", "valorados"]) expect(productosDeSeccion(productos, seccion)).toEqual([]);
+  });
+  it("recuerda visitas de ambas fichas, en orden, y solo muestra productos disponibles", () => {
+    const map = new Map(); const storage = { getItem: k => map.get(k), setItem: (k, v) => map.set(k, v) };
+    registrarVisto(storage, PRODUCTS[0].href); registrarVisto(storage, tienda[0].href); registrarVisto(storage, PRODUCTS[0].href);
+    expect(leerVistos(storage)).toEqual([PRODUCTS[0].href, tienda[0].href]);
+    expect(productosDeSeccion(productos, "vistos", leerVistos(storage))).toEqual([PRODUCTS[0], tienda[0]]);
+    expect(productosDeSeccion(PRODUCTS, "vistos", leerVistos(storage))).toEqual([PRODUCTS[0]]);
+    map.set(VISTOS_KEY, "no es json"); expect(leerVistos(storage)).toEqual([]);
+    expect(() => registrarVisto({ getItem() { throw new Error(); }, setItem() { throw new Error(); } }, "/")).not.toThrow();
+  });
+  it("distingue carga, error y ausencia de novedades", () => {
     expect(render({ productos: [], loading: true, error: false })).toContain("Cargando equipos disponibles");
     expect(render({ productos: [], loading: false, error: true })).toContain("No pudimos cargar los equipos");
-    expect(render({ productos: [], loading: false, error: false })).toContain("No hay equipos disponibles");
+    expect(render({ productos: [], loading: false, error: false })).toContain("Todavía no hay novedades disponibles");
   });
-  it("se coloca inmediatamente tras las marcas sin quitar la vitrina de ofertas", () => {
+  it("permanece tras las marcas y antes de las ofertas", () => {
     const html = renderToStaticMarkup(createElement(ContactProvider, { contact: { email: "test@example.com", phone: "0000", phoneHref: "tel:0000" } }, createElement(CartProvider, null, createElement(CatalogoExperience))));
     const marcas = html.indexOf('aria-label="Fabricantes que distribuimos"');
     const explora = html.indexOf('aria-labelledby="titulo-explora-lineas"');
     const ofertas = html.indexOf('aria-labelledby="titulo-ofertas-destacadas"');
     expect(marcas).toBeGreaterThan(-1); expect(explora).toBeGreaterThan(marcas); expect(ofertas).toBeGreaterThan(explora);
-    const js = readFileSync("app/catalogo/catalogo-experience.js", "utf8");
-    expect(js).toMatch(/<\/section>\s*<ExploraLineas productos=\{destacados\}/);
   });
-  it("usa filtros sin carrusel y una cuadrícula adaptable", () => {
+  it("mantiene cuadrícula adaptable y solo flechas para avanzar", () => {
     const css = readFileSync("app/catalogo/catalogo-experience.module.css", "utf8");
     const js = readFileSync("app/catalogo/explora-lineas.js", "utf8");
     expect(css).toMatch(/\.exploraFilters\s*\{[^}]*flex-wrap: wrap/);
