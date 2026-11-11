@@ -61,9 +61,15 @@
 .topbar {
   position: sticky;
   top: 0;
-  z-index: 40;
+  z-index: 39;
   background: var(--surface);
   border-bottom: 1px solid var(--line);
+}
+
+/* Cuando aparece el dock, el buscador permanece accesible debajo de él.
+   El atributo refleja también la apertura del menú móvil. */
+:global([data-scroll-dock-visible="true"]) ~ .page .topbar {
+  top: calc(20px + clamp(62px, 3.6vw, 78px));
 }
 
 .topbarInner {
@@ -617,7 +623,8 @@
   width: calc(100% - clamp(24px, 5vw, 72px));
   max-width: 1400px;
   margin: clamp(28px, 3vw, 44px) auto 0;
-  scroll-margin-top: 108px;
+  /* Espacio para el dock flotante y la cabecera fija al ir a destacados. */
+  scroll-margin-top: 180px;
 }
 
 .sectionHead {
@@ -1264,6 +1271,7 @@
 }
 
 @media (max-width: 900px) {
+  .section { scroll-margin-top: 220px; }
   .topbarInner { grid-template-columns: auto minmax(140px, 1fr) auto; gap: 12px; }
   .mainNav { display: none; }
   .heroContent { width: 60%; }
@@ -1277,7 +1285,16 @@
   .bottomStrip { flex-direction: column; align-items: flex-start; }
 }
 
+@media (max-width: 760px) {
+  :global([data-scroll-dock-visible="true"]) ~ .page .topbar { top: 76px; }
+}
+
+@media (max-width: 420px) {
+  :global([data-scroll-dock-visible="true"]) ~ .page .topbar { top: 70px; }
+}
+
 @media (max-width: 620px) {
+  .section { scroll-margin-top: 240px; }
   .topbarInner { grid-template-columns: auto 1fr; gap: 10px; }
   .brandImg { width: 108px; }
   .search { grid-column: 1 / -1; grid-row: 2; max-width: none; }
