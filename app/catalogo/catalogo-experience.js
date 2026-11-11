@@ -251,24 +251,6 @@ export default function CatalogoExperience() {
                 </div>
               )}
             </div>
-            <div className={styles.chips} role="group" aria-label="Filtrar por línea">
-              {CHIPS.map((item) => {
-                const Icono = ICONOS[item.icon];
-                const activo = chip === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className={`${styles.chip}${activo ? ` ${styles.chipActive}` : ""}`}
-                    aria-pressed={activo}
-                    onClick={() => { setPaginaProductos(0); setChip(item.id); }}
-                  >
-                    <Icono size={14} aria-hidden="true" />
-                    {item.label}
-                  </button>
-                );
-              })}
-            </div>
             <div
               className={styles.headerActions}
               onBlur={(event) => {

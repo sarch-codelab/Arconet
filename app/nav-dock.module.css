@@ -371,7 +371,7 @@
   background: rgba(21, 68, 181, 0.12);
 }
 
-.desktopMenuAdmin {
+.desktopMenuAuth .desktopMenuAdmin {
   border: 1px solid #171a22;
   background: #171a22;
   color: #fff;
@@ -1246,7 +1246,7 @@
   background: rgba(127, 166, 255, 0.2);
 }
 
-:global(html[data-theme="dark"]) .desktopMenuAdmin {
+:global(html[data-theme="dark"]) .desktopMenuAuth .desktopMenuAdmin {
   border-color: #eef1f7;
   background: #eef1f7;
   color: #101827;
