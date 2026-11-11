@@ -230,13 +230,15 @@
 /* Mega menú: tarjeta flotante con columnas */
 .desktopMenu {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% - 2px);
   right: 0;
   left: 0;
   z-index: 60;
   display: grid;
   gap: 14px;
   padding: 16px;
+  max-height: calc(100vh - 96px);
+  overflow-y: auto;
   /* Mismo contenido que el menú de móvil, repartido a lo ancho. */
   width: min(1180px, calc(100vw - 48px));
   margin: 0 auto;

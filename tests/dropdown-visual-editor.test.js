@@ -32,7 +32,7 @@ describe("editor visual de desplegables", () => {
 
   it("respeta permisos, acceso destacado oculto y límite de grupos", () => {
     const menu = defaultDockMenu(); menu.primary.enabled = false;
-    menu.items[1].groups = Array.from({ length: 8 }, (_, i) => ({ id: `test-${i}`, title: `Grupo ${i}`, enabled: true, links: [] }));
+    menu.items[1].groups = Array.from({ length: 16 }, (_, i) => ({ id: `test-${i}`, title: `Grupo ${i}`, enabled: true, links: [] }));
     const html = render(menu);
     expect(html).not.toContain("Explora todos los productos");
     expect(html).toMatch(/disabled=""[^>]*>\+ Añadir grupo desplegable/);

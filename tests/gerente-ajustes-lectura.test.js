@@ -21,7 +21,7 @@ describe("consulta de Ajustes para gerente", () => {
   it("informa el modo de solo lectura en el panel", () => {
     const html = renderToStaticMarkup(createElement(AjustesSection, { session: { rol: "gerente", permisos: DEFAULT_MANAGER_PERMISSIONS }, workers: [] }));
     expect(html).toContain("Acceso de solo lectura");
-    expect(html).toContain("Menú de navegación 1");
+    expect(html).toContain("Menú de navegación");
     expect(html).toContain("Datos fiscales y CAI");
   });
   it("actualiza el rol existente de forma aditiva e idempotente sin reactivarlo", () => {

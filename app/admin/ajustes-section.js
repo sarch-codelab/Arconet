@@ -24,8 +24,7 @@ function SettingsDisclosure({ title, description, pending, children }) {
 
 export default function AjustesSection({ session, workers = [] }) {
   const [settings, setSettings] = useState(null);
-  const [menu1Dirty, setMenu1Dirty] = useState(false);
-  const [menu2Dirty, setMenu2Dirty] = useState(false);
+  const [menuDirty, setMenuDirty] = useState(false);
   const [companyDirty, setCompanyDirty] = useState(false);
   const [fiscalDirty, setFiscalDirty] = useState(false);
   const savedTheme = useRef(null);
@@ -100,11 +99,8 @@ export default function AjustesSection({ session, workers = [] }) {
           <SettingsDisclosure title="Páginas públicas" description="Activar o desactivar páginas del sitio.">
             <PublicPagesSettings session={session} />
           </SettingsDisclosure>
-          <SettingsDisclosure title="Menú de navegación 1" description="Barra inicial y desplegables." pending={menu1Dirty}>
-            <DockMenuSettings session={session} menuNumber={1} onDirtyChange={setMenu1Dirty} />
-          </SettingsDisclosure>
-          <SettingsDisclosure title="Menú de navegación 2" description="Barra al desplazarse y desplegables." pending={menu2Dirty}>
-            <DockMenuSettings session={session} menuNumber={2} onDirtyChange={setMenu2Dirty} />
+          <SettingsDisclosure title="Menú de navegación" description="Una sola configuración para la barra inicial, la flotante y sus desplegables." pending={menuDirty}>
+            <DockMenuSettings session={session} onDirtyChange={setMenuDirty} />
           </SettingsDisclosure>
         </div>
         <div className={organization.group}>

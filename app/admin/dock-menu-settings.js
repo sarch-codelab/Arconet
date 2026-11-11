@@ -52,8 +52,9 @@ function EditList({ title, entries, path, kind, change, canWrite }) {
   );
 }
 
-export default function DockMenuSettings({ session, menuNumber = 2, onDirtyChange }) {
-  const api = menuNumber === 1 ? "/api/configuracion/menu-navegacion-1" : "/api/configuracion/menu-navegacion";
+export default function DockMenuSettings({ session, onDirtyChange }) {
+  const menuNumber = 1;
+  const api = "/api/configuracion/menu-navegacion";
   const canWrite = session?.permisos?.includes("ajustes:read") && session?.permisos?.includes("ajustes:write");
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -70,7 +71,7 @@ export default function DockMenuSettings({ session, menuNumber = 2, onDirtyChang
     apiFetch(api, { cache: "no-store" }).then(async (response) => {
       const value = await response.json().catch(() => ({}));
       if (!response.ok || !value.menu) throw new Error(value.error || "No se pudo cargar el menú.");
-      if (active) { setData(value); setDirty(false); if (value.corrupt) setNotice("La configuración anterior no es válida. Se muestran los valores originales; guárdalos para restaurarla."); }
+      if (active) { setData(value); setDirty(false); if (value.corrupt) setNotice("Una configuración anterior no se pudo leer. Se conserva como respaldo; revisa el menú antes de guardar."); }
     }).catch((err) => { if (active) setError(err.message); }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [retry, api]);
@@ -96,13 +97,15 @@ export default function DockMenuSettings({ session, menuNumber = 2, onDirtyChang
       window.dispatchEvent(new Event(MENU_UPDATED_EVENT));
       try { window.localStorage.setItem(MENU_UPDATED_KEY, `${Date.now()}-${Math.random()}`); } catch { /* La actualización por foco y periódica sigue activa. */ }
       try {
-        const publicUrl = menuNumber === 1 ? "/api/menu-navegacion-1" : "/api/menu-navegacion";
-        const publicResponse = await fetch(publicUrl, { cache: "no-store" });
-        const publicData = await publicResponse.json();
-        if (!publicResponse.ok || JSON.stringify(publicData.menu) !== JSON.stringify(visibleDockMenu(result.menu))) throw new Error("El contenido público no coincide con lo guardado.");
-        setNotice(`Menú ${menuNumber} guardado y comprobado en la consulta pública. Las páginas abiertas se actualizan automáticamente.`);
+        const results = await Promise.all(["/api/menu-navegacion-1", "/api/menu-navegacion"].map(async (url) => {
+          const response = await fetch(url, { cache: "no-store" });
+          const value = await response.json();
+          return response.ok && JSON.stringify(value.menu) === JSON.stringify(visibleDockMenu(result.menu));
+        }));
+        if (!results.every(Boolean)) throw new Error("El contenido público no coincide con lo guardado.");
+        setNotice("Menú guardado y comprobado en las dos barras públicas. Las páginas abiertas se actualizan automáticamente.");
       } catch {
-        setError(`El menú ${menuNumber} se guardó, pero no se pudo confirmar su publicación. Recarga y verifica la conexión o la configuración del servidor.`);
+        setError("El menú se guardó, pero no se pudo confirmar su publicación en ambas barras. Recarga y verifica la conexión o la configuración del servidor.");
       }
     } catch (err) { setError(err.message); }
     finally { setSaving(false); }
@@ -114,15 +117,21 @@ export default function DockMenuSettings({ session, menuNumber = 2, onDirtyChang
 
   return (
     <section className={admin.card} aria-labelledby={`dock-menu-settings-title-${menuNumber}`}>
-      <header className={admin.cardHeader}><h3 id={`dock-menu-settings-title-${menuNumber}`}><Menu size={18} /> Menú de navegación {menuNumber}</h3></header>
+      <header className={admin.cardHeader}><h3 id={`dock-menu-settings-title-${menuNumber}`}><Menu size={18} /> Menú de navegación compartido</h3></header>
       <div className={styles.content}>
-        <p className={styles.hint}>{menuNumber === 1 ? "Edita la barra inicial del hero y su menú desplegable en escritorio y móvil. El menú 2 no cambia." : "Edita la barra que aparece al desplazarte y su menú desplegable en escritorio y móvil. El menú 1 no cambia."} Los accesos a Login y Admin permanecen fijos.</p>
+        <p className={styles.hint}>Una sola configuración para la barra inicial y la barra que aparece al desplazarte, en escritorio y móvil. Los accesos a Login y Admin permanecen fijos.</p>
         <p className={styles.hint}>Los destinos pueden ser rutas del sitio (como /tienda), secciones (como #inicio) o enlaces HTTPS. Ocultar un enlace no desactiva su página.</p>
         {!canWrite && <p className={styles.hint}>Solo lectura: necesitas permiso de escritura de Ajustes para modificar el menú.</p>}
         {(loading || !data) && error && <p className={styles.error} role="alert">{error}</p>}
         {(loading || !data) && notice && <p className={styles.notice} role="status">{notice}</p>}
         {loading ? <p className={styles.hint}>Cargando menú…</p> : !data ? <button className={admin.ghostBtn} type="button" onClick={reload}>Reintentar</button> : (
           <form onSubmit={save} noValidate>
+            {data.combined && <p className={styles.notice}>Se combinaron los menús anteriores. Si una misma entrada tenía valores diferentes, se conservan ambas versiones para que puedas revisarlas. Las configuraciones originales permanecen guardadas como respaldo.</p>}
+            {data.legacyPrimary?.length === 2 && JSON.stringify(data.legacyPrimary[0]) !== JSON.stringify(data.legacyPrimary[1]) && <details className={styles.preview}>
+              <summary>Consultar accesos destacados anteriores</summary>
+              <p>El acceso destacado actual parte del menú 1. Si el acceso del menú 2 era diferente, se conservó su enlace en la barra y su descripción original se muestra aquí.</p>
+              {data.legacyPrimary.map((primary, index) => <p key={index}>Menú {index + 1}: {primary.label} → {primary.href} · {primary.description} · {primary.enabled ? "visible" : "oculto"}</p>)}
+            </details>}
             <details className={styles.preview}>
               <summary>Vista previa del contenido {dirty ? "(con cambios sin guardar)" : "guardado"}</summary>
               <p>Barra: {visibleDockMenu(data.menu).items.map((item) => item.label).join(" · ") || "Sin enlaces visibles"}</p>
