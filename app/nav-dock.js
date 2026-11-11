@@ -136,6 +136,7 @@ export default function NavDock({
       className={`${styles.topbar}${esScroll ? "" : variant === "inline" ? ` ${styles.topbarInline}` : ` ${styles.topbarFixed}`}${cartAction ? ` ${styles.topbarWithCart}` : ""}${menuOpen ? ` ${styles.topbarMenuOpen}` : ""}${
         esScroll ? ` ${visibleDock ? styles.topbarVisible : styles.topbarHidden}` : ""
       }`}
+      data-scroll-dock-visible={esScroll && visibleDock ? "true" : undefined}
       aria-hidden={esScroll && !visibleDock ? true : undefined}
     >
       <span className={styles.scrollProgress} aria-hidden="true">
